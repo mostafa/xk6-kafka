@@ -67,6 +67,8 @@ export default function () {
 }
 ```
 
+And here's the test result output:
+
 ```bash
 $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
 
