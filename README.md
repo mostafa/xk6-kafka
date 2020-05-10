@@ -1,27 +1,30 @@
 # k6-plugin-kafka
 
-This project is a k6 plugin that can be used to load test Kafka, using a producer. Currently only a single message is supported, meaning that per each connection to Kafka, one message is sent. So, if you send thousands/millions of message, each message will be a new connection. This is going to be changed.
+This project is a k6 plugin that can be used to load test Kafka, using a producer. Per each connection to Kafka, many messages can be sent, which is basically an array of objects containing key and value.
 
 In order to build the source, you should have the latest version of Go installed. I recommend you to have [gvm: Go version manager](https://github.com/moovweb/gvm) installed.
 
 This project is not feature-complete, nor something to rely on. USE IT AT YOUR OWN RISK.
 
-## Build plugin from source
+## Build k6 from source (with plugin support PR)
 
-```bash
-$ go get github.com/mostafa/k6-plugin-kafka
-$ go build -buildmode=plugin -o kafka.so github.com/mostafa/k6-plugin-kafka
-$ cp kafka.so test.js $GOPATH/src/github.com/loadimpact/k6/
-```
-
-## Build k6 from source (plugin support PR)
+This step will be removed once [the plugin support PR](https://github.com/loadimpact/k6/pull/1396) is merged and in production.
 
 ```bash
 $ go get github.com/loadimpact/k6
 $ cd $GOPATH/src/github.com/loadimpact/k6
 $ git checkout -b andremedeiros-feature/plugins master
-$ git pull https://github.com/andremedeiros/k6.git feature/plugins
+$ git pull -f https://github.com/andremedeiros/k6.git feature/plugins
 $ make
+```
+
+## Build plugin from source
+
+```bash
+$ go get -d github.com/mostafa/k6-plugin-kafka
+$ cd $GOROOT/src/github.com/mostafa/k6-plugin-kafka
+$ go build -buildmode=plugin -o kafka.so
+$ cp kafka.so test.js $GOPATH/src/github.com/loadimpact/k6/
 ```
 
 ## Run & Test
@@ -38,6 +41,31 @@ $ docker logs -f lensesio
 ```
 
 ### k6 Test
+
+The k6 test script is as follows:
+
+```javascript
+import { check } from 'k6';
+import { kafka } from 'k6-plugin/kafka';  // import kafka plugin
+
+export default function () {
+    const output = kafka(
+        ["localhost:9092"],  // bootstrap servers
+        "test-k6-plugin-topic",  // Kafka topic
+        [{
+            key: "module-name",
+            value: "k6-plugin-kafka"
+        },
+        {
+            key: "module-version",
+            value: "0.0.1"
+        }]);
+
+    check(output, {
+        "is sent": result => result == "Sent"
+    });
+}
+```
 
 ```bash
 $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
@@ -61,11 +89,11 @@ $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
 
     ✓ is sent
 
-    checks...............: 100.00% ✓ 55274 ✗ 0
+    checks...............: 100.00% ✓ 55594 ✗ 0
     data_received........: 0 B     0 B/s
     data_sent............: 0 B     0 B/s
-    iteration_duration...: avg=1.08s min=1s med=1.03s max=4.38s p(90)=1.12s p(95)=1.34s
-    iterations...........: 55274   460.616385/s
+    iteration_duration...: avg=1.07s min=1s med=1.03s max=3.88s p(90)=1.11s p(95)=1.32s
+    iterations...........: 55594   463.283038/s
     vus..................: 500     min=500 max=500
     vus_max..............: 500     min=500 max=500
 ```

@@ -12,8 +12,13 @@ export default function () {
     const output = kafka(
         ["localhost:9092"],  // bootstrap servers
         "test-k6-plugin-topic",  // Kafka topic
-        "module-name",  // key
-        "k6-plugin-kafka");  // value
+        [{
+            key: "module-name",
+            value: "k6-plugin-kafka"
+        }, {
+            key: "module-version",
+            value: "0.0.1"
+        }]);
 
     check(output, {
         "is sent": result => result == "Sent"
