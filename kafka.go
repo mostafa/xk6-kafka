@@ -12,17 +12,23 @@ func New() *kafka {
 	return &kafka{}
 }
 
-func (*kafka) Kafka(brokers []string, topic string, key string, value string) string {
+func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string) string {
 	w := kafkago.NewWriter(kafkago.WriterConfig{
 		Brokers:  brokers,
 		Topic:    topic,
 		Balancer: &kafkago.LeastBytes{},
 	})
 
-	err := w.WriteMessages(context.Background(), kafkago.Message{
-		Key:   []byte(key),
-		Value: []byte(value),
-	})
+	kafkaMessages := make([]kafkago.Message, len(messages))
+
+	for i, message := range messages {
+		kafkaMessages[i] = kafkago.Message{
+			Key:   []byte(message["key"]),
+			Value: []byte(message["value"]),
+		}
+	}
+
+	err := w.WriteMessages(context.Background(), kafkaMessages...)
 
 	if err != nil {
 		return "Error"
