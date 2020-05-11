@@ -36,7 +36,7 @@ First, you need to have your Kafka development environment setup. I recommend yo
 Visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
 
 ```bash
-$ docker run --rm --name lensesio --net=host lensesio/fast-data-dev
+$ docker run -d --rm --name lensesio --net=host lensesio/fast-data-dev
 $ docker logs -f lensesio
 ```
 
