@@ -23,7 +23,7 @@ $ make
 ```bash
 $ go get -d github.com/mostafa/k6-plugin-kafka
 $ cd $GOROOT/src/github.com/mostafa/k6-plugin-kafka
-$ go build -buildmode=plugin -ldflags="-s -w" -o kafka.so
+$ go build -mod=mod -buildmode=plugin -ldflags="-s -w" -o kafka.so
 $ cp kafka.so test.js $GOPATH/src/github.com/loadimpact/k6/
 ```
 
