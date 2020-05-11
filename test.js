@@ -9,7 +9,7 @@ import { check } from 'k6';
 import { kafka } from 'k6-plugin/kafka';  // import kafka plugin
 
 export default function () {
-    const output = kafka(
+    const error = kafka(
         ["localhost:9092"],  // bootstrap servers
         "test-k6-plugin-topic",  // Kafka topic
         [{
@@ -20,7 +20,7 @@ export default function () {
             value: "0.0.1"
         }]);
 
-    check(output, {
-        "is sent": result => result == "Sent"
+    check(error, {
+        "is sent": err => err == undefined
     });
 }

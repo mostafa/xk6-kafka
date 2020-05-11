@@ -12,7 +12,7 @@ func New() *kafka {
 	return &kafka{}
 }
 
-func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string) string {
+func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string) error {
 	w := kafkago.NewWriter(kafkago.WriterConfig{
 		Brokers:  brokers,
 		Topic:    topic,
@@ -30,11 +30,6 @@ func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string
 
 	err := w.WriteMessages(context.Background(), kafkaMessages...)
 
-	if err != nil {
-		return "Error"
-	}
-
 	w.Close()
-
-	return "Sent"
+	return err
 }

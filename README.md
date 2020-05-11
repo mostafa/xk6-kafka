@@ -45,28 +45,24 @@ $ docker logs -f lensesio
 The k6 test script is as follows:
 
 ```javascript
-import { check } from "k6";
-import { kafka } from "k6-plugin/kafka"; // import kafka plugin
+import { check } from 'k6';
+import { kafka } from 'k6-plugin/kafka';  // import kafka plugin
 
 export default function () {
-  const output = kafka(
-    ["localhost:9092"], // bootstrap servers
-    "test-k6-plugin-topic", // Kafka topic
-    [
-      {
-        key: "module-name",
-        value: "k6-plugin-kafka",
-      },
-      {
-        key: "module-version",
-        value: "0.0.1",
-      },
-    ]
-  );
+    const error = kafka(
+        ["localhost:9092"],  // bootstrap servers
+        "test-k6-plugin-topic",  // Kafka topic
+        [{
+            key: "module-name",
+            value: "k6-plugin-kafka"
+        }, {
+            key: "module-version",
+            value: "0.0.1"
+        }]);
 
-  check(output, {
-    "is sent": (result) => result == "Sent",
-  });
+    check(error, {
+        "is sent": err => err == undefined
+    });
 }
 ```
 
