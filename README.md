@@ -11,7 +11,7 @@ This project is not feature-complete, nor something to rely on. USE IT AT YOUR O
 This step will be removed once [the plugin support PR](https://github.com/loadimpact/k6/pull/1396) is merged and in production.
 
 ```bash
-$ go get github.com/loadimpact/k6
+$ go get -d github.com/loadimpact/k6
 $ cd $GOPATH/src/github.com/loadimpact/k6
 $ git checkout -b andremedeiros-feature/plugins master
 $ git pull -f https://github.com/andremedeiros/k6.git feature/plugins
@@ -45,25 +45,28 @@ $ docker logs -f lensesio
 The k6 test script is as follows:
 
 ```javascript
-import { check } from 'k6';
-import { kafka } from 'k6-plugin/kafka';  // import kafka plugin
+import { check } from "k6";
+import { kafka } from "k6-plugin/kafka"; // import kafka plugin
 
 export default function () {
-    const output = kafka(
-        ["localhost:9092"],  // bootstrap servers
-        "test-k6-plugin-topic",  // Kafka topic
-        [{
-            key: "module-name",
-            value: "k6-plugin-kafka"
-        },
-        {
-            key: "module-version",
-            value: "0.0.1"
-        }]);
+  const output = kafka(
+    ["localhost:9092"], // bootstrap servers
+    "test-k6-plugin-topic", // Kafka topic
+    [
+      {
+        key: "module-name",
+        value: "k6-plugin-kafka",
+      },
+      {
+        key: "module-version",
+        value: "0.0.1",
+      },
+    ]
+  );
 
-    check(output, {
-        "is sent": result => result == "Sent"
-    });
+  check(output, {
+    "is sent": (result) => result == "Sent",
+  });
 }
 ```
 
