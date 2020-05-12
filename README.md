@@ -4,7 +4,14 @@ This project is a k6 plugin that can be used to load test Kafka, using a produce
 
 In order to build the source, you should have the latest version of Go installed. I recommend you to have [gvm: Go version manager](https://github.com/moovweb/gvm) installed.
 
-This project is not feature-complete, nor something to rely on. USE IT AT YOUR OWN RISK.
+This project is a WIP, so it is not feature-complete, nor something to rely on. USE IT AT YOUR OWN RISK. Over time, I'll try to add a better API, that is common to both Go and JavaScript.
+
+<!-- 
+## Changelog
+
+* v0.0.1
+    - [feat] Added a slightly better API to work with the plugin
+-->
 
 ## Build k6 from source (with plugin support PR)
 
@@ -42,16 +49,24 @@ $ docker logs -f lensesio
 
 ### k6 Test
 
-The k6 test script is as follows:
+The following k6 test script is pretty self-explanatory, but I'll explain them:
+
+1. Import the exposed methods, namely `connect`, `produce` and `close`, using the `k6-plugin/kafka` convention.
+2. `connect` to the bootstrap servers by passing their addresses (as array of string) and the topic you want to write to. You can reuse this server object to produce as many messages as you want, which is discussed next.
+3. Send your list of messages to Kafka using the `produce` method by passing the server object and the list of message. It'll produce an `error` if it fails. So, the check is optional, but `error` being `undefined` means that `produce` successfully returned.
+4. Close the connection.
 
 ```javascript
 import { check } from 'k6';
-import { kafka } from 'k6-plugin/kafka';  // import kafka plugin
+import { connect, produce, close } from 'k6-plugin/kafka';  // import kafka plugin
 
 export default function () {
-    const error = kafka(
+    const server = connect(
         ["localhost:9092"],  // bootstrap servers
         "test-k6-plugin-topic",  // Kafka topic
+    )
+
+    let error = produce(server,
         [{
             key: "module-name",
             value: "k6-plugin-kafka"
@@ -63,6 +78,21 @@ export default function () {
     check(error, {
         "is sent": err => err == undefined
     });
+
+    error = produce(server,
+        [{
+            key: "module-author",
+            value: "Mostafa Moradian"
+        }, {
+            key: "module-purpose",
+            value: "Kafka load testing"
+        }]);
+
+    check(error, {
+        "is sent": err => err == undefined
+    });
+
+    close(server);
 }
 ```
 
@@ -90,11 +120,11 @@ $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
 
     ✓ is sent
 
-    checks...............: 100.00% ✓ 55594 ✗ 0
+    checks...............: 100.00% ✓ 57090 ✗ 0
     data_received........: 0 B     0 B/s
     data_sent............: 0 B     0 B/s
-    iteration_duration...: avg=1.07s min=1s med=1.03s max=3.88s p(90)=1.11s p(95)=1.32s
-    iterations...........: 55594   463.283038/s
+    iteration_duration...: avg=2.08s min=2s med=2.04s max=3.52s p(90)=2.16s p(95)=2.32s
+    iterations...........: 28445   237.04164/s
     vus..................: 500     min=500 max=500
     vus_max..............: 500     min=500 max=500
 ```
