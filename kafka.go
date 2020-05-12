@@ -12,13 +12,15 @@ func New() *kafka {
 	return &kafka{}
 }
 
-func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string) error {
-	w := kafkago.NewWriter(kafkago.WriterConfig{
+func (*kafka) Connect(brokers []string, topic string) *kafkago.Writer {
+	return kafkago.NewWriter(kafkago.WriterConfig{
 		Brokers:  brokers,
 		Topic:    topic,
 		Balancer: &kafkago.LeastBytes{},
 	})
+}
 
+func (*kafka) Produce(writer *kafkago.Writer, messages []map[string]string) error {
 	kafkaMessages := make([]kafkago.Message, len(messages))
 
 	for i, message := range messages {
@@ -28,8 +30,11 @@ func (*kafka) Kafka(brokers []string, topic string, messages []map[string]string
 		}
 	}
 
-	err := w.WriteMessages(context.Background(), kafkaMessages...)
+	err := writer.WriteMessages(context.Background(), kafkaMessages...)
 
-	w.Close()
 	return err
+}
+
+func (*kafka) Close(writer *kafkago.Writer) {
+	writer.Close()
 }
