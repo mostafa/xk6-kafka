@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
+	"reflect"
 	"time"
+	"unsafe"
 
 	"github.com/loadimpact/k6/lib"
 	"github.com/loadimpact/k6/stats"
@@ -50,41 +53,120 @@ func (*kafka) Connect(brokers []string, topic string) *kafkago.Writer {
 	})
 }
 
-func (*kafka) Produce(ctx context.Context, writer *kafkago.Writer, messages []map[string]string) error {
-	state := lib.GetState(ctx)
-	// fmt.Print(isChanClosed(state.Samples))
-	// fmt.Println(state.Samples)
-	kafkaMessages := make([]kafkago.Message, len(messages))
-	for i, message := range messages {
-		kafkaMessages[i] = kafkago.Message{
-			Key:   []byte(message["key"]),
-			Value: []byte(message["value"]),
+type ctxKey int
+
+const (
+	ctxKeyState ctxKey = iota
+)
+
+func GetState(ctx interface{}) (*lib.State, error) {
+	// FIXME: This function is a hack to get lib.State from the context
+
+	contextValues := reflect.ValueOf(ctx).Elem()
+	contextKeys := reflect.TypeOf(ctx).Elem()
+
+	if contextKeys.Kind() == reflect.Struct {
+		for i := 0; i < contextValues.NumField(); i++ {
+			if i != 2 {
+				// Hack to get past a value in context
+				continue
+			}
+			reflectValue := contextValues.Field(i)
+			reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
+			reflectField := contextKeys.Field(i)
+
+			if reflectField.Name != "Context" {
+				return reflectValue.Interface().(*lib.State), nil
+			}
 		}
 	}
 
-	err := writer.WriteMessages(ctx, kafkaMessages...)
-	currentStats := writer.Stats()
+	return nil, errors.New("State is nil")
+}
 
-	tags := make(map[string]string)
-	tags["clientid"] = currentStats.ClientID
-	tags["topic"] = currentStats.Topic
+func (*kafka) Produce(ctx context.Context, writer *kafkago.Writer, messages []map[string]string) error {
+	state, err := GetState(ctx)
 
-	dialsSample := stats.Sample{
-		Time:   time.Now(),
-		Metric: Dials,
-		Tags:   stats.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Dials),
+	if err == nil {
+		kafkaMessages := make([]kafkago.Message, len(messages))
+		for i, message := range messages {
+			kafkaMessages[i] = kafkago.Message{
+				Key:   []byte(message["key"]),
+				Value: []byte(message["value"]),
+			}
+		}
+
+		err := writer.WriteMessages(ctx, kafkaMessages...)
+		currentStats := writer.Stats()
+
+		tags := make(map[string]string)
+		tags["clientid"] = currentStats.ClientID
+		tags["topic"] = currentStats.Topic
+
+		now := time.Now()
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Dials,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Dials),
+		})
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Writes,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Writes),
+		})
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Messages,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Messages),
+		})
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Bytes,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Bytes),
+		})
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Rebalances,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Rebalances),
+		})
+
+		stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+			Time:   now,
+			Metric: Errors,
+			Tags:   stats.IntoSampleTags(&tags),
+			Value:  float64(currentStats.Errors),
+		})
+
+		// values := map[string]float64{
+		// 	"kafka.writer.dial.seconds.avg": currentStats.DialTime.Avg,
+		// 	"kafka.writer.dial.seconds.min": currentStats.DialTime.Min,
+		// 	"kafka.writer.dial.seconds.max": currentStats.DialTime.Max,
+		// }
+
+		// stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+		// 	Type:   cloud.DataTypeMap,
+		// 	Metric: DialTime,
+		// 	Data: &cloud.SampleDataMap{
+		// 		Time:   now,
+		// 		Tags:   stats.IntoSampleTags(&tags),
+		// 		Values: values
+		// 	}
+		// })
+
+		return err
 	}
 
-	stats.PushIfNotDone(ctx, state.Samples, dialsSample)
-	// {
-	// 	Time:   now,
-	// 	Metric: Writes,
-	// 	Value:  float64(currentStats.Writes),
-	// },
-
-	// return error
-	return err
+	return errors.New("State is nil")
 }
 
 func (*kafka) Close(writer *kafkago.Writer) {
