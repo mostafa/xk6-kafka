@@ -5,3 +5,8 @@
 [[constraint]]
   name = "github.com/segmentio/kafka-go"
   version = "0.3.6"
+
+[[constraint]]
+  name = "github.com/loadimpact/k6"
+  version = "0.26.2"
+
