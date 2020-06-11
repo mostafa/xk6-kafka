@@ -118,13 +118,20 @@ $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
 
     done [==========================================================] 2m0s / 2m0s
 
-    ✓ is sent
+    ✗ is sent
+     ↳  97% — ✓ 55263 / ✗ 1556
 
-    checks...............: 100.00% ✓ 57090 ✗ 0
-    data_received........: 0 B     0 B/s
-    data_sent............: 0 B     0 B/s
-    iteration_duration...: avg=2.08s min=2s med=2.04s max=3.52s p(90)=2.16s p(95)=2.32s
-    iterations...........: 28445   237.04164/s
-    vus..................: 500     min=500 max=500
-    vus_max..............: 500     min=500 max=500
+    checks.........................: 97.25% ✓ 55125 ✗ 1556
+    data_received..................: 0 B    0 B/s
+    data_sent......................: 0 B    0 B/s
+    iteration_duration.............: avg=2.1s min=138.92ms med=2.04s max=5.76s p(90)=2.17s p(95)=2.39s
+    iterations.....................: 28280  235.643615/s
+    kafka.writer.dial.count........: 27622  230.160818/s
+    kafka.writer.error.count.......: 0      0/s
+    kafka.writer.message.bytes.....: 2.9 MB 24 kB/s
+    kafka.writer.message.count.....: 110250 918.660131/s
+    kafka.writer.rebalance.count...: 28400  236.643517/s
+    kafka.writer.write.count.......: 55125  459.330066/s
+    vus............................: 500    min=500 max=500
+    vus_max........................: 500    min=500 max=500
 ```
