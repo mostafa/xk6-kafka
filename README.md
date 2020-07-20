@@ -1,3 +1,9 @@
+# Disclaimer
+
+The [k6](https://github.com/loadimpact/k6) [plugin system](https://github.com/loadimpact/k6/issues/1353) is currently experimental. This plugin is a proof of concept, and it isn't supported by the k6 team, and may break in the future. USE IT AT YOUR OWN RISK!
+
+---
+
 # k6-plugin-kafka
 
 This project is a k6 plugin that can be used to load test Kafka, using a producer. Per each connection to Kafka, many messages can be sent, which is basically an array of objects containing key and value.
