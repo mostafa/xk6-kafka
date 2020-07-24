@@ -102,7 +102,7 @@ export default function () {
 }
 ```
 
-And here's the test result output:
+And here's the test result output for k6 version 0.26.2:
 
 ```bash
 $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
@@ -139,5 +139,54 @@ $ ./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
     kafka.writer.rebalance.count...: 28400  236.643517/s
     kafka.writer.write.count.......: 55125  459.330066/s
     vus............................: 500    min=500 max=500
+    vus_max........................: 500    min=500 max=500
+```
+
+And here's the test result output for k6 version 0.27.0 (master branch):
+
+```bash
+./k6 run --vus 500 --duration 2m --plugin=kafka.so test.js
+
+          /\      |‾‾|  /‾‾/  /‾/
+     /\  /  \     |  |_/  /  / /
+    /  \/    \    |      |  /  ‾‾\  
+   /          \   |  |‾\  \ | (_) |
+  / __________ \  |__|  \__\ \___/ .io
+
+  execution: local
+    plugins: Kafka
+     output: -
+     script: test.js
+
+    duration: 2m0s, iterations: -
+         vus: 500,
+
+  execution: local
+     script: test.js
+     output: -
+
+  scenarios: (100.00%) 1 executors, 500 max VUs, 2m30s max duration (incl. graceful stop):
+           * default: 500 looping VUs for 2m0s (gracefulStop: 30s)
+
+
+running (2m02.0s), 000/500 VUs, 28992 complete and 0 interrupted iterations
+default ✓ [======================================] 500 VUs  2m0s
+
+
+    ✗ is sent
+     ↳  99% — ✓ 57636 / ✗ 348
+
+    checks.........................: 99.39% ✓ 57636 ✗ 348
+    data_received..................: 0 B    0 B/s
+    data_sent......................: 0 B    0 B/s
+    iteration_duration.............: avg=2.08s min=66.08ms med=2.05s max=4.21s p(90)=2.15s p(95)=2.31s
+    iterations.....................: 28992  237.586486/s
+    kafka.writer.dial.count........: 28818  236.160573/s
+    kafka.writer.error.count.......: 0      0/s
+    kafka.writer.message.bytes.....: 3.1 MB 25 kB/s
+    kafka.writer.message.count.....: 115272 944.642293/s
+    kafka.writer.rebalance.count...: 28992  237.586486/s
+    kafka.writer.write.count.......: 57636  472.321147/s
+    vus............................: 0      min=0   max=500
     vus_max........................: 500    min=500 max=500
 ```
