@@ -65,6 +65,14 @@
   version = "v2.1.3"
 
 [[projects]]
+  digest = "1:e4f5819333ac698d294fe04dbf640f84719658d5c7ce195b10060cc37292ce79"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2a8bb927dd31d8daada140a5d09578521ce5c36a"
+  version = "v0.0.1"
+
+[[projects]]
   digest = "1:09cb61dc19af93deae01587e2fdb1c081e0bf48f1a5ad5fa24f48750dc57dce8"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
@@ -89,12 +97,12 @@
   version = "v0.26.2"
 
 [[projects]]
-  digest = "1:e586e8b78241e01f61c009e449f5fe7573215f38b438edc27a52dbad7ae02c6b"
+  digest = "1:aff0e9185b5df855488a42e064cb479e994636d3cefa47d053495123d086add4"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   pruneopts = "UT"
-  revision = "916b5f23bc2f603eb9012f48efd9e38287e71ed5"
-  version = "v1.3.0"
+  revision = "9e1e4717f8567d7ead72d070d064ad17d444a67e"
+  version = "v1.3.3"
 
 [[projects]]
   branch = "master"
@@ -193,6 +201,14 @@
   revision = "1e6a5b0d3fb642d7bf50a270adf19b54006c0269"
   version = "v3.5.0"
 
+[[projects]]
+  digest = "1:d95b8bb3ac8504c162b886d9396005640c1bd5c4523ef78f542d14d514802e62"
+  name = "gopkg.in/linkedin/goavro.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "58a83ea1539a0c8c3946781abac4103abac92535"
+  version = "v2.9.8"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -200,6 +216,7 @@
     "github.com/loadimpact/k6/lib",
     "github.com/loadimpact/k6/stats",
     "github.com/segmentio/kafka-go",
+    "gopkg.in/linkedin/goavro.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

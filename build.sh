@@ -3,4 +3,8 @@
 # This fetches the k6-plugin-kafka from GitHub and
 # builds it in your $GOPATH/src/github.com/mostafa/k6-plugin-kafka
 
+# Install dependencies defined in Gopkg.toml
+go get -d
+
+# Build k6-plugin-kafka
 go build -buildmode=plugin -ldflags="-s -w" -o kafka.so github.com/mostafa/k6-plugin-kafka
