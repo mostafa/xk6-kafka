@@ -10,6 +10,8 @@ This project is also a WIP, so it is not feature-complete, nor something to rely
 
 This project is a k6 plugin that can be used to load test Kafka, using a producer. Per each connection to Kafka, many messages can be sent, which is basically an array of objects containing a key and a value. There's also a consumer for testing purposes, e.g. to make sure you send the correct data to Kafka. The consumer is not meant to be used for testing Kafka under load. The plugin supports producing and consuming messages in Avro format, given a schema for key and/or value.
 
+The real purpose of this plugin is not only to test Apache Kafka, but also the system you've designed that uses Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
+
 In order to build the source, you should have the latest version of Go installed, which I recommend you to have [gvm](https://github.com/moovweb/gvm), Go version manager, installed.
 
 <!-- 
