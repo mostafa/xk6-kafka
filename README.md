@@ -76,7 +76,7 @@ The following k6 test script is used to test this plugin and Apache Kafka in tur
 import { check } from 'k6';
 import { writer, produce, reader, consume } from 'k6-plugin/kafka';  // import kafka plugin
 
-# Avro value schema
+// Avro value schema
 const value_schema = JSON.stringify({
     "type": "record",
     "name": "ModuleValue",
