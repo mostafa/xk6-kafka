@@ -2,14 +2,23 @@ package main
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
+	"github.com/loadimpact/k6/js/modules"
+	"github.com/loadimpact/k6/lib"
 	"github.com/loadimpact/k6/stats"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func (*kafka) Reader(
+func init() {
+	modules.Register("k6/x/kafka", new(Kafka))
+}
+
+type Kafka struct{}
+
+func (*Kafka) Reader(
 	brokers []string, topic string, partition int,
 	minBytes int, maxBytes int, offset int64) *kafkago.Reader {
 
@@ -35,11 +44,10 @@ func (*kafka) Reader(
 	return reader
 }
 
-func (*kafka) Consume(
+func (*Kafka) Consume(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	// This is part of a hack for v0.26.2
-	state, _ := GetState(ctx)
+	state := lib.GetState(ctx)
 
 	if state == nil {
 		ReportError(nil, "Cannot determine state")
@@ -93,8 +101,8 @@ func (*kafka) Consume(
 }
 
 func ReportReaderStats(ctx context.Context, currentStats kafkago.ReaderStats) error {
-	// This is part of a hack for v0.26.2
-	state, err := GetState(ctx)
+	state := lib.GetState(ctx)
+	err := errors.New("State is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
