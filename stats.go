@@ -1,4 +1,4 @@
-package main
+package kafka
 
 import "github.com/loadimpact/k6/stats"
 
