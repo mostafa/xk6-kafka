@@ -5,24 +5,42 @@ tests Kafka with a single message per connection.
 
 */
 
-import { check } from 'k6';
-import { writer, produce, reader, consume } from 'k6-plugin/kafka';  // import kafka plugin
+import {
+    check
+} from 'k6';
+import {
+    writer,
+    produce,
+    reader,
+    consume
+} from 'k6/x/kafka'; // import kafka plugin
 
 const value_schema = JSON.stringify({
     "type": "record",
     "name": "ModuleValue",
-    "fields": [
-        { "name": "name", "type": "string" },
-        { "name": "version", "type": "string" },
-        { "name": "author", "type": "string" },
-        { "name": "description", "type": "string" }
+    "fields": [{
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "version",
+            "type": "string"
+        },
+        {
+            "name": "author",
+            "type": "string"
+        },
+        {
+            "name": "description",
+            "type": "string"
+        }
     ]
 });
 
 export default function () {
     const producer = writer(
-        ["localhost:9092"],  // bootstrap servers
-        "test-k6-plugin-topic",  // Kafka topic
+        ["localhost:9092"], // bootstrap servers
+        "test-k6-plugin-topic", // Kafka topic
     )
 
     for (let index = 0; index < 100; index++) {
@@ -58,8 +76,8 @@ export default function () {
     producer.close();
 
     const consumer = reader(
-        ["localhost:9092"],  // bootstrap servers
-        "test-k6-plugin-topic",  // Kafka topic
+        ["localhost:9092"], // bootstrap servers
+        "test-k6-plugin-topic", // Kafka topic
     )
 
     // Read 10 messages only

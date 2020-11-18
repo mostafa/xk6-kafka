@@ -129,57 +129,54 @@ export default function () {
 }
 ```
 
-You can run k6 with the kafka plugin using the following command:
+You can run k6 with the Kafka extension using the following command:
 
 ```bash
-$ ./k6 run --vus 1 --duration 10s --plugin=kafka.so test.js
+$ ./k6 run --vus 1 --duration 10s test.js
 ```
 
 And here's the test result output:
 
 ```bash
 
-          /\      |‾‾|  /‾‾/  /‾/
-     /\  /  \     |  |_/  /  / /
-    /  \/    \    |      |  /  ‾‾\  
-   /          \   |  |‾\  \ | (_) |
-  / __________ \  |__|  \__\ \___/ .io
+          /\      |‾‾| /‾‾/   /‾‾/
+     /\  /  \     |  |/  /   /  /
+    /  \/    \    |     (   /   ‾‾\
+   /          \   |  |\  \ |  (‾)  |
+  / __________ \  |__| \__\ \_____/ .io
 
   execution: local
-    plugins: Kafka
-     output: -
      script: test.js
+     output: -
 
-    duration: 1m0s, iterations: -
-         vus: 50,   max: 50
+  scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
+           * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
 
-    done [==========================================================] 1m0s / 1m0s
+
+running (1m00.4s), 00/50 VUs, 6554 complete and 0 interrupted iterations
+default ✓ [======================================] 50 VUs  1m0s
 
     ✓ is sent
     ✓ 10 messages returned
 
-    checks.........................: 100.00% ✓ 195794 ✗ 0
+    checks.........................: 100.00% ✓ 661954 ✗ 0
     data_received..................: 0 B     0 B/s
     data_sent......................: 0 B     0 B/s
-    iteration_duration.............: avg=1.54s min=1s med=1.51s max=2.46s p(90)=1.88s p(95)=1.98s
-    iterations.....................: 1910    31.828668/s
-    kafka.reader.dial.count........: 1930    32.161952/s
-    kafka.reader.error.count.......: 16      0.266628/s
-    kafka.reader.fetches.count.....: 1930    32.161952/s
-    kafka.reader.message.bytes.....: 1.9 MB  31 kB/s
-    kafka.reader.message.count.....: 22882   381.310771/s
+    iteration_duration.............: avg=459.31ms min=188.19ms med=456.26ms max=733.67ms p(90)=543.22ms p(95)=572.76ms
+    iterations.....................: 6554    108.563093/s
+    kafka.reader.dial.count........: 6554    108.563093/s
+    kafka.reader.error.count.......: 0       0/s
+    kafka.reader.fetches.count.....: 6554    108.563093/s
+    kafka.reader.message.bytes.....: 6.4 MB  106 kB/s
+    kafka.reader.message.count.....: 77825   1289.124612/s
     kafka.reader.rebalance.count...: 0       0/s
     kafka.reader.timeouts.count....: 0       0/s
-    kafka.writer.dial.count........: 1957    32.611886/s
+    kafka.writer.dial.count........: 6554    108.563093/s
     kafka.writer.error.count.......: 0       0/s
-    kafka.writer.message.bytes.....: 16 MB   265 kB/s
-    kafka.writer.message.count.....: 193880  3230.85973/s
-    kafka.writer.rebalance.count...: 1957    32.611886/s
-    kafka.writer.write.count.......: 193880  3230.85973/s
+    kafka.writer.message.bytes.....: 54 MB   890 kB/s
+    kafka.writer.message.count.....: 655400  10856.309293/s
+    kafka.writer.rebalance.count...: 6554    108.563093/s
+    kafka.writer.write.count.......: 655400  10856.309293/s
     vus............................: 50      min=50   max=50
     vus_max........................: 50      min=50   max=50
 ```
-
-### Known issue/bug
-
-Just ignore the `context canceled` messages for now if you encountered them.
