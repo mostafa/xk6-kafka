@@ -5,11 +5,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/loadimpact/k6/lib"
 	"github.com/loadimpact/k6/stats"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func (*kafka) Writer(brokers []string, topic string) *kafkago.Writer {
+func (*Kafka) Writer(brokers []string, topic string) *kafkago.Writer {
 	return kafkago.NewWriter(kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
@@ -18,15 +19,15 @@ func (*kafka) Writer(brokers []string, topic string) *kafkago.Writer {
 	})
 }
 
-func (*kafka) Produce(
+func (*Kafka) Produce(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	keySchema string, valueSchema string) error {
-	// This is part of a hack for v0.26.2
-	state, err := GetState(ctx)
+	state := lib.GetState(ctx)
+	err := errors.New("State is nil")
 
 	if state == nil {
-		ReportError(nil, "Cannot determine state")
-		return errors.New("Cannot determine state")
+		ReportError(err, "Cannot determine state")
+		return err
 	}
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
@@ -64,8 +65,8 @@ func (*kafka) Produce(
 }
 
 func ReportWriterStats(ctx context.Context, currentStats kafkago.WriterStats) error {
-	// This is part of a hack for v0.26.2
-	state, err := GetState(ctx)
+	state := lib.GetState(ctx)
+	err := errors.New("State is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"gopkg.in/linkedin/goavro.v2"
+	"github.com/linkedin/goavro/v2"
 )
 
 func ToAvro(value string, schema string) []byte {
