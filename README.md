@@ -1,6 +1,6 @@
 # xk6-kafka
 
-This is a [k6](https://github.com/loadimpact/k6) extension using the [xk6](https://github.com/loadimpact/k6) system.
+This is a [k6](https://github.com/loadimpact/k6) extension using the [xk6](https://github.com/k6io/xk6) system.
 
 | :exclamation: This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK! |
 | ---------------------------------------------------------------------------------------------------------------------------- |
