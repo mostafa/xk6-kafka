@@ -1,4 +1,4 @@
-module github.com/mostafa/k6-plugin-kafka
+module github.com/mostafa/xk6-kafka
 
 go 1.14
 
