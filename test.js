@@ -1,7 +1,7 @@
 /*
 
-This is a k6 test script that imports the k6-kafka-plugin and
-tests Kafka with a single message per connection.
+This is a k6 test script that imports the xk6-kafka and
+tests Kafka with a 100 messages per connection.
 
 */
 
