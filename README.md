@@ -30,6 +30,8 @@ Then, install [xk6](https://github.com/k6io/xk6) and build your custom k6 binary
   $ xk6 build v0.29.0 --with github.com/mostafa/xk6-kafka
   ```
 
+Note: you can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.29.0.
+
 ## Run & Test
 
 First, you need to have your Kafka development environment setup. I recommend you to use [Lenses.io fast-data-dev Docker image](https://github.com/lensesio/fast-data-dev), which is a complete Kafka setup for development that includes: Kafka, Zookeeper, Schema Registry, Kafka-Connect, Landoop Tools, 20+ connectors. It is fairly easy to setup, if you have Docker installed. Just make sure to monitor Docker logs to have a working setup, before attempting to test. Initial setup, leader election and test data ingestion takes time.
