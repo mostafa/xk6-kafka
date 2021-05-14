@@ -1,6 +1,6 @@
 # xk6-kafka
 
-This is a [k6](https://github.com/loadimpact/k6) extension using the [xk6](https://github.com/k6io/xk6) system.
+This is a [k6](https://go.k6.io/k6) extension using the [xk6](https://github.com/k6io/xk6) system.
 
 | :exclamation: This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK! |
 | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -22,15 +22,15 @@ Then, install [xk6](https://github.com/k6io/xk6) and build your custom k6 binary
 
 1. Install `xk6`:
   ```shell
-  $ go get -u github.com/k6io/xk6/cmd/xk6
+  $ go install github.com/k6io/xk6/cmd/xk6@latest
   ```
 
 2. Build the binary:
   ```shell
-  $ xk6 build v0.29.0 --with github.com/mostafa/xk6-kafka
+  $ xk6 build --with github.com/mostafa/xk6-kafka@latest
   ```
 
-Note: you can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.29.0.
+Note: you can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0.
 
 ## Run & Test
 
