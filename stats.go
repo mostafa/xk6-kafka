@@ -1,6 +1,6 @@
 package kafka
 
-import "github.com/loadimpact/k6/stats"
+import "go.k6.io/k6/stats"
 
 var (
 	ReaderDials      = stats.New("kafka.reader.dial.count", stats.Counter)
