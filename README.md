@@ -1,10 +1,5 @@
 # xk6-kafka
 
-This is a [k6](https://go.k6.io/k6) extension using the [xk6](https://github.com/k6io/xk6) system.
-
-| :exclamation: This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK! |
-| ---------------------------------------------------------------------------------------------------------------------------- |
-
 This project is a k6 extension that can be used to load test Kafka, using a producer. Per each connection to Kafka, many messages can be sent. These messages are an array of objects containing a key and a value. There is also a consumer for testing purposes, i.e. to make sure you send the correct data to Kafka. The consumer is not meant to be used for testing Kafka under load. The extension supports producing and consuming messages in Avro format, given a schema for key and/or value.
 
 The real purpose of this extension is not only to test Apache Kafka, but also the system you've designed that uses Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
@@ -170,3 +165,9 @@ default ✓ [======================================] 50 VUs  1m0s
     vus............................: 50      min=50   max=50
     vus_max........................: 50      min=50   max=50
 ```
+
+## Disclaimer
+
+This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK!
+
+This work is licensed under the [GNU Affero General Public License v3.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
+	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
-	kafkago "github.com/segmentio/kafka-go"
 )
 
 func (*Kafka) Writer(brokers []string, topic string) *kafkago.Writer {
