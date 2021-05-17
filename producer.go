@@ -34,7 +34,7 @@ func (*Kafka) Produce(
 	for i, message := range messages {
 		key := []byte(message["key"])
 		if keySchema != "" {
-			key = ToAvro(message["value"], keySchema)
+			key = ToAvro(message["key"], keySchema)
 		}
 
 		value := []byte(message["value"])
