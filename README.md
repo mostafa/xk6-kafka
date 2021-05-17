@@ -37,82 +37,39 @@ After running the following commands, visit [localhost:3030](http://localhost:30
 
 ```bash
 $ sudo docker run -d --rm --name lensesio --net=host lensesio/fast-data-dev
-$ sudo docker logs -f lensesio
+$ sudo docker logs -f -t lensesio
+```
+
+To avoid getting the following error while running the test:
+
+```bash
+Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
+```
+
+Just make sure you create the topics in Apache Kafka in advance:
+
+```bash
+$ docker exec -it lensesio bash
+(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
 ```
 
 ### k6 Test
 
-The following k6 test script is used to test this extension and Apache Kafka in turn. The script is available as `test.js` with more code and commented sections. The script has 4 parts:
+The following k6 test script is used to test this extension and Apache Kafka in turn. The script is available as `test_<format>.js` with more code and commented sections. The scripts have 4 parts:
 
 1. The __imports__ at the top shows the exposed functions that are imported from k6 and the extension, `check` from k6 and the `writer`, `produce`, `reader`, `consume` from the extension using the `k6/x/kafka` extension loading convention.
-2. The __Avro schema__ defines a value schema that is used by both producer and consumer, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html).
-3. The __Avro message producer__:
-    1. The `writer` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as you want.
-    2. The `produce` function is used to send a list of messages to Kafka. The first argument is the `producer` object, the second is the list of messages (with key and value), the third and  the fourth are the key schema and value schema in Avro format. If the schema are not passed to the function, the values are treated as normal strings, as in the key schema, where an empty string, `""`, is passed.
+2. The __Avro schema__ defines a key and a value schema that are used by both producer and consumer, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the `test_avro.js` script.
+3. The __Avro/JSON message producer__:
+    1. The `writer` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as you want. This object is created in init code and is reused in the exported default function.
+    2. The `produce` function is used to send a list of messages to Kafka. The first argument is the `producer` object, the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format, if Avro format is used. If the schema are not passed to the function for either the key or the value, the values are treated as normal strings. Use an empty string, `""` if either of the schema is Avro and the other is going to be a string.
     The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
-    3. The `producer.close()` function closes the `producer` object.
-4. The __Avro message consumer__:
-    1. The `reader` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses and the second is the topic you want to reader from.
-    2. The `consume` function is used to read a list of messages from Kafka. The first argument is the `consumer` object, the second is the number of messages to read in one go, the third and  the fourth are the key schema and value schema in Avro format. If the schema are not passed to the function, the values are treated as normal strings, as in the key schema, where an empty string, `""`, is passed.
+    3. The `producer.close()` function closes the `producer` object (in `tearDown`).
+4. The __Avro/JSON message consumer__:
+    1. The `reader` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses and the second is the topic you want to reader from. This object is created in init code and is reused in the exported default function.
+    2. The `consume` function is used to read a list of messages from Kafka. The first argument is the `consumer` object, the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format, if Avro format is used. If the schema are not passed to the function for either the key or the value, the values are treated as normal strings. Use an empty string, `""` if either of the schema is Avro and the other is going to be a string.
     The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
-    3. The `consumer.close()` function closes the `consumer` object.
-
-```javascript
-import { check } from 'k6';
-import { writer, produce, reader, consume } from 'k6/x/kafka';  // import kafka extension
-
-// Avro value schema
-const value_schema = JSON.stringify({
-    "type": "record",
-    "name": "ModuleValue",
-    "fields": [
-        { "name": "name", "type": "string" },
-        { "name": "version", "type": "string" },
-        { "name": "author", "type": "string" },
-        { "name": "description", "type": "string" }
-    ]
-});
-
-export default function () {
-    // Avro message producer
-    const producer = writer(
-        ["localhost:9092"],  // bootstrap servers
-        "test-k6-extension-topic",  // Kafka topic
-    )
-
-    for (let index = 0; index < 100; index++) {
-        let error = produce(producer,
-            [{
-                key: "DA KEY!",
-                value: JSON.stringify({
-                    "name": "k6-extension-kafka",
-                    "version": "0.0.1",
-                    "author": "Mostafa Moradian",
-                    "description": "k6 Extension to Load Test Apache Kafka"
-                })
-            }], "", value_schema);
-
-        check(error, {
-            "is sent": err => err == undefined
-        });
-    }
-    producer.close();
-
-    // Avro message consumer
-    const consumer = reader(
-        ["localhost:9092"],  // bootstrap servers
-        "test-k6-extension-topic",  // Kafka topic
-    )
-
-    // Read 10 messages only
-    let messages = consume(consumer, 10, "", value_schema);
-    check(messages, {
-        "10 messages returned": msgs => msgs.length == 10
-    })
-
-    consumer.close();
-}
-```
+    3. The `consumer.close()` function closes the `consumer` object (in `tearDown`).
 
 You can run k6 with the Kafka extension using the following command:
 
