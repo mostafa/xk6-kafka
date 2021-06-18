@@ -1,7 +1,8 @@
 /*
 
 This is a k6 test script that imports the xk6-kafka and
-tests Kafka with a 200 JSON messages per iteration.
+tests Kafka with a 200 JSON messages per iteration. It
+also uses SASL authentication.
 
 */
 
@@ -17,9 +18,19 @@ import {
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
+const auth = JSON.stringify({
+    username: "client",
+    password: "client-secret",
+    // Possible values for the algorithm is:
+    // SASL Plain: "plain" (default if omitted)
+    // SASL SCRAM: "sha256", "sha512"
+    algorithm: "sha256"
+})
+const offset = 0;
+const partition = 1;
 
-const producer = writer(bootstrapServers, kafkaTopic);
-const consumer = reader(bootstrapServers, kafkaTopic);
+const producer = writer(bootstrapServers, kafkaTopic, auth);
+const consumer = reader(bootstrapServers, kafkaTopic, offset, partition, auth);
 
 export default function () {
     for (let index = 0; index < 100; index++) {
