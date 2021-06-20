@@ -10,7 +10,9 @@ import {
     writer,
     produce,
     reader,
-    consume
+    consume,
+    consumeWithProps,
+    produceWithProps
 } from 'k6/x/kafka'; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
@@ -21,6 +23,14 @@ const consumer = reader(bootstrapServers, topic);
 
 const keySchema = open('schema/key.avro');
 const valueSchema = open('schema/value.avro');
+
+var properties = new Map();
+
+properties["schema.registry.urll"] = "http://localhost:8081";
+properties["key.serializer"] = "io.confluent.kafka.serializers.KafkaAvroSerializer";
+properties["value.serializer"] = "io.confluent.kafka.serializers.KafkaAvroSerializer";
+properties["key.deserializer"] = "io.confluent.kafka.serializers.KafkaAvroDeserializer";
+properties["value.deserializer"] = "io.confluent.kafka.serializers.KafkaAvroDeserializer";
 
 export default function () {
     for (let index = 0; index < 1; index++) {
@@ -33,14 +43,13 @@ export default function () {
                     "lastname": "lastname-" + index,
             }),
         }]
-        let error = produce(producer, messages, keySchema, valueSchema);
+        let error = produceWithProps(producer, messages, properties, keySchema, valueSchema);
         check(error, {
             "is sent": err => err == undefined
         });
     }
 
-    //Read 10 messages only
-    let messages = consume(consumer, 1, keySchema, valueSchema);
+    let messages = consumeWithProps(consumer, 1, properties, keySchema, valueSchema);
     console.log('messages ', JSON.stringify(messages))
     check(messages, {
         "10 messages returned": msgs => msgs.length == 1

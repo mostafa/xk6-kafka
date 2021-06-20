@@ -47,6 +47,19 @@ func (*Kafka) Reader(
 func (*Kafka) Consume(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
+	var properties = make(map[string]string);
+	return ConsumeInternal(ctx, reader, limit, properties, keySchema, valueSchema);
+}
+
+func (*Kafka) ConsumeWithProps(
+	ctx context.Context, reader *kafkago.Reader, limit int64, properties map[string]string,
+	keySchema string, valueSchema string) []map[string]interface{} {
+	return ConsumeInternal(ctx, reader, limit, properties, keySchema, valueSchema);
+}
+
+func ConsumeInternal(
+	ctx context.Context, reader *kafkago.Reader, limit int64,
+	properties map[string]string, keySchema string, valueSchema string) []map[string]interface{} {
 	state := lib.GetState(ctx)
 
 	if state == nil {
@@ -78,16 +91,28 @@ func (*Kafka) Consume(
 		}
 
 		message := make(map[string]interface{})
-        msg.Key = msg.Key[5:len(msg.Key)]
 		if len(msg.Key) > 0 {
+
+			// Account for proprietary 5-byte prefix before the Avro payload:
+			// https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
+			if (properties["key.deserializer"] == "io.confluent.kafka.serializers.KafkaAvroDeserializer") {
+				msg.Key = msg.Key[5:]
+			}
+
 			message["key"] = string(msg.Key)
 			if keySchema != "" {
 				message["key"] = FromAvro(msg.Key, keySchema)
 			}
 		}
 
-        msg.Value = msg.Value[5:len(msg.Value)]
 		if len(msg.Value) > 0 {
+
+			// Account for proprietary 5-byte prefix before the Avro payload:
+			// https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
+			if (properties["key.deserializer"] == "io.confluent.kafka.serializers.KafkaAvroDeserializer") {
+				msg.Value = msg.Value[5:]
+			}
+
 			message["value"] = string(msg.Value)
 			if valueSchema != "" {
 				message["value"] = FromAvro(msg.Value, valueSchema)

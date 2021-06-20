@@ -22,8 +22,34 @@ func (*Kafka) Writer(brokers []string, topic string) *kafkago.Writer {
 func (*Kafka) Produce(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	keySchema string, valueSchema string) error {
+	var properties = make(map[string]string);
+	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
+}
+
+func (*Kafka) ProduceWithProps(
+	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
+	properties map[string]string, keySchema string, valueSchema string) error {
+	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
+}
+
+func ProduceInternal(
+	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
+	properties map[string]string, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
 	err := errors.New("State is nil")
+
+	keySchemaId := 0;
+	valueSchemaId := 0;
+
+	if (properties["key.serializer"] == "io.confluent.kafka.serializers.KafkaAvroSerializer" ||
+		properties["value.serializer"] == "io.confluent.kafka.serializers.KafkaAvroSerializer") {
+		if (properties["schema.registry.url"] == "") {
+			ReportError(err, "You have to provide a value for schema.registry.url to use a serializer of type io.confluent.kafka.serializers.KafkaAvroSerializer")
+			return err
+		}
+	}
+
+
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
