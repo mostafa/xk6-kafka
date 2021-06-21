@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
 	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
@@ -32,24 +31,21 @@ func (*Kafka) ProduceWithProps(
 	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
 }
 
+type SchemaRegistryResponse struct {
+	id float64 `json:"id"`
+}
+
 func ProduceInternal(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	properties map[string]string, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
 	err := errors.New("State is nil")
 
-	keySchemaId := 0;
-	valueSchemaId := 0;
-
-	if (properties["key.serializer"] == "io.confluent.kafka.serializers.KafkaAvroSerializer" ||
-		properties["value.serializer"] == "io.confluent.kafka.serializers.KafkaAvroSerializer") {
-		if (properties["schema.registry.url"] == "") {
-			ReportError(err, "You have to provide a value for schema.registry.url to use a serializer of type io.confluent.kafka.serializers.KafkaAvroSerializer")
-			return err
-		}
+	err = VerifyProperties(properties);
+	if err != nil {
+		ReportError(err, "Validation of properties failed.")
+		return err
 	}
-
-
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
@@ -69,7 +65,7 @@ func ProduceInternal(
 		}
 
 		kafkaMessages[i] = kafkago.Message{
-			Key:   append([]byte{ 0, 0, 0, 0, 3 }, key...),
+			Key:   addMagicByteAdnSchemaIdPrefix(properties, key, "key", pappend([]byte{ 0, 0, 0, 0, 3 }, key...),
 			Value: append([]byte{ 0, 0, 0, 0, 4 }, value...),
 		}
 	}

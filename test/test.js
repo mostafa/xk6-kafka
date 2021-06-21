@@ -26,7 +26,7 @@ const valueSchema = open('schema/value.avro');
 
 var properties = new Map();
 
-properties["schema.registry.urll"] = "http://localhost:8081";
+properties["schema.registry.url"] = "http://localhost:8081";
 properties["key.serializer"] = "io.confluent.kafka.serializers.KafkaAvroSerializer";
 properties["value.serializer"] = "io.confluent.kafka.serializers.KafkaAvroSerializer";
 properties["key.deserializer"] = "io.confluent.kafka.serializers.KafkaAvroDeserializer";
