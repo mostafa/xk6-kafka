@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func VerifyProperties(properties map[string]string) error {
+func verifyProperties(properties map[string]string) error {
 	for _, prefix := range []string{"key", "value"} {
 		if properties[prefix + ".serializer"] == "io.confluent.kafka.serializers.KafkaAvroSerializer" {
 			if properties["schema.registry.url"] == "" {

@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"log"
+
 	"github.com/linkedin/goavro/v2"
 )
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"time"
+
 	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
@@ -31,17 +32,13 @@ func (*Kafka) ProduceWithProps(
 	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
 }
 
-type SchemaRegistryResponse struct {
-	id float64 `json:"id"`
-}
-
 func ProduceInternal(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	properties map[string]string, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
 	err := errors.New("State is nil")
 
-	err = VerifyProperties(properties);
+	err = verifyProperties(properties);
 	if err != nil {
 		ReportError(err, "Validation of properties failed.")
 		return err
