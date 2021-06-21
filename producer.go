@@ -64,9 +64,19 @@ func ProduceInternal(
 			value = ToAvro(message["value"], valueSchema)
 		}
 
+		keyData, err := addMagicByteAdnSchemaIdPrefix(properties, key, kafkaMessages[i].Topic, "key", keySchema)
+		if err != nil {
+			ReportError(err, "Creation of key bytes failed.")
+			return err
+		}
+		valueData, err := addMagicByteAdnSchemaIdPrefix(properties, value, kafkaMessages[i].Topic, "value", valueSchema)
+		if err != nil {
+			ReportError(err, "Creation of key bytes failed.")
+			return err
+		}
 		kafkaMessages[i] = kafkago.Message{
-			Key:   addMagicByteAdnSchemaIdPrefix(properties, key, "key", pappend([]byte{ 0, 0, 0, 0, 3 }, key...),
-			Value: append([]byte{ 0, 0, 0, 0, 4 }, value...),
+			Key:   keyData,
+			Value: valueData,
 		}
 	}
 

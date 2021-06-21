@@ -92,30 +92,18 @@ func ConsumeInternal(
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-
-			// Account for proprietary 5-byte prefix before the Avro payload:
-			// https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-			if (properties["key.deserializer"] == "io.confluent.kafka.serializers.KafkaAvroDeserializer") {
-				msg.Key = msg.Key[5:]
-			}
-
-			message["key"] = string(msg.Key)
+			keyWithoutPrefix := removeMagicByteAdnSchemaIdPrefix(properties, msg.Key, "key")
+			message["key"] = string(keyWithoutPrefix)
 			if keySchema != "" {
-				message["key"] = FromAvro(msg.Key, keySchema)
+				message["key"] = FromAvro(keyWithoutPrefix, keySchema)
 			}
 		}
 
 		if len(msg.Value) > 0 {
-
-			// Account for proprietary 5-byte prefix before the Avro payload:
-			// https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-			if (properties["key.deserializer"] == "io.confluent.kafka.serializers.KafkaAvroDeserializer") {
-				msg.Value = msg.Value[5:]
-			}
-
-			message["value"] = string(msg.Value)
+			valueWithoutPrefix := removeMagicByteAdnSchemaIdPrefix(properties, msg.Value, "value")
+			message["value"] = string(valueWithoutPrefix)
 			if valueSchema != "" {
-				message["value"] = FromAvro(msg.Value, valueSchema)
+				message["value"] = FromAvro(valueWithoutPrefix, valueSchema)
 			}
 		}
 
