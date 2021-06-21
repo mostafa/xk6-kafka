@@ -6,10 +6,10 @@ import (
 	"io"
 	"time"
 
+	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/js/modules"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
-	kafkago "github.com/segmentio/kafka-go"
 )
 
 func init() {
@@ -19,22 +19,31 @@ func init() {
 type Kafka struct{}
 
 func (*Kafka) Reader(
-	brokers []string, topic string, partition int,
-	minBytes int, maxBytes int, offset int64) *kafkago.Reader {
+	brokers []string, topic string, partition int, offset int64, auth string) *kafkago.Reader {
+	var dialer *kafkago.Dialer
 
-	if maxBytes == 0 {
-		maxBytes = 10e6 // 10MB
+	if auth != "" {
+		creds, err := unmarshalCredentials(auth)
+		if err != nil {
+			ReportError(err, "Unable to unmarshal credentials")
+			return nil
+		}
+
+		dialer = getDialer(creds)
+		if dialer == nil {
+			ReportError(nil, "Dialer cannot authenticate")
+			return nil
+		}
 	}
 
 	reader := kafkago.NewReader(kafkago.ReaderConfig{
 		Brokers:          brokers,
 		Topic:            topic,
 		Partition:        partition,
-		MinBytes:         minBytes,
-		MaxBytes:         maxBytes,
 		MaxWait:          time.Millisecond * 200,
 		RebalanceTimeout: time.Second * 5,
 		QueueCapacity:    1,
+		Dialer:           dialer,
 	})
 
 	if offset > 0 {
@@ -117,7 +126,7 @@ func ConsumeInternal(
 
 func ReportReaderStats(ctx context.Context, currentStats kafkago.ReaderStats) error {
 	state := lib.GetState(ctx)
-	err := errors.New("State is nil")
+	err := errors.New("state is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
