@@ -10,12 +10,30 @@ import (
 	"go.k6.io/k6/stats"
 )
 
-func (*Kafka) Writer(brokers []string, topic string) *kafkago.Writer {
+func (*Kafka) Writer(brokers []string, topic string, auth string) *kafkago.Writer {
+	var dialer *kafkago.Dialer
+
+	if auth != "" {
+		creds, err := unmarshalCredentials(auth)
+		if err != nil {
+			ReportError(err, "Unable to unmarshal credentials")
+			return nil
+		}
+
+		dialer = getDialer(creds)
+		if dialer == nil {
+			ReportError(nil, "Dialer cannot authenticate")
+			return nil
+		}
+	}
+
 	return kafkago.NewWriter(kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
 		Balancer:  &kafkago.LeastBytes{},
 		BatchSize: 1,
+		Dialer:    dialer,
+		Async:     false,
 	})
 }
 
@@ -36,7 +54,7 @@ func ProduceInternal(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	properties map[string]string, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
-	err := errors.New("State is nil")
+	err := errors.New("state is nil")
 
 	err = verifyProperties(properties);
 	if err != nil {
@@ -95,7 +113,7 @@ func ProduceInternal(
 
 func ReportWriterStats(ctx context.Context, currentStats kafkago.WriterStats) error {
 	state := lib.GetState(ctx)
-	err := errors.New("State is nil")
+	err := errors.New("state is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
