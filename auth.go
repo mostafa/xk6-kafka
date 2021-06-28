@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"time"
 
@@ -35,6 +36,7 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 	dialer = &kafkago.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
+		TLS: &tls.Config{},
 	}
 
 	if creds.Algorithm == Plain {
