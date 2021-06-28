@@ -43,8 +43,8 @@ func (*Kafka) Produce(
 		}
 
 		kafkaMessages[i] = kafkago.Message{
-			Key:   append([]byte{ 0, 0, 0, 0, 3 }, key...),
-			Value: append([]byte{ 0, 0, 0, 0, 4 }, value...),
+			Key:   key,
+			Value: value,
 		}
 	}
 

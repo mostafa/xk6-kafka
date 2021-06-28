@@ -78,7 +78,6 @@ func (*Kafka) Consume(
 		}
 
 		message := make(map[string]interface{})
-        msg.Key = msg.Key[5:len(msg.Key)]
 		if len(msg.Key) > 0 {
 			message["key"] = string(msg.Key)
 			if keySchema != "" {
@@ -86,7 +85,6 @@ func (*Kafka) Consume(
 			}
 		}
 
-        msg.Value = msg.Value[5:len(msg.Value)]
 		if len(msg.Value) > 0 {
 			message["value"] = string(msg.Value)
 			if valueSchema != "" {
