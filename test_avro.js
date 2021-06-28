@@ -1,7 +1,7 @@
 /*
 
 This is a k6 test script that imports the xk6-kafka and
-tests Kafka with a 100 Avro messages per iteration.
+tests Kafka with a 200 Avro messages per iteration.
 
 */
 
@@ -36,60 +36,60 @@ const valueSchema = JSON.stringify({
     "name": "Value",
     "namespace": "dev.mostafa.xk6.kafka",
     "fields": [{
-            "name": "name",
-            "type": "string"
-        },
-        {
-            "name": "version",
-            "type": "string"
-        },
-        {
-            "name": "author",
-            "type": "string"
-        },
-        {
-            "name": "description",
-            "type": "string"
-        },
-        {
-            "name": "url",
-            "type": "string"
-        },
-        {
-            "name": "index",
-            "type": "int"
-        }
+        "name": "name",
+        "type": "string"
+    },
+    {
+        "name": "version",
+        "type": "string"
+    },
+    {
+        "name": "author",
+        "type": "string"
+    },
+    {
+        "name": "description",
+        "type": "string"
+    },
+    {
+        "name": "url",
+        "type": "string"
+    },
+    {
+        "name": "index",
+        "type": "int"
+    }
     ]
 });
 
 export default function () {
     for (let index = 0; index < 100; index++) {
         let messages = [{
-                key: JSON.stringify({
-                    "correlationId": "test-id-abc-" + index
-                }),
-                value: JSON.stringify({
-                    "name": "xk6-kafka",
-                    "version": "0.2.1",
-                    "author": "Mostafa Moradian",
-                    "description": "k6 extension to load test Apache Kafka with support for Avro messages",
-                    "url": "https://mostafa.dev",
-                    "index": index
-                })
-            },
-            {
-                key: JSON.stringify({
-                    "correlationId": "test-id-def-" + index
-                }),
-                value: JSON.stringify({
-                    "name": "xk6-kafka",
-                    "version": "0.2.1",
-                    "author": "Mostafa Moradian",
-                    "description": "k6 extension to load test Apache Kafka with support for Avro messages",
-                    "url": "https://mostafa.dev",
-                    "index": index
-                })
-            }
+            key: JSON.stringify({
+                "correlationId": "test-id-abc-" + index
+            }),
+            value: JSON.stringify({
+                "name": "xk6-kafka",
+                "version": "0.2.1",
+                "author": "Mostafa Moradian",
+                "description": "k6 extension to load test Apache Kafka with support for Avro messages",
+                "url": "https://mostafa.dev",
+                "index": index
+            })
+        },
+        {
+            key: JSON.stringify({
+                "correlationId": "test-id-def-" + index
+            }),
+            value: JSON.stringify({
+                "name": "xk6-kafka",
+                "version": "0.2.1",
+                "author": "Mostafa Moradian",
+                "description": "k6 extension to load test Apache Kafka with support for Avro messages",
+                "url": "https://mostafa.dev",
+                "index": index
+            })
+        }
         ]
         let error = produce(producer, messages, keySchema, valueSchema);
         check(error, {
