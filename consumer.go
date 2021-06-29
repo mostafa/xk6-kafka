@@ -56,19 +56,24 @@ func (*Kafka) Reader(
 func (*Kafka) Consume(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	var properties = make(map[string]string);
-	return ConsumeInternal(ctx, reader, limit, properties, keySchema, valueSchema);
+	return ConsumeInternal(ctx, reader, limit, Configuration{}, keySchema, valueSchema);
 }
 
-func (*Kafka) ConsumeWithProps(
-	ctx context.Context, reader *kafkago.Reader, limit int64, properties map[string]string,
+func (*Kafka) ConsumeWithConfiguration(
+	ctx context.Context, reader *kafkago.Reader, limit int64, configurationJson string,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	return ConsumeInternal(ctx, reader, limit, properties, keySchema, valueSchema);
+	configuration, err := unmarshalConfiguration(configurationJson)
+	if err != nil {
+		ReportError(err, "Cannot unmarshal configuration " + configurationJson)
+		ReportReaderStats(ctx, reader.Stats())
+		return nil
+	}
+	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema);
 }
 
 func ConsumeInternal(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
-	properties map[string]string, keySchema string, valueSchema string) []map[string]interface{} {
+	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
 	state := lib.GetState(ctx)
 
 	if state == nil {
@@ -101,7 +106,7 @@ func ConsumeInternal(
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-			keyWithoutPrefix := removeMagicByteAdnSchemaIdPrefix(properties, msg.Key, "key")
+			keyWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Key, "key")
 			message["key"] = string(keyWithoutPrefix)
 			if keySchema != "" {
 				message["key"] = FromAvro(keyWithoutPrefix, keySchema)
@@ -109,7 +114,7 @@ func ConsumeInternal(
 		}
 
 		if len(msg.Value) > 0 {
-			valueWithoutPrefix := removeMagicByteAdnSchemaIdPrefix(properties, msg.Value, "value")
+			valueWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Value, "value")
 			message["value"] = string(valueWithoutPrefix)
 			if valueSchema != "" {
 				message["value"] = FromAvro(valueWithoutPrefix, valueSchema)

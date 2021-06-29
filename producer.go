@@ -40,23 +40,28 @@ func (*Kafka) Writer(brokers []string, topic string, auth string) *kafkago.Write
 func (*Kafka) Produce(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	keySchema string, valueSchema string) error {
-	var properties = make(map[string]string);
-	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
+	return ProduceInternal(ctx, writer, messages, Configuration{}, keySchema, valueSchema);
 }
 
-func (*Kafka) ProduceWithProps(
+func (*Kafka) ProduceWithConfiguration(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
-	properties map[string]string, keySchema string, valueSchema string) error {
-	return ProduceInternal(ctx, writer, messages, properties, keySchema, valueSchema);
+	configurationJson string, keySchema string, valueSchema string) error {
+	configuration, err := unmarshalConfiguration(configurationJson)
+	if err != nil {
+		ReportError(err, "Cannot unmarshal configuration " + configurationJson)
+		return nil
+	}
+
+	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema);
 }
 
 func ProduceInternal(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
-	properties map[string]string, keySchema string, valueSchema string) error {
+	configuration Configuration, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
 	err := errors.New("state is nil")
 
-	err = verifyProperties(properties);
+	err = validateConfiguration(configuration);
 	if err != nil {
 		ReportError(err, "Validation of properties failed.")
 		return err
@@ -79,12 +84,12 @@ func ProduceInternal(
 			value = ToAvro(message["value"], valueSchema)
 		}
 
-		keyData, err := addMagicByteAdnSchemaIdPrefix(properties, key, kafkaMessages[i].Topic, "key", keySchema)
+		keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
 		if err != nil {
 			ReportError(err, "Creation of key bytes failed.")
 			return err
 		}
-		valueData, err := addMagicByteAdnSchemaIdPrefix(properties, value, kafkaMessages[i].Topic, "value", valueSchema)
+		valueData, err := addMagicByteAndSchemaIdPrefix(configuration, value, writer.Stats().Topic, "value", valueSchema)
 		if err != nil {
 			ReportError(err, "Creation of key bytes failed.")
 			return err
@@ -97,7 +102,7 @@ func ProduceInternal(
 
 	err = writer.WriteMessages(ctx, kafkaMessages...)
 	if err == ctx.Err() {
-		// context is cancellled, so stop
+		// context is cancelled, so stop
 		ReportWriterStats(ctx, writer.Stats())
 		return nil
 	}
