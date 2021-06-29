@@ -54,7 +54,7 @@ $ docker exec -it lensesio bash
 (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
 ```
 
-If you want to test SASL authentication, have a look at (this commmit message)[https://github.com/mostafa/xk6-kafka/pull/3/commits/216ee0cd4f69864cb259445819541ef34fe2f2dd], where I describe how to run a test environment.
+If you want to test SASL authentication, have a look at [this commmit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/216ee0cd4f69864cb259445819541ef34fe2f2dd), where I describe how to run a test environment.
 
 ### k6 Test
 
