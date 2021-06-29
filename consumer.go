@@ -56,6 +56,24 @@ func (*Kafka) Reader(
 func (*Kafka) Consume(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
+	return ConsumeInternal(ctx, reader, limit, Configuration{}, keySchema, valueSchema);
+}
+
+func (*Kafka) ConsumeWithConfiguration(
+	ctx context.Context, reader *kafkago.Reader, limit int64, configurationJson string,
+	keySchema string, valueSchema string) []map[string]interface{} {
+	configuration, err := unmarshalConfiguration(configurationJson)
+	if err != nil {
+		ReportError(err, "Cannot unmarshal configuration " + configurationJson)
+		ReportReaderStats(ctx, reader.Stats())
+		return nil
+	}
+	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema);
+}
+
+func ConsumeInternal(
+	ctx context.Context, reader *kafkago.Reader, limit int64,
+	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
 	state := lib.GetState(ctx)
 
 	if state == nil {
@@ -88,16 +106,18 @@ func (*Kafka) Consume(
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-			message["key"] = string(msg.Key)
+			keyWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Key, "key")
+			message["key"] = string(keyWithoutPrefix)
 			if keySchema != "" {
-				message["key"] = FromAvro(msg.Key, keySchema)
+				message["key"] = FromAvro(keyWithoutPrefix, keySchema)
 			}
 		}
 
 		if len(msg.Value) > 0 {
-			message["value"] = string(msg.Value)
+			valueWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Value, "value")
+			message["value"] = string(valueWithoutPrefix)
 			if valueSchema != "" {
-				message["value"] = FromAvro(msg.Value, valueSchema)
+				message["value"] = FromAvro(valueWithoutPrefix, valueSchema)
 			}
 		}
 
