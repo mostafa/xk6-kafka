@@ -76,7 +76,7 @@ The following k6 test script is used to test this extension and Apache Kafka in 
 You can run k6 with the Kafka extension using the following command:
 
 ```bash
-$ ./k6 run --vus 50 --duration 60s test.js
+$ ./k6 run --vus 50 --duration 60s scripts/test_json.js
 ```
 
 And here's the test result output:
@@ -90,7 +90,7 @@ And here's the test result output:
   / __________ \  |__| \__\ \_____/ .io
 
   execution: local
-     script: test.js
+     script: scripts/test_json.js
      output: -
 
   scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
