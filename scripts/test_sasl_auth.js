@@ -27,10 +27,12 @@ const auth = JSON.stringify({
     algorithm: "sha256"
 })
 const offset = 0;
+// partition and groupID are mutually exclusive
 const partition = 1;
+const groupID = "";
 
 const producer = writer(bootstrapServers, kafkaTopic, auth);
-const consumer = reader(bootstrapServers, kafkaTopic, offset, partition, auth);
+const consumer = reader(bootstrapServers, kafkaTopic, partition, groupID, offset, auth);
 
 export default function () {
     for (let index = 0; index < 100; index++) {

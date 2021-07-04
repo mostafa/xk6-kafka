@@ -19,7 +19,8 @@ func init() {
 type Kafka struct{}
 
 func (*Kafka) Reader(
-	brokers []string, topic string, partition int, offset int64, auth string) *kafkago.Reader {
+	brokers []string, topic string, partition int,
+	groupID string, offset int64, auth string) *kafkago.Reader {
 	var dialer *kafkago.Dialer
 
 	if auth != "" {
@@ -36,10 +37,15 @@ func (*Kafka) Reader(
 		}
 	}
 
+	if groupID != "" {
+		partition = 0
+	}
+
 	reader := kafkago.NewReader(kafkago.ReaderConfig{
 		Brokers:          brokers,
 		Topic:            topic,
 		Partition:        partition,
+		GroupID:          groupID,
 		MaxWait:          time.Millisecond * 200,
 		RebalanceTimeout: time.Second * 5,
 		QueueCapacity:    1,
@@ -56,7 +62,7 @@ func (*Kafka) Reader(
 func (*Kafka) Consume(
 	ctx context.Context, reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	return ConsumeInternal(ctx, reader, limit, Configuration{}, keySchema, valueSchema);
+	return ConsumeInternal(ctx, reader, limit, Configuration{}, keySchema, valueSchema)
 }
 
 func (*Kafka) ConsumeWithConfiguration(
@@ -64,11 +70,11 @@ func (*Kafka) ConsumeWithConfiguration(
 	keySchema string, valueSchema string) []map[string]interface{} {
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration " + configurationJson)
+		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
 		ReportReaderStats(ctx, reader.Stats())
 		return nil
 	}
-	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema);
+	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema)
 }
 
 func ConsumeInternal(

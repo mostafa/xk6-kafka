@@ -23,7 +23,7 @@ const auth = JSON.stringify({
 })
 
 const producer = writer(bootstrapServers, topic, auth);
-const consumer = reader(bootstrapServers, topic, null, null, auth);
+const consumer = reader(bootstrapServers, topic, null, "", null, auth);
 
 const keySchema = `{
   "name": "KeySchema",
@@ -79,8 +79,8 @@ export default function () {
                 "ssn": "ssn-" + index,
             }),
             value: JSON.stringify({
-                    "firstname": "firstname-" + index,
-                    "lastname": "lastname-" + index,
+                "firstname": "firstname-" + index,
+                "lastname": "lastname-" + index,
             }),
         }]
         let error = produceWithConfiguration(producer, messages, configuration, keySchema, valueSchema);

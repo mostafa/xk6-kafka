@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/linkedin/goavro/v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/linkedin/goavro/v2"
 )
 
 func i32tob(val uint32) []byte {
 	r := make([]byte, 4)
 	for i := uint32(0); i < 4; i++ {
-		r[3 - i] = byte((val >> (8 * i)) & 0xff)
+		r[3-i] = byte((val >> (8 * i)) & 0xff)
 	}
 	return r
 }
@@ -37,7 +38,7 @@ func addMagicByteAndSchemaIdPrefix(configuration Configuration, avroData []byte,
 		return nil, err
 	}
 	if schemaId != 0 {
-		return append(append([]byte{ 0 }, i32tob(schemaId)...), avroData...), nil
+		return append(append([]byte{0}, i32tob(schemaId)...), avroData...), nil
 	}
 	return avroData, nil
 }
@@ -50,7 +51,7 @@ func getSchemaId(configuration Configuration, topic string, keyOrValue string, s
 	}
 	if useKafkaAvroSerializer(configuration, keyOrValue) {
 		url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions"
-		codec, _ := goavro.NewCodec(schema);
+		codec, _ := goavro.NewCodec(schema)
 
 		body := "{\"schema\":\"" + strings.Replace(codec.CanonicalSchema(), "\"", "\\\"", -1) + "\"}"
 
@@ -65,7 +66,7 @@ func getSchemaId(configuration Configuration, topic string, keyOrValue string, s
 			password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
 			req.SetBasicAuth(username, password)
 		}
-		resp, err := client.Do(req);
+		resp, err := client.Do(req)
 		if err != nil {
 			return 0, err
 		}
@@ -81,7 +82,7 @@ func getSchemaId(configuration Configuration, topic string, keyOrValue string, s
 		var result map[string]int32
 		err = json.Unmarshal(bodyBytes, &result)
 		if err != nil {
-			return 0, err;
+			return 0, err
 		}
 		schemaId := uint32(result["id"])
 		schemaIdCache[schema] = schemaId
