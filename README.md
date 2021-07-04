@@ -46,7 +46,9 @@ To avoid getting the following error while running the test:
 Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
 ```
 
-Just make sure you create the topics in Apache Kafka in advance:
+You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+
+You always have the option to create it using `kafka-topics` command:
 
 ```bash
 $ docker exec -it lensesio bash
