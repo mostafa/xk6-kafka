@@ -40,7 +40,7 @@ func (*Kafka) Writer(brokers []string, topic string, auth string) *kafkago.Write
 func (*Kafka) Produce(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
 	keySchema string, valueSchema string) error {
-	return ProduceInternal(ctx, writer, messages, Configuration{}, keySchema, valueSchema);
+	return ProduceInternal(ctx, writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
 func (*Kafka) ProduceWithConfiguration(
@@ -48,11 +48,11 @@ func (*Kafka) ProduceWithConfiguration(
 	configurationJson string, keySchema string, valueSchema string) error {
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration " + configurationJson)
+		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
 		return nil
 	}
 
-	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema);
+	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema)
 }
 
 func ProduceInternal(
@@ -61,7 +61,7 @@ func ProduceInternal(
 	state := lib.GetState(ctx)
 	err := errors.New("state is nil")
 
-	err = validateConfiguration(configuration);
+	err = validateConfiguration(configuration)
 	if err != nil {
 		ReportError(err, "Validation of properties failed.")
 		return err
