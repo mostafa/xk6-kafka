@@ -6,6 +6,15 @@ The real purpose of this extension is not only to test Apache Kafka, but also th
 
 In order to build the source, you should have the latest version of Go (go1.15) installed. I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
 
+## Supported Features
+
+* Produce/consume messages in JSON and Avro format (custom schema)
+* Authentication with SASL PLAIN and SCRAM
+* Create and list topics
+* Support for user-provided Avro key and value schemas
+* Support for loading Avro schemas from Schema Registry
+* Support to consume from all partitions with group ID
+
 ## Build
 
 To build a `k6` binary with this extension, first ensure you have the prerequisites:
