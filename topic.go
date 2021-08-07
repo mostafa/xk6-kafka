@@ -3,12 +3,13 @@ package kafka
 import (
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/segmentio/kafka-go"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor int) error {
+func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string) error {
 	conn, err := kafkago.Dial("tcp", address)
 	if err != nil {
 		return err
@@ -34,15 +35,20 @@ func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor i
 		replicationFactor = 1
 	}
 
-	topicConfigs := []kafkago.TopicConfig{
-		kafka.TopicConfig{
-			Topic:             topic,
-			NumPartitions:     partitions,
-			ReplicationFactor: replicationFactor,
-		},
+	topicConfig := kafka.TopicConfig{
+		Topic:             topic,
+		NumPartitions:     partitions,
+		ReplicationFactor: replicationFactor,
 	}
 
-	err = controllerConn.CreateTopics(topicConfigs...)
+	if _, exists := CompressionCodecs[compression]; exists {
+		topicConfig.ConfigEntries = append(topicConfig.ConfigEntries, kafkago.ConfigEntry{
+			ConfigName:  "compression.type",
+			ConfigValue: strings.ToLower(compression),
+		})
+	}
+
+	err = controllerConn.CreateTopics([]kafkago.TopicConfig{topicConfig}...)
 	if err != nil {
 		return err
 	}
