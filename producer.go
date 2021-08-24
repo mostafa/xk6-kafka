@@ -6,11 +6,21 @@ import (
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/compress"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
 )
 
-func (*Kafka) Writer(brokers []string, topic string, auth string) *kafkago.Writer {
+var (
+	CompressionCodecs = map[string]compress.Codec{
+		"Gzip":   &compress.GzipCodec,
+		"Snappy": &compress.SnappyCodec,
+		"Lz4":    &compress.Lz4Codec,
+		"Zstd":   &compress.ZstdCodec,
+	}
+)
+
+func (*Kafka) Writer(brokers []string, topic string, auth string, compression string) *kafkago.Writer {
 	var dialer *kafkago.Dialer
 
 	if auth != "" {
@@ -27,14 +37,20 @@ func (*Kafka) Writer(brokers []string, topic string, auth string) *kafkago.Write
 		}
 	}
 
-	return kafkago.NewWriter(kafkago.WriterConfig{
+	writerConfig := kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
 		Balancer:  &kafkago.LeastBytes{},
 		BatchSize: 1,
 		Dialer:    dialer,
 		Async:     false,
-	})
+	}
+
+	if codec, exists := CompressionCodecs[compression]; exists {
+		writerConfig.CompressionCodec = codec
+	}
+
+	return kafkago.NewWriter(writerConfig)
 }
 
 func (*Kafka) Produce(

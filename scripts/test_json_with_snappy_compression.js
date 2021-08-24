@@ -1,7 +1,7 @@
 /*
 
 This is a k6 test script that imports the xk6-kafka and
-tests Kafka with a 200 Avro messages per iteration.
+tests Kafka with a 200 JSON messages per iteration.
 
 */
 
@@ -9,56 +9,31 @@ import { check } from "k6";
 import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "xk6_kafka_avro_topic";
+const kafkaTopic = "xk6_kafka_json_snappy_topic";
+const no_auth = "";
+/*
+Supported compression codecs:
 
-const producer = writer(bootstrapServers, kafkaTopic);
+- Gzip
+- Snappy
+- Lz4
+- Zstd
+*/
+const compression = "Snappy";
+
+const producer = writer(bootstrapServers, kafkaTopic, no_auth, compression);
 const consumer = reader(bootstrapServers, kafkaTopic);
 
-const keySchema = JSON.stringify({
-    type: "record",
-    name: "Key",
-    namespace: "dev.mostafa.xk6.kafka",
-    fields: [
-        {
-            name: "correlationId",
-            type: "string",
-        },
-    ],
-});
-
-const valueSchema = JSON.stringify({
-    type: "record",
-    name: "Value",
-    namespace: "dev.mostafa.xk6.kafka",
-    fields: [
-        {
-            name: "name",
-            type: "string",
-        },
-        {
-            name: "version",
-            type: "string",
-        },
-        {
-            name: "author",
-            type: "string",
-        },
-        {
-            name: "description",
-            type: "string",
-        },
-        {
-            name: "url",
-            type: "string",
-        },
-        {
-            name: "index",
-            type: "int",
-        },
-    ],
-});
-
-createTopic(bootstrapServers[0], kafkaTopic);
+const replicationFactor = 1;
+const partitions = 1;
+// Create the topic or do nothing if the topic exists.
+createTopic(
+    bootstrapServers[0],
+    kafkaTopic,
+    partitions,
+    replicationFactor,
+    compression
+);
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -73,7 +48,6 @@ export default function () {
                     author: "Mostafa Moradian",
                     description:
                         "k6 extension to load test Apache Kafka with support for Avro messages",
-                    url: "https://mostafa.dev",
                     index: index,
                 }),
             },
@@ -87,19 +61,19 @@ export default function () {
                     author: "Mostafa Moradian",
                     description:
                         "k6 extension to load test Apache Kafka with support for Avro messages",
-                    url: "https://mostafa.dev",
                     index: index,
                 }),
             },
         ];
-        let error = produce(producer, messages, keySchema, valueSchema);
+
+        let error = produce(producer, messages);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
-    let messages = consume(consumer, 10, keySchema, valueSchema);
+    let messages = consume(consumer, 10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
