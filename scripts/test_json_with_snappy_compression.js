@@ -10,7 +10,6 @@ import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // i
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_snappy_topic";
-const no_auth = "";
 /*
 Supported compression codecs:
 
@@ -21,7 +20,11 @@ Supported compression codecs:
 */
 const compression = "Snappy";
 
-const producer = writer(bootstrapServers, kafkaTopic, no_auth, compression);
+const producer = writer({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+    compression: compression
+});
 const consumer = reader(bootstrapServers, kafkaTopic);
 
 const replicationFactor = 1;

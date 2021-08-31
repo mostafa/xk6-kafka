@@ -11,7 +11,10 @@ import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // i
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
 
-const producer = writer(bootstrapServers, kafkaTopic);
+const producer = writer({
+    brokers: bootstrapServers,
+    topic: kafkaTopic
+});
 const consumer = reader(bootstrapServers, kafkaTopic);
 
 createTopic(bootstrapServers[0], kafkaTopic);
