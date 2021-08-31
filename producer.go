@@ -21,11 +21,11 @@ var (
 )
 
 type WriterConfig struct {
-	Brokers     []string
-	Topic       string
-	Auth        string
-	Compression string
-	BatchSize   int
+	Brokers     []string `json:"brokers"`
+	Topic       string   `json:"topic"`
+	Auth        string   `json:"auth"`
+	Compression string   `json:"compression"`
+	BatchSize   int      `json:"batch_size"`
 }
 
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {

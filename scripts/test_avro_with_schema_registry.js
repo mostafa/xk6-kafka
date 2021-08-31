@@ -21,7 +21,11 @@ const auth = JSON.stringify({
     algorithm: "plain",
 });
 
-const producer = writer(bootstrapServers, topic, auth);
+const producer = writer({
+    brokers: bootstrapServers,
+    topic,
+    auth
+});
 const consumer = reader(bootstrapServers, topic, null, "", null, auth);
 
 const keySchema = `{
