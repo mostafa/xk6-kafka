@@ -20,11 +20,19 @@ var (
 	}
 )
 
-func (*Kafka) Writer(brokers []string, topic string, auth string, compression string) *kafkago.Writer {
+type WriterConfig struct {
+	Brokers     []string
+	Topic       string
+	Auth        string
+	Compression string
+	BatchSize   int
+}
+
+func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	var dialer *kafkago.Dialer
 
-	if auth != "" {
-		creds, err := unmarshalCredentials(auth)
+	if wc.Auth != "" {
+		creds, err := unmarshalCredentials(wc.Auth)
 		if err != nil {
 			ReportError(err, "Unable to unmarshal credentials")
 			return nil
@@ -38,15 +46,15 @@ func (*Kafka) Writer(brokers []string, topic string, auth string, compression st
 	}
 
 	writerConfig := kafkago.WriterConfig{
-		Brokers:   brokers,
-		Topic:     topic,
+		Brokers:   wc.Brokers,
+		Topic:     wc.Topic,
 		Balancer:  &kafkago.LeastBytes{},
-		BatchSize: 1,
+		BatchSize: wc.BatchSize,
 		Dialer:    dialer,
 		Async:     false,
 	}
 
-	if codec, exists := CompressionCodecs[compression]; exists {
+	if codec, exists := CompressionCodecs[wc.Compression]; exists {
 		writerConfig.CompressionCodec = codec
 	}
 
