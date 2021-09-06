@@ -43,30 +43,24 @@ First, you need to have your Kafka development environment setup. I recommend yo
 
 ### Development Environment
 
-After running the following commands, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
+Run the Kafka environment and expose the container ports:
 
 ```bash
-$ sudo docker run -d --rm --name lensesio --net=host lensesio/fast-data-dev
-$ sudo docker logs -f -t lensesio
+sudo docker run -d --rm --name lenseio -p 2181:2181 -p 3030:3030 \
+       -p 8081-8083:8081-8083 -p 9581-9585:9581-9585 -p 9092:9092  \
+       -e ADV_HOST=127.0.0.1 lensesio/fast-data-dev
 ```
 
-To avoid getting the following error while running the test:
+After running the command, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
+
+You can run the command to see the container logs:
 
 ```bash
-Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
+sudo docker logs -f -t lensesio
 ```
 
-You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+> If you have errors running the Kafka development environment, refer to the [fast-data-dev documentation](https://github.com/lensesio/fast-data-dev).
 
-You always have the option to create it using `kafka-topics` command:
-
-```bash
-$ docker exec -it lensesio bash
-(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
-(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
-```
-
-If you want to test SASL authentication, have a look at [this commmit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
 
 ### k6 Test
 
@@ -136,6 +130,26 @@ default ✓ [======================================] 50 VUs  1m0s
     vus............................: 50      min=50   max=50
     vus_max........................: 50      min=50   max=50
 ```
+
+### Troubleshooting
+
+To avoid getting the following error while running the test:
+
+```bash
+Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
+```
+
+You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+
+You always have the option to create it using `kafka-topics` command:
+
+```bash
+$ docker exec -it lensesio bash
+(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
+```
+
+If you want to test SASL authentication, have a look at [this commmit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
 
 ## Disclaimer
 
