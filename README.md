@@ -51,7 +51,7 @@ sudo docker run -d --rm --name lenseio -p 2181:2181 -p 3030:3030 \
        -e ADV_HOST=127.0.0.1 lensesio/fast-data-dev
 ```
 
-After running the commands, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
+After running the command, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
 
 You can run the command to see the container logs:
 
