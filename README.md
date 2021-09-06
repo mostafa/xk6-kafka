@@ -14,6 +14,7 @@ In order to build the source, you should have the latest version of Go (go1.15) 
 * Support for user-provided Avro key and value schemas
 * Support for loading Avro schemas from Schema Registry
 * Support to consume from all partitions with group ID
+* Support Kafka message compression: Gzip, Snappy, Lz4 & Zstd
 
 ## Build
 
