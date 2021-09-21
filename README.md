@@ -6,6 +6,8 @@ The real purpose of this extension is not only to test Apache Kafka, but also th
 
 In order to build the source, you should have the latest version of Go (go1.15) installed. I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
 
+If you want to learn more about the extension, visit [How to Load Test Your Kafka Producers and Consumers using k6](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) article on the k6 blog.
+
 ## Supported Features
 
 * Produce/consume messages in JSON and Avro format (custom schema)
