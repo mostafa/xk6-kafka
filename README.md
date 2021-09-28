@@ -4,7 +4,7 @@ This project is a k6 extension that can be used to load test Kafka, using a prod
 
 The real purpose of this extension is not only to test Apache Kafka, but also the system you've designed that uses Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-In order to build the source, you should have the latest version of Go (go1.15) installed. I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
+In order to build the source, you should have the latest version of Go installed. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
 
 If you want to learn more about the extension, visit [How to Load Test Your Kafka Producers and Consumers using k6](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) article on the k6 blog.
 
