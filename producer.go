@@ -90,30 +90,38 @@ func ProduceInternal(
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
-		key := []byte(message["key"])
-		if keySchema != "" {
-			key = ToAvro(message["key"], keySchema)
+
+		kafkaMessages[i] = kafkago.Message{}
+
+		// If a key was provided, add it to the message. Keys are optional.
+		if _, has_key := message["key"]; has_key {
+			key := []byte(message["key"])
+			if keySchema != "" {
+				key = ToAvro(message["key"], keySchema)
+			}
+			keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
+			if err != nil {
+				ReportError(err, "Creation of key bytes failed.")
+				return err
+			}
+
+			kafkaMessages[i].Key = keyData
 		}
 
+		// Then add then message
 		value := []byte(message["value"])
 		if valueSchema != "" {
 			value = ToAvro(message["value"], valueSchema)
 		}
 
-		keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
-		if err != nil {
-			ReportError(err, "Creation of key bytes failed.")
-			return err
-		}
 		valueData, err := addMagicByteAndSchemaIdPrefix(configuration, value, writer.Stats().Topic, "value", valueSchema)
 		if err != nil {
-			ReportError(err, "Creation of key bytes failed.")
+			ReportError(err, "Creation of message bytes failed.")
 			return err
 		}
-		kafkaMessages[i] = kafkago.Message{
-			Key:   keyData,
-			Value: valueData,
-		}
+
+		kafkaMessages[i].Value = valueData
+
 	}
 
 	err = writer.WriteMessages(ctx, kafkaMessages...)
