@@ -45,48 +45,90 @@ func addMagicByteAndSchemaIdPrefix(configuration Configuration, avroData []byte,
 
 var schemaIdCache = make(map[string]uint32)
 
+type SchemaInfo struct {
+	Id      int32 `json:"id"`
+	Version int32 `json:"version"`
+}
+
 func getSchemaId(configuration Configuration, topic string, keyOrValue string, schema string) (uint32, error) {
 	if schemaIdCache[schema] > 0 {
 		return schemaIdCache[schema], nil
 	}
 	if useKafkaAvroSerializer(configuration, keyOrValue) {
-		url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions"
-		codec, _ := goavro.NewCodec(schema)
+		if configuration.SchemaRegistry.UseLatest {
+			url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions/latest"
+			client := &http.Client{}
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				return 0, err
+			}
+			req.Header.Add("Content-Type", "application/vnd.schemaregistry.v1+json")
+			if useBasicAuthWithCredentialSourceUserInfo(configuration) {
+				username := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[0]
+				password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
+				req.SetBasicAuth(username, password)
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				return 0, err
+			}
+			if resp.StatusCode >= 400 {
+				return 0, errors.New(fmt.Sprintf("Retrieval of schema ids failed. Details: Url= %v, response=%v", url, resp))
+			}
+			defer resp.Body.Close()
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return 0, err
+			}
+			var result SchemaInfo
 
-		body := "{\"schema\":\"" + strings.Replace(codec.CanonicalSchema(), "\"", "\\\"", -1) + "\"}"
+			err = json.Unmarshal(bodyBytes, &result)
+			if err != nil {
+				return 0, err
+			}
+			schemaId := uint32(result.Id)
+			schemaIdCache[schema] = schemaId
+			return schemaId, nil
+		} else {
+			url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions"
+			codec, _ := goavro.NewCodec(schema)
 
-		client := &http.Client{}
-		req, err := http.NewRequest("POST", url, bytes.NewReader([]byte(body)))
-		if err != nil {
-			return 0, err
-		}
-		req.Header.Add("Content-Type", "application/vnd.schemaregistry.v1+json")
-		if useBasicAuthWithCredentialSourceUserInfo(configuration) {
-			username := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[0]
-			password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
-			req.SetBasicAuth(username, password)
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return 0, err
-		}
-		if resp.StatusCode >= 400 {
-			return 0, errors.New(fmt.Sprintf("Retrieval of schema ids failed. Details: Url= %v, body=%v, response=%v", url, body, resp))
-		}
-		defer resp.Body.Close()
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return 0, err
-		}
+			body := "{\"schema\":\"" + strings.Replace(codec.CanonicalSchema(), "\"", "\\\"", -1) + "\"}"
 
-		var result map[string]int32
-		err = json.Unmarshal(bodyBytes, &result)
-		if err != nil {
-			return 0, err
+			client := &http.Client{}
+			req, err := http.NewRequest("POST", url, bytes.NewReader([]byte(body)))
+			if err != nil {
+				return 0, err
+			}
+			req.Header.Add("Content-Type", "application/vnd.schemaregistry.v1+json")
+			if useBasicAuthWithCredentialSourceUserInfo(configuration) {
+				username := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[0]
+				password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
+				req.SetBasicAuth(username, password)
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				return 0, err
+			}
+			if resp.StatusCode >= 400 {
+				return 0, errors.New(fmt.Sprintf("Retrieval of schema ids failed. Details: Url= %v, body=%v, response=%v", url, body, resp))
+			}
+			defer resp.Body.Close()
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return 0, err
+			}
+
+			var result map[string]int32
+			err = json.Unmarshal(bodyBytes, &result)
+			if err != nil {
+				return 0, err
+			}
+			schemaId := uint32(result["id"])
+			schemaIdCache[schema] = schemaId
+			return schemaId, nil
+
 		}
-		schemaId := uint32(result["id"])
-		schemaIdCache[schema] = schemaId
-		return schemaId, nil
 	}
 	return 0, nil
 }
