@@ -73,16 +73,20 @@ export default function () {
         });
     }
 
-    let messages = consumeWithConfiguration(
+    let rx_messages = consumeWithConfiguration(
         consumer,
         20,
         configuration,
         null,
         valueSchema
     );
-    check(messages, {
+    check(rx_messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
+
+    for (let index = 0; index < rx_messages.length; index++) {
+        console.debug('Received Message: ' + JSON.stringify(rx_messages[index]));
+    }
 }
 
 export function teardown(data) {

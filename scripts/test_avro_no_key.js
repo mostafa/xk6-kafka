@@ -81,10 +81,14 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = consume(consumer, 10, null, valueSchema);
-    check(messages, {
+    let rx_messages = consume(consumer, 10, null, valueSchema);
+    check(rx_messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
+
+    for (let index = 0; index < rx_messages.length; index++) {
+        console.debug('Received Message: ' + JSON.stringify(rx_messages[index]));
+    }
 }
 
 export function teardown(data) {
