@@ -106,8 +106,6 @@ func ProduceInternal(
 			}
 
 			kafkaMessages[i].Key = keyData
-		} else {
-			kafkaMessages[i].Key = nil
 		}
 
 		// Then add then message
