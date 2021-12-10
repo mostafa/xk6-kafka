@@ -23,8 +23,8 @@ const auth = JSON.stringify({
 
 const producer = writer({
     brokers: bootstrapServers,
-    topic,
-    auth
+    topic: topic,
+    auth: auth,
 });
 const consumer = reader(bootstrapServers, topic, null, "", null, auth);
 
@@ -59,8 +59,7 @@ const valueSchema = `{
 var configuration = JSON.stringify({
     consumer: {
         keyDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-        valueDeserializer:
-            "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+        valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
     },
     producer: {
         keySerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
@@ -102,13 +101,7 @@ export default function () {
         });
     }
 
-    let messages = consumeWithConfiguration(
-        consumer,
-        20,
-        configuration,
-        keySchema,
-        valueSchema
-    );
+    let messages = consumeWithConfiguration(consumer, 20, configuration, keySchema, valueSchema);
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });

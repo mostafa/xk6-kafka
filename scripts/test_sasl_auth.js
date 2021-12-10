@@ -24,15 +24,12 @@ const offset = 0;
 const partition = 1;
 const groupID = "";
 
-const producer = writer(bootstrapServers, kafkaTopic, auth);
-const consumer = reader(
-    bootstrapServers,
-    kafkaTopic,
-    partition,
-    groupID,
-    offset,
-    auth
-);
+const producer = writer({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+    auth: auth,
+});
+const consumer = reader(bootstrapServers, kafkaTopic, partition, groupID, offset, auth);
 
 createTopic(bootstrapServers[0], kafkaTopic);
 

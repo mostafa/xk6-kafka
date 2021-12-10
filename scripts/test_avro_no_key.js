@@ -11,7 +11,10 @@ import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // i
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_avro_topic";
 
-const producer = writer(bootstrapServers, kafkaTopic);
+const producer = writer({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 const consumer = reader(bootstrapServers, kafkaTopic);
 
 const valueSchema = JSON.stringify({
@@ -87,7 +90,7 @@ export default function () {
     });
 
     for (let index = 0; index < rx_messages.length; index++) {
-        console.debug('Received Message: ' + JSON.stringify(rx_messages[index]));
+        console.debug("Received Message: " + JSON.stringify(rx_messages[index]));
     }
 }
 
