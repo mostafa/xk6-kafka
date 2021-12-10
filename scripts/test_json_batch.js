@@ -16,7 +16,10 @@ const producer = writer({
     topic: kafkaTopic,
     batch_size: 4,
 });
-const consumer = reader(bootstrapServers, kafkaTopic);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 createTopic(bootstrapServers[0], kafkaTopic);
 

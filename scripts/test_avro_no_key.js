@@ -15,7 +15,10 @@ const producer = writer({
     brokers: bootstrapServers,
     topic: kafkaTopic,
 });
-const consumer = reader(bootstrapServers, kafkaTopic);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 const valueSchema = JSON.stringify({
     type: "record",

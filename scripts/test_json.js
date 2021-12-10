@@ -13,9 +13,12 @@ const kafkaTopic = "xk6_kafka_json_topic";
 
 const producer = writer({
     brokers: bootstrapServers,
-    topic: kafkaTopic
+    topic: kafkaTopic,
 });
-const consumer = reader(bootstrapServers, kafkaTopic);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 createTopic(bootstrapServers[0], kafkaTopic);
 

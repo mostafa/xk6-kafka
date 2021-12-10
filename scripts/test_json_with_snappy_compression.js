@@ -23,20 +23,17 @@ const compression = "Snappy";
 const producer = writer({
     brokers: bootstrapServers,
     topic: kafkaTopic,
-    compression: compression
+    compression: compression,
 });
-const consumer = reader(bootstrapServers, kafkaTopic);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 const replicationFactor = 1;
 const partitions = 1;
 // Create the topic or do nothing if the topic exists.
-createTopic(
-    bootstrapServers[0],
-    kafkaTopic,
-    partitions,
-    replicationFactor,
-    compression
-);
+createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression);
 
 export default function () {
     for (let index = 0; index < 100; index++) {

@@ -13,13 +13,16 @@ import {
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
-const topic = "com.example.person";
+const kafkaTopic = "com.example.person";
 
 const producer = writer({
     brokers: bootstrapServers,
-    topic: topic,
+    topic: kafkaTopic,
 });
-const consumer = reader(bootstrapServers, topic, null, "", null, null);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 const valueSchema = `{
   "name": "ValueSchema",

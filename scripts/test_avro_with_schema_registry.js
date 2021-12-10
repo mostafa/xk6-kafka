@@ -13,7 +13,7 @@ import {
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["subdomain.us-east-1.aws.confluent.cloud:9092"];
-const topic = "com.example.person";
+const kafkaTopic = "com.example.person";
 
 const auth = JSON.stringify({
     username: "username",
@@ -23,10 +23,14 @@ const auth = JSON.stringify({
 
 const producer = writer({
     brokers: bootstrapServers,
-    topic: topic,
+    topic: kafkaTopic,
     auth: auth,
 });
-const consumer = reader(bootstrapServers, topic, null, "", null, auth);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+    auth: auth,
+});
 
 const keySchema = `{
   "name": "KeySchema",

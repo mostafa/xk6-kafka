@@ -29,7 +29,14 @@ const producer = writer({
     topic: kafkaTopic,
     auth: auth,
 });
-const consumer = reader(bootstrapServers, kafkaTopic, partition, groupID, offset, auth);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+    partition: partition,
+    groupID: groupID,
+    offset: offset,
+    auth: auth,
+});
 
 createTopic(bootstrapServers[0], kafkaTopic);
 
