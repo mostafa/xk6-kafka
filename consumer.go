@@ -18,13 +18,48 @@ func init() {
 
 type Kafka struct{}
 
-func (*Kafka) Reader(
-	brokers []string, topic string, partition int,
-	groupID string, offset int64, auth string) *kafkago.Reader {
+var (
+	GroupBalancers = map[string]kafkago.GroupBalancer{
+		"Range":        &kafkago.RangeGroupBalancer{},
+		"RoundRobin":   &kafkago.RoundRobinGroupBalancer{},
+		"RackAffinity": &kafkago.RackAffinityGroupBalancer{},
+	}
+)
+
+type ReaderConfig struct {
+	Brokers                []string               `json:"brokers"`
+	Topic                  string                 `json:"topic"`
+	Auth                   string                 `json:"auth"`
+	Partition              int                    `json:"partition"`
+	GroupID                string                 `json:"groupId"`
+	GroupTopics            []string               `json:"groupTopics"`
+	GroupBalancers         []string               `json:"groupBalancers"`
+	Offset                 int64                  `json:"offset"`
+	QueueCapacity          int                    `json:"queueCapacity"`
+	MinBytes               int                    `json:"minBytes"`
+	MaxBytes               int                    `json:"maxBytes"`
+	MaxWait                time.Duration          `json:"maxWait"`
+	ReadLagInterval        time.Duration          `json:"readLagInterval"`
+	HeartbeatInterval      time.Duration          `json:"heartbeatInterval"`
+	CommitInterval         time.Duration          `json:"commitInterval"`
+	PartitionWatchInterval time.Duration          `json:"partitionWatchInterval"`
+	WatchPartitionChanges  bool                   `json:"watchPartitionChanges"`
+	SessionTimeout         time.Duration          `json:"sessionTimeout"`
+	RebalanceTimeout       time.Duration          `json:"rebalanceTimeout"`
+	JoinGroupBackoff       time.Duration          `json:"joinGroupBackoff"`
+	RetentionTime          time.Duration          `json:"retentionTime"`
+	StartOffset            int64                  `json:"startOffset"`
+	ReadBackoffMin         time.Duration          `json:"readBackoffMin"`
+	ReadBackoffMax         time.Duration          `json:"readBackoffMax"`
+	IsolationLevel         kafkago.IsolationLevel `json:"isolationLevel"`
+	MaxAttempts            int                    `json:"maxAttempts"`
+}
+
+func (*Kafka) Reader(rc *ReaderConfig) *kafkago.Reader {
 	var dialer *kafkago.Dialer
 
-	if auth != "" {
-		creds, err := unmarshalCredentials(auth)
+	if rc.Auth != "" {
+		creds, err := unmarshalCredentials(rc.Auth)
 		if err != nil {
 			ReportError(err, "Unable to unmarshal credentials")
 			return nil
@@ -37,23 +72,55 @@ func (*Kafka) Reader(
 		}
 	}
 
-	if groupID != "" {
-		partition = 0
+	if rc.GroupID != "" {
+		rc.Partition = 0
+	}
+
+	if rc.MaxWait == 0 {
+		rc.MaxWait = time.Millisecond * 200
+	}
+
+	if rc.RebalanceTimeout == 0 {
+		rc.RebalanceTimeout = time.Second * 5
+	}
+
+	if rc.QueueCapacity == 0 {
+		rc.QueueCapacity = 1
+	}
+
+	groupBalancers := make([]kafkago.GroupBalancer, len(rc.GroupBalancers))
+	for _, groupBalancer := range rc.GroupBalancers {
+		groupBalancers = append(groupBalancers, GroupBalancers[groupBalancer])
 	}
 
 	reader := kafkago.NewReader(kafkago.ReaderConfig{
-		Brokers:          brokers,
-		Topic:            topic,
-		Partition:        partition,
-		GroupID:          groupID,
-		MaxWait:          time.Millisecond * 200,
-		RebalanceTimeout: time.Second * 5,
-		QueueCapacity:    1,
-		Dialer:           dialer,
+		Brokers:                rc.Brokers,
+		Topic:                  rc.Topic,
+		Partition:              rc.Partition,
+		GroupID:                rc.GroupID,
+		GroupTopics:            rc.GroupTopics,
+		GroupBalancers:         groupBalancers,
+		MinBytes:               rc.MinBytes,
+		MaxBytes:               rc.MaxBytes,
+		ReadLagInterval:        rc.ReadLagInterval,
+		HeartbeatInterval:      rc.HeartbeatInterval,
+		CommitInterval:         rc.CommitInterval,
+		PartitionWatchInterval: rc.PartitionWatchInterval,
+		WatchPartitionChanges:  rc.WatchPartitionChanges,
+		SessionTimeout:         rc.SessionTimeout,
+		RebalanceTimeout:       rc.RebalanceTimeout,
+		JoinGroupBackoff:       rc.JoinGroupBackoff,
+		RetentionTime:          rc.RetentionTime,
+		StartOffset:            rc.StartOffset,
+		ReadBackoffMin:         rc.ReadBackoffMin,
+		ReadBackoffMax:         rc.ReadBackoffMax,
+		IsolationLevel:         rc.IsolationLevel,
+		MaxAttempts:            rc.MaxAttempts,
+		Dialer:                 dialer,
 	})
 
-	if offset > 0 {
-		reader.SetOffset(offset)
+	if rc.Offset > 0 {
+		reader.SetOffset(rc.Offset)
 	}
 
 	return reader
