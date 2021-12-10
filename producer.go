@@ -109,14 +109,14 @@ func ProduceInternal(
 	state := lib.GetState(ctx)
 	err := errors.New("state is nil")
 
-	err = validateConfiguration(configuration)
-	if err != nil {
-		ReportError(err, "Validation of properties failed.")
+	if state == nil {
+		ReportError(err, "Cannot determine state")
 		return err
 	}
 
-	if state == nil {
-		ReportError(err, "Cannot determine state")
+	err = validateConfiguration(configuration)
+	if err != nil {
+		ReportError(err, "Validation of properties failed.")
 		return err
 	}
 
