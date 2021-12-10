@@ -18,14 +18,29 @@ var (
 		"Lz4":    &compress.Lz4Codec,
 		"Zstd":   &compress.ZstdCodec,
 	}
+
+	Balancers = map[string]kafkago.Balancer{
+		"RoundRobin":      &kafkago.RoundRobin{},
+		"LeastBytes":      &kafkago.LeastBytes{},
+		"Hash":            &kafkago.Hash{},
+		"CRC32Balancer":   &kafkago.CRC32Balancer{},
+		"Murmur2Balancer": &kafkago.Murmur2Balancer{},
+	}
 )
 
 type WriterConfig struct {
-	Brokers     []string `json:"brokers"`
-	Topic       string   `json:"topic"`
-	Auth        string   `json:"auth"`
-	Compression string   `json:"compression"`
-	BatchSize   int      `json:"batch_size"`
+	Brokers      []string      `json:"brokers"`
+	Topic        string        `json:"topic"`
+	Auth         string        `json:"auth"`
+	Compression  string        `json:"compression"`
+	BatchSize    int           `json:"batch_size"`
+	Balancer     string        `json:"balancer"`
+	MaxAttempts  int           `json:"max_attempts"`
+	BatchBytes   int           `json:"batch_bytes"`
+	BatchTimeout time.Duration `json:"batch_timeout"`
+	ReadTimeout  time.Duration `json:"read_timeout"`
+	WriteTimeout time.Duration `json:"write_timeout"`
+	RequiredAcks int           `json:"required_acks"`
 }
 
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
@@ -46,16 +61,25 @@ func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	}
 
 	writerConfig := kafkago.WriterConfig{
-		Brokers:   wc.Brokers,
-		Topic:     wc.Topic,
-		Balancer:  &kafkago.LeastBytes{},
-		BatchSize: wc.BatchSize,
-		Dialer:    dialer,
-		Async:     false,
+		Brokers:      wc.Brokers,
+		Topic:        wc.Topic,
+		BatchSize:    wc.BatchSize,
+		Dialer:       dialer,
+		MaxAttempts:  wc.MaxAttempts,
+		BatchBytes:   wc.BatchBytes,
+		BatchTimeout: wc.BatchTimeout,
+		ReadTimeout:  wc.ReadTimeout,
+		WriteTimeout: wc.WriteTimeout,
+		RequiredAcks: wc.RequiredAcks,
+		Async:        false, // async is not supported yet
 	}
 
 	if codec, exists := CompressionCodecs[wc.Compression]; exists {
 		writerConfig.CompressionCodec = codec
+	}
+
+	if balancer, exists := Balancers[wc.Balancer]; exists {
+		writerConfig.Balancer = balancer
 	}
 
 	return kafkago.NewWriter(writerConfig)
