@@ -33,14 +33,14 @@ type WriterConfig struct {
 	Topic        string        `json:"topic"`
 	Auth         string        `json:"auth"`
 	Compression  string        `json:"compression"`
-	BatchSize    int           `json:"batch_size"`
+	BatchSize    int           `json:"batchSize"`
 	Balancer     string        `json:"balancer"`
-	MaxAttempts  int           `json:"max_attempts"`
-	BatchBytes   int           `json:"batch_bytes"`
-	BatchTimeout time.Duration `json:"batch_timeout"`
-	ReadTimeout  time.Duration `json:"read_timeout"`
-	WriteTimeout time.Duration `json:"write_timeout"`
-	RequiredAcks int           `json:"required_acks"`
+	MaxAttempts  int           `json:"maxAttempts"`
+	BatchBytes   int           `json:"batchBytes"`
+	BatchTimeout time.Duration `json:"batchTimeout"`
+	ReadTimeout  time.Duration `json:"readTimeout"`
+	WriteTimeout time.Duration `json:"writeTimeout"`
+	RequiredAcks int           `json:"requiredAcks"`
 }
 
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
