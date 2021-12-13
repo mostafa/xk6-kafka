@@ -55,7 +55,7 @@ type ReaderConfig struct {
 	MaxAttempts            int                    `json:"maxAttempts"`
 }
 
-func (*Kafka) Reader(rc *ReaderConfig) *kafkago.Reader {
+func (*Kafka) Reader(rc ReaderConfig) *kafkago.Reader {
 	var dialer *kafkago.Dialer
 
 	if rc.Auth.Username != "" && rc.Auth.Password != "" {
