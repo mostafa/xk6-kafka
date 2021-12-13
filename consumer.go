@@ -127,14 +127,8 @@ func (*Kafka) Consume(
 }
 
 func (*Kafka) ConsumeWithConfiguration(
-	ctx context.Context, reader *kafkago.Reader, limit int64, configurationJson string,
+	ctx context.Context, reader *kafkago.Reader, limit int64, configuration Configuration,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	configuration, err := unmarshalConfiguration(configurationJson)
-	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		ReportReaderStats(ctx, reader.Stats())
-		return nil
-	}
 	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema)
 }
 

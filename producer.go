@@ -87,13 +87,7 @@ func (*Kafka) Produce(
 
 func (*Kafka) ProduceWithConfiguration(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
-	configurationJson string, keySchema string, valueSchema string) error {
-	configuration, err := unmarshalConfiguration(configurationJson)
-	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		return nil
-	}
-
+	configuration Configuration, keySchema string, valueSchema string) error {
 	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema)
 }
 
