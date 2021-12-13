@@ -12,38 +12,18 @@ import {
     createTopic,
 } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["subdomain.us-east-1.aws.confluent.cloud:9092"];
+const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "com.example.person";
-
-const auth = {
-    username: "username",
-    password: "password",
-    algorithm: "plain",
-};
 
 const producer = writer({
     brokers: bootstrapServers,
     topic: kafkaTopic,
-    auth: auth,
 });
 const consumer = reader({
     brokers: bootstrapServers,
     topic: kafkaTopic,
-    auth: auth,
 });
 
-const keySchema = `{
-  "name": "KeySchema",
-  "type": "record",
-  "namespace": "com.example",
-  "fields": [
-    {
-      "name": "ssn",
-      "type": "string"
-    }
-  ]
-}
-`;
 const valueSchema = `{
   "name": "ValueSchema",
   "type": "record",
@@ -62,19 +42,15 @@ const valueSchema = `{
 
 var configuration = {
     consumer: {
-        keyDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+        keyDeserializer: "",
         valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
     },
     producer: {
-        keySerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
+        keySerializer: "",
         valueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
     },
     schemaRegistry: {
-        url: "https://subdomain.us-east-2.aws.confluent.cloud",
-        basicAuth: {
-            credentialsSource: "USER_INFO",
-            userInfo: "KEY:SECRET",
-        },
+        url: "http://localhost:8081",
     },
 };
 
@@ -84,31 +60,26 @@ export default function () {
     for (let index = 0; index < 100; index++) {
         let messages = [
             {
-                key: JSON.stringify({
-                    ssn: "ssn-" + index,
-                }),
                 value: JSON.stringify({
                     firstname: "firstname-" + index,
                     lastname: "lastname-" + index,
                 }),
             },
         ];
-        let error = produceWithConfiguration(
-            producer,
-            messages,
-            configuration,
-            keySchema,
-            valueSchema
-        );
+        let error = produceWithConfiguration(producer, messages, configuration, null, valueSchema);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
-    let messages = consumeWithConfiguration(consumer, 20, configuration, keySchema, valueSchema);
-    check(messages, {
+    let rx_messages = consumeWithConfiguration(consumer, 20, configuration, null, valueSchema);
+    check(rx_messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
+
+    for (let index = 0; index < rx_messages.length; index++) {
+        console.debug("Received Message: " + JSON.stringify(rx_messages[index]));
+    }
 }
 
 export function teardown(data) {

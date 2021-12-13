@@ -13,9 +13,12 @@ const kafkaTopic = "xk6_kafka_avro_topic";
 
 const producer = writer({
     brokers: bootstrapServers,
-    topic: kafkaTopic
+    topic: kafkaTopic,
 });
-const consumer = reader(bootstrapServers, kafkaTopic);
+const consumer = reader({
+    brokers: bootstrapServers,
+    topic: kafkaTopic,
+});
 
 const keySchema = JSON.stringify({
     type: "record",

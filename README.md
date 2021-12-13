@@ -4,7 +4,9 @@ This project is a k6 extension that can be used to load test Kafka, using a prod
 
 The real purpose of this extension is not only to test Apache Kafka, but also the system you've designed that uses Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-In order to build the source, you should have the latest version of Go (go1.15) installed. I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
+In order to build the source, you should have the latest version of Go installed. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
+
+If you want to learn more about the extension, visit [How to Load Test Your Kafka Producers and Consumers using k6](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) article on the k6 blog.
 
 ## Supported Features
 
@@ -14,6 +16,7 @@ In order to build the source, you should have the latest version of Go (go1.15) 
 * Support for user-provided Avro key and value schemas
 * Support for loading Avro schemas from Schema Registry
 * Support to consume from all partitions with group ID
+* Support Kafka message compression: Gzip, Snappy, Lz4 & Zstd
 
 ## Build
 
@@ -42,30 +45,24 @@ First, you need to have your Kafka development environment setup. I recommend yo
 
 ### Development Environment
 
-After running the following commands, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
+Run the Kafka environment and expose the container ports:
 
 ```bash
-$ sudo docker run -d --rm --name lensesio --net=host lensesio/fast-data-dev
-$ sudo docker logs -f -t lensesio
+sudo docker run -d --rm --name lenseio -p 2181:2181 -p 3030:3030 \
+       -p 8081-8083:8081-8083 -p 9581-9585:9581-9585 -p 9092:9092  \
+       -e ADV_HOST=127.0.0.1 lensesio/fast-data-dev
 ```
 
-To avoid getting the following error while running the test:
+After running the command, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
+
+You can run the command to see the container logs:
 
 ```bash
-Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
+sudo docker logs -f -t lensesio
 ```
 
-You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+> If you have errors running the Kafka development environment, refer to the [fast-data-dev documentation](https://github.com/lensesio/fast-data-dev).
 
-You always have the option to create it using `kafka-topics` command:
-
-```bash
-$ docker exec -it lensesio bash
-(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
-(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
-```
-
-If you want to test SASL authentication, have a look at [this commmit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
 
 ### k6 Test
 
@@ -135,6 +132,26 @@ default ✓ [======================================] 50 VUs  1m0s
     vus............................: 50      min=50   max=50
     vus_max........................: 50      min=50   max=50
 ```
+
+### Troubleshooting
+
+To avoid getting the following error while running the test:
+
+```bash
+Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
+```
+
+You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+
+You always have the option to create it using `kafka-topics` command:
+
+```bash
+$ docker exec -it lensesio bash
+(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
+```
+
+If you want to test SASL authentication, have a look at [this commmit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
 
 ## Disclaimer
 

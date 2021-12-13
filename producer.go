@@ -18,27 +18,36 @@ var (
 		"Lz4":    &compress.Lz4Codec,
 		"Zstd":   &compress.ZstdCodec,
 	}
+
+	Balancers = map[string]kafkago.Balancer{
+		"RoundRobin":      &kafkago.RoundRobin{},
+		"LeastBytes":      &kafkago.LeastBytes{},
+		"Hash":            &kafkago.Hash{},
+		"CRC32Balancer":   &kafkago.CRC32Balancer{},
+		"Murmur2Balancer": &kafkago.Murmur2Balancer{},
+	}
 )
 
 type WriterConfig struct {
-	Brokers     []string `json:"brokers"`
-	Topic       string   `json:"topic"`
-	Auth        string   `json:"auth"`
-	Compression string   `json:"compression"`
-	BatchSize   int      `json:"batch_size"`
+	Brokers      []string      `json:"brokers"`
+	Topic        string        `json:"topic"`
+	Auth         Credentials   `json:"auth"`
+	Compression  string        `json:"compression"`
+	BatchSize    int           `json:"batchSize"`
+	Balancer     string        `json:"balancer"`
+	MaxAttempts  int           `json:"maxAttempts"`
+	BatchBytes   int           `json:"batchBytes"`
+	BatchTimeout time.Duration `json:"batchTimeout"`
+	ReadTimeout  time.Duration `json:"readTimeout"`
+	WriteTimeout time.Duration `json:"writeTimeout"`
+	RequiredAcks int           `json:"requiredAcks"`
 }
 
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	var dialer *kafkago.Dialer
 
-	if wc.Auth != "" {
-		creds, err := unmarshalCredentials(wc.Auth)
-		if err != nil {
-			ReportError(err, "Unable to unmarshal credentials")
-			return nil
-		}
-
-		dialer = getDialer(creds)
+	if wc.Auth.Username != "" && wc.Auth.Password != "" {
+		dialer = getDialer(wc.Auth)
 		if dialer == nil {
 			ReportError(nil, "Dialer cannot authenticate")
 			return nil
@@ -46,16 +55,25 @@ func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	}
 
 	writerConfig := kafkago.WriterConfig{
-		Brokers:   wc.Brokers,
-		Topic:     wc.Topic,
-		Balancer:  &kafkago.LeastBytes{},
-		BatchSize: wc.BatchSize,
-		Dialer:    dialer,
-		Async:     false,
+		Brokers:      wc.Brokers,
+		Topic:        wc.Topic,
+		BatchSize:    wc.BatchSize,
+		Dialer:       dialer,
+		MaxAttempts:  wc.MaxAttempts,
+		BatchBytes:   wc.BatchBytes,
+		BatchTimeout: wc.BatchTimeout,
+		ReadTimeout:  wc.ReadTimeout,
+		WriteTimeout: wc.WriteTimeout,
+		RequiredAcks: wc.RequiredAcks,
+		Async:        false, // async is not supported yet
 	}
 
 	if codec, exists := CompressionCodecs[wc.Compression]; exists {
 		writerConfig.CompressionCodec = codec
+	}
+
+	if balancer, exists := Balancers[wc.Balancer]; exists {
+		writerConfig.Balancer = balancer
 	}
 
 	return kafkago.NewWriter(writerConfig)
@@ -69,13 +87,7 @@ func (*Kafka) Produce(
 
 func (*Kafka) ProduceWithConfiguration(
 	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
-	configurationJson string, keySchema string, valueSchema string) error {
-	configuration, err := unmarshalConfiguration(configurationJson)
-	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		return nil
-	}
-
+	configuration Configuration, keySchema string, valueSchema string) error {
 	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema)
 }
 
@@ -85,43 +97,51 @@ func ProduceInternal(
 	state := lib.GetState(ctx)
 	err := errors.New("state is nil")
 
+	if state == nil {
+		ReportError(err, "Cannot determine state")
+		return err
+	}
+
 	err = validateConfiguration(configuration)
 	if err != nil {
 		ReportError(err, "Validation of properties failed.")
 		return err
 	}
 
-	if state == nil {
-		ReportError(err, "Cannot determine state")
-		return err
-	}
-
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
-		key := []byte(message["key"])
-		if keySchema != "" {
-			key = ToAvro(message["key"], keySchema)
+
+		kafkaMessages[i] = kafkago.Message{}
+
+		// If a key was provided, add it to the message. Keys are optional.
+		if _, has_key := message["key"]; has_key {
+			key := []byte(message["key"])
+			if keySchema != "" {
+				key = ToAvro(message["key"], keySchema)
+			}
+			keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
+			if err != nil {
+				ReportError(err, "Creation of key bytes failed.")
+				return err
+			}
+
+			kafkaMessages[i].Key = keyData
 		}
 
+		// Then add then message
 		value := []byte(message["value"])
 		if valueSchema != "" {
 			value = ToAvro(message["value"], valueSchema)
 		}
 
-		keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
-		if err != nil {
-			ReportError(err, "Creation of key bytes failed.")
-			return err
-		}
 		valueData, err := addMagicByteAndSchemaIdPrefix(configuration, value, writer.Stats().Topic, "value", valueSchema)
 		if err != nil {
-			ReportError(err, "Creation of key bytes failed.")
+			ReportError(err, "Creation of message bytes failed.")
 			return err
 		}
-		kafkaMessages[i] = kafkago.Message{
-			Key:   keyData,
-			Value: valueData,
-		}
+
+		kafkaMessages[i].Value = valueData
+
 	}
 
 	err = writer.WriteMessages(ctx, kafkaMessages...)

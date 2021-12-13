@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
@@ -22,21 +21,11 @@ type Credentials struct {
 	Algorithm string `json:"algorithm"`
 }
 
-func unmarshalCredentials(auth string) (creds *Credentials, err error) {
-	creds = &Credentials{
-		Algorithm: Plain,
-	}
-
-	err = json.Unmarshal([]byte(auth), &creds)
-
-	return
-}
-
-func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
+func getDialer(creds Credentials) (dialer *kafkago.Dialer) {
 	dialer = &kafkago.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
-		TLS: &tls.Config{},
+		TLS:       &tls.Config{},
 	}
 
 	if creds.Algorithm == Plain {
