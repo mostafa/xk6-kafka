@@ -60,7 +60,7 @@ const valueSchema = `{
   ]
 }`;
 
-var configuration = JSON.stringify({
+var configuration = {
     consumer: {
         keyDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
         valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
@@ -76,7 +76,7 @@ var configuration = JSON.stringify({
             userInfo: "KEY:SECRET",
         },
     },
-});
+};
 
 createTopic(bootstrapServers[0], topic);
 

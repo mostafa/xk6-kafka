@@ -40,7 +40,7 @@ const valueSchema = `{
   ]
 }`;
 
-var configuration = JSON.stringify({
+var configuration = {
     consumer: {
         keyDeserializer: "",
         valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
@@ -52,7 +52,7 @@ var configuration = JSON.stringify({
     schemaRegistry: {
         url: "http://localhost:8081",
     },
-});
+};
 
 createTopic(bootstrapServers[0], topic);
 
