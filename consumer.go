@@ -29,7 +29,7 @@ var (
 type ReaderConfig struct {
 	Brokers                []string               `json:"brokers"`
 	Topic                  string                 `json:"topic"`
-	Auth                   string                 `json:"auth"`
+	Auth                   Credentials            `json:"auth"`
 	Partition              int                    `json:"partition"`
 	GroupID                string                 `json:"groupId"`
 	GroupTopics            []string               `json:"groupTopics"`
@@ -58,14 +58,8 @@ type ReaderConfig struct {
 func (*Kafka) Reader(rc *ReaderConfig) *kafkago.Reader {
 	var dialer *kafkago.Dialer
 
-	if rc.Auth != "" {
-		creds, err := unmarshalCredentials(rc.Auth)
-		if err != nil {
-			ReportError(err, "Unable to unmarshal credentials")
-			return nil
-		}
-
-		dialer = getDialer(creds)
+	if rc.Auth.Username != "" && rc.Auth.Password != "" {
+		dialer = getDialer(rc.Auth)
 		if dialer == nil {
 			ReportError(nil, "Dialer cannot authenticate")
 			return nil

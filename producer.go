@@ -31,7 +31,7 @@ var (
 type WriterConfig struct {
 	Brokers      []string      `json:"brokers"`
 	Topic        string        `json:"topic"`
-	Auth         string        `json:"auth"`
+	Auth         Credentials   `json:"auth"`
 	Compression  string        `json:"compression"`
 	BatchSize    int           `json:"batchSize"`
 	Balancer     string        `json:"balancer"`
@@ -46,14 +46,8 @@ type WriterConfig struct {
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	var dialer *kafkago.Dialer
 
-	if wc.Auth != "" {
-		creds, err := unmarshalCredentials(wc.Auth)
-		if err != nil {
-			ReportError(err, "Unable to unmarshal credentials")
-			return nil
-		}
-
-		dialer = getDialer(creds)
+	if wc.Auth.Username != "nil" && wc.Auth.Password != "nil" {
+		dialer = getDialer(wc.Auth)
 		if dialer == nil {
 			ReportError(nil, "Dialer cannot authenticate")
 			return nil
