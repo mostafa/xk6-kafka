@@ -15,11 +15,11 @@ import {
 const bootstrapServers = ["subdomain.us-east-1.aws.confluent.cloud:9092"];
 const kafkaTopic = "com.example.person";
 
-const auth = JSON.stringify({
+const auth = {
     username: "username",
     password: "password",
     algorithm: "plain",
-});
+};
 
 const producer = writer({
     brokers: bootstrapServers,

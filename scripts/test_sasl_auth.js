@@ -11,14 +11,14 @@ import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // i
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
-const auth = JSON.stringify({
+const auth = {
     username: "client",
     password: "client-secret",
     // Possible values for the algorithm is:
     // SASL Plain: "plain" (default if omitted)
     // SASL SCRAM: "sha256", "sha512"
     algorithm: "sha256",
-});
+};
 const offset = 0;
 // partition and groupID are mutually exclusive
 const partition = 1;
