@@ -46,7 +46,7 @@ type WriterConfig struct {
 func (*Kafka) Writer(wc WriterConfig) *kafkago.Writer {
 	var dialer *kafkago.Dialer
 
-	if wc.Auth.Username != "nil" && wc.Auth.Password != "nil" {
+	if wc.Auth.Username != "" && wc.Auth.Password != "" {
 		dialer = getDialer(wc.Auth)
 		if dialer == nil {
 			ReportError(nil, "Dialer cannot authenticate")
