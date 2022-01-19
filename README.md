@@ -157,4 +157,4 @@ If you want to test SASL authentication, have a look at [this commmit message](h
 
 This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK!
 
-This work is licensed under the [GNU Affero General Public License v3.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).
+This work is licensed under the [Apache License 2.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).
