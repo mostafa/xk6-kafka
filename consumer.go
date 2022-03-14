@@ -92,6 +92,9 @@ func ConsumeInternal(
 		limit = 1
 	}
 
+	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer, keySchema)
+	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer, valueSchema)
+
 	messages := make([]map[string]interface{}, 0)
 
 	for i := int64(0); i < limit; i++ {
@@ -112,19 +115,11 @@ func ConsumeInternal(
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-			keyWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Key, "key")
-			message["key"] = string(keyWithoutPrefix)
-			if keySchema != "" {
-				message["key"] = FromAvro(keyWithoutPrefix, keySchema)
-			}
+			message["key"] = keyDeserializer(configuration, msg.Key, "key", keySchema)
 		}
 
 		if len(msg.Value) > 0 {
-			valueWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, msg.Value, "value")
-			message["value"] = string(valueWithoutPrefix)
-			if valueSchema != "" {
-				message["value"] = FromAvro(valueWithoutPrefix, valueSchema)
-			}
+			message["value"] = valueDeserializer(configuration, msg.Value, "value", valueSchema)
 		}
 
 		messages = append(messages, message)
