@@ -54,13 +54,13 @@ func (*Kafka) Writer(brokers []string, topic string, auth string, compression st
 }
 
 func (*Kafka) Produce(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
+	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
 	keySchema string, valueSchema string) error {
 	return ProduceInternal(ctx, writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
 func (*Kafka) ProduceWithConfiguration(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
+	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
 	configurationJson string, keySchema string, valueSchema string) error {
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
@@ -72,7 +72,7 @@ func (*Kafka) ProduceWithConfiguration(
 }
 
 func ProduceInternal(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]string,
+	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
 	configuration Configuration, keySchema string, valueSchema string) error {
 	state := lib.GetState(ctx)
 	err := errors.New("state is nil")
@@ -88,6 +88,9 @@ func ProduceInternal(
 		return err
 	}
 
+	keySerializer := GetSerializer(configuration.Producer.KeySerializer, keySchema)
+	valueSerializer := GetSerializer(configuration.Producer.ValueSerializer, valueSchema)
+
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
 
@@ -95,11 +98,7 @@ func ProduceInternal(
 
 		// If a key was provided, add it to the message. Keys are optional.
 		if _, has_key := message["key"]; has_key {
-			key := []byte(message["key"])
-			if keySchema != "" {
-				key = ToAvro(message["key"], keySchema)
-			}
-			keyData, err := addMagicByteAndSchemaIdPrefix(configuration, key, writer.Stats().Topic, "key", keySchema)
+			keyData, err := keySerializer(configuration, writer.Stats().Topic, message["key"], "key", keySchema)
 			if err != nil {
 				ReportError(err, "Creation of key bytes failed.")
 				return err
@@ -109,19 +108,13 @@ func ProduceInternal(
 		}
 
 		// Then add then message
-		value := []byte(message["value"])
-		if valueSchema != "" {
-			value = ToAvro(message["value"], valueSchema)
-		}
-
-		valueData, err := addMagicByteAndSchemaIdPrefix(configuration, value, writer.Stats().Topic, "value", valueSchema)
+		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema)
 		if err != nil {
 			ReportError(err, "Creation of message bytes failed.")
 			return err
 		}
 
 		kafkaMessages[i].Value = valueData
-
 	}
 
 	err = writer.WriteMessages(ctx, kafkaMessages...)
