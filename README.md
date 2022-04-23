@@ -21,9 +21,9 @@ If you want to learn more about the extension, visit [How to Load Test Your Kafk
 - Support consumption from all partitions with a group ID
 - Support Kafka message compression: Gzip, Snappy, Lz4 & Zstd
 
-## Run Using the Official Docker Image
+## The Official Docker Image
 
-Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0) on, there is an [official Docker image](https://hub.docker.com/r/mostafamoradian/xk6-kafka) plus binaries in the assets. Before running your script, make sure to make it available to the container by mounting a volume (a directory) or passing it via stdin.
+Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), there is an [official Docker image](https://hub.docker.com/r/mostafamoradian/xk6-kafka) plus binaries in the assets. Before running your script, make sure to make it available to the container by mounting a volume (a directory) or passing it via stdin.
 
 ```bash
 docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
