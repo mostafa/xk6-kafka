@@ -1,0 +1,36 @@
+name: Test xk6-kafka
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build xk6-kafka
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Build 🏗️
+        id: build
+        uses: szkiba/xk6bundler@v0
+        with:
+          platform: linux/amd64 windows/amd64 darwin/amd64
+          with: |
+            github.com/mostafa/xk6-kafka@latest
+
+      - name: Run Apache Kafka 🦉 and test xk6-kafka 🧪
+        run: |
+          wget https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+          tar xf kafka_2.13-3.1.0.tgz
+          mkdir -p /tmp/kraft-combined-logs/
+          cat <<EOF > /tmp/kraft-combined-logs/meta.properties
+            version=1
+            broker.id=1
+            cluster.id=1
+            node.id=1
+          EOF
+          ./kafka_2.13-3.1.0/bin/kafka-server-start.sh ./kafka_2.13-3.1.0/config/kraft/server.properties &
+          ./k6 run ./scripts/test_json.js
+          kill %1
