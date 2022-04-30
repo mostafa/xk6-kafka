@@ -1,0 +1,48 @@
+name: Test xk6-kafka
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+
+jobs:
+  build:
+    name: Build xk6-kafka
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Go 🧑‍💻
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+
+      - name: Install xk6 and build xk6-kafka 🏗️
+        run: |
+          go install go.k6.io/xk6/cmd/xk6@latest
+          xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+
+      - name: Run Apache Kafka 🦉 and test xk6-kafka 🧪
+        run: |
+          cd ~/work/xk6-kafka/xk6-kafka
+          # Download and extract Kafka
+          wget -q https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+          tar xf kafka_2.13-3.1.0.tgz
+          # This is needed for Kafka to work
+          mkdir -p /tmp/kraft-combined-logs/
+          cat <<EOF > /tmp/kraft-combined-logs/meta.properties
+          version=1
+          broker.id=1
+          cluster.id=1
+          node.id=1
+          EOF
+          # Run Kafka in background
+          ./kafka_2.13-3.1.0/bin/kafka-server-start.sh ./kafka_2.13-3.1.0/config/kraft/server.properties &
+          # Wait for 5 seconds, run k6 (with xk6-kafka) and kill Kafka background process
+          sleep 5 && ./k6 run ./scripts/test_json.js && kill %1
