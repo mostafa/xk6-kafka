@@ -1,6 +1,12 @@
 name: Test xk6-kafka
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
 
 jobs:
   build:
