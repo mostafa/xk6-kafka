@@ -244,32 +244,34 @@ And here's the test result output:
            * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
 
 
-running (1m00.4s), 00/50 VUs, 6554 complete and 0 interrupted iterations
+running (1m00.1s), 00/50 VUs, 13598 complete and 0 interrupted iterations
 default ✓ [======================================] 50 VUs  1m0s
 
-    ✓ is sent
-    ✓ 10 messages returned
+     ✓ is sent
+     ✓ 10 messages returned
 
-    checks.........................: 100.00% ✓ 661954 ✗ 0
-    data_received..................: 0 B     0 B/s
-    data_sent......................: 0 B     0 B/s
-    iteration_duration.............: avg=459.31ms min=188.19ms med=456.26ms max=733.67ms p(90)=543.22ms p(95)=572.76ms
-    iterations.....................: 6554    108.563093/s
-    kafka.reader.dial.count........: 6554    108.563093/s
-    kafka.reader.error.count.......: 0       0/s
-    kafka.reader.fetches.count.....: 6554    108.563093/s
-    kafka.reader.message.bytes.....: 6.4 MB  106 kB/s
-    kafka.reader.message.count.....: 77825   1289.124612/s
-    kafka.reader.rebalance.count...: 0       0/s
-    kafka.reader.timeouts.count....: 0       0/s
-    kafka.writer.dial.count........: 6554    108.563093/s
-    kafka.writer.error.count.......: 0       0/s
-    kafka.writer.message.bytes.....: 54 MB   890 kB/s
-    kafka.writer.message.count.....: 655400  10856.309293/s
-    kafka.writer.rebalance.count...: 6554    108.563093/s
-    kafka.writer.write.count.......: 655400  10856.309293/s
-    vus............................: 50      min=50   max=50
-    vus_max........................: 50      min=50   max=50
+     █ teardown
+
+     checks.........................: 100.00% ✓ 1373398      ✗ 0
+     data_received..................: 0 B     0 B/s
+     data_sent......................: 0 B     0 B/s
+     iteration_duration.............: avg=220.82ms min=28.5µs med=215.94ms max=987.93ms p(90)=248.22ms p(95)=258.71ms
+     iterations.....................: 13598   226.195625/s
+     kafka.reader.dial.count........: 50      0.831724/s
+     kafka.reader.error.count.......: 0       0/s
+     kafka.reader.fetches.count.....: 50      0.831724/s
+     kafka.reader.message.bytes.....: 27 MB   444 kB/s
+     kafka.reader.message.count.....: 136030  2262.787977/s
+     kafka.reader.rebalance.count...: 0       0/s
+     kafka.reader.timeouts.count....: 0       0/s
+     kafka.writer.dial.count........: 132     2.195751/s
+     kafka.writer.error.count.......: 0       0/s
+     kafka.writer.message.bytes.....: 595 MB  9.9 MB/s
+     kafka.writer.message.count.....: 2719600 45239.125059/s
+     kafka.writer.rebalance.count...: 0       0/s
+     kafka.writer.write.count.......: 2719600 45239.125059/s
+     vus............................: 50      min=50         max=50
+     vus_max........................: 50      min=50         max=50
 ```
 
 ### Troubleshooting

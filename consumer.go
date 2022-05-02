@@ -1,22 +1,13 @@
 package kafka
 
 import (
-	"context"
 	"errors"
 	"io"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
-	"go.k6.io/k6/js/modules"
-	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
 )
-
-func init() {
-	modules.Register("k6/x/kafka", new(Kafka))
-}
-
-type Kafka struct{}
 
 func (*Kafka) Reader(
 	brokers []string, topic string, partition int,
@@ -59,32 +50,40 @@ func (*Kafka) Reader(
 	return reader
 }
 
-func (*Kafka) Consume(
-	ctx context.Context, reader *kafkago.Reader, limit int64,
+func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	return ConsumeInternal(ctx, reader, limit, Configuration{}, keySchema, valueSchema)
+	return k.consumeInternal(reader, limit, Configuration{}, keySchema, valueSchema)
 }
 
-func (*Kafka) ConsumeWithConfiguration(
-	ctx context.Context, reader *kafkago.Reader, limit int64, configurationJson string,
+func (k *Kafka) ConsumeWithConfiguration(
+	reader *kafkago.Reader, limit int64, configurationJson string,
 	keySchema string, valueSchema string) []map[string]interface{} {
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
 		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		ReportReaderStats(ctx, reader.Stats())
+		k.reportReaderStats(reader.Stats())
 		return nil
 	}
-	return ConsumeInternal(ctx, reader, limit, configuration, keySchema, valueSchema)
+	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
-func ConsumeInternal(
-	ctx context.Context, reader *kafkago.Reader, limit int64,
+func (k *Kafka) consumeInternal(
+	reader *kafkago.Reader, limit int64,
 	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
-	state := lib.GetState(ctx)
+	state := k.vu.State()
+	err := errors.New("state is nil")
 
 	if state == nil {
-		ReportError(nil, "Cannot determine state")
-		ReportReaderStats(ctx, reader.Stats())
+		ReportError(err, "Cannot determine state")
+		k.reportReaderStats(reader.Stats())
+		return nil
+	}
+
+	ctx := k.vu.Context()
+	err = errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
 		return nil
 	}
 
@@ -103,13 +102,13 @@ func ConsumeInternal(
 		if err == io.EOF {
 			ReportError(err, "Reached the end of queue")
 			// context is cancelled, so break
-			ReportReaderStats(ctx, reader.Stats())
+			k.reportReaderStats(reader.Stats())
 			return messages
 		}
 
 		if err != nil {
 			ReportError(err, "There was an error fetching messages")
-			ReportReaderStats(ctx, reader.Stats())
+			k.reportReaderStats(reader.Stats())
 			return messages
 		}
 
@@ -125,17 +124,24 @@ func ConsumeInternal(
 		messages = append(messages, message)
 	}
 
-	ReportReaderStats(ctx, reader.Stats())
+	k.reportReaderStats(reader.Stats())
 
 	return messages
 }
 
-func ReportReaderStats(ctx context.Context, currentStats kafkago.ReaderStats) error {
-	state := lib.GetState(ctx)
+func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) error {
+	state := k.vu.State()
 	err := errors.New("state is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
+		return err
+	}
+
+	ctx := k.vu.Context()
+	err = errors.New("context is nil")
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
 		return err
 	}
 
