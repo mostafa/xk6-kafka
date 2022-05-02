@@ -36,7 +36,9 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 	dialer = &kafkago.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
-		TLS: &tls.Config{},
+		TLS: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
 	}
 
 	if creds.Algorithm == Plain {
