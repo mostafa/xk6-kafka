@@ -1,6 +1,6 @@
 # xk6-kafka
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/mostafa/xk6-kafka/Build%20and%20publish%20xk6-kafka?logo=github)](https://github.com/mostafa/xk6-kafka/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/mostafa/xk6-kafka/Build%20and%20publish%20xk6-kafka?logo=github)](https://github.com/mostafa/xk6-kafka/actions) [![Docker Pulls](https://img.shields.io/docker/pulls/mostafamoradian/xk6-kafka?logo=docker)](https://hub.docker.com/r/mostafamoradian/xk6-kafka)
 
 This k6 extension provides the ability to load test Kafka using a producer. You can send many messages with each connection to Kafka. These messages are an array of objects containing a key and a value. There is also a consumer for testing purposes, that is, to make sure you send the correct data to Kafka, but it is not meant to be used for testing Kafka under load. There is support for producing and consuming messages in many formats using various serializers and deserializers. It can fetch schema from Schema Registry and also accepts hard-coded schema. Compression is also supported.
 
