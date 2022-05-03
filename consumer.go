@@ -44,7 +44,11 @@ func (*Kafka) Reader(
 	})
 
 	if offset > 0 {
-		reader.SetOffset(offset)
+		err := reader.SetOffset(offset)
+		if err != nil {
+			ReportError(err, "Unable to set offset")
+			return nil
+		}
 	}
 
 	return reader
@@ -61,7 +65,10 @@ func (k *Kafka) ConsumeWithConfiguration(
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
 		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		k.reportReaderStats(reader.Stats())
+		err = k.reportReaderStats(reader.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report reader stats")
+		}
 		return nil
 	}
 	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
@@ -75,7 +82,10 @@ func (k *Kafka) consumeInternal(
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
-		k.reportReaderStats(reader.Stats())
+		err = k.reportReaderStats(reader.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report reader stats")
+		}
 		return nil
 	}
 
@@ -102,13 +112,19 @@ func (k *Kafka) consumeInternal(
 		if err == io.EOF {
 			ReportError(err, "Reached the end of queue")
 			// context is cancelled, so break
-			k.reportReaderStats(reader.Stats())
+			err = k.reportReaderStats(reader.Stats())
+			if err != nil {
+				ReportError(err, "Cannot report reader stats")
+			}
 			return messages
 		}
 
 		if err != nil {
 			ReportError(err, "There was an error fetching messages")
-			k.reportReaderStats(reader.Stats())
+			err = k.reportReaderStats(reader.Stats())
+			if err != nil {
+				ReportError(err, "Cannot report reader stats")
+			}
 			return messages
 		}
 
@@ -124,7 +140,10 @@ func (k *Kafka) consumeInternal(
 		messages = append(messages, message)
 	}
 
-	k.reportReaderStats(reader.Stats())
+	err = k.reportReaderStats(reader.Stats())
+	if err != nil {
+		ReportError(err, "Cannot report reader stats")
+	}
 
 	return messages
 }

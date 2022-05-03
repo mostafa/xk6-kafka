@@ -75,6 +75,15 @@ func (k *Kafka) produceInternal(
 	state := k.vu.State()
 	err := errors.New("state is nil")
 
+	if state == nil {
+		ReportError(err, "Cannot determine state")
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
+		return nil
+	}
+
 	err = validateConfiguration(configuration)
 	if err != nil {
 		ReportError(err, "Validation of properties failed.")
@@ -126,13 +135,19 @@ func (k *Kafka) produceInternal(
 	err = writer.WriteMessages(ctx, kafkaMessages...)
 	if err == ctx.Err() {
 		// context is cancelled, so stop
-		k.reportWriterStats(writer.Stats())
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
 		return nil
 	}
 
 	if err != nil {
 		ReportError(err, "Failed to write message")
-		k.reportWriterStats(writer.Stats())
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
 		return err
 	}
 
