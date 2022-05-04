@@ -14,7 +14,9 @@ const kafkaTopic = "xk6_kafka_json_topic";
 const producer = writer(bootstrapServers, kafkaTopic);
 const consumer = reader(bootstrapServers, kafkaTopic);
 
-createTopic(bootstrapServers[0], kafkaTopic);
+if (__VU == 1) {
+    createTopic(bootstrapServers[0], kafkaTopic);
+}
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -61,6 +63,17 @@ export default function () {
 }
 
 export function teardown(data) {
+    if (__VU == 1) {
+        // Delete the topic
+        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
+        if (error === undefined) {
+            // If no error returns, it means that the topic
+            // is successfully deleted
+            console.log("Topic deleted successfully");
+        } else {
+            console.log("Error while deleting topic: ", error);
+        }
+    }
     producer.close();
     consumer.close();
 }

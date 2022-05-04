@@ -2,7 +2,11 @@ package kafka
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"io/ioutil"
+	"log"
+	"os"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
@@ -11,20 +15,24 @@ import (
 )
 
 const (
+	None   = "none"
 	Plain  = "plain"
 	SHA256 = "sha256"
 	SHA512 = "sha512"
 )
 
 type Credentials struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Algorithm string `json:"algorithm"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
+	Algorithm     string `json:"algorithm"`
+	ClientCertPem string `json:"clientCertPem"`
+	ClientKeyPem  string `json:"clientKeyPem"`
+	ServerCaPem   string `json:"serverCaPem"`
 }
 
 func unmarshalCredentials(auth string) (creds *Credentials, err error) {
 	creds = &Credentials{
-		Algorithm: Plain,
+		Algorithm: None,
 	}
 
 	err = json.Unmarshal([]byte(auth), &creds)
@@ -32,13 +40,11 @@ func unmarshalCredentials(auth string) (creds *Credentials, err error) {
 	return
 }
 
-func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
+func getDialerFromCreds(creds *Credentials) (dialer *kafkago.Dialer) {
 	dialer = &kafkago.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
-		TLS: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
+		TLS:       tlsConfig(creds),
 	}
 
 	if creds.Algorithm == Plain {
@@ -48,7 +54,7 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 		}
 		dialer.SASLMechanism = mechanism
 		return
-	} else {
+	} else if creds.Algorithm == SHA256 || creds.Algorithm == SHA512 {
 		hashes := make(map[string]scram.Algorithm)
 		hashes["sha256"] = scram.SHA256
 		hashes["sha512"] = scram.SHA512
@@ -64,5 +70,77 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 		}
 		dialer.SASLMechanism = mechanism
 		return
+	}
+	return
+}
+
+func getDialerFromAuth(auth string) (dialer *kafkago.Dialer) {
+	if auth != "" {
+		// Parse the auth string
+		creds, err := unmarshalCredentials(auth)
+		if err != nil {
+			ReportError(err, "Unable to unmarshal credentials")
+			return nil
+		}
+
+		// Try to create an authenticated dialer from the credentials
+		// with TLS enabled if the credentials specify a client cert
+		// and key.
+		dialer = getDialerFromCreds(creds)
+		if dialer == nil {
+			ReportError(nil, "Dialer cannot authenticate")
+			return nil
+		}
+	} else {
+		// Create a normal (unauthenticated) dialer
+		dialer = &kafkago.Dialer{
+			Timeout:   10 * time.Second,
+			DualStack: false,
+		}
+	}
+
+	return
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func tlsConfig(creds *Credentials) *tls.Config {
+	var clientCertFile = &creds.ClientCertPem
+	if !fileExists(*clientCertFile) {
+		ReportError(nil, "client certificate file not found")
+		return nil
+	}
+
+	var clientKeyFile = &creds.ClientKeyPem
+	if !fileExists(*clientKeyFile) {
+		ReportError(nil, "client key file not found")
+		return nil
+	}
+
+	var cert, err = tls.LoadX509KeyPair(*clientCertFile, *clientKeyFile)
+	if err != nil {
+		log.Fatalf("Error creating x509 keypair from client cert file %s and client key file %s", *clientCertFile, *clientKeyFile)
+	}
+
+	var caCertFile = &creds.ServerCaPem
+	if !fileExists(*caCertFile) {
+		ReportError(nil, "CA certificate file not found")
+		return nil
+	}
+
+	caCert, err := ioutil.ReadFile(*caCertFile)
+	if err != nil {
+		log.Fatalf("Error opening cert file %s, Error: %s", *caCertFile, err)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		RootCAs:      caCertPool,
+		MinVersion:   tls.VersionTLS12,
 	}
 }

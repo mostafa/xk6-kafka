@@ -55,8 +55,7 @@ const valueSchema = `{
 var configuration = JSON.stringify({
     consumer: {
         keyDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-        valueDeserializer:
-            "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+        valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
     },
     producer: {
         keySerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
@@ -71,7 +70,9 @@ var configuration = JSON.stringify({
     },
 });
 
-createTopic(bootstrapServers[0], topic);
+if (__VU == 1) {
+    createTopic(bootstrapServers[0], kafkaTopic);
+}
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -98,19 +99,24 @@ export default function () {
         });
     }
 
-    let messages = consumeWithConfiguration(
-        consumer,
-        20,
-        configuration,
-        keySchema,
-        valueSchema
-    );
+    let messages = consumeWithConfiguration(consumer, 20, configuration, keySchema, valueSchema);
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
 }
 
 export function teardown(data) {
+    if (__VU == 1) {
+        // Delete the topic
+        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
+        if (error === undefined) {
+            // If no error returns, it means that the topic
+            // is successfully deleted
+            console.log("Topic deleted successfully");
+        } else {
+            console.log("Error while deleting topic: ", error);
+        }
+    }
     producer.close();
     consumer.close();
 }

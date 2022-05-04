@@ -6,13 +6,13 @@ import (
 )
 
 type ConsumerConfiguration struct {
-	KeyDeserializer       string    `json:"keyDeserializer"`
-	ValueDeserializer     string    `json:"valueDeserializer"`
+	KeyDeserializer   string `json:"keyDeserializer"`
+	ValueDeserializer string `json:"valueDeserializer"`
 }
 
 type ProducerConfiguration struct {
-	KeySerializer       string    `json:"keySerializer"`
-	ValueSerializer     string    `json:"valueSerializer"`
+	KeySerializer   string `json:"keySerializer"`
+	ValueSerializer string `json:"valueSerializer"`
 }
 
 type BasicAuth struct {
@@ -23,11 +23,12 @@ type BasicAuth struct {
 type SchemaRegistryConfiguration struct {
 	Url       string    `json:"url"`
 	BasicAuth BasicAuth `json:"basicAuth"`
+	UseLatest bool      `json:"useLatest"`
 }
 
 type Configuration struct {
-	Consumer ConsumerConfiguration `json:"consumer"`
-	Producer ProducerConfiguration `json:"producer"`
+	Consumer       ConsumerConfiguration       `json:"consumer"`
+	Producer       ProducerConfiguration       `json:"producer"`
 	SchemaRegistry SchemaRegistryConfiguration `json:"schemaRegistry"`
 }
 
@@ -43,7 +44,7 @@ func useKafkaAvroDeserializer(configuration Configuration, keyOrValue string) bo
 		return false
 	}
 	if keyOrValue == "key" && configuration.Consumer.KeyDeserializer == "io.confluent.kafka.serializers.KafkaAvroDeserializer" ||
-	keyOrValue == "value" && configuration.Consumer.ValueDeserializer == "io.confluent.kafka.serializers.KafkaAvroDeserializer" {
+		keyOrValue == "value" && configuration.Consumer.ValueDeserializer == "io.confluent.kafka.serializers.KafkaAvroDeserializer" {
 		return true
 	}
 	return false
@@ -55,7 +56,7 @@ func useKafkaAvroSerializer(configuration Configuration, keyOrValue string) bool
 		return false
 	}
 	if keyOrValue == "key" && configuration.Producer.KeySerializer == "io.confluent.kafka.serializers.KafkaAvroSerializer" ||
-	keyOrValue == "value" && configuration.Producer.ValueSerializer == "io.confluent.kafka.serializers.KafkaAvroSerializer" {
+		keyOrValue == "value" && configuration.Producer.ValueSerializer == "io.confluent.kafka.serializers.KafkaAvroSerializer" {
 		return true
 	}
 	return false

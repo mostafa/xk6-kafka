@@ -12,22 +12,6 @@ import (
 func (*Kafka) Reader(
 	brokers []string, topic string, partition int,
 	groupID string, offset int64, auth string) *kafkago.Reader {
-	var dialer *kafkago.Dialer
-
-	if auth != "" {
-		creds, err := unmarshalCredentials(auth)
-		if err != nil {
-			ReportError(err, "Unable to unmarshal credentials")
-			return nil
-		}
-
-		dialer = getDialer(creds)
-		if dialer == nil {
-			ReportError(nil, "Dialer cannot authenticate")
-			return nil
-		}
-	}
-
 	if groupID != "" {
 		partition = 0
 	}
@@ -40,7 +24,7 @@ func (*Kafka) Reader(
 		MaxWait:          time.Millisecond * 200,
 		RebalanceTimeout: time.Second * 5,
 		QueueCapacity:    1,
-		Dialer:           dialer,
+		Dialer:           getDialerFromAuth(auth),
 	})
 
 	if offset > 0 {
