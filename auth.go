@@ -45,6 +45,7 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 		DualStack: true,
 		TLS:       tlsConfig(creds),
 	}
+
 	if creds.Algorithm == Plain {
 		mechanism := plain.Mechanism{
 			Username: creds.Username,
@@ -92,6 +93,6 @@ func tlsConfig(creds *Credentials) *tls.Config {
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      caCertPool,
-    MinVersion:   tls.VersionTLS12,
+		MinVersion:   tls.VersionTLS12,
 	}
 }
