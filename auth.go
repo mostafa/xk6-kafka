@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
@@ -73,15 +74,34 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 	return
 }
 
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
 func tlsConfig(creds *Credentials) *tls.Config {
 	var clientCertFile = &creds.ClientCertPem
+	if !fileExists(*clientCertFile) {
+		ReportError(nil, "client certificate file not found")
+		return nil
+	}
+
 	var clientKeyFile = &creds.ClientKeyPem
+	if !fileExists(*clientKeyFile) {
+		ReportError(nil, "client key file not found")
+		return nil
+	}
+
 	var cert, err = tls.LoadX509KeyPair(*clientCertFile, *clientKeyFile)
 	if err != nil {
 		log.Fatalf("Error creating x509 keypair from client cert file %s and client key file %s", *clientCertFile, *clientKeyFile)
 	}
 
 	var caCertFile = &creds.ServerCaPem
+	if !fileExists(*caCertFile) {
+		ReportError(nil, "CA certificate file not found")
+		return nil
+	}
 
 	caCert, err := ioutil.ReadFile(*caCertFile)
 	if err != nil {
