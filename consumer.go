@@ -24,7 +24,7 @@ func (*Kafka) Reader(
 		MaxWait:          time.Millisecond * 200,
 		RebalanceTimeout: time.Second * 5,
 		QueueCapacity:    1,
-		Dialer:           getAuthenticatedDialer(auth),
+		Dialer:           getDialerFromAuth(auth),
 	})
 
 	if offset > 0 {

@@ -24,7 +24,7 @@ func (*Kafka) Writer(brokers []string, topic string, auth string, compression st
 		Topic:     topic,
 		Balancer:  &kafkago.LeastBytes{},
 		BatchSize: 1,
-		Dialer:    getAuthenticatedDialer(auth),
+		Dialer:    getDialerFromAuth(auth),
 		Async:     false,
 	}
 

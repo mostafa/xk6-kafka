@@ -14,7 +14,9 @@ const kafkaTopic = "xk6_kafka_json_topic";
 const producer = writer(bootstrapServers, kafkaTopic);
 const consumer = reader(bootstrapServers, kafkaTopic);
 
-createTopic(bootstrapServers[0], kafkaTopic);
+if (__VU == 1) {
+    createTopic(bootstrapServers[0], kafkaTopic);
+}
 
 export default function () {
     for (let index = 0; index < 100; index++) {

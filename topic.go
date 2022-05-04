@@ -9,7 +9,7 @@ import (
 )
 
 func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) error {
-	dialer := getAuthenticatedDialer(auth)
+	dialer := getDialerFromAuth(auth)
 
 	ctx := k.vu.Context()
 	err := errors.New("context is nil")
@@ -55,7 +55,7 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 }
 
 func (k *Kafka) DeleteTopic(address, topic string, auth string) error {
-	dialer := getAuthenticatedDialer(auth)
+	dialer := getDialerFromAuth(auth)
 
 	ctx := k.vu.Context()
 	err := errors.New("context is nil")
@@ -80,7 +80,7 @@ func (k *Kafka) DeleteTopic(address, topic string, auth string) error {
 }
 
 func (k *Kafka) ListTopics(address string, auth string) ([]string, error) {
-	dialer := getAuthenticatedDialer(auth)
+	dialer := getDialerFromAuth(auth)
 
 	ctx := k.vu.Context()
 	err := errors.New("context is nil")

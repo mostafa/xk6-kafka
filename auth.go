@@ -40,7 +40,7 @@ func unmarshalCredentials(auth string) (creds *Credentials, err error) {
 	return
 }
 
-func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
+func getDialerFromCreds(creds *Credentials) (dialer *kafkago.Dialer) {
 	dialer = &kafkago.Dialer{
 		Timeout:   10 * time.Second,
 		DualStack: true,
@@ -74,18 +74,28 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 	return
 }
 
-func getAuthenticatedDialer(auth string) (dialer *kafkago.Dialer) {
+func getDialerFromAuth(auth string) (dialer *kafkago.Dialer) {
 	if auth != "" {
+		// Parse the auth string
 		creds, err := unmarshalCredentials(auth)
 		if err != nil {
 			ReportError(err, "Unable to unmarshal credentials")
 			return nil
 		}
 
-		dialer = getDialer(creds)
+		// Try to create an authenticated dialer from the credentials
+		// with TLS enabled if the credentials specify a client cert
+		// and key.
+		dialer = getDialerFromCreds(creds)
 		if dialer == nil {
 			ReportError(nil, "Dialer cannot authenticate")
 			return nil
+		}
+	} else {
+		// Create a normal (unauthenticated) dialer
+		dialer = &kafkago.Dialer{
+			Timeout:   10 * time.Second,
+			DualStack: false,
 		}
 	}
 
