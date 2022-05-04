@@ -92,5 +92,6 @@ func tlsConfig(creds *Credentials) *tls.Config {
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      caCertPool,
+    MinVersion:   tls.VersionTLS12,
 	}
 }
