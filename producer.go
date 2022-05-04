@@ -1,13 +1,11 @@
 package kafka
 
 import (
-	"context"
 	"errors"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
-	"go.k6.io/k6/lib"
 	"go.k6.io/k6/stats"
 )
 
@@ -53,14 +51,14 @@ func (*Kafka) Writer(brokers []string, topic string, auth string, compression st
 	return kafkago.NewWriter(writerConfig)
 }
 
-func (*Kafka) Produce(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
+func (k *Kafka) Produce(
+	writer *kafkago.Writer, messages []map[string]interface{},
 	keySchema string, valueSchema string) error {
-	return ProduceInternal(ctx, writer, messages, Configuration{}, keySchema, valueSchema)
+	return k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
-func (*Kafka) ProduceWithConfiguration(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
+func (k *Kafka) ProduceWithConfiguration(
+	writer *kafkago.Writer, messages []map[string]interface{},
 	configurationJson string, keySchema string, valueSchema string) error {
 	configuration, err := unmarshalConfiguration(configurationJson)
 	if err != nil {
@@ -68,14 +66,23 @@ func (*Kafka) ProduceWithConfiguration(
 		return nil
 	}
 
-	return ProduceInternal(ctx, writer, messages, configuration, keySchema, valueSchema)
+	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
-func ProduceInternal(
-	ctx context.Context, writer *kafkago.Writer, messages []map[string]interface{},
+func (k *Kafka) produceInternal(
+	writer *kafkago.Writer, messages []map[string]interface{},
 	configuration Configuration, keySchema string, valueSchema string) error {
-	state := lib.GetState(ctx)
+	state := k.vu.State()
 	err := errors.New("state is nil")
+
+	if state == nil {
+		ReportError(err, "Cannot determine state")
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
+		return nil
+	}
 
 	err = validateConfiguration(configuration)
 	if err != nil {
@@ -85,6 +92,14 @@ func ProduceInternal(
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
+		return err
+	}
+
+	ctx := k.vu.Context()
+	err = errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
 		return err
 	}
 
@@ -120,25 +135,38 @@ func ProduceInternal(
 	err = writer.WriteMessages(ctx, kafkaMessages...)
 	if err == ctx.Err() {
 		// context is cancelled, so stop
-		ReportWriterStats(ctx, writer.Stats())
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
 		return nil
 	}
 
 	if err != nil {
 		ReportError(err, "Failed to write message")
-		ReportWriterStats(ctx, writer.Stats())
+		err = k.reportWriterStats(writer.Stats())
+		if err != nil {
+			ReportError(err, "Cannot report writer stats")
+		}
 		return err
 	}
 
 	return nil
 }
 
-func ReportWriterStats(ctx context.Context, currentStats kafkago.WriterStats) error {
-	state := lib.GetState(ctx)
+func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) error {
+	state := k.vu.State()
 	err := errors.New("state is nil")
 
 	if state == nil {
 		ReportError(err, "Cannot determine state")
+		return err
+	}
+
+	ctx := k.vu.Context()
+	err = errors.New("context is nil")
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
 		return err
 	}
 
