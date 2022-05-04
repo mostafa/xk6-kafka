@@ -54,6 +54,31 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 	return nil
 }
 
+func (k *Kafka) DeleteTopic(address, topic string, auth string) error {
+	dialer := getAuthenticatedDialer(auth)
+
+	ctx := k.vu.Context()
+	err := errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
+		return err
+	}
+
+	conn, err := dialer.DialContext(ctx, "tcp", address)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	err = conn.DeleteTopics([]string{topic}...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (k *Kafka) ListTopics(address string, auth string) ([]string, error) {
 	dialer := getAuthenticatedDialer(auth)
 

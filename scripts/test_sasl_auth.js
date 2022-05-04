@@ -7,7 +7,7 @@ also uses SASL authentication.
 */
 
 import { check } from "k6";
-import { writer, produce, reader, consume, createTopic, listTopics } from "k6/x/kafka"; // import kafka extension
+import { writer, produce, reader, consume, createTopic, deleteTopic, listTopics } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9093"];
 const kafkaTopic = "xk6_kafka_json_topic";
@@ -32,7 +32,7 @@ const consumer = reader(bootstrapServers, kafkaTopic, partition, groupID, offset
 
 if (__VU == 1) {
     createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression, auth);
-    console.log(listTopics(bootstrapServers[0], auth));
+    console.log("Existing topics: ", listTopics(bootstrapServers[0], auth));
 }
 
 export default function () {
@@ -80,6 +80,9 @@ export default function () {
 }
 
 export function teardown(data) {
+    if (__VU == 1) {
+        deleteTopic(bootstrapServers[0], kafkaTopic, auth);
+    }
     producer.close();
     consumer.close();
 }
