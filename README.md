@@ -189,18 +189,31 @@ function consumeWithConfiguration(reader: object, limit: number, configurationJs
  * @param   {number}    partitions          The number of partitions.
  * @param   {number}    replicationFactor   The replication factor in a clustered setup.
  * @param   {string}    compression         The compression algorithm.
+ * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
  * @returns {string}    A string containing the error.
  */
-function createTopic(address: string, topic: string, partitions: number, replicationFactor number, compression string) => string {}
+function createTopic(address: string, topic: string, partitions: number, replicationFactor: number, compression: string, auth: string) => string {}
+
+/**
+ * Delete a topic from Kafka. It raises an error if the topic doesn't exist.
+ *
+ * @function
+ * @param   {string}    address             The broker address.
+ * @param   {string}    topic               The topic name.
+ * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
+ * @returns {string}    A string containing the error.
+ */
+function deleteTopic(address: string, topic: string, auth: string) => string {}
 
 /**
  * List all topics in Kafka.
  *
  * @function
- * @param   {string}    address             The broker address.
+ * @param   {string}    address The broker address.
+ * @param   {string}    auth    Authentication credentials for SASL PLAIN/SCRAM.
  * @returns {string}    A nested list of strings containing a list of topics and the error (if any).
  */
-function listTopics(address: string) => [[string], string] {}
+function listTopics(address: string, auth: string) => [[string], string] {}
 ```
 
 </details>

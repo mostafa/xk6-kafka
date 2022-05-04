@@ -1,31 +1,29 @@
 package kafka
 
 import (
-	"net"
-	"strconv"
+	"errors"
 	"strings"
 
 	"github.com/segmentio/kafka-go"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string) error {
-	conn, err := kafkago.Dial("tcp", address)
+func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) error {
+	dialer := getDialerFromAuth(auth)
+
+	ctx := k.vu.Context()
+	err := errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
+		return err
+	}
+
+	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
-
-	controller, err := conn.Controller()
-	if err != nil {
-		return err
-	}
-	var controllerConn *kafkago.Conn
-	controllerConn, err = kafkago.Dial("tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
-	if err != nil {
-		return err
-	}
-	defer controllerConn.Close()
 
 	if partitions <= 0 {
 		partitions = 1
@@ -48,7 +46,7 @@ func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor i
 		})
 	}
 
-	err = controllerConn.CreateTopics([]kafkago.TopicConfig{topicConfig}...)
+	err = conn.CreateTopics([]kafkago.TopicConfig{topicConfig}...)
 	if err != nil {
 		return err
 	}
@@ -56,8 +54,43 @@ func (*Kafka) CreateTopic(address, topic string, partitions, replicationFactor i
 	return nil
 }
 
-func (*Kafka) ListTopics(address string) ([]string, error) {
-	conn, err := kafkago.Dial("tcp", address)
+func (k *Kafka) DeleteTopic(address, topic string, auth string) error {
+	dialer := getDialerFromAuth(auth)
+
+	ctx := k.vu.Context()
+	err := errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
+		return err
+	}
+
+	conn, err := dialer.DialContext(ctx, "tcp", address)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	err = conn.DeleteTopics([]string{topic}...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *Kafka) ListTopics(address string, auth string) ([]string, error) {
+	dialer := getDialerFromAuth(auth)
+
+	ctx := k.vu.Context()
+	err := errors.New("context is nil")
+
+	if ctx == nil {
+		ReportError(err, "Cannot determine context")
+		return nil, err
+	}
+
+	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
 		return nil, err
 	}

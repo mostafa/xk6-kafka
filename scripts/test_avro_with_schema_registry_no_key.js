@@ -37,8 +37,7 @@ const valueSchema = `{
 var configuration = JSON.stringify({
     consumer: {
         keyDeserializer: "",
-        valueDeserializer:
-            "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+        valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
     },
     producer: {
         keySerializer: "",
@@ -49,7 +48,9 @@ var configuration = JSON.stringify({
     },
 });
 
-createTopic(bootstrapServers[0], topic);
+if (__VU == 1) {
+    createTopic(bootstrapServers[0], kafkaTopic);
+}
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -61,35 +62,34 @@ export default function () {
                 }),
             },
         ];
-        let error = produceWithConfiguration(
-            producer,
-            messages,
-            configuration,
-            null,
-            valueSchema
-        );
+        let error = produceWithConfiguration(producer, messages, configuration, null, valueSchema);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
-    let rx_messages = consumeWithConfiguration(
-        consumer,
-        20,
-        configuration,
-        null,
-        valueSchema
-    );
+    let rx_messages = consumeWithConfiguration(consumer, 20, configuration, null, valueSchema);
     check(rx_messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
 
     for (let index = 0; index < rx_messages.length; index++) {
-        console.debug('Received Message: ' + JSON.stringify(rx_messages[index]));
+        console.debug("Received Message: " + JSON.stringify(rx_messages[index]));
     }
 }
 
 export function teardown(data) {
+    if (__VU == 1) {
+        // Delete the topic
+        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
+        if (error === undefined) {
+            // If no error returns, it means that the topic
+            // is successfully deleted
+            console.log("Topic deleted successfully");
+        } else {
+            console.log("Error while deleting topic: ", error);
+        }
+    }
     producer.close();
     consumer.close();
 }
