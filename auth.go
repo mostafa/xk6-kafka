@@ -74,6 +74,24 @@ func getDialer(creds *Credentials) (dialer *kafkago.Dialer) {
 	return
 }
 
+func getAuthenticatedDialer(auth string) (dialer *kafkago.Dialer) {
+	if auth != "" {
+		creds, err := unmarshalCredentials(auth)
+		if err != nil {
+			ReportError(err, "Unable to unmarshal credentials")
+			return nil
+		}
+
+		dialer = getDialer(creds)
+		if dialer == nil {
+			ReportError(nil, "Dialer cannot authenticate")
+			return nil
+		}
+	}
+
+	return
+}
+
 func fileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil

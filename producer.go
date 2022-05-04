@@ -19,28 +19,12 @@ var (
 )
 
 func (*Kafka) Writer(brokers []string, topic string, auth string, compression string) *kafkago.Writer {
-	var dialer *kafkago.Dialer
-
-	if auth != "" {
-		creds, err := unmarshalCredentials(auth)
-		if err != nil {
-			ReportError(err, "Unable to unmarshal credentials")
-			return nil
-		}
-
-		dialer = getDialer(creds)
-		if dialer == nil {
-			ReportError(nil, "Dialer cannot authenticate")
-			return nil
-		}
-	}
-
 	writerConfig := kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
 		Balancer:  &kafkago.LeastBytes{},
 		BatchSize: 1,
-		Dialer:    dialer,
+		Dialer:    getAuthenticatedDialer(auth),
 		Async:     false,
 	}
 
