@@ -6,7 +6,7 @@ import (
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
-	"go.k6.io/k6/stats"
+	"go.k6.io/k6/metrics"
 )
 
 func (*Kafka) Reader(
@@ -155,52 +155,52 @@ func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) error {
 
 	now := time.Now()
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderDials,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderDials,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Dials),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderFetches,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderFetches,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Fetches),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderMessages,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderMessages,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Messages),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderBytes,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderBytes,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Bytes),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderRebalances,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderRebalances,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Rebalances),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderTimeouts,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderTimeouts,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Timeouts),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: ReaderErrors,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.ReaderErrors,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Errors),
 	})
 

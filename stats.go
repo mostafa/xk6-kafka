@@ -1,52 +1,268 @@
 package kafka
 
-import "go.k6.io/k6/stats"
-
-var (
-	ReaderDials      = stats.New("kafka.reader.dial.count", stats.Counter)
-	ReaderFetches    = stats.New("kafka.reader.fetches.count", stats.Counter)
-	ReaderMessages   = stats.New("kafka.reader.message.count", stats.Counter)
-	ReaderBytes      = stats.New("kafka.reader.message.bytes", stats.Counter, stats.Data)
-	ReaderRebalances = stats.New("kafka.reader.rebalance.count", stats.Counter)
-	ReaderTimeouts   = stats.New("kafka.reader.timeouts.count", stats.Counter)
-	ReaderErrors     = stats.New("kafka.reader.error.count", stats.Counter)
-
-	ReaderDialTime   = stats.New("kafka.reader.dial.seconds", stats.Trend, stats.Time)
-	ReaderReadTime   = stats.New("kafka.reader.read.seconds", stats.Trend, stats.Time)
-	ReaderWaitTime   = stats.New("kafka.reader.wait.seconds", stats.Trend, stats.Time)
-	ReaderFetchSize  = stats.New("kafka.reader.fetch.size", stats.Counter)
-	ReaderFetchBytes = stats.New("kafka.reader.fetch.bytes", stats.Counter, stats.Data)
-
-	ReaderOffset        = stats.New("kafka.reader.offset", stats.Gauge)
-	ReaderLag           = stats.New("kafka.reader.lag", stats.Gauge)
-	ReaderMinBytes      = stats.New("kafka.reader.fetch_bytes.min", stats.Gauge)
-	ReaderMaxBytes      = stats.New("kafka.reader.fetch_bytes.max", stats.Gauge)
-	ReaderMaxWait       = stats.New("kafka.reader.fetch_wait.max", stats.Gauge, stats.Time)
-	ReaderQueueLength   = stats.New("kafka.reader.queue.length", stats.Gauge)
-	ReaderQueueCapacity = stats.New("kafka.reader.queue.capacity", stats.Gauge)
-
-	WriterDials      = stats.New("kafka.writer.dial.count", stats.Counter)
-	WriterWrites     = stats.New("kafka.writer.write.count", stats.Counter)
-	WriterMessages   = stats.New("kafka.writer.message.count", stats.Counter)
-	WriterBytes      = stats.New("kafka.writer.message.bytes", stats.Counter, stats.Data)
-	WriterRebalances = stats.New("kafka.writer.rebalance.count", stats.Counter)
-	WriterErrors     = stats.New("kafka.writer.error.count", stats.Counter)
-
-	WriterDialTime   = stats.New("kafka.writer.dial.seconds", stats.Trend, stats.Time)
-	WriterWriteTime  = stats.New("kafka.writer.write.seconds", stats.Trend, stats.Time)
-	WriterWaitTime   = stats.New("kafka.writer.wait.seconds", stats.Trend, stats.Time)
-	WriterRetries    = stats.New("kafka.writer.retries.count", stats.Counter)
-	WriterBatchSize  = stats.New("kafka.writer.batch.size", stats.Counter)
-	WriterBatchBytes = stats.New("kafka.writer.batch.bytes", stats.Counter, stats.Data)
-
-	WriterMaxAttempts       = stats.New("kafka.writer.attempts.max", stats.Gauge)
-	WriterMaxBatchSize      = stats.New("kafka.writer.batch.max", stats.Gauge)
-	WriterBatchTimeout      = stats.New("kafka.writer.batch.timeout", stats.Gauge, stats.Time)
-	WriterReadTimeout       = stats.New("kafka.writer.read.timeout", stats.Gauge, stats.Time)
-	WriterWriteTimeout      = stats.New("kafka.writer.write.timeout", stats.Gauge, stats.Time)
-	WriterRebalanceInterval = stats.New("kafka.writer.rebalance.interval", stats.Gauge, stats.Time)
-	WriterRequiredAcks      = stats.New("kafka.writer.acks.required", stats.Gauge)
-	WriterAsync             = stats.New("kafka.writer.async", stats.Rate)
-	WriterQueueLength       = stats.New("kafka.writer.queue.length", stats.Gauge)
-	WriterQueueCapacity     = stats.New("kafka.writer.queue.capacity", stats.Gauge)
+import (
+	"go.k6.io/k6/js/modules"
+	"go.k6.io/k6/metrics"
 )
+
+type kafkaMetrics struct {
+	ReaderDials      *metrics.Metric
+	ReaderFetches    *metrics.Metric
+	ReaderMessages   *metrics.Metric
+	ReaderBytes      *metrics.Metric
+	ReaderRebalances *metrics.Metric
+	ReaderTimeouts   *metrics.Metric
+	ReaderErrors     *metrics.Metric
+
+	ReaderDialTime   *metrics.Metric
+	ReaderReadTime   *metrics.Metric
+	ReaderWaitTime   *metrics.Metric
+	ReaderFetchBytes *metrics.Metric
+	ReaderFetchSize  *metrics.Metric
+
+	ReaderOffset        *metrics.Metric
+	ReaderLag           *metrics.Metric
+	ReaderMinBytes      *metrics.Metric
+	ReaderMaxBytes      *metrics.Metric
+	ReaderMaxWait       *metrics.Metric
+	ReaderQueueLength   *metrics.Metric
+	ReaderQueueCapacity *metrics.Metric
+
+	WriterDials      *metrics.Metric
+	WriterWrites     *metrics.Metric
+	WriterMessages   *metrics.Metric
+	WriterBytes      *metrics.Metric
+	WriterRebalances *metrics.Metric
+	WriterErrors     *metrics.Metric
+
+	WriterDialTime   *metrics.Metric
+	WriterWriteTime  *metrics.Metric
+	WriterWaitTime   *metrics.Metric
+	WriterRetries    *metrics.Metric
+	WriterBatchSize  *metrics.Metric
+	WriterBatchBytes *metrics.Metric
+
+	WriterMaxAttempts       *metrics.Metric
+	WriterMaxBatchSize      *metrics.Metric
+	WriterBatchTimeout      *metrics.Metric
+	WriterReadTimeout       *metrics.Metric
+	WriterWriteTimeout      *metrics.Metric
+	WriterRebalanceInterval *metrics.Metric
+	WriterRequiredAcks      *metrics.Metric
+	WriterAsync             *metrics.Metric
+	WriterQueueLength       *metrics.Metric
+	WriterQueueCapacity     *metrics.Metric
+}
+
+func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
+	var err error
+	registry := vu.InitEnv().Registry
+	m := kafkaMetrics{}
+
+	m.ReaderDials, err = registry.NewMetric("kafka.reader.dial.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderFetches, err = registry.NewMetric("kafka.reader.fetches.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderMessages, err = registry.NewMetric("kafka.reader.message.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderBytes, err = registry.NewMetric("kafka.reader.message.bytes", metrics.Counter, metrics.Data)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderRebalances, err = registry.NewMetric("kafka.reader.rebalance.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderTimeouts, err = registry.NewMetric("kafka.reader.timeouts.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderErrors, err = registry.NewMetric("kafka.reader.error.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderDialTime, err = registry.NewMetric("kafka.reader.dial.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderReadTime, err = registry.NewMetric("kafka.reader.read.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderWaitTime, err = registry.NewMetric("kafka.reader.wait.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderFetchSize, err = registry.NewMetric("kafka.reader.fetch.size", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderFetchBytes, err = registry.NewMetric("kafka.reader.fetch.bytes", metrics.Counter, metrics.Data)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderOffset, err = registry.NewMetric("kafka.reader.offset", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderLag, err = registry.NewMetric("kafka.reader.lag", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderMinBytes, err = registry.NewMetric("kafka.reader.fetch_bytes.min", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderMaxBytes, err = registry.NewMetric("kafka.reader.fetch_bytes.max", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderMaxWait, err = registry.NewMetric("kafka.reader.fetch_wait.max", metrics.Gauge, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderQueueLength, err = registry.NewMetric("kafka.reader.queue.length", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.ReaderQueueCapacity, err = registry.NewMetric("kafka.reader.queue.capacity", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterDials, err = registry.NewMetric("kafka.writer.dial.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterWrites, err = registry.NewMetric("kafka.writer.write.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterMessages, err = registry.NewMetric("kafka.writer.message.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterBytes, err = registry.NewMetric("kafka.writer.message.bytes", metrics.Counter, metrics.Data)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterRebalances, err = registry.NewMetric("kafka.writer.rebalance.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterErrors, err = registry.NewMetric("kafka.writer.error.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterDialTime, err = registry.NewMetric("kafka.writer.dial.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterWriteTime, err = registry.NewMetric("kafka.writer.write.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterWaitTime, err = registry.NewMetric("kafka.writer.wait.seconds", metrics.Trend, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterRetries, err = registry.NewMetric("kafka.writer.retries.count", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterBatchSize, err = registry.NewMetric("kafka.writer.batch.size", metrics.Counter)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterBatchBytes, err = registry.NewMetric("kafka.writer.batch.bytes", metrics.Counter, metrics.Data)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterMaxAttempts, err = registry.NewMetric("kafka.writer.attempts.max", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterMaxBatchSize, err = registry.NewMetric("kafka.writer.batch.max", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterBatchTimeout, err = registry.NewMetric("kafka.writer.batch.timeout", metrics.Gauge, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterReadTimeout, err = registry.NewMetric("kafka.writer.read.timeout", metrics.Gauge, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterWriteTimeout, err = registry.NewMetric("kafka.writer.write.timeout", metrics.Gauge, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterRebalanceInterval, err = registry.NewMetric("kafka.writer.rebalance.interval", metrics.Gauge, metrics.Time)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterRequiredAcks, err = registry.NewMetric("kafka.writer.acks.required", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterAsync, err = registry.NewMetric("kafka.writer.async", metrics.Rate)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterQueueLength, err = registry.NewMetric("kafka.writer.queue.length", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	m.WriterQueueCapacity, err = registry.NewMetric("kafka.writer.queue.capacity", metrics.Gauge)
+	if err != nil {
+		return m, err
+	}
+
+	return m, nil
+}

@@ -1,6 +1,9 @@
 package kafka
 
-import "go.k6.io/k6/js/modules"
+import (
+	"go.k6.io/k6/js/common"
+	"go.k6.io/k6/js/modules"
+)
 
 func init() {
 	modules.Register("k6/x/kafka", New())
@@ -8,7 +11,8 @@ func init() {
 
 type (
 	Kafka struct {
-		vu modules.VU
+		vu      modules.VU
+		metrics kafkaMetrics
 	}
 	RootModule  struct{}
 	KafkaModule struct {
@@ -26,7 +30,12 @@ func New() *RootModule {
 }
 
 func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
-	return &KafkaModule{Kafka: &Kafka{vu: vu}}
+	m, err := registerMetrics(vu)
+	if err != nil {
+		common.Throw(vu.Runtime(), err)
+	}
+
+	return &KafkaModule{Kafka: &Kafka{vu: vu, metrics: m}}
 }
 
 func (c *KafkaModule) Exports() modules.Exports {
