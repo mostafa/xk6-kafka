@@ -53,6 +53,6 @@ jobs:
           node.id=1
           EOF
           # Run Kafka in background
-          ./kafka_2.13-3.1.0/bin/kafka-server-start.sh ./kafka_2.13-3.1.0/config/kraft/server.properties &
+          ./kafka_2.13-3.1.0/bin/kafka-server-start.sh ./kafka_2.13-3.1.0/config/kraft/server.properties > /dev/null 2>&1 &
           # Wait for 5 seconds, run k6 (with xk6-kafka) and kill Kafka background process
           sleep 5 && ./k6 run -d 5s ./scripts/test_json.js && kill %1
