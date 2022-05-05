@@ -2,24 +2,27 @@
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/mostafa/xk6-kafka/Build%20and%20publish%20xk6-kafka?logo=github)](https://github.com/mostafa/xk6-kafka/actions) [![Docker Pulls](https://img.shields.io/docker/pulls/mostafamoradian/xk6-kafka?logo=docker)](https://hub.docker.com/r/mostafamoradian/xk6-kafka)
 
-This k6 extension provides the ability to load test Kafka using a producer. You can send many messages with each connection to Kafka. These messages are an array of objects containing a key and a value. There is also a consumer for testing purposes, that is, to make sure you send the correct data to Kafka, but it is not meant to be used for testing Kafka under load. There is support for producing and consuming messages in many formats using various serializers and deserializers. It can fetch schema from Schema Registry and also accepts hard-coded schema. Compression is also supported.
+The xk6-kafka project is a [k6 extension](https://k6.io/docs/extensions/guides/what-are-k6-extensions/) that enables k6 users to load test Apache Kafka using a producer and possibly a consumer for debugging.
 
-The real purpose of this extension is to test Apache Kafka and the system you've designed that uses Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
+The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-To build the source, you should have the latest version of Go installed. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, and Avro, are supported. Avro schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
 
-If you want to learn more about the extension, visit [How to Load Test Your Kafka Producers and Consumers using k6](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) article on the k6 blog.
+For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
+
+If you want to learn more about the extension, see the [article](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) explaining how to load test your Kafka producers and consumers using k6 on the k6 blog.
 
 ## Supported Features
 
-- Produce/consume messages as String, ByteArray, JSON, and Avro format (custom schema)
-- Authentication with SASL PLAIN and SCRAM
-- Create and list topics
-- Support for user-provided Avro key and value schemas
-- Support for loading Avro schemas from Schema Registry
-- Support for byte array for binary data (from binary protocols)
+- Produce/consume messages as [String](scripts/test_json.js), [stringified JSON](scripts/test_json.js), [ByteArray](scripts/test_bytes.js), and [Avro](scripts/test_avro_with_schema_registry.js) format
+- Support for [user-provided Avro](scripts/test_avro.js) key and value schemas in the script
+- Authentication with [SASL PLAIN and SCRAM](scripts/test_sasl_auth.js)
+- Create, list and delete [topics](scripts/test_topics.js)
+- Support for loading Avro schemas from [Schema Registry](scripts/test_avro_with_schema_registry.js)
+- Support for [byte array](scripts/test_bytes.js) for binary data (from binary protocols)
 - Support consumption from all partitions with a group ID
-- Support Kafka message compression: Gzip, Snappy, Lz4 & Zstd
+- Support Kafka message compression: Gzip, [Snappy](scripts/test_json_with_snappy_compression.js), Lz4 & Zstd
+- Support for sending messages with [no key](scripts/test_avro_no_key.js)
 
 ## The Official Docker Image
 
@@ -34,6 +37,8 @@ docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
 The k6 binary can be built on various platforms, and each platform has its own set of requirements. The following shows how to build k6 binary with this extension on GNU/Linux distributions.
 
 ### Prerequisites
+
+To build the source, you should have the latest version of Go installed. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
 
 - [gvm](https://github.com/moovweb/gvm) for easier installation and management of Go versions on your machine
 - [Git](https://git-scm.com/) for cloning the project
