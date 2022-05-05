@@ -14,19 +14,15 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 
 ## Supported Features
 
-- Produce/consume messages as [String](scripts/test_json.js), [stringified JSON](scripts/test_json.js), [ByteArray](scripts/test_bytes.js), and [Avro](scripts/test_avro_with_schema_registry.js) format
-- Support for [user-provided Avro](scripts/test_avro.js) key and value schemas in the script
-- Authentication with [SASL PLAIN and SCRAM](scripts/test_sasl_auth.js)
-- Create, list and delete [topics](scripts/test_topics.js)
-- Support for loading Avro schemas from [Schema Registry](scripts/test_avro_with_schema_registry.js)
-- Support for [byte array](scripts/test_bytes.js) for binary data (from binary protocols)
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), and [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) format
+- Support for [user-provided Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) key and value schemas in the script
+- Authentication with [SASL PLAIN and SCRAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
+- Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
+- Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
+- Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
 - Support consumption from all partitions with a group ID
-- Support Kafka message compression: Gzip, [Snappy](scripts/test_json_with_snappy_compression.js), Lz4 & Zstd
-- Support for sending messages with [no key](scripts/test_avro_no_key.js)
-
-## CycloneDX SBOM
-
-From [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), CycloneDX SBOMs will be generated for [go.mod](go.mod) and it can be accessed from the latest build of GitHub Actions for a tagged release, for example, [this one](https://github.com/mostafa/xk6-kafka/actions/runs/2275475853). The artifacts are only kept for 90 days.
+- Support Kafka message compression: Gzip, [Snappy](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json_with_snappy_compression.js), Lz4 & Zstd
+- Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_key.js)
 
 ## The Official Docker Image
 
@@ -70,7 +66,7 @@ Feel free the first two steps if you already have Go installed.
 
 ## Examples
 
-There are lots of examples in the [script](./scripts/) directory that show how to use various features of the extension.
+There are lots of examples in the [script](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory that show how to use various features of the extension.
 
 ## Run and Test
 
@@ -229,17 +225,17 @@ function listTopics(address: string, auth: string) => [[string], string] {}
 
 ### k6 Test Script
 
-The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](./scripts/) directory. The scripts usually have 4 parts:
+The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. The scripts usually have 4 parts:
 
 1. The __imports__ at the top show the exported functions from the Go extension and k6.
-2. The __Avro schema__ defines a key and a value schema that are used by both producer and consumer, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the [test_avro.js](./scripts/test_avro.js) script.
+2. The __Avro schema__ defines a key and a value schema that are used by both producer and consumer, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the [test_avro.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) script.
 3. The __message producer__:
     1. The `writer` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as possible. This object is created in init code and is reused in the exported default function.
-    2. The `produce` function sends a list of messages to Kafka. The first argument is the `producer` object, and the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `produceWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](./scripts/test_avro_with_schema_registry.js) script. The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
+    2. The `produce` function sends a list of messages to Kafka. The first argument is the `producer` object, and the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `produceWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
     3. The `producer.close()` function closes the `producer` object (in `tearDown`).
 4. The __message consumer__:
     1. The `reader` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to read from. This object is created in init code and is reused in the exported default function.
-    2. The `consume` function is used to read a list of messages from Kafka. The first argument is the `consumer` object, and the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format, if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `consumeWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](./scripts/test_avro_with_schema_registry.js) script. The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
+    2. The `consume` function is used to read a list of messages from Kafka. The first argument is the `consumer` object, and the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format, if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `consumeWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
     3. The `consumer.close()` function closes the `consumer` object (in `tearDown`).
 
 You can run k6 with the Kafka extension using the following command:
