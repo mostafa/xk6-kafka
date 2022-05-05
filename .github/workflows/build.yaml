@@ -55,8 +55,6 @@ jobs:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.build.outputs.name }}
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
 
       - name: Login to DockerHub 🔒
         uses: docker/login-action@v1
