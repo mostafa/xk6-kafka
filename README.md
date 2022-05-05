@@ -23,6 +23,7 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 - Support consumption from all partitions with a group ID
 - Support Kafka message compression: Gzip, [Snappy](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json_with_snappy_compression.js), Lz4 & Zstd
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_key.js)
+- Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/e1a810d52112f05d7a66c12740d9885ebb64897e/scripts/test_json.js#L21-L27) on custom Kafka metrics
 
 ## The Official Docker Image
 
