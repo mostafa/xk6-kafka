@@ -5,7 +5,7 @@ list topics on all Kafka partitions and creates a topic.
 
 */
 
-import { createTopic, listTopics } from "k6/x/kafka"; // import kafka extension
+import { createTopic, deleteTopic, listTopics } from "k6/x/kafka"; // import kafka extension
 
 const address = "localhost:9092";
 const kafkaTopic = "xk6_kafka_test_topic";

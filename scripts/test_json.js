@@ -6,7 +6,7 @@ tests Kafka with a 200 JSON messages per iteration.
 */
 
 import { check } from "k6";
-import { writer, produce, reader, consume, createTopic } from "k6/x/kafka"; // import kafka extension
+import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";

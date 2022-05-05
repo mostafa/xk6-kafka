@@ -10,6 +10,7 @@ import {
     consumeWithConfiguration,
     produceWithConfiguration,
     createTopic,
+    deleteTopic,
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["subdomain.us-east-1.aws.confluent.cloud:9092"];
