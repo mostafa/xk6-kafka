@@ -6,7 +6,7 @@ import (
 
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
-	"go.k6.io/k6/stats"
+	"go.k6.io/k6/metrics"
 )
 
 var (
@@ -160,45 +160,45 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) error {
 
 	now := time.Now()
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterDials,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterDials,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Dials),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterWrites,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterWrites,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Writes),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterMessages,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterMessages,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Messages),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterBytes,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterBytes,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Bytes),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterRebalances,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterRebalances,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Rebalances),
 	})
 
-	stats.PushIfNotDone(ctx, state.Samples, stats.Sample{
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: WriterErrors,
-		Tags:   stats.IntoSampleTags(&tags),
+		Metric: k.metrics.WriterErrors,
+		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  float64(currentStats.Errors),
 	})
 
