@@ -10,6 +10,7 @@ import {
     consumeWithConfiguration,
     produceWithConfiguration,
     createTopic,
+    deleteTopic,
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
