@@ -18,6 +18,14 @@ if (__VU == 1) {
     createTopic(bootstrapServers[0], kafkaTopic);
 }
 
+export const options = {
+    thresholds: {
+        // Base thresholds to see if the writer or reader is working
+        "kafka.writer.error.count": ["count == 0"],
+        "kafka.reader.error.count": ["count == 0"],
+    },
+};
+
 export default function () {
     for (let index = 0; index < 100; index++) {
         let messages = [
