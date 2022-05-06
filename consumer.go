@@ -121,6 +121,14 @@ func (k *Kafka) consumeInternal(
 			message["value"] = valueDeserializer(configuration, msg.Value, "value", valueSchema)
 		}
 
+		// Rest of the fields of a given message
+		message["topic"] = msg.Topic
+		message["partition"] = msg.Partition
+		message["offset"] = msg.Offset
+		message["time"] = msg.Time.UnixNano() / int64(time.Millisecond)
+		message["highWaterMark"] = msg.HighWaterMark
+		message["headers"] = msg.Headers
+
 		messages = append(messages, message)
 	}
 
