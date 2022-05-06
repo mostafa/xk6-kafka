@@ -93,6 +93,8 @@ export default function () {
             String.fromCharCode(...msg.headers[0]["value"]) == "myvalue",
         "Time is past": (msg) => new Date(msg["time"]) < new Date(),
         "Partition is zero": (msg) => msg["partition"] == 0,
+        "Offset is gte zero": (msg) => msg["offset"] >= 0,
+        "High watermark is gte zero": (msg) => msg["highWaterMark"] >= 0,
     });
 }
 
