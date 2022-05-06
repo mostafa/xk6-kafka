@@ -125,7 +125,7 @@ func (k *Kafka) consumeInternal(
 		message["topic"] = msg.Topic
 		message["partition"] = msg.Partition
 		message["offset"] = msg.Offset
-		message["time"] = msg.Time.UnixNano() / int64(time.Millisecond)
+		message["time"] = time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339)
 		message["highWaterMark"] = msg.HighWaterMark
 		message["headers"] = msg.Headers
 
