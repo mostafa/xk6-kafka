@@ -104,10 +104,6 @@ func (k *Kafka) produceInternal(
 			kafkaMessages[i].Offset = message["offset"].(int64)
 		}
 
-		if _, has_highwatermark := message["highWaterMark"]; has_highwatermark {
-			kafkaMessages[i].HighWaterMark = message["highWaterMark"].(int64)
-		}
-
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
 		if _, has_time := message["time"]; has_time {
