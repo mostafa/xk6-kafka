@@ -95,6 +95,25 @@ func (k *Kafka) produceInternal(
 	for i, message := range messages {
 		kafkaMessages[i] = kafkago.Message{}
 
+		// Topic can be explicitly set on the message
+		if _, has_topic := message["Topic"]; has_topic {
+			kafkaMessages[i].Topic = message["Topic"].(string)
+		}
+
+		if _, has_offset := message["offset"]; has_offset {
+			kafkaMessages[i].Offset = message["offset"].(int64)
+		}
+
+		if _, has_highwatermark := message["highWaterMark"]; has_highwatermark {
+			kafkaMessages[i].HighWaterMark = message["highWaterMark"].(int64)
+		}
+
+		// If time is set, use it to set the time on the message,
+		// otherwise use the current time.
+		if _, has_time := message["time"]; has_time {
+			kafkaMessages[i].Time = time.UnixMilli(message["time"].(int64))
+		}
+
 		// If a key was provided, add it to the message. Keys are optional.
 		if _, has_key := message["key"]; has_key {
 			keyData, err := keySerializer(configuration, writer.Stats().Topic, message["key"], "key", keySchema)
@@ -115,6 +134,7 @@ func (k *Kafka) produceInternal(
 
 		kafkaMessages[i].Value = valueData
 
+		// If headers are provided, add them to the message.
 		if _, has_headers := message["headers"]; has_headers {
 			for key, value := range message["headers"].(map[string]interface{}) {
 				kafkaMessages[i].Headers = append(kafkaMessages[i].Headers, kafkago.Header{

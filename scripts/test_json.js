@@ -44,6 +44,9 @@ export default function () {
                 headers: {
                     mykey: "myvalue",
                 },
+                offset: index,
+                partition: 0,
+                time: new Date().getTime(), // timestamp
             },
             {
                 key: JSON.stringify({
