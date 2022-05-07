@@ -35,12 +35,18 @@ export default function () {
                 }),
                 value: JSON.stringify({
                     name: "xk6-kafka",
-                    version: "0.2.1",
+                    version: "0.9.0",
                     author: "Mostafa Moradian",
                     description:
                         "k6 extension to load test Apache Kafka with support for Avro messages",
                     index: index,
                 }),
+                headers: {
+                    mykey: "myvalue",
+                },
+                offset: index,
+                partition: 0,
+                time: new Date().getTime(), // timestamp
             },
             {
                 key: JSON.stringify({
@@ -48,25 +54,50 @@ export default function () {
                 }),
                 value: JSON.stringify({
                     name: "xk6-kafka",
-                    version: "0.2.1",
+                    version: "0.9.0",
                     author: "Mostafa Moradian",
                     description:
                         "k6 extension to load test Apache Kafka with support for Avro messages",
                     index: index,
                 }),
+                headers: {
+                    mykey: "myvalue",
+                },
             },
         ];
 
         let error = produce(producer, messages);
         check(error, {
-            "is sent": (err) => err == undefined,
+            "Messages are sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
     let messages = consume(consumer, 10);
     check(messages, {
-        "10 messages returned": (msgs) => msgs.length == 10,
+        "10 messages are received": (messages) => messages.length == 10,
+    });
+
+    check(messages[0], {
+        "Topic equals xk6_kafka_json_topic": (msg) => msg["topic"] == kafkaTopic,
+        "Key is correct": (msg) => msg["key"] == JSON.stringify({ correlationId: "test-id-abc-0" }),
+        "Value is correct": (msg) =>
+            msg["value"] ==
+            JSON.stringify({
+                name: "xk6-kafka",
+                version: "0.9.0",
+                author: "Mostafa Moradian",
+                description:
+                    "k6 extension to load test Apache Kafka with support for Avro messages",
+                index: 0,
+            }),
+        "Header equals {mykey: 'myvalue'}": (msg) =>
+            msg.headers[0]["key"] == "mykey" &&
+            String.fromCharCode(...msg.headers[0]["value"]) == "myvalue",
+        "Time is past": (msg) => new Date(msg["time"]) < new Date(),
+        "Partition is zero": (msg) => msg["partition"] == 0,
+        "Offset is gte zero": (msg) => msg["offset"] >= 0,
+        "High watermark is gte zero": (msg) => msg["highWaterMark"] >= 0,
     });
 }
 

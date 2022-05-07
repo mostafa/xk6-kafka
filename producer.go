@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	kafkago "github.com/segmentio/kafka-go"
@@ -92,8 +93,22 @@ func (k *Kafka) produceInternal(
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
-
 		kafkaMessages[i] = kafkago.Message{}
+
+		// Topic can be explicitly set on the message
+		if _, has_topic := message["Topic"]; has_topic {
+			kafkaMessages[i].Topic = message["Topic"].(string)
+		}
+
+		if _, has_offset := message["offset"]; has_offset {
+			kafkaMessages[i].Offset = message["offset"].(int64)
+		}
+
+		// If time is set, use it to set the time on the message,
+		// otherwise use the current time.
+		if _, has_time := message["time"]; has_time {
+			kafkaMessages[i].Time = time.UnixMilli(message["time"].(int64))
+		}
 
 		// If a key was provided, add it to the message. Keys are optional.
 		if _, has_key := message["key"]; has_key {
@@ -106,7 +121,7 @@ func (k *Kafka) produceInternal(
 			kafkaMessages[i].Key = keyData
 		}
 
-		// Then add then message
+		// Then add the message
 		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema)
 		if err != nil {
 			ReportError(err, "Creation of message bytes failed.")
@@ -114,6 +129,16 @@ func (k *Kafka) produceInternal(
 		}
 
 		kafkaMessages[i].Value = valueData
+
+		// If headers are provided, add them to the message.
+		if _, has_headers := message["headers"]; has_headers {
+			for key, value := range message["headers"].(map[string]interface{}) {
+				kafkaMessages[i].Headers = append(kafkaMessages[i].Headers, kafkago.Header{
+					Key:   key,
+					Value: []byte(fmt.Sprint(value)),
+				})
+			}
+		}
 	}
 
 	err = writer.WriteMessages(ctx, kafkaMessages...)
