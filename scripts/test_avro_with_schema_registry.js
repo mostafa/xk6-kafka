@@ -13,22 +13,16 @@ import {
     deleteTopic,
 } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["subdomain.us-east-1.aws.confluent.cloud:9092"];
-const topic = "com.example.person";
+const bootstrapServers = ["localhost:9092"];
+const kafkaTopic = "com.example.person";
 
-const auth = JSON.stringify({
-    username: "username",
-    password: "password",
-    algorithm: "plain",
-});
-
-const producer = writer(bootstrapServers, topic, auth);
-const consumer = reader(bootstrapServers, topic, null, "", null, auth);
+const producer = writer(bootstrapServers, kafkaTopic);
+const consumer = reader(bootstrapServers, kafkaTopic, null, "", null);
 
 const keySchema = `{
   "name": "KeySchema",
   "type": "record",
-  "namespace": "com.example",
+  "namespace": "com.example.key",
   "fields": [
     {
       "name": "ssn",
@@ -40,7 +34,7 @@ const keySchema = `{
 const valueSchema = `{
   "name": "ValueSchema",
   "type": "record",
-  "namespace": "com.example",
+  "namespace": "com.example.value",
   "fields": [
     {
       "name": "firstname",
@@ -63,11 +57,7 @@ var configuration = JSON.stringify({
         valueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
     },
     schemaRegistry: {
-        url: "https://subdomain.us-east-2.aws.confluent.cloud",
-        basicAuth: {
-            credentialsSource: "USER_INFO",
-            userInfo: "KEY:SECRET",
-        },
+        url: "http://localhost:8081",
     },
 });
 

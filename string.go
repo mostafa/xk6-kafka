@@ -2,7 +2,7 @@ package kafka
 
 import "errors"
 
-func SerializeString(configuration Configuration, topic string, data interface{}, keyOrValue string, schema string) ([]byte, error) {
+func SerializeString(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error) {
 	switch data.(type) {
 	case string:
 		return []byte(data.(string)), nil
@@ -11,6 +11,6 @@ func SerializeString(configuration Configuration, topic string, data interface{}
 	}
 }
 
-func DeserializeString(configuration Configuration, data []byte, keyOrValue string, schema string) interface{} {
+func DeserializeString(configuration Configuration, data []byte, element Element, schema string, version int) interface{} {
 	return string(data)
 }
