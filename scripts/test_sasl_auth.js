@@ -21,7 +21,7 @@ const auth = JSON.stringify({
 });
 const offset = 0;
 // partition and groupID are mutually exclusive
-const partition = 1;
+const partition = 0;
 const groupID = "";
 const partitions = 1;
 const replicationFactor = 1;
