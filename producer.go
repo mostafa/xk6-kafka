@@ -17,6 +17,7 @@ var (
 		"Lz4":    &compress.Lz4Codec,
 		"Zstd":   &compress.ZstdCodec,
 	}
+	DefaultSerializer = "org.apache.kafka.common.serialization.StringSerializer"
 )
 
 func (*Kafka) Writer(brokers []string, topic string, auth string, compression string) *kafkago.Writer {
@@ -45,7 +46,7 @@ func (k *Kafka) Produce(
 func (k *Kafka) ProduceWithConfiguration(
 	writer *kafkago.Writer, messages []map[string]interface{},
 	configurationJson string, keySchema string, valueSchema string) error {
-	configuration, err := unmarshalConfiguration(configurationJson)
+	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
 		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
 		return nil
@@ -69,10 +70,11 @@ func (k *Kafka) produceInternal(
 		return nil
 	}
 
-	err = validateConfiguration(configuration)
+	err = ValidateConfiguration(configuration)
 	if err != nil {
-		ReportError(err, "Validation of properties failed.")
-		return err
+		ReportError(err, "Validation of configuration failed. Falling back to defaults")
+		configuration.Producer.KeySerializer = DefaultSerializer
+		configuration.Producer.ValueSerializer = DefaultSerializer
 	}
 
 	if state == nil {
@@ -112,7 +114,7 @@ func (k *Kafka) produceInternal(
 
 		// If a key was provided, add it to the message. Keys are optional.
 		if _, has_key := message["key"]; has_key {
-			keyData, err := keySerializer(configuration, writer.Stats().Topic, message["key"], "key", keySchema)
+			keyData, err := keySerializer(configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
 			if err != nil {
 				ReportError(err, "Creation of key bytes failed.")
 				return err
@@ -122,7 +124,7 @@ func (k *Kafka) produceInternal(
 		}
 
 		// Then add the message
-		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema)
+		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema, 0)
 		if err != nil {
 			ReportError(err, "Creation of message bytes failed.")
 			return err

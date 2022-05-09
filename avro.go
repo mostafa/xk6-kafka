@@ -1,64 +1,57 @@
 package kafka
 
 import (
-	"log"
-
 	"github.com/linkedin/goavro/v2"
 )
 
-func SerializeAvro(configuration Configuration, topic string, data interface{}, keyOrValue string, schema string) ([]byte, error) {
-	key := []byte(data.(string))
+func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error) {
+	bytesData := []byte(data.(string))
 	if schema != "" {
-		key = ToAvro(data.(string), schema)
+		codec, err := goavro.NewCodec(schema)
+		if err != nil {
+			ReportError(err, "Failed to create codec for encoding Avro")
+		}
+
+		avroEncodedData, _, err := codec.NativeFromTextual(bytesData)
+		if err != nil {
+			ReportError(err, "Failed to encode data into Avro")
+		}
+
+		bytesData, err = codec.BinaryFromNative(nil, avroEncodedData)
+		if err != nil {
+			ReportError(err, "Failed to encode Avro data into binary")
+		}
 	}
 
-	byteData, err := addMagicByteAndSchemaIdPrefix(configuration, key, topic, keyOrValue, schema)
+	byteData, err := encodeWireFormat(configuration, bytesData, topic, element, schema, version)
 	if err != nil {
+		ReportError(err, "Failed to add wire format to the binary data")
 		return nil, err
 	}
 
 	return byteData, nil
 }
 
-func ToAvro(value string, schema string) []byte {
-	codec, err := goavro.NewCodec(schema)
+func DeserializeAvro(configuration Configuration, data []byte, element Element, schema string, version int) interface{} {
+	bytesDecodedData, err := decodeWireFormat(configuration, data, element)
 	if err != nil {
-		log.Fatal(err)
+		ReportError(err, "Failed to remove wire format from the binary data")
+		return nil
 	}
-
-	native, _, err := codec.NativeFromTextual([]byte(value))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	binary, err := codec.BinaryFromNative(nil, native)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return binary
-}
-
-func DeserializeAvro(configuration Configuration, data []byte, keyOrValue string, schema string) interface{} {
-	dataWithoutPrefix := removeMagicByteAndSchemaIdPrefix(configuration, data, keyOrValue)
 
 	if schema != "" {
-		return FromAvro(dataWithoutPrefix, schema)
+		codec, err := goavro.NewCodec(schema)
+		if err != nil {
+			ReportError(err, "Failed to create codec for decoding Avro")
+		}
+
+		avroDecodedData, _, err := codec.NativeFromBinary(bytesDecodedData)
+		if err != nil {
+			ReportError(err, "Failed to decode data from Avro")
+		}
+
+		return avroDecodedData
 	}
 
-	return dataWithoutPrefix
-}
-
-func FromAvro(message []byte, schema string) interface{} {
-	codec, err := goavro.NewCodec(schema)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	native, _, err := codec.NativeFromBinary(message)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return native
+	return bytesDecodedData
 }

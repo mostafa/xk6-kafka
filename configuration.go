@@ -3,6 +3,8 @@ package kafka
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
 )
 
 type ConsumerConfiguration struct {
@@ -15,68 +17,39 @@ type ProducerConfiguration struct {
 	ValueSerializer string `json:"valueSerializer"`
 }
 
-type BasicAuth struct {
-	CredentialsSource string `json:"credentialsSource"`
-	UserInfo          string `json:"userInfo"`
-}
-
-type SchemaRegistryConfiguration struct {
-	Url       string    `json:"url"`
-	BasicAuth BasicAuth `json:"basicAuth"`
-	UseLatest bool      `json:"useLatest"`
-}
-
 type Configuration struct {
 	Consumer       ConsumerConfiguration       `json:"consumer"`
 	Producer       ProducerConfiguration       `json:"producer"`
 	SchemaRegistry SchemaRegistryConfiguration `json:"schemaRegistry"`
 }
 
-func unmarshalConfiguration(jsonConfiguration string) (Configuration, error) {
+func UnmarshalConfiguration(jsonConfiguration string) (Configuration, error) {
 	var configuration Configuration
 	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
 	return configuration, err
 }
 
-func useKafkaAvroDeserializer(configuration Configuration, keyOrValue string) bool {
-	if (Configuration{}) == configuration ||
-		(ConsumerConfiguration{}) == configuration.Consumer {
-		return false
+func ValidateConfiguration(configuration Configuration) error {
+	if (Configuration{}) == configuration {
+		// No configuration, fallback to default
+		return nil
 	}
-	if keyOrValue == "key" && configuration.Consumer.KeyDeserializer == "io.confluent.kafka.serializers.KafkaAvroDeserializer" ||
-		keyOrValue == "value" && configuration.Consumer.ValueDeserializer == "io.confluent.kafka.serializers.KafkaAvroDeserializer" {
-		return true
+
+	if useSerializer(configuration, Key) || useSerializer(configuration, Value) {
+		if (SchemaRegistryConfiguration{}) == configuration.SchemaRegistry {
+			return errors.New("You must provide a value for the \"SchemaRegistry\" configuration property to use a serializer " +
+				"of either of these types " + fmt.Sprintf("%q", reflect.ValueOf(Serializers).MapKeys()))
+		}
 	}
-	return false
+	return nil
 }
 
-func useKafkaAvroSerializer(configuration Configuration, keyOrValue string) bool {
-	if (Configuration{}) == configuration ||
-		(ProducerConfiguration{}) == configuration.Producer {
-		return false
-	}
-	if keyOrValue == "key" && configuration.Producer.KeySerializer == "io.confluent.kafka.serializers.KafkaAvroSerializer" ||
-		keyOrValue == "value" && configuration.Producer.ValueSerializer == "io.confluent.kafka.serializers.KafkaAvroSerializer" {
-		return true
-	}
-	return false
-}
-
-func useBasicAuthWithCredentialSourceUserInfo(configuration Configuration) bool {
+func GivenCredentials(configuration Configuration) bool {
 	if (Configuration{}) == configuration ||
 		(SchemaRegistryConfiguration{}) == configuration.SchemaRegistry ||
 		(BasicAuth{}) == configuration.SchemaRegistry.BasicAuth {
 		return false
 	}
-	return configuration.SchemaRegistry.BasicAuth.CredentialsSource == "USER_INFO"
-}
-
-func validateConfiguration(configuration Configuration) error {
-	if useKafkaAvroSerializer(configuration, "key") || useKafkaAvroSerializer(configuration, "value") {
-		if (SchemaRegistryConfiguration{}) == configuration.SchemaRegistry {
-			return errors.New("you must provide a value for the \"SchemaRegistry\" configuration property to use a serializer " +
-				"of type \"io.confluent.kafka.serializers.KafkaAvroSerializer\"")
-		}
-	}
-	return nil
+	return configuration.SchemaRegistry.BasicAuth.Username != "" &&
+		configuration.SchemaRegistry.BasicAuth.Password != ""
 }

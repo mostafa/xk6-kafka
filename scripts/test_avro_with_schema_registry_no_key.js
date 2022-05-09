@@ -14,10 +14,10 @@ import {
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
-const topic = "com.example.person";
+const kafkaTopic = "com.example.person";
 
-const producer = writer(bootstrapServers, topic, null);
-const consumer = reader(bootstrapServers, topic, null, "", null, null);
+const producer = writer(bootstrapServers, kafkaTopic, null);
+const consumer = reader(bootstrapServers, kafkaTopic, null, "", null, null);
 
 const valueSchema = `{
   "name": "ValueSchema",
@@ -81,14 +81,14 @@ export default function () {
 
 export function teardown(data) {
     if (__VU == 1) {
-        // Delete the topic
+        // Delete the kafkaTopic
         const error = deleteTopic(bootstrapServers[0], kafkaTopic);
         if (error === undefined) {
-            // If no error returns, it means that the topic
+            // If no error returns, it means that the kafkaTopic
             // is successfully deleted
             console.log("Topic deleted successfully");
         } else {
-            console.log("Error while deleting topic: ", error);
+            console.log("Error while deleting kafkaTopic: ", error);
         }
     }
     producer.close();
