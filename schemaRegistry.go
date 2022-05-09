@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"encoding/binary"
 	"errors"
 
 	"github.com/riferrei/srclient"
@@ -23,14 +24,6 @@ type SchemaRegistryConfiguration struct {
 	BasicAuth    BasicAuth `json:"basicAuth"`
 	UseLatest    bool      `json:"useLatest"`
 	CacheSchemas bool      `json:"cacheSchemas"`
-}
-
-func i32tob(val uint32) []byte {
-	r := make([]byte, 4)
-	for i := uint32(0); i < 4; i++ {
-		r[3-i] = byte((val >> (8 * i)) & 0xff)
-	}
-	return r
 }
 
 // Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
@@ -66,7 +59,9 @@ func encodeWireFormat(configuration Configuration, avroData []byte, topic string
 			return nil, err
 		}
 		if schemaInfo.ID() != 0 {
-			return append(append([]byte{0}, i32tob(uint32(schemaInfo.ID()))...), avroData...), nil
+			schemaIDBytes := make([]byte, 4)
+			binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaInfo.ID()))
+			return append(append([]byte{0}, schemaIDBytes...), avroData...), nil
 		}
 	}
 	return avroData, nil
