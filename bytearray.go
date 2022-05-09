@@ -2,7 +2,7 @@ package kafka
 
 import "errors"
 
-func SerializeByteArray(configuration Configuration, topic string, data interface{}, keyOrValue string, schema string) ([]byte, error) {
+func SerializeByteArray(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error) {
 	switch data.(type) {
 	case []interface{}:
 		bArray := data.([]interface{})
@@ -16,6 +16,6 @@ func SerializeByteArray(configuration Configuration, topic string, data interfac
 	}
 }
 
-func DeserializeByteArray(configuration Configuration, data []byte, keyOrValue string, schema string) interface{} {
+func DeserializeByteArray(configuration Configuration, data []byte, element Element, schema string, version int) interface{} {
 	return data
 }

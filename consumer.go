@@ -9,6 +9,8 @@ import (
 	"go.k6.io/k6/metrics"
 )
 
+var DefaultDeserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+
 func (*Kafka) Reader(
 	brokers []string, topic string, partition int,
 	groupID string, offset int64, auth string) *kafkago.Reader {
@@ -46,7 +48,7 @@ func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
 func (k *Kafka) ConsumeWithConfiguration(
 	reader *kafkago.Reader, limit int64, configurationJson string,
 	keySchema string, valueSchema string) []map[string]interface{} {
-	configuration, err := unmarshalConfiguration(configurationJson)
+	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
 		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
 		err = k.reportReaderStats(reader.Stats())
@@ -85,6 +87,13 @@ func (k *Kafka) consumeInternal(
 		limit = 1
 	}
 
+	err = ValidateConfiguration(configuration)
+	if err != nil {
+		ReportError(err, "Validation of configuration failed. Falling back to defaults")
+		configuration.Consumer.KeyDeserializer = DefaultDeserializer
+		configuration.Consumer.ValueDeserializer = DefaultDeserializer
+	}
+
 	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer, keySchema)
 	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer, valueSchema)
 
@@ -114,11 +123,11 @@ func (k *Kafka) consumeInternal(
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-			message["key"] = keyDeserializer(configuration, msg.Key, "key", keySchema)
+			message["key"] = keyDeserializer(configuration, msg.Key, Key, keySchema, 0)
 		}
 
 		if len(msg.Value) > 0 {
-			message["value"] = valueDeserializer(configuration, msg.Value, "value", valueSchema)
+			message["value"] = valueDeserializer(configuration, msg.Value, "value", valueSchema, 0)
 		}
 
 		// Rest of the fields of a given message

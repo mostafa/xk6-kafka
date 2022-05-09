@@ -1,16 +1,29 @@
 package kafka
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
 
-	"github.com/linkedin/goavro/v2"
+	"github.com/riferrei/srclient"
 )
+
+type Element string
+
+const (
+	Key   Element = "key"
+	Value Element = "value"
+)
+
+type BasicAuth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type SchemaRegistryConfiguration struct {
+	Url          string    `json:"url"`
+	BasicAuth    BasicAuth `json:"basicAuth"`
+	UseLatest    bool      `json:"useLatest"`
+	CacheSchemas bool      `json:"cacheSchemas"`
+}
 
 func i32tob(val uint32) []byte {
 	r := make([]byte, 4)
@@ -20,115 +33,86 @@ func i32tob(val uint32) []byte {
 	return r
 }
 
-// Account for proprietary 5-byte prefix before the Avro payload:
+// Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func removeMagicByteAndSchemaIdPrefix(configuration Configuration, messageData []byte, keyOrValue string) []byte {
-	if useKafkaAvroDeserializer(configuration, keyOrValue) {
-		return messageData[5:]
+func decodeWireFormat(configuration Configuration, messageData []byte, element Element) ([]byte, error) {
+	if !useDeserializer(configuration, element) {
+		return messageData, nil
 	}
-	return messageData
+
+	if element == Key && isWireFormatted(configuration.Consumer.KeyDeserializer) ||
+		element == Value && isWireFormatted(configuration.Consumer.ValueDeserializer) {
+		if len(messageData) < 5 {
+			return nil, errors.New("Invalid message data")
+		}
+		return messageData[5:], nil
+	}
+	return messageData, nil
 }
 
-// Add proprietary 5-byte prefix before the Avro payload:
+// Add proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func addMagicByteAndSchemaIdPrefix(configuration Configuration, avroData []byte, topic string, keyOrValue string, schema string) ([]byte, error) {
-	var schemaId, err = getSchemaId(configuration, topic, keyOrValue, schema)
-	if err != nil {
-		ReportError(err, "Retrieval of schema id failed.")
-		return nil, err
+func encodeWireFormat(configuration Configuration, avroData []byte, topic string, element Element, schema string, version int) ([]byte, error) {
+	if !useSerializer(configuration, element) {
+		return avroData, nil
 	}
-	if schemaId != 0 {
-		return append(append([]byte{0}, i32tob(schemaId)...), avroData...), nil
+
+	if element == Key && isWireFormatted(configuration.Producer.KeySerializer) ||
+		element == "value " && isWireFormatted(configuration.Producer.ValueSerializer) {
+		var schemaInfo, err = getSchema(
+			configuration, topic, element, schema, srclient.Avro, version)
+		if err != nil {
+			ReportError(err, "Retrieval of schema id failed.")
+			return nil, err
+		}
+		if schemaInfo.ID() != 0 {
+			return append(append([]byte{0}, i32tob(uint32(schemaInfo.ID()))...), avroData...), nil
+		}
 	}
 	return avroData, nil
 }
 
-var schemaIdCache = make(map[string]uint32)
+func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryClient {
+	srClient := srclient.CreateSchemaRegistryClient(configuration.SchemaRegistry.Url)
+	srClient.CachingEnabled(configuration.SchemaRegistry.CacheSchemas)
 
-type SchemaInfo struct {
-	Id      int32 `json:"id"`
-	Version int32 `json:"version"`
+	if GivenCredentials(configuration) {
+		srClient.SetCredentials(
+			configuration.SchemaRegistry.BasicAuth.Username,
+			configuration.SchemaRegistry.BasicAuth.Password)
+	}
+	return srClient
 }
 
-func getSchemaId(configuration Configuration, topic string, keyOrValue string, schema string) (uint32, error) {
-	if schemaIdCache[schema] > 0 {
-		return schemaIdCache[schema], nil
+func getSchema(
+	configuration Configuration, topic string, element Element,
+	schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, error) {
+
+	// Default schema type is Avro
+	if schemaType == "" {
+		schemaType = srclient.Avro
 	}
-	if useKafkaAvroSerializer(configuration, keyOrValue) {
-		if configuration.SchemaRegistry.UseLatest {
-			url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions/latest"
-			client := &http.Client{}
-			req, err := http.NewRequest("GET", url, nil)
-			if err != nil {
-				return 0, err
-			}
-			req.Header.Add("Content-Type", "application/vnd.schemaregistry.v1+json")
-			if useBasicAuthWithCredentialSourceUserInfo(configuration) {
-				username := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[0]
-				password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
-				req.SetBasicAuth(username, password)
-			}
-			resp, err := client.Do(req)
-			if err != nil {
-				return 0, err
-			}
-			if resp.StatusCode >= 400 {
-				return 0, errors.New(fmt.Sprintf("Retrieval of schema ids failed. Details: Url= %v, response=%v", url, resp))
-			}
-			defer resp.Body.Close()
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return 0, err
-			}
-			var result SchemaInfo
 
-			err = json.Unmarshal(bodyBytes, &result)
-			if err != nil {
-				return 0, err
-			}
-			schemaId := uint32(result.Id)
-			schemaIdCache[schema] = schemaId
-			return schemaId, nil
-		} else {
-			url := configuration.SchemaRegistry.Url + "/subjects/" + topic + "-" + keyOrValue + "/versions"
-			codec, _ := goavro.NewCodec(schema)
+	srClient := schemaRegistryClient(configuration)
 
-			body := "{\"schema\":\"" + strings.Replace(codec.CanonicalSchema(), "\"", "\\\"", -1) + "\"}"
+	var schemaInfo *srclient.Schema
+	subject := topic + "-" + string(element)
+	// Default version of the schema is the latest version
+	// If CacheSchemas is true, the client will cache the schema
+	if version == 0 {
+		schemaInfo, _ = srClient.GetLatestSchema(subject)
+	} else {
+		schemaInfo, _ = srClient.GetSchemaByVersion(subject, version)
+	}
 
-			client := &http.Client{}
-			req, err := http.NewRequest("POST", url, bytes.NewReader([]byte(body)))
-			if err != nil {
-				return 0, err
-			}
-			req.Header.Add("Content-Type", "application/vnd.schemaregistry.v1+json")
-			if useBasicAuthWithCredentialSourceUserInfo(configuration) {
-				username := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[0]
-				password := strings.Split(configuration.SchemaRegistry.BasicAuth.UserInfo, ":")[1]
-				req.SetBasicAuth(username, password)
-			}
-			resp, err := client.Do(req)
-			if err != nil {
-				return 0, err
-			}
-			if resp.StatusCode >= 400 {
-				return 0, errors.New(fmt.Sprintf("Retrieval of schema ids failed. Details: Url= %v, body=%v, response=%v", url, body, resp))
-			}
-			defer resp.Body.Close()
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return 0, err
-			}
-
-			var result map[string]int32
-			err = json.Unmarshal(bodyBytes, &result)
-			if err != nil {
-				return 0, err
-			}
-			schemaId := uint32(result["id"])
-			schemaIdCache[schema] = schemaId
-			return schemaId, nil
-
+	if schemaInfo == nil {
+		schemaInfo, err := srClient.CreateSchema(subject, schema, schemaType)
+		if err != nil {
+			ReportError(err, "Creation of schema failed.")
+			return nil, err
 		}
+		return schemaInfo, nil
 	}
-	return 0, nil
+
+	return schemaInfo, nil
 }
