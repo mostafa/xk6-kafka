@@ -96,9 +96,6 @@ func getDialerFromAuth(auth string) (dialer *kafkago.Dialer) {
 		dialer = &kafkago.Dialer{
 			Timeout:   10 * time.Second,
 			DualStack: false,
-			TLS: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
 		}
 	}
 
