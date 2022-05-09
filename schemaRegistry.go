@@ -13,6 +13,18 @@ const (
 	Value Element = "value"
 )
 
+type BasicAuth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type SchemaRegistryConfiguration struct {
+	Url          string    `json:"url"`
+	BasicAuth    BasicAuth `json:"basicAuth"`
+	UseLatest    bool      `json:"useLatest"`
+	CacheSchemas bool      `json:"cacheSchemas"`
+}
+
 func i32tob(val uint32) []byte {
 	r := make([]byte, 4)
 	for i := uint32(0); i < 4; i++ {
@@ -63,7 +75,8 @@ func encodeWireFormat(configuration Configuration, avroData []byte, topic string
 func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryClient {
 	srClient := srclient.CreateSchemaRegistryClient(configuration.SchemaRegistry.Url)
 	srClient.CachingEnabled(configuration.SchemaRegistry.CacheSchemas)
-	if useBasicAuthWithCredentialSourceUserInfo(configuration) {
+
+	if GivenCredentials(configuration) {
 		srClient.SetCredentials(
 			configuration.SchemaRegistry.BasicAuth.Username,
 			configuration.SchemaRegistry.BasicAuth.Password)

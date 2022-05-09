@@ -17,18 +17,6 @@ type ProducerConfiguration struct {
 	ValueSerializer string `json:"valueSerializer"`
 }
 
-type BasicAuth struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type SchemaRegistryConfiguration struct {
-	Url          string    `json:"url"`
-	BasicAuth    BasicAuth `json:"basicAuth"`
-	UseLatest    bool      `json:"useLatest"`
-	CacheSchemas bool      `json:"cacheSchemas"`
-}
-
 type Configuration struct {
 	Consumer       ConsumerConfiguration       `json:"consumer"`
 	Producer       ProducerConfiguration       `json:"producer"`
@@ -39,16 +27,6 @@ func UnmarshalConfiguration(jsonConfiguration string) (Configuration, error) {
 	var configuration Configuration
 	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
 	return configuration, err
-}
-
-func useBasicAuthWithCredentialSourceUserInfo(configuration Configuration) bool {
-	if (Configuration{}) == configuration ||
-		(SchemaRegistryConfiguration{}) == configuration.SchemaRegistry ||
-		(BasicAuth{}) == configuration.SchemaRegistry.BasicAuth {
-		return false
-	}
-	return configuration.SchemaRegistry.BasicAuth.Username != "" &&
-		configuration.SchemaRegistry.BasicAuth.Password != ""
 }
 
 func ValidateConfiguration(configuration Configuration) error {
@@ -64,4 +42,14 @@ func ValidateConfiguration(configuration Configuration) error {
 		}
 	}
 	return nil
+}
+
+func GivenCredentials(configuration Configuration) bool {
+	if (Configuration{}) == configuration ||
+		(SchemaRegistryConfiguration{}) == configuration.SchemaRegistry ||
+		(BasicAuth{}) == configuration.SchemaRegistry.BasicAuth {
+		return false
+	}
+	return configuration.SchemaRegistry.BasicAuth.Username != "" &&
+		configuration.SchemaRegistry.BasicAuth.Password != ""
 }
