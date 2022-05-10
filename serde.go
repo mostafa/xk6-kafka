@@ -39,7 +39,8 @@ var (
 )
 
 func useSerializer(configuration Configuration, element Element) bool {
-	if (Configuration{}) == configuration || (ProducerConfiguration{}) == configuration.Producer &&
+	// TODO: Refactor this
+	if (Configuration{}) != configuration || (ProducerConfiguration{}) != configuration.Producer &&
 		(element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
 		return true
 	}
@@ -47,7 +48,8 @@ func useSerializer(configuration Configuration, element Element) bool {
 }
 
 func useDeserializer(configuration Configuration, element Element) bool {
-	if (Configuration{}) == configuration || (ConsumerConfiguration{}) == configuration.Consumer &&
+	// TODO: Refactor this
+	if (Configuration{}) != configuration || (ConsumerConfiguration{}) != configuration.Consumer &&
 		(element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
 		return true
 	}
