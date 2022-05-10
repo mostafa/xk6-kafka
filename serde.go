@@ -1,5 +1,9 @@
 package kafka
 
+import (
+	"github.com/riferrei/srclient"
+)
+
 type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error)
 type Deserializer func(configuration Configuration, data []byte, element Element, schema string, version int) interface{}
 
@@ -35,6 +39,15 @@ var (
 		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              true,
 		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": true,
 		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   true,
+	}
+
+	SchemaTypes = map[string]srclient.SchemaType{
+		"org.apache.kafka.common.serialization.KafkaAvroSerializer":         srclient.Avro,
+		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer":   srclient.Protobuf,
+		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":     srclient.Json,
+		"org.apache.kafka.common.serialization.KafkaAvroDeserializer":       srclient.Avro,
+		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": srclient.Protobuf,
+		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   srclient.Json,
 	}
 )
 
@@ -74,4 +87,8 @@ func GetDeserializer(deserializer string, schema string) Deserializer {
 		return DeserializeString
 	}
 	return deserializerFunction
+}
+
+func GetSchemaType(serializer string) srclient.SchemaType {
+	return SchemaTypes[serializer]
 }
