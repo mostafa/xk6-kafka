@@ -6,7 +6,7 @@ The xk6-kafka project is a [k6 extension](https://k6.io/docs/extensions/guides/w
 
 The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, and Avro, are supported. Avro schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, Avro and JSONSchema, are supported. Avro schema and JSONSchema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
@@ -14,8 +14,8 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 
 ## Supported Features
 
-- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), and [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) format
-- Support for [user-provided Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) key and value schemas in the script
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSONSchema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) format
+- Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) and [JSONSchema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) key and value schemas in the script
 - Authentication with [SASL PLAIN and SCRAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
@@ -24,10 +24,17 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 - Support Kafka message compression: Gzip, [Snappy](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json_with_snappy_compression.js), Lz4 & Zstd
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_key.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/e1a810d52112f05d7a66c12740d9885ebb64897e/scripts/test_json.js#L21-L27) on custom Kafka metrics
+- Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
+
+## Backward Compatibility Notice
+
+If you want to keep up to date with the latest changes, please follow the [project board](https://github.com/users/mostafa/projects/1). Also, since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), the `main` branch is the development branch and usually has the latest changes and might be unstable. If you want to use the latest features, you might need to build your binary by following the [build from source](#build-from-source) instructions. In turn, the tagged releases and the Docker images are more stable.
+
+I make no guarantee to keep the API stable, as this project is in active development unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
 
 ## CycloneDX SBOM
 
-From [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), CycloneDX SBOMs will be generated for [go.mod](go.mod) and it can be accessed from the latest build of GitHub Actions for a tagged release, for example, [this one](https://github.com/mostafa/xk6-kafka/actions/runs/2275475853). The artifacts are only kept for 90 days.
+Since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), CycloneDX SBOMs will be generated for [go.mod](go.mod) and it can be accessed from the latest build of GitHub Actions for a tagged release, for example, [this one](https://github.com/mostafa/xk6-kafka/actions/runs/2275475853). The artifacts are only kept for 90 days.
 
 ## The Official Docker Image
 
@@ -132,8 +139,8 @@ function writer(brokers: [string], topic: string, auth: string, compression: str
  * @function
  * @param   {object}    writer      The writer object created with the writer constructor.
  * @param   {[object]}  messages    An array of message objects containing an optional key and a value.
- * @param   {string}    keySchema   An optional Avro schema for the key.
- * @param   {string}    valueSchema An optional Avro schema for the value.
+ * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
+ * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
  * @returns {string}    A string containing the error.
  */
 function produce(writer: object, messages: [object], keySchema: string, valueSchema: string) => string {}
@@ -145,8 +152,8 @@ function produce(writer: object, messages: [object], keySchema: string, valueSch
  * @param   {object}    writer              The writer object created with the writer constructor.
  * @param   {[object]}  messages            An array of message objects containing an optional key and a value.
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
- * @param   {string}    keySchema           An optional Avro schema for the key.
- * @param   {string}    valueSchema         An optional Avro schema for the value.
+ * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
+ * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
  * @returns {string}    A string containing the error.
  */
 function produceWithConfiguration(writer: object, messages: [object], configurationJson: string, keySchema: string, valueSchema: string) => string {}
@@ -171,8 +178,8 @@ function reader(brokers: [string], topic: string, partition: number, groupID: st
  * @function
  * @param   {object}    reader      The reader object created with the reader constructor.
  * @param   {number}    limit       How many messages should be read in one go, which blocks. Defaults to 1.
- * @param   {string}    keySchema   An optional Avro schema for the key.
- * @param   {string}    valueSchema An optional Avro schema for the value.
+ * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
+ * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
  * @returns {string}    A string containing the error.
  */
 function consume(reader: object, limit: number, keySchema: string, valueSchema: string) => string {}
@@ -184,8 +191,8 @@ function consume(reader: object, limit: number, keySchema: string, valueSchema: 
  * @param   {object}    reader              The reader object created with the reader constructor.
  * @param   {number}    limit               How many messages should be read in one go, which blocks. Defaults to 1.
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
- * @param   {string}    keySchema           An optional Avro schema for the key.
- * @param   {string}    valueSchema         An optional Avro schema for the value.
+ * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
+ * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
  * @returns {string}    A string containing the error.
  */
 function consumeWithConfiguration(reader: object, limit: number, configurationJson: string, keySchema: string, valueSchema: string) => string {}
