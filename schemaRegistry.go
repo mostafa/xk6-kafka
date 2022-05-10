@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"encoding/binary"
 	"errors"
 
 	"github.com/riferrei/srclient"
@@ -25,14 +26,6 @@ type SchemaRegistryConfiguration struct {
 	CacheSchemas bool      `json:"cacheSchemas"`
 }
 
-func i32tob(val uint32) []byte {
-	r := make([]byte, 4)
-	for i := uint32(0); i < 4; i++ {
-		r[3-i] = byte((val >> (8 * i)) & 0xff)
-	}
-	return r
-}
-
 // Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func decodeWireFormat(configuration Configuration, messageData []byte, element Element) ([]byte, error) {
@@ -52,24 +45,34 @@ func decodeWireFormat(configuration Configuration, messageData []byte, element E
 
 // Add proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func encodeWireFormat(configuration Configuration, avroData []byte, topic string, element Element, schema string, version int) ([]byte, error) {
+func encodeWireFormat(configuration Configuration, data []byte, topic string, element Element, schema string, version int) ([]byte, error) {
 	if !useSerializer(configuration, element) {
-		return avroData, nil
+		return data, nil
 	}
 
 	if element == Key && isWireFormatted(configuration.Producer.KeySerializer) ||
-		element == "value " && isWireFormatted(configuration.Producer.ValueSerializer) {
+		element == Value && isWireFormatted(configuration.Producer.ValueSerializer) {
+		var schemaType srclient.SchemaType
+		if element == Key {
+			schemaType = GetSchemaType(configuration.Producer.KeySerializer)
+		} else if element == Value {
+			schemaType = GetSchemaType(configuration.Producer.ValueSerializer)
+		}
+
 		var schemaInfo, err = getSchema(
-			configuration, topic, element, schema, srclient.Avro, version)
+			configuration, topic, element, schema, schemaType, version)
 		if err != nil {
 			ReportError(err, "Retrieval of schema id failed.")
 			return nil, err
 		}
+
 		if schemaInfo.ID() != 0 {
-			return append(append([]byte{0}, i32tob(uint32(schemaInfo.ID()))...), avroData...), nil
+			schemaIDBytes := make([]byte, 4)
+			binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaInfo.ID()))
+			return append(append([]byte{0}, schemaIDBytes...), data...), nil
 		}
 	}
-	return avroData, nil
+	return data, nil
 }
 
 func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryClient {
@@ -87,12 +90,6 @@ func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryC
 func getSchema(
 	configuration Configuration, topic string, element Element,
 	schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, error) {
-
-	// Default schema type is Avro
-	if schemaType == "" {
-		schemaType = srclient.Avro
-	}
-
 	srClient := schemaRegistryClient(configuration)
 
 	var schemaInfo *srclient.Schema
