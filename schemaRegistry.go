@@ -90,12 +90,6 @@ func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryC
 func getSchema(
 	configuration Configuration, topic string, element Element,
 	schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, error) {
-
-	// Default schema type is Avro
-	if schemaType == "" {
-		schemaType = srclient.Avro
-	}
-
 	srClient := schemaRegistryClient(configuration)
 
 	var schemaInfo *srclient.Schema

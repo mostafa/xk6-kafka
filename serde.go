@@ -59,12 +59,6 @@ func isWireFormatted(serde string) bool {
 }
 
 func GetSerializer(serializer string, schema string) Serializer {
-	// if schema exists default to Avro without schema registry
-	// TODO: deprecate this
-	if schema != "" {
-		return SerializeAvro
-	}
-
 	serializerFunction := Serializers[serializer]
 	if serializerFunction == nil {
 		return SerializeString
@@ -73,12 +67,6 @@ func GetSerializer(serializer string, schema string) Serializer {
 }
 
 func GetDeserializer(deserializer string, schema string) Deserializer {
-	// if schema exists default to Avro without schema registry
-	// TODO: deprecate this
-	if schema != "" {
-		return DeserializeAvro
-	}
-
 	deserializerFunction := Deserializers[deserializer]
 	if deserializerFunction == nil {
 		return DeserializeString
