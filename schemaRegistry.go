@@ -45,9 +45,9 @@ func decodeWireFormat(configuration Configuration, messageData []byte, element E
 
 // Add proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func encodeWireFormat(configuration Configuration, avroData []byte, topic string, element Element, schema string, version int) ([]byte, error) {
+func encodeWireFormat(configuration Configuration, data []byte, topic string, element Element, schema string, version int) ([]byte, error) {
 	if !useSerializer(configuration, element) {
-		return avroData, nil
+		return data, nil
 	}
 
 	if element == Key && isWireFormatted(configuration.Producer.KeySerializer) ||
@@ -65,13 +65,14 @@ func encodeWireFormat(configuration Configuration, avroData []byte, topic string
 			ReportError(err, "Retrieval of schema id failed.")
 			return nil, err
 		}
+
 		if schemaInfo.ID() != 0 {
 			schemaIDBytes := make([]byte, 4)
 			binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaInfo.ID()))
-			return append(append([]byte{0}, schemaIDBytes...), avroData...), nil
+			return append(append([]byte{0}, schemaIDBytes...), data...), nil
 		}
 	}
-	return avroData, nil
+	return data, nil
 }
 
 func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryClient {
