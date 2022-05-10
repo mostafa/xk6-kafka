@@ -10,7 +10,7 @@ var (
 		"org.apache.kafka.common.serialization.ByteArraySerializer":       SerializeByteArray,
 		"io.confluent.kafka.serializers.KafkaAvroSerializer":              SerializeAvro,
 		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer": nil,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":   nil,
+		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":   SerializeJsonSchema,
 	}
 
 	Deserializers = map[string]Deserializer{
@@ -18,7 +18,7 @@ var (
 		"org.apache.kafka.common.serialization.ByteArrayDeserializer":       DeserializeByteArray,
 		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              DeserializeAvro,
 		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": nil,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   nil,
+		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   DeserializeJsonSchema,
 	}
 
 	WireFormattedCodecs = map[string]bool{
