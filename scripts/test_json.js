@@ -79,7 +79,7 @@ export default function () {
     });
 
     check(messages[0], {
-        "Topic equals xk6_kafka_json_topic": (msg) => msg["topic"] == kafkaTopic,
+        "Topic equals to xk6_kafka_json_topic": (msg) => msg["topic"] == kafkaTopic,
         "Key is correct": (msg) => msg["key"] == JSON.stringify({ correlationId: "test-id-abc-0" }),
         "Value is correct": (msg) =>
             msg["value"] ==
