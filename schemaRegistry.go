@@ -51,9 +51,16 @@ func encodeWireFormat(configuration Configuration, avroData []byte, topic string
 	}
 
 	if element == Key && isWireFormatted(configuration.Producer.KeySerializer) ||
-		element == "value " && isWireFormatted(configuration.Producer.ValueSerializer) {
+		element == Value && isWireFormatted(configuration.Producer.ValueSerializer) {
+		var schemaType srclient.SchemaType
+		if element == Key {
+			schemaType = GetSchemaType(configuration.Producer.KeySerializer)
+		} else if element == Value {
+			schemaType = GetSchemaType(configuration.Producer.ValueSerializer)
+		}
+
 		var schemaInfo, err = getSchema(
-			configuration, topic, element, schema, srclient.Avro, version)
+			configuration, topic, element, schema, schemaType, version)
 		if err != nil {
 			ReportError(err, "Retrieval of schema id failed.")
 			return nil, err
