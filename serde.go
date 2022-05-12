@@ -42,10 +42,10 @@ var (
 	}
 
 	SchemaTypes = map[string]srclient.SchemaType{
-		"org.apache.kafka.common.serialization.KafkaAvroSerializer":         srclient.Avro,
+		"io.confluent.kafka.serializers.KafkaAvroSerializer":                srclient.Avro,
 		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer":   srclient.Protobuf,
 		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":     srclient.Json,
-		"org.apache.kafka.common.serialization.KafkaAvroDeserializer":       srclient.Avro,
+		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              srclient.Avro,
 		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": srclient.Protobuf,
 		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   srclient.Json,
 	}
