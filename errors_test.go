@@ -20,13 +20,16 @@ func TestReportError(t *testing.T) {
 	err := errors.New("test")
 	ReportError(err, "test")
 
+	errMsg := "test: test"
 	// length of the string without	the newline character
-	var buf []byte = make([]byte, 10)
+	var buf []byte = make([]byte, len(errMsg))
 	// read the output of fmt.Printf to os.Stdout from the pipe
-	r.Read(buf)
+	length, err := r.Read(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, len(errMsg), length)
 	// append newline
 	buf = append(buf, "\n"...)
-	assert.Equal(t, "test: test\n", string(buf))
+	assert.Equal(t, errMsg+"\n", string(buf))
 
 	// restore the real stdout
 	os.Stdout = oldStdout
