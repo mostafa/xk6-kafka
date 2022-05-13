@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -11,22 +10,35 @@ import (
 )
 
 var (
+	// CompressionCodecs is a map of compression codec names to their respective codecs
+	// TODO: add as global constants to JS
 	CompressionCodecs = map[string]compress.Codec{
 		"Gzip":   &compress.GzipCodec,
 		"Snappy": &compress.SnappyCodec,
 		"Lz4":    &compress.Lz4Codec,
 		"Zstd":   &compress.ZstdCodec,
 	}
+
+	// DefaultSerializer is string serializer
 	DefaultSerializer = "org.apache.kafka.common.serialization.StringSerializer"
 )
 
-func (*Kafka) Writer(brokers []string, topic string, auth string, compression string) *kafkago.Writer {
+// Writer creates a new Kafka writer
+func (k *Kafka) Writer(brokers []string, topic string, auth string, compression string) (*kafkago.Writer, *Xk6KafkaError) {
+	dialer, err := getDialerFromAuth(auth)
+	if err != nil {
+		if err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
+		}
+		return nil, err
+	}
+
 	writerConfig := kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
 		Balancer:  &kafkago.LeastBytes{},
 		BatchSize: 1,
-		Dialer:    getDialerFromAuth(auth),
+		Dialer:    dialer,
 		Async:     false,
 	}
 
@@ -34,60 +46,53 @@ func (*Kafka) Writer(brokers []string, topic string, auth string, compression st
 		writerConfig.CompressionCodec = codec
 	}
 
-	return kafkago.NewWriter(writerConfig)
+	return kafkago.NewWriter(writerConfig), nil
 }
 
+// Produce sends messages to Kafka
 func (k *Kafka) Produce(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	keySchema string, valueSchema string) error {
+	keySchema string, valueSchema string) *Xk6KafkaError {
 	return k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
+// ProduceWithConfiguration sends messages to Kafka with the given configuration
 func (k *Kafka) ProduceWithConfiguration(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	configurationJson string, keySchema string, valueSchema string) error {
+	configurationJson string, keySchema string, valueSchema string) *Xk6KafkaError {
 	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		return nil
+		if err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
+		}
+		return err
 	}
 
 	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
+// produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	configuration Configuration, keySchema string, valueSchema string) error {
+	configuration Configuration, keySchema string, valueSchema string) *Xk6KafkaError {
 	state := k.vu.State()
-	err := errors.New("state is nil")
-
 	if state == nil {
-		ReportError(err, "Cannot determine state")
-		err = k.reportWriterStats(writer.Stats())
-		if err != nil {
-			ReportError(err, "Cannot report writer stats")
-		}
-		return nil
-	}
-
-	err = ValidateConfiguration(configuration)
-	if err != nil {
-		ReportError(err, "Validation of configuration failed. Falling back to defaults")
-		configuration.Producer.KeySerializer = DefaultSerializer
-		configuration.Producer.ValueSerializer = DefaultSerializer
-	}
-
-	if state == nil {
-		ReportError(err, "Cannot determine state")
-		return err
+		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
-	err = errors.New("context is nil")
-
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return err
+	}
+
+	err := ValidateConfiguration(configuration)
+	if err != nil {
+		configuration.Producer.KeySerializer = DefaultSerializer
+		configuration.Producer.ValueSerializer = DefaultSerializer
+		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
 	keySerializer := GetSerializer(configuration.Producer.KeySerializer, keySchema)
@@ -114,10 +119,10 @@ func (k *Kafka) produceInternal(
 
 		// If a key was provided, add it to the message. Keys are optional.
 		if _, has_key := message["key"]; has_key {
-			keyData, err := keySerializer(configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
-			if err != nil {
-				ReportError(err, "Creation of key bytes failed.")
-				return err
+			keyData, err := keySerializer(
+				configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
+			if err != nil && err.Unwrap() != nil {
+				k.logger.WithField("error", err).Error(err)
 			}
 
 			kafkaMessages[i].Key = keyData
@@ -125,9 +130,8 @@ func (k *Kafka) produceInternal(
 
 		// Then add the message
 		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema, 0)
-		if err != nil {
-			ReportError(err, "Creation of message bytes failed.")
-			return err
+		if err != nil && err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
 		}
 
 		kafkaMessages[i].Value = valueData
@@ -143,41 +147,41 @@ func (k *Kafka) produceInternal(
 		}
 	}
 
-	err = writer.WriteMessages(ctx, kafkaMessages...)
-	if err == ctx.Err() {
-		// context is cancelled, so stop
-		err = k.reportWriterStats(writer.Stats())
-		if err != nil {
-			ReportError(err, "Cannot report writer stats")
-		}
-		return nil
+	originalErr := writer.WriteMessages(k.vu.Context(), kafkaMessages...)
+
+	err = k.reportWriterStats(writer.Stats())
+	if err != nil {
+		k.logger.WithField("error", err).Error(err)
 	}
 
-	if err != nil {
-		ReportError(err, "Failed to write message")
-		err = k.reportWriterStats(writer.Stats())
-		if err != nil {
-			ReportError(err, "Cannot report writer stats")
+	if originalErr != nil {
+		if originalErr == k.vu.Context().Err() {
+			k.logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
+			return NewXk6KafkaError(contextCancelled, "Context cancelled.", err)
+		} else {
+			// TODO: fix this
+			// Ignore stats reporting errors here, because we can't return twice,
+			// and there is no way to wrap the error in another one.
+			k.logger.WithField("error", originalErr).Error(originalErr)
+			return NewXk6KafkaError(failedWriteMessage, "Failed to write messages.", err)
 		}
-		return err
 	}
 
 	return nil
 }
 
-func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) error {
+// reportWriterStats reports the writer stats to the state
+func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaError {
 	state := k.vu.State()
-	err := errors.New("state is nil")
-
 	if state == nil {
-		ReportError(err, "Cannot determine state")
-		return err
+		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
-	err = errors.New("context is nil")
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(cannotReportStats, "Cannot report writer stats, no context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return err
 	}
 

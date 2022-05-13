@@ -11,8 +11,8 @@ import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_avro_topic";
 
-const producer = writer(bootstrapServers, kafkaTopic);
-const consumer = reader(bootstrapServers, kafkaTopic);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 
 const valueSchema = JSON.stringify({
     type: "record",
@@ -83,13 +83,13 @@ export default function () {
     }
 
     // Read 10 messages only
-    let rx_messages = consume(consumer, 10, null, valueSchema);
-    check(rx_messages, {
+    let [messages, _consumeError] = consume(consumer, 10, null, valueSchema);
+    check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
 
-    for (let index = 0; index < rx_messages.length; index++) {
-        console.debug("Received Message: " + JSON.stringify(rx_messages[index]));
+    for (let index = 0; index < messages.length; index++) {
+        console.debug("Received Message: " + JSON.stringify(messages[index]));
     }
 }
 

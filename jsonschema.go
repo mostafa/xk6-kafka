@@ -6,59 +6,72 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
-func SerializeJsonSchema(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error) {
+func SerializeJsonSchema(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 	subject := topic + "-" + string(element)
 	if schema != "" {
 		codec, err := jsonschema.CompileString(subject, schema)
 		if err != nil {
-			ReportError(err, "Failed to create codec for encoding JSONSchema")
+			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,
+				"Failed to create codec for encoding JSONSchema",
+				err)
 		}
 
 		var jsonBytes interface{}
 		if err := json.Unmarshal(bytesData, &jsonBytes); err != nil {
-			ReportError(err, "Failed to unmarshal JSONSchema data")
+			return nil, NewXk6KafkaError(failedUnmarshalJsonSchema,
+				"Failed to unmarshal JSONSchema data",
+				err)
 		}
 
 		if err := codec.Validate(jsonBytes); err != nil {
-			ReportError(err, "Failed to validate JSONSchema data")
+			return nil, NewXk6KafkaError(failedValidateJsonSchema,
+				"Failed to validate JSONSchema data",
+				err)
 		}
 	}
 
 	byteData, err := encodeWireFormat(configuration, bytesData, topic, element, schema, version)
 	if err != nil {
-		ReportError(err, "Failed to add wire format to the binary data")
-		return nil, err
+		return nil, NewXk6KafkaError(failedEncodeToWireFormat,
+			"Failed to encode data into wire format",
+			err)
 	}
 
 	return byteData, nil
 }
 
-func DeserializeJsonSchema(configuration Configuration, data []byte, element Element, schema string, version int) interface{} {
+func DeserializeJsonSchema(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	bytesDecodedData, err := decodeWireFormat(configuration, data, element)
 	if err != nil {
-		ReportError(err, "Failed to remove wire format from the binary data")
-		return nil
+		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
+			"Failed to remove wire format from the binary data",
+			err)
 	}
 
 	if schema != "" {
 		codec, err := jsonschema.CompileString(string(element), schema)
 		if err != nil {
-			ReportError(err, "Failed to create codec for decoding JSONSchema")
+			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,
+				"Failed to create codec for decoding JSONSchema",
+				err)
 		}
 
 		var jsonBytes interface{}
 		if err := json.Unmarshal(bytesDecodedData, &jsonBytes); err != nil {
-			ReportError(err, "Failed to unmarshal JSONSchema data")
-			return nil
+			return nil, NewXk6KafkaError(failedUnmarshalJsonSchema,
+				"Failed to unmarshal JSONSchema data",
+				err)
 		}
 
 		if err := codec.Validate(jsonBytes); err != nil {
-			ReportError(err, "Failed to validate JSONSchema data, yet returning the data")
+			return jsonBytes, NewXk6KafkaError(failedValidateJsonSchema,
+				"Failed to validate JSONSchema data, yet returning the data",
+				err)
 		}
 
-		return jsonBytes
+		return jsonBytes, nil
 	}
 
-	return bytesDecodedData
+	return bytesDecodedData, nil
 }

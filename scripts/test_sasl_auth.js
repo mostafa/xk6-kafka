@@ -27,8 +27,15 @@ const partitions = 1;
 const replicationFactor = 1;
 const compression = "";
 
-const producer = writer(bootstrapServers, kafkaTopic, auth);
-const consumer = reader(bootstrapServers, kafkaTopic, partition, groupID, offset, auth);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, auth);
+const [consumer, _readerError] = reader(
+    bootstrapServers,
+    kafkaTopic,
+    partition,
+    groupID,
+    offset,
+    auth
+);
 
 if (__VU == 1) {
     createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression, auth);
@@ -73,7 +80,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = consume(consumer, 10);
+    let [messages, _consumeError] = consume(consumer, 10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

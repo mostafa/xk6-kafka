@@ -16,8 +16,8 @@ import {
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "com.example.person";
 
-const producer = writer(bootstrapServers, kafkaTopic);
-const consumer = reader(bootstrapServers, kafkaTopic, null, "", null);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic, null, "", null);
 
 const keySchema = `{
   "name": "KeySchema",
@@ -90,7 +90,13 @@ export default function () {
         });
     }
 
-    let messages = consumeWithConfiguration(consumer, 20, configuration, keySchema, valueSchema);
+    let [messages, _consumeError] = consumeWithConfiguration(
+        consumer,
+        20,
+        configuration,
+        keySchema,
+        valueSchema
+    );
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
