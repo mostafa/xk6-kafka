@@ -46,8 +46,10 @@ func unmarshalCredentials(auth string) (*Credentials, *Xk6KafkaError) {
 }
 
 func getDialerFromCreds(creds *Credentials) (*kafkago.Dialer, *Xk6KafkaError) {
-	// TODO: handle error
-	tlsConfig, _ := tlsConfig(creds)
+	tlsConfig, err := tlsConfig(creds)
+	if err != nil && err.Unwrap() != nil {
+		return nil, err
+	}
 
 	dialer := &kafkago.Dialer{
 		Timeout:   10 * time.Second,
