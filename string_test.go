@@ -23,6 +23,7 @@ func TestSerializeStringFails(t *testing.T) {
 
 func TestDeserializeString(t *testing.T) {
 	originalData := "test"
-	result := DeserializeString(Configuration{}, []byte(originalData), "", "", 0)
+	result, err := DeserializeString(Configuration{}, []byte(originalData), "", "", 0)
 	assert.Equal(t, originalData, result)
+	assert.Nil(t, err)
 }

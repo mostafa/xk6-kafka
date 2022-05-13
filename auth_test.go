@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -27,7 +26,8 @@ func TestGetDialerFromCredsWithSASLPlain(t *testing.T) {
 		Password:  "test",
 		Algorithm: Plain,
 	}
-	dialer := getDialerFromCreds(creds)
+	dialer, err := getDialerFromCreds(creds)
+	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
 	assert.Equal(t, true, dialer.DualStack)
@@ -43,7 +43,8 @@ func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
 		Password:  "test",
 		Algorithm: SHA256,
 	}
-	dialer := getDialerFromCreds(creds)
+	dialer, err := getDialerFromCreds(creds)
+	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
 	assert.Equal(t, true, dialer.DualStack)
@@ -52,38 +53,20 @@ func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
 }
 
 func TestGetDialerFromCredsFails(t *testing.T) {
-	// backup of the real stdout
-	oldStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	defer w.Close()
-	defer r.Close()
-	os.Stdout = w
-
 	creds := &Credentials{
 		Username:  "https://www.exa\t\r\n",
 		Password:  "test",
 		Algorithm: "sha256",
 	}
-	dialer := getDialerFromCreds(creds)
+	dialer, wrappedError := getDialerFromCreds(creds)
+	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")
 	assert.Nil(t, dialer)
-
-	errMsg := "Unable to create SCRAM mechanism from given credentials: Error SASLprepping username 'https://www.exa\t\r\n': prohibited character (rune: '\\u0009')"
-	// length of the string without	the newline character
-	var buf []byte = make([]byte, len(errMsg))
-	// read the output of fmt.Printf to os.Stdout from the pipe
-	length, err := r.Read(buf)
-	assert.Nil(t, err)
-	assert.Equal(t, len(errMsg), length)
-
-	assert.Equal(t, errMsg, string(buf))
-
-	// restore the real stdout
-	os.Stdout = oldStdout
 }
 
 func TestGetDialerFromAuth(t *testing.T) {
 	auth := `{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`
-	dialer := getDialerFromAuth(auth)
+	dialer, err := getDialerFromAuth(auth)
+	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
 	assert.Equal(t, true, dialer.DualStack)
@@ -92,7 +75,8 @@ func TestGetDialerFromAuth(t *testing.T) {
 }
 
 func TestGetDialerFromAuthNoAuthString(t *testing.T) {
-	dialer := getDialerFromAuth("")
+	dialer, err := getDialerFromAuth("")
+	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
 	assert.Equal(t, false, dialer.DualStack)
