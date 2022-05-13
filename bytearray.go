@@ -19,6 +19,6 @@ func SerializeByteArray(configuration Configuration, topic string, data interfac
 	}
 }
 
-func DeserializeByteArray(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeByteArray(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	return data, nil
 }

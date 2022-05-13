@@ -131,7 +131,8 @@ func (k *Kafka) consumeInternal(
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
 			var wrappedError *Xk6KafkaError
-			message["key"], wrappedError = keyDeserializer(configuration, msg.Key, Key, keySchema, 0)
+			message["key"], wrappedError = keyDeserializer(
+				configuration, reader.Config().Topic, msg.Key, Key, keySchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				k.logger.WithField("error", wrappedError).Error(wrappedError)
 			}
@@ -140,7 +141,7 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Value) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["value"], wrappedError = valueDeserializer(
-				configuration, msg.Value, "value", valueSchema, 0)
+				configuration, reader.Config().Topic, msg.Value, "value", valueSchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				k.logger.WithField("error", wrappedError).Error(wrappedError)
 			}

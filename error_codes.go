@@ -13,15 +13,14 @@ const (
 
 	// serdes errors
 	invalidDataType             errCode = 2000
-	failedEncodeToWireFormat    errCode = 2001
-	failedDecodeFromWireFormat  errCode = 2002
-	failedCreateAvroCodec       errCode = 2003
-	failedEncodeToAvro          errCode = 2004
-	failedEncodeAvroToBinary    errCode = 2005
-	failedDecodeAvroFromBinary  errCode = 2006
-	failedCreateJsonSchemaCodec errCode = 2007
-	failedUnmarshalJsonSchema   errCode = 2008
-	failedValidateJsonSchema    errCode = 2009
+	failedDecodeFromWireFormat  errCode = 2001
+	failedCreateAvroCodec       errCode = 2002
+	failedEncodeToAvro          errCode = 2003
+	failedEncodeAvroToBinary    errCode = 2004
+	failedDecodeAvroFromBinary  errCode = 2005
+	failedCreateJsonSchemaCodec errCode = 2006
+	failedUnmarshalJsonSchema   errCode = 2007
+	failedValidateJsonSchema    errCode = 2008
 
 	// producer
 	failedWriteMessage errCode = 3000
@@ -40,7 +39,8 @@ const (
 
 	// schema registry
 	messageTooShort      errCode = 6000
-	schemaCreationFailed errCode = 6001
+	schemaNotFound       errCode = 6001
+	schemaCreationFailed errCode = 6002
 
 	// topics
 	failedCreateTopic    errCode = 7000

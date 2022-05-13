@@ -24,7 +24,7 @@ func TestSerializeByteArrayFails(t *testing.T) {
 
 func TestDeserializeByteArray(t *testing.T) {
 	originalData := []byte{1, 2, 3}
-	result, err := DeserializeByteArray(Configuration{}, originalData, "", "", 0)
+	result, err := DeserializeByteArray(Configuration{}, "", originalData, "", "", 0)
 	assert.Equal(t, []byte{1, 2, 3}, result)
 	assert.Nil(t, err)
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
-type Deserializer func(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
+type Deserializer func(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
 
 var (
 	// TODO: Find a better way to do this, like serde registry or something
@@ -77,7 +77,7 @@ func useDeserializer(configuration Configuration, element Element) bool {
 	return false
 }
 
-func isWireFormatted(serde string) bool {
+func IsWireFormatted(serde string) bool {
 	return WireFormattedCodecs[serde]
 }
 

@@ -93,7 +93,7 @@ func TestIsWireFormatted(t *testing.T) {
 	}
 
 	for _, codec := range wireFormattedCodecs {
-		assert.True(t, isWireFormatted(codec))
+		assert.True(t, IsWireFormatted(codec))
 	}
 }
 
@@ -108,7 +108,7 @@ func TestIsNotWireFormatted(t *testing.T) {
 	}
 
 	for _, codec := range notWireFormattedCodecs {
-		assert.False(t, isWireFormatted(codec))
+		assert.False(t, IsWireFormatted(codec))
 	}
 }
 

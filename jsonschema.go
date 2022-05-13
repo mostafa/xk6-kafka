@@ -9,6 +9,7 @@ import (
 func SerializeJsonSchema(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 	subject := topic + "-" + string(element)
+	// TODO: fix this after Avro
 	if schema != "" {
 		codec, err := jsonschema.CompileString(subject, schema)
 		if err != nil {
@@ -31,18 +32,12 @@ func SerializeJsonSchema(configuration Configuration, topic string, data interfa
 		}
 	}
 
-	byteData, err := encodeWireFormat(configuration, bytesData, topic, element, schema, version)
-	if err != nil {
-		return nil, NewXk6KafkaError(failedEncodeToWireFormat,
-			"Failed to encode data into wire format",
-			err)
-	}
-
-	return byteData, nil
+	return EncodeWireFormat(bytesData, 0), nil
 }
 
-func DeserializeJsonSchema(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
-	bytesDecodedData, err := decodeWireFormat(configuration, data, element)
+func DeserializeJsonSchema(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+	bytesDecodedData, err := DecodeWireFormat(data)
+	// TODO: fix this after Avro
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
 			"Failed to remove wire format from the binary data",

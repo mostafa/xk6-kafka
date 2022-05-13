@@ -14,6 +14,6 @@ func SerializeString(configuration Configuration, topic string, data interface{}
 	}
 }
 
-func DeserializeString(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeString(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	return string(data), nil
 }
