@@ -38,6 +38,9 @@ jobs:
           go install go.k6.io/xk6/cmd/xk6@latest
           xk6 build --with github.com/mostafa/xk6-kafka@latest=.
 
+      - name: Run Go tests 🔬
+        run: go test -v .
+
       - name: Run Apache Kafka 🦉 and test xk6-kafka 🧪
         run: |
           cd ~/work/xk6-kafka/xk6-kafka
