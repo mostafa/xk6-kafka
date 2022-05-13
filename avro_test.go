@@ -38,4 +38,7 @@ func TestSerializeAvro(t *testing.T) {
 		t.Errorf("SerializeAvro failed: %s", err)
 		return
 	}
+	assert.NotNil(t, serialized)
+	// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
+	assert.GreaterOrEqual(t, len(serialized), 10)
 }
