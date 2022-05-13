@@ -1,8 +1,8 @@
 package kafka
 
-import "errors"
+import "fmt"
 
-func SerializeByteArray(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error) {
+func SerializeByteArray(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	switch data.(type) {
 	case []interface{}:
 		bArray := data.([]interface{})
@@ -12,10 +12,13 @@ func SerializeByteArray(configuration Configuration, topic string, data interfac
 		}
 		return arr, nil
 	default:
-		return nil, errors.New("Invalid data type provided for byte array serializer (requires []byte)")
+		return nil, NewXk6KafkaError(
+			invalidDataType,
+			"Invalid data type provided for byte array serializer (requires []byte)",
+			fmt.Errorf("Expected: []byte, got: %T", data))
 	}
 }
 
-func DeserializeByteArray(configuration Configuration, data []byte, element Element, schema string, version int) interface{} {
-	return data
+func DeserializeByteArray(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+	return data, nil
 }

@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"encoding/binary"
-	"errors"
 
 	"github.com/riferrei/srclient"
 )
@@ -28,7 +27,7 @@ type SchemaRegistryConfiguration struct {
 
 // Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func decodeWireFormat(configuration Configuration, messageData []byte, element Element) ([]byte, error) {
+func decodeWireFormat(configuration Configuration, messageData []byte, element Element) ([]byte, *Xk6KafkaError) {
 	if !useDeserializer(configuration, element) {
 		return messageData, nil
 	}
@@ -36,7 +35,8 @@ func decodeWireFormat(configuration Configuration, messageData []byte, element E
 	if element == Key && isWireFormatted(configuration.Consumer.KeyDeserializer) ||
 		element == Value && isWireFormatted(configuration.Consumer.ValueDeserializer) {
 		if len(messageData) < 5 {
-			return nil, errors.New("Invalid message data")
+			return nil, NewXk6KafkaError(messageTooShort,
+				"Invalid message: message too short to contain schema id.", nil)
 		}
 		return messageData[5:], nil
 	}
@@ -62,7 +62,6 @@ func encodeWireFormat(configuration Configuration, data []byte, topic string, el
 		var schemaInfo, err = getSchema(
 			configuration, topic, element, schema, schemaType, version)
 		if err != nil {
-			ReportError(err, "Retrieval of schema id failed.")
 			return nil, err
 		}
 
@@ -89,7 +88,7 @@ func schemaRegistryClient(configuration Configuration) *srclient.SchemaRegistryC
 
 func getSchema(
 	configuration Configuration, topic string, element Element,
-	schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, error) {
+	schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, *Xk6KafkaError) {
 	srClient := schemaRegistryClient(configuration)
 
 	var schemaInfo *srclient.Schema
@@ -105,8 +104,7 @@ func getSchema(
 	if schemaInfo == nil {
 		schemaInfo, err := srClient.CreateSchema(subject, schema, schemaType)
 		if err != nil {
-			ReportError(err, "Creation of schema failed.")
-			return nil, err
+			return nil, NewXk6KafkaError(schemaCreationFailed, "Failed to create schema.", err)
 		}
 		return schemaInfo, nil
 	}

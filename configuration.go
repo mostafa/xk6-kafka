@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -23,13 +22,14 @@ type Configuration struct {
 	SchemaRegistry SchemaRegistryConfiguration `json:"schemaRegistry"`
 }
 
-func UnmarshalConfiguration(jsonConfiguration string) (Configuration, error) {
+func UnmarshalConfiguration(jsonConfiguration string) (Configuration, *Xk6KafkaError) {
 	var configuration Configuration
 	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
-	return configuration, err
+	return configuration, NewXk6KafkaError(
+		configurationError, "Cannot unmarshal configuration.", err)
 }
 
-func ValidateConfiguration(configuration Configuration) error {
+func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
 	if (Configuration{}) == configuration {
 		// No configuration, fallback to default
 		return nil
@@ -37,8 +37,10 @@ func ValidateConfiguration(configuration Configuration) error {
 
 	if useSerializer(configuration, Key) || useSerializer(configuration, Value) {
 		if (SchemaRegistryConfiguration{}) == configuration.SchemaRegistry {
-			return errors.New("You must provide a value for the \"SchemaRegistry\" configuration property to use a serializer " +
-				"of either of these types " + fmt.Sprintf("%q", reflect.ValueOf(Serializers).MapKeys()))
+			return NewXk6KafkaError(
+				configurationError,
+				fmt.Sprintf("You must provide a value for the \"SchemaRegistry\" configuration property to use a serializer of either of these types %q", reflect.ValueOf(Serializers).MapKeys()),
+				nil)
 		}
 	}
 	return nil

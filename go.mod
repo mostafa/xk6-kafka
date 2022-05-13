@@ -7,6 +7,7 @@ require (
 	github.com/riferrei/srclient v0.5.2
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
 	github.com/segmentio/kafka-go v0.4.31
+	github.com/sirupsen/logrus v1.8.1
 	go.k6.io/k6 v0.38.0
 )
 
@@ -24,7 +25,6 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/afero v1.1.2 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect

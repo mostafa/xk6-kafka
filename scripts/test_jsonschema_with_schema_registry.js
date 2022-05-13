@@ -16,8 +16,8 @@ import {
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_jsonschema_test";
 
-const producer = writer(bootstrapServers, kafkaTopic, null);
-const consumer = reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, null);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic, null, "", null, null);
 
 const keySchema = JSON.stringify({
     title: "Key",
@@ -88,12 +88,18 @@ export default function () {
         });
     }
 
-    let rx_messages = consumeWithConfiguration(consumer, 20, configuration, keySchema, valueSchema);
-    check(rx_messages, {
+    let [messages, _consumeError] = consumeWithConfiguration(
+        consumer,
+        20,
+        configuration,
+        keySchema,
+        valueSchema
+    );
+    check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
 
-    check(rx_messages[0], {
+    check(messages[0], {
         "Topic equals to xk6_jsonschema_test": (msg) => msg.topic == kafkaTopic,
         "Key is correct": (msg) => msg.key.key == "key0",
         "Value is correct": (msg) =>

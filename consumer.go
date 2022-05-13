@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"errors"
 	"io"
 	"time"
 
@@ -11,11 +10,19 @@ import (
 
 var DefaultDeserializer = "org.apache.kafka.common.serialization.StringDeserializer"
 
-func (*Kafka) Reader(
+func (k *Kafka) Reader(
 	brokers []string, topic string, partition int,
-	groupID string, offset int64, auth string) *kafkago.Reader {
+	groupID string, offset int64, auth string) (*kafkago.Reader, *Xk6KafkaError) {
 	if groupID != "" {
 		partition = 0
+	}
+
+	dialer, err := getDialerFromAuth(auth)
+	if err != nil {
+		if err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
+		}
+		return nil, err
 	}
 
 	reader := kafkago.NewReader(kafkago.ReaderConfig{
@@ -26,72 +33,65 @@ func (*Kafka) Reader(
 		MaxWait:          time.Millisecond * 200,
 		RebalanceTimeout: time.Second * 5,
 		QueueCapacity:    1,
-		Dialer:           getDialerFromAuth(auth),
+		Dialer:           dialer,
 	})
 
 	if offset > 0 {
 		err := reader.SetOffset(offset)
 		if err != nil {
-			ReportError(err, "Unable to set offset")
-			return nil
+			wrappedError := NewXk6KafkaError(
+				failedSetOffset, "Unable to set offset, yet returning the reader.", err)
+			k.logger.WithField("error", wrappedError).Warn(wrappedError)
+			return reader, wrappedError
 		}
 	}
 
-	return reader
+	return reader, nil
 }
 
 func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
-	keySchema string, valueSchema string) []map[string]interface{} {
+	keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
 	return k.consumeInternal(reader, limit, Configuration{}, keySchema, valueSchema)
 }
 
 func (k *Kafka) ConsumeWithConfiguration(
 	reader *kafkago.Reader, limit int64, configurationJson string,
-	keySchema string, valueSchema string) []map[string]interface{} {
+	keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
 	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
-		ReportError(err, "Cannot unmarshal configuration "+configurationJson)
-		err = k.reportReaderStats(reader.Stats())
-		if err != nil {
-			ReportError(err, "Cannot report reader stats")
+		if err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
 		}
-		return nil
+		return nil, err
 	}
 	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
 func (k *Kafka) consumeInternal(
 	reader *kafkago.Reader, limit int64,
-	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
+	configuration Configuration, keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
 	state := k.vu.State()
-	err := errors.New("state is nil")
-
 	if state == nil {
-		ReportError(err, "Cannot determine state")
-		err = k.reportReaderStats(reader.Stats())
-		if err != nil {
-			ReportError(err, "Cannot report reader stats")
-		}
-		return nil
+		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		return nil, ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
-	err = errors.New("context is nil")
-
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
-		return nil
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
+		return nil, err
 	}
 
 	if limit <= 0 {
 		limit = 1
 	}
 
-	err = ValidateConfiguration(configuration)
+	err := ValidateConfiguration(configuration)
 	if err != nil {
-		ReportError(err, "Validation of configuration failed. Falling back to defaults")
 		configuration.Consumer.KeyDeserializer = DefaultDeserializer
 		configuration.Consumer.ValueDeserializer = DefaultDeserializer
+		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
 	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer, keySchema)
@@ -103,31 +103,47 @@ func (k *Kafka) consumeInternal(
 		msg, err := reader.ReadMessage(ctx)
 
 		if err == io.EOF {
-			ReportError(err, "Reached the end of queue")
-			// context is cancelled, so break
-			err = k.reportReaderStats(reader.Stats())
+			err := k.reportReaderStats(reader.Stats())
 			if err != nil {
-				ReportError(err, "Cannot report reader stats")
+				if err.Unwrap() != nil {
+					k.logger.WithField("error", err).Error(err)
+				}
+				return nil, err
 			}
-			return messages
+			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
+			k.logger.WithField("error", err).Info(err)
+			return messages, err
 		}
 
 		if err != nil {
-			ReportError(err, "There was an error fetching messages")
-			err = k.reportReaderStats(reader.Stats())
+			err := k.reportReaderStats(reader.Stats())
 			if err != nil {
-				ReportError(err, "Cannot report reader stats")
+				if err.Unwrap() != nil {
+					k.logger.WithField("error", err).Error(err)
+				}
+				return messages, err
 			}
-			return messages
+			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", nil)
+			k.logger.WithField("error", err).Error(err)
+			return messages, err
 		}
 
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
-			message["key"] = keyDeserializer(configuration, msg.Key, Key, keySchema, 0)
+			var wrappedError *Xk6KafkaError
+			message["key"], wrappedError = keyDeserializer(configuration, msg.Key, Key, keySchema, 0)
+			if wrappedError != nil && wrappedError.Unwrap() != nil {
+				k.logger.WithField("error", wrappedError).Error(wrappedError)
+			}
 		}
 
 		if len(msg.Value) > 0 {
-			message["value"] = valueDeserializer(configuration, msg.Value, "value", valueSchema, 0)
+			var wrappedError *Xk6KafkaError
+			message["value"], wrappedError = valueDeserializer(
+				configuration, msg.Value, "value", valueSchema, 0)
+			if wrappedError != nil && wrappedError.Unwrap() != nil {
+				k.logger.WithField("error", wrappedError).Error(wrappedError)
+			}
 		}
 
 		// Rest of the fields of a given message
@@ -143,25 +159,26 @@ func (k *Kafka) consumeInternal(
 
 	err = k.reportReaderStats(reader.Stats())
 	if err != nil {
-		ReportError(err, "Cannot report reader stats")
+		if err.Unwrap() != nil {
+			k.logger.WithField("error", err).Error(err)
+		}
+		return messages, err
 	}
 
-	return messages
+	return messages, nil
 }
 
-func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) error {
+func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) *Xk6KafkaError {
 	state := k.vu.State()
-	err := errors.New("state is nil")
-
 	if state == nil {
-		ReportError(err, "Cannot determine state")
-		return err
+		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
-	err = errors.New("context is nil")
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return err
 	}
 

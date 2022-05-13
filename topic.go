@@ -1,27 +1,31 @@
 package kafka
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/segmentio/kafka-go"
 	kafkago "github.com/segmentio/kafka-go"
 )
 
-func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) error {
-	dialer := getDialerFromAuth(auth)
+func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) *Xk6KafkaError {
+	dialer, wrappedError := getDialerFromAuth(auth)
+	if wrappedError != nil {
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return wrappedError
+	}
 
 	ctx := k.vu.Context()
-	err := errors.New("context is nil")
-
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return err
 	}
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
-		return err
+		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return wrappedError
 	}
 	defer conn.Close()
 
@@ -48,57 +52,71 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 
 	err = conn.CreateTopics([]kafkago.TopicConfig{topicConfig}...)
 	if err != nil {
-		return err
+		wrappedError := NewXk6KafkaError(failedCreateTopic, "Failed to create topic.", err)
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return wrappedError
 	}
 
 	return nil
 }
 
-func (k *Kafka) DeleteTopic(address, topic string, auth string) error {
-	dialer := getDialerFromAuth(auth)
+func (k *Kafka) DeleteTopic(address, topic string, auth string) *Xk6KafkaError {
+	dialer, wrappedError := getDialerFromAuth(auth)
+	if wrappedError != nil {
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return wrappedError
+	}
 
 	ctx := k.vu.Context()
-	err := errors.New("context is nil")
-
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return err
 	}
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
-		return err
+		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return wrappedError
 	}
 	defer conn.Close()
 
 	err = conn.DeleteTopics([]string{topic}...)
 	if err != nil {
-		return err
+		return NewXk6KafkaError(failedDeleteTopic, "Failed to delete topic.", err)
 	}
 
 	return nil
 }
 
-func (k *Kafka) ListTopics(address string, auth string) ([]string, error) {
-	dialer := getDialerFromAuth(auth)
+func (k *Kafka) ListTopics(address string, auth string) ([]string, *Xk6KafkaError) {
+	dialer, wrappedError := getDialerFromAuth(auth)
+	if wrappedError != nil {
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return nil, wrappedError
+	}
 
 	ctx := k.vu.Context()
-	err := errors.New("context is nil")
-
 	if ctx == nil {
-		ReportError(err, "Cannot determine context")
+		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		k.logger.WithField("error", err).Info(err)
 		return nil, err
 	}
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
-		return nil, err
+		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return nil, wrappedError
 	}
 	defer conn.Close()
 
 	partitions, err := conn.ReadPartitions()
 	if err != nil {
-		return nil, err
+		wrappedError := NewXk6KafkaError(failedReadPartitions, "Failed to read partitions.", err)
+		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		return nil, wrappedError
 	}
 
 	// There should be a better way to return unique set of
