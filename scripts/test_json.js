@@ -11,8 +11,8 @@ import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
 
-const producer = writer(bootstrapServers, kafkaTopic);
-const consumer = reader(bootstrapServers, kafkaTopic);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 
 if (__VU == 1) {
     createTopic(bootstrapServers[0], kafkaTopic);
@@ -73,7 +73,8 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = consume(consumer, 10);
+    let [messages, _consumeError] = consume(consumer, 10);
+
     check(messages, {
         "10 messages are received": (messages) => messages.length == 10,
     });

@@ -18,8 +18,8 @@ import {
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_byte_array_topic";
 
-const producer = writer(bootstrapServers, kafkaTopic);
-const consumer = reader(bootstrapServers, kafkaTopic);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 
 if (__VU == 1) {
     createTopic(bootstrapServers[0], kafkaTopic);
@@ -58,7 +58,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = consumeWithConfiguration(consumer, 10, configuration);
+    let [messages, _consumeError] = consumeWithConfiguration(consumer, 10, configuration);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
         "key starts with 'test-id-' string": (msgs) => msgs[0].key.startsWith("test-id-"),

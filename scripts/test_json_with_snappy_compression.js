@@ -21,8 +21,8 @@ Supported compression codecs:
 */
 const compression = "Snappy";
 
-const producer = writer(bootstrapServers, kafkaTopic, no_auth, compression);
-const consumer = reader(bootstrapServers, kafkaTopic);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, no_auth, compression);
+const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 
 const replicationFactor = 1;
 const partitions = 1;
@@ -70,7 +70,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = consume(consumer, 10);
+    let [messages, _consumeError] = consume(consumer, 10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

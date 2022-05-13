@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modules"
 )
@@ -13,6 +14,7 @@ type (
 	Kafka struct {
 		vu      modules.VU
 		metrics kafkaMetrics
+		logger  *logrus.Logger
 	}
 	RootModule  struct{}
 	KafkaModule struct {
@@ -35,7 +37,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 		common.Throw(vu.Runtime(), err)
 	}
 
-	return &KafkaModule{Kafka: &Kafka{vu: vu, metrics: m}}
+	return &KafkaModule{Kafka: &Kafka{vu: vu, metrics: m, logger: logrus.New()}}
 }
 
 func (c *KafkaModule) Exports() modules.Exports {

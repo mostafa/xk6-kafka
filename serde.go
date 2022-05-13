@@ -4,8 +4,8 @@ import (
 	"github.com/riferrei/srclient"
 )
 
-type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, error)
-type Deserializer func(configuration Configuration, data []byte, element Element, schema string, version int) interface{}
+type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
+type Deserializer func(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
 
 var (
 	// TODO: Find a better way to do this, like serde registry or something
