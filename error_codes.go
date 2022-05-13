@@ -36,6 +36,7 @@ const (
 	failedUnmarshalCreds        errCode = 5001
 	failedLoadX509KeyPair       errCode = 5002
 	failedReadCaCertFile        errCode = 5003
+	failedAppendCaCertFile      errCode = 5004
 
 	// schema registry
 	messageTooShort      errCode = 6000

@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -125,7 +124,7 @@ func tlsConfig(creds *Credentials) (*tls.Config, *Xk6KafkaError) {
 	if err != nil {
 		return nil, NewXk6KafkaError(
 			failedLoadX509KeyPair,
-			fmt.Sprintf("Error creating x509 keypair from client cert file %s and client key file %s", *clientCertFile, *clientKeyFile),
+			fmt.Sprintf("Error creating x509 keypair from client cert file \"%s\" and client key file \"%s\"", *clientCertFile, *clientKeyFile),
 			err)
 	}
 
@@ -134,15 +133,21 @@ func tlsConfig(creds *Credentials) (*tls.Config, *Xk6KafkaError) {
 		return nil, NewXk6KafkaError(fileNotFound, "CA certificate file not found.", nil)
 	}
 
-	caCert, err := ioutil.ReadFile(*caCertFile)
+	caCert, err := os.ReadFile(*caCertFile)
 	if err != nil {
+		// This might happen on permissions issues or if the file is unreadable somehow
 		return nil, NewXk6KafkaError(
 			failedReadCaCertFile,
-			fmt.Sprintf("Error reading CA certificate file %s", *caCertFile),
+			fmt.Sprintf("Error reading CA certificate file \"%s\"", *caCertFile),
 			err)
 	}
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+		return nil, NewXk6KafkaError(
+			failedAppendCaCertFile,
+			fmt.Sprintf("Error appending CA certificate file \"%s\"", *caCertFile),
+			nil)
+	}
 
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
