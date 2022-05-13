@@ -32,7 +32,7 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 	}
 
 	if xk6KafkaError != nil {
-		logrus.New().WithError(xk6KafkaError).Error("Failed to create or get schema, manually encoding the data")
+		logrus.New().WithError(xk6KafkaError).Warn("Failed to create or get schema, manually encoding the data")
 		codec, err := goavro.NewCodec(schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateAvroCodec,
@@ -107,7 +107,7 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 	}
 
 	if xk6KafkaError != nil {
-		logrus.New().WithError(xk6KafkaError).Error("Failed to create or get schema, manually decoding the data")
+		logrus.New().WithError(xk6KafkaError).Warn("Failed to create or get schema, manually decoding the data")
 		codec, err := goavro.NewCodec(schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateAvroCodec,

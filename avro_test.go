@@ -8,10 +8,6 @@ import (
 
 func TestSerializeAvro(t *testing.T) {
 	config := Configuration{
-		Consumer: ConsumerConfiguration{
-			ValueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-			KeyDeserializer:   "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-		},
 		Producer: ProducerConfiguration{
 			ValueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
 			KeySerializer:   "io.confluent.kafka.serializers.KafkaAvroSerializer",
@@ -41,4 +37,44 @@ func TestSerializeAvro(t *testing.T) {
 	assert.NotNil(t, serialized)
 	// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
 	assert.GreaterOrEqual(t, len(serialized), 10)
+}
+
+func TestSerializeAvroFailsOnSchemaError(t *testing.T) {
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
+			KeySerializer:   "io.confluent.kafka.serializers.KafkaAvroSerializer",
+		},
+	}
+
+	schema := `{}`
+	data := `{"field":"value"}`
+
+	for _, element := range []Element{Key, Value} {
+		serialized, err := SerializeAvro(config, "topic", data, element, schema, 0)
+		assert.Nil(t, serialized)
+		assert.Error(t, err.Unwrap())
+		assert.Equal(t, "Failed to create codec for encoding Avro", err.Message)
+		assert.Equal(t, failedCreateAvroCodec, err.Code)
+	}
+}
+
+func TestSerializeAvroFailsOnEncodeError(t *testing.T) {
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
+			KeySerializer:   "io.confluent.kafka.serializers.KafkaAvroSerializer",
+		},
+	}
+
+	schema := `{"type":"record","name":"Value","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	data := `{"nonExistingField":"value"}`
+
+	for _, element := range []Element{Key, Value} {
+		serialized, err := SerializeAvro(config, "topic", data, element, schema, 0)
+		assert.Nil(t, serialized)
+		assert.Error(t, err.Unwrap())
+		assert.Equal(t, "Failed to encode data into Avro", err.Message)
+		assert.Equal(t, failedEncodeToAvro, err.Code)
+	}
 }
