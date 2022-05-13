@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"reflect"
+
 	"github.com/riferrei/srclient"
 )
 
@@ -52,20 +54,26 @@ var (
 )
 
 func useSerializer(configuration Configuration, element Element) bool {
-	// TODO: Refactor this
-	if (Configuration{}) != configuration || (ProducerConfiguration{}) != configuration.Producer &&
-		(element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
+	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Producer).IsZero() {
+		return false
+	}
+
+	if (element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
 		return true
 	}
+
 	return false
 }
 
 func useDeserializer(configuration Configuration, element Element) bool {
-	// TODO: Refactor this
-	if (Configuration{}) != configuration || (ConsumerConfiguration{}) != configuration.Consumer &&
-		(element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
+	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Consumer).IsZero() {
+		return false
+	}
+
+	if (element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
 		return true
 	}
+
 	return false
 }
 
