@@ -94,8 +94,8 @@ func (k *Kafka) consumeInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer, keySchema)
-	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer, valueSchema)
+	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer)
+	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 

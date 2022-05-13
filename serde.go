@@ -81,7 +81,7 @@ func isWireFormatted(serde string) bool {
 	return WireFormattedCodecs[serde]
 }
 
-func GetSerializer(serializer string, schema string) Serializer {
+func GetSerializer(serializer string) Serializer {
 	serializerFunction := Serializers[serializer]
 	if serializerFunction == nil {
 		return SerializeString
@@ -89,7 +89,7 @@ func GetSerializer(serializer string, schema string) Serializer {
 	return serializerFunction
 }
 
-func GetDeserializer(deserializer string, schema string) Deserializer {
+func GetDeserializer(deserializer string) Deserializer {
 	deserializerFunction := Deserializers[deserializer]
 	if deserializerFunction == nil {
 		return DeserializeString

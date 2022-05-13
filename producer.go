@@ -95,8 +95,8 @@ func (k *Kafka) produceInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := GetSerializer(configuration.Producer.KeySerializer, keySchema)
-	valueSerializer := GetSerializer(configuration.Producer.ValueSerializer, valueSchema)
+	keySerializer := GetSerializer(configuration.Producer.KeySerializer)
+	valueSerializer := GetSerializer(configuration.Producer.ValueSerializer)
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
