@@ -17,9 +17,9 @@ func TestSerializeByteArray(t *testing.T) {
 func TestSerializeByteArrayFails(t *testing.T) {
 	originalData := "test"
 	_, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
-	assert.EqualErrorf(
-		t, err, "Invalid data type provided for byte array serializer (requires []byte)",
-		"Expected error message is correct")
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Message, "Invalid data type provided for byte array serializer (requires []byte)")
+	assert.Equal(t, err.Code, invalidDataType)
 }
 
 func TestDeserializeByteArray(t *testing.T) {
