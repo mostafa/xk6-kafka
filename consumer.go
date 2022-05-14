@@ -67,6 +67,13 @@ func (k *Kafka) ConsumeWithConfiguration(
 	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
+func (k *Kafka) GetDeserializer(schema string) Deserializer {
+	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
+		return de.GetDeserializer()
+	}
+	return DeserializeString
+}
+
 func (k *Kafka) consumeInternal(
 	reader *kafkago.Reader, limit int64,
 	configuration Configuration, keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
@@ -94,8 +101,8 @@ func (k *Kafka) consumeInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer)
-	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer)
+	keyDeserializer := k.GetDeserializer(configuration.Consumer.KeyDeserializer)
+	valueDeserializer := k.GetDeserializer(configuration.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 

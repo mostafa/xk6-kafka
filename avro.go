@@ -6,6 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	AvroSerializer   string = "io.confluent.kafka.serializers.KafkaAvroSerializer"
+	AvroDeserializer string = "io.confluent.kafka.serializers.KafkaAvroDeserializer"
+)
+
 func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
@@ -16,19 +21,14 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 	var schemaInfo *srclient.Schema
 	schemaID := 0
 
-	var schemaTypes map[Element]srclient.SchemaType = map[Element]srclient.SchemaType{
-		Key:   GetSchemaType(configuration.Producer.KeySerializer),
-		Value: GetSchemaType(configuration.Producer.ValueSerializer),
-	}
-
 	var xk6KafkaError *Xk6KafkaError
 
 	if schema != "" {
 		// Schema is provided, so we need to create it and get the schema ID
-		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, schemaTypes[element])
+		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
 	} else {
 		// Schema is not provided, so we need to fetch the schema from the Schema Registry
-		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, schemaTypes[element], version)
+		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, srclient.Avro, version)
 	}
 
 	if xk6KafkaError != nil {
@@ -91,19 +91,14 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 	subject := topic + "-" + string(element)
 	var schemaInfo *srclient.Schema
 
-	var schemaTypes map[Element]srclient.SchemaType = map[Element]srclient.SchemaType{
-		Key:   GetSchemaType(configuration.Producer.KeySerializer),
-		Value: GetSchemaType(configuration.Producer.ValueSerializer),
-	}
-
 	var xk6KafkaError *Xk6KafkaError
 
 	if schema != "" {
 		// Schema is provided, so we need to create it and get the schema ID
-		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, schemaTypes[element])
+		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
 	} else {
 		// Schema is not provided, so we need to fetch the schema from the Schema Registry
-		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, schemaTypes[element], version)
+		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, srclient.Avro, version)
 	}
 
 	if xk6KafkaError != nil {

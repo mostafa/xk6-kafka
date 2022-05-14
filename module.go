@@ -12,9 +12,11 @@ func init() {
 
 type (
 	Kafka struct {
-		vu      modules.VU
-		metrics kafkaMetrics
-		logger  *logrus.Logger
+		vu                   modules.VU
+		metrics              kafkaMetrics
+		logger               *logrus.Logger
+		serializerRegistry   *Serde[Serializer]
+		deserializerRegistry *Serde[Deserializer]
 	}
 	RootModule  struct{}
 	KafkaModule struct {
@@ -37,7 +39,13 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 		common.Throw(vu.Runtime(), err)
 	}
 
-	return &KafkaModule{Kafka: &Kafka{vu: vu, metrics: m, logger: logrus.New()}}
+	return &KafkaModule{Kafka: &Kafka{
+		vu:                   vu,
+		metrics:              m,
+		logger:               logrus.New(),
+		serializerRegistry:   NewSerializersRegistry(),
+		deserializerRegistry: NewDeserializersRegistry()},
+	}
 }
 
 func (c *KafkaModule) Exports() modules.Exports {

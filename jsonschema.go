@@ -6,6 +6,11 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
+const (
+	JsonSchemaSerializer   string = "io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer"
+	JsonSchemaDeserializer string = "io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer"
+)
+
 func SerializeJsonSchema(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 	subject := topic + "-" + string(element)

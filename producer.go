@@ -71,6 +71,13 @@ func (k *Kafka) ProduceWithConfiguration(
 	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
+func (k *Kafka) GetSerializer(schema string) Serializer {
+	if ser, ok := k.serializerRegistry.Registry[schema]; ok {
+		return ser.GetSerializer()
+	}
+	return SerializeString
+}
+
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
 	writer *kafkago.Writer, messages []map[string]interface{},
@@ -95,8 +102,8 @@ func (k *Kafka) produceInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := GetSerializer(configuration.Producer.KeySerializer)
-	valueSerializer := GetSerializer(configuration.Producer.ValueSerializer)
+	keySerializer := k.GetSerializer(configuration.Producer.KeySerializer)
+	valueSerializer := k.GetSerializer(configuration.Producer.ValueSerializer)
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {

@@ -2,8 +2,6 @@ package kafka
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
 )
 
 type ConsumerConfiguration struct {
@@ -39,7 +37,7 @@ func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
 		if (SchemaRegistryConfiguration{}) == configuration.SchemaRegistry {
 			return NewXk6KafkaError(
 				configurationError,
-				fmt.Sprintf("You must provide a value for the \"SchemaRegistry\" configuration property to use a serializer of either of these types %q", reflect.ValueOf(Serializers).MapKeys()),
+				"You must provide a value for the \"SchemaRegistry\" configuration property to use available serializers",
 				nil)
 		}
 	}

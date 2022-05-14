@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -79,94 +77,5 @@ func TestUseDeserializerFails(t *testing.T) {
 
 	for _, param := range params {
 		assert.Equal(t, param.result, useDeserializer(param.config, param.element))
-	}
-}
-
-func TestIsWireFormatted(t *testing.T) {
-	wireFormattedCodecs := []string{
-		"io.confluent.kafka.serializers.KafkaAvroSerializer",
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer",
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer",
-		"io.confluent.kafka.serializers.KafkaAvroDeserializer",
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer",
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer",
-	}
-
-	for _, codec := range wireFormattedCodecs {
-		assert.True(t, IsWireFormatted(codec))
-	}
-}
-
-func TestIsNotWireFormatted(t *testing.T) {
-	notWireFormattedCodecs := []string{
-		"unknown codec",
-		"",
-		"org.apache.kafka.common.serialization.StringSerializer",
-		"org.apache.kafka.common.serialization.StringDeserializer",
-		"org.apache.kafka.common.serialization.ByteArraySerializer",
-		"org.apache.kafka.common.serialization.ByteArrayDeserializer",
-	}
-
-	for _, codec := range notWireFormattedCodecs {
-		assert.False(t, IsWireFormatted(codec))
-	}
-}
-
-type SerializerFunctionsTest struct {
-	serializer         string
-	serializerFuncName string
-}
-
-func getFuncName(f interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-}
-
-func TestGetSerializer(t *testing.T) {
-	serializers := []SerializerFunctionsTest{
-		{serializer: "org.apache.kafka.common.serialization.StringSerializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeString"},
-		{serializer: "org.apache.kafka.common.serialization.ByteArraySerializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeByteArray"},
-		{serializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeAvro"},
-		// Protobuf serializer is not supported yet, so the default serializer is used
-		{serializer: "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeString"},
-		{serializer: "io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeJsonSchema"},
-		// Missing or invalid serializer results in the default serializer
-		{serializer: "", serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeString"},
-		{serializer: "unknown codec", serializerFuncName: "github.com/mostafa/xk6-kafka.SerializeString"},
-	}
-
-	for _, serializer := range serializers {
-		assert.Equal(t,
-			serializer.serializerFuncName,
-			getFuncName(GetSerializer(serializer.serializer)))
-	}
-}
-
-func TestGetDeserializer(t *testing.T) {
-	deserializers := []SerializerFunctionsTest{
-		{serializer: "org.apache.kafka.common.serialization.StringDeserializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeString"},
-		{serializer: "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeByteArray"},
-		{serializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeAvro"},
-		// Protobuf deserializer is not supported yet, so the default deserializer is used
-		{serializer: "io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeString"},
-		{serializer: "io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer",
-			serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeJsonSchema"},
-		// Missing or invalid deserializer results in the default deserializer
-		{serializer: "", serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeString"},
-		{serializer: "unknown codec", serializerFuncName: "github.com/mostafa/xk6-kafka.DeserializeString"},
-	}
-
-	for _, deserializer := range deserializers {
-		assert.Equal(t,
-			deserializer.serializerFuncName,
-			getFuncName(GetDeserializer(deserializer.serializer)))
 	}
 }
