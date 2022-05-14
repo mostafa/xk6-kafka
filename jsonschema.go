@@ -13,7 +13,7 @@ const (
 	JsonSchemaDeserializer string = "io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer"
 )
 
-func SerializeJsonSchema(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+func SerializeJson(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
 	client := SchemaRegistryClient(configuration.SchemaRegistry.Url,
@@ -38,7 +38,7 @@ func SerializeJsonSchema(configuration Configuration, topic string, data interfa
 		codec, err := jsonschema.CompileString(subject, schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,
-				"Failed to create codec for encoding JSONSchema",
+				"Failed to create codec for encoding JSON",
 				err)
 		}
 
@@ -79,7 +79,7 @@ func SerializeJsonSchema(configuration Configuration, topic string, data interfa
 
 }
 
-func DeserializeJsonSchema(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeJson(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
@@ -108,7 +108,7 @@ func DeserializeJsonSchema(configuration Configuration, topic string, data []byt
 		codec, err := jsonschema.CompileString(string(element), schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,
-				"Failed to create codec for decoding JSONSchema",
+				"Failed to create codec for decoding JSON data",
 				err)
 		}
 
@@ -133,7 +133,7 @@ func DeserializeJsonSchema(configuration Configuration, topic string, data []byt
 		jsonDecodedData, _, err := schemaInfo.Codec().NativeFromBinary(bytesDecodedData)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedDecodeJsonFromBinary,
-				"Failed to decode data from Json",
+				"Failed to decode data from JSON",
 				err)
 		}
 		return jsonDecodedData, nil
