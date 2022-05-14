@@ -23,8 +23,11 @@ type Configuration struct {
 func UnmarshalConfiguration(jsonConfiguration string) (Configuration, *Xk6KafkaError) {
 	var configuration Configuration
 	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
-	return configuration, NewXk6KafkaError(
-		configurationError, "Cannot unmarshal configuration.", err)
+	if err != nil {
+		return Configuration{}, NewXk6KafkaError(
+			configurationError, "Cannot unmarshal configuration.", err)
+	}
+	return configuration, nil
 }
 
 func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
@@ -34,13 +37,9 @@ func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
 	}
 
 	if useSerializer(configuration, Key) || useSerializer(configuration, Value) {
-		if (SchemaRegistryConfiguration{}) == configuration.SchemaRegistry {
-			return NewXk6KafkaError(
-				configurationError,
-				"You must provide a value for the \"SchemaRegistry\" configuration property to use available serializers",
-				nil)
-		}
+		return nil
 	}
+
 	return nil
 }
 
