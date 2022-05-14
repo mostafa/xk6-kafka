@@ -19,8 +19,11 @@ const (
 	failedEncodeAvroToBinary    errCode = 2004
 	failedDecodeAvroFromBinary  errCode = 2005
 	failedCreateJsonSchemaCodec errCode = 2006
-	failedUnmarshalJsonSchema   errCode = 2007
-	failedValidateJsonSchema    errCode = 2008
+	failedUnmarshalJson         errCode = 2007
+	failedValidateJson          errCode = 2008
+	failedEncodeToJson          errCode = 2009
+	failedEncodeJsonToBinary    errCode = 2010
+	failedDecodeJsonFromBinary  errCode = 2011
 
 	// producer
 	failedWriteMessage errCode = 3000
