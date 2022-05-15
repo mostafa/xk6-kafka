@@ -39,7 +39,7 @@ jobs:
           xk6 build --with github.com/mostafa/xk6-kafka@latest=.
 
       - name: Run Go tests 🔬
-        run: go test -v .
+        run: go test -cover -v .
 
       - name: Run Apache Kafka 🦉 and test xk6-kafka 🧪
         run: |
