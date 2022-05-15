@@ -18,7 +18,7 @@ func TestSerializersRegistry(t *testing.T) {
 
 	assert.Equal(t, 5, len(serializersRegistry.Registry))
 	assert.Equal(t, String, serializersRegistry.Registry[StringSerializer].GetSchemaType())
-	assert.EqualValues(t, "github.com/mostafa/xk6-kafka.SerializeString", getFuncName(serializersRegistry.Registry[StringSerializer].GetSerializer()))
+	assert.Equal(t, "github.com/mostafa/xk6-kafka.SerializeString", getFuncName(serializersRegistry.Registry[StringSerializer].GetSerializer()))
 	assert.False(t, serializersRegistry.Registry[StringSerializer].IsWireFormatted())
 
 	assert.Equal(t, 5, len(deserializersRegistry.Registry))
