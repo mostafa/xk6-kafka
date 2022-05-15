@@ -7,30 +7,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnmarshalConfiguration(t *testing.T) {
-	actual := Configuration{
-		Consumer: ConsumerConfiguration{
-			KeyDeserializer:   "org.apache.kafka.common.serialization.StringDeserializer",
-			ValueDeserializer: "org.apache.kafka.common.serialization.StringDeserializer",
+var configuration Configuration = Configuration{
+	Consumer: ConsumerConfiguration{
+		KeyDeserializer:   StringDeserializer,
+		ValueDeserializer: StringDeserializer,
+	},
+	Producer: ProducerConfiguration{
+		KeySerializer:   StringSerializer,
+		ValueSerializer: StringSerializer,
+	},
+	SchemaRegistry: SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
 		},
-		Producer: ProducerConfiguration{
-			KeySerializer:   "org.apache.kafka.common.serialization.StringSerializer",
-			ValueSerializer: "org.apache.kafka.common.serialization.StringSerializer",
-		},
-		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
-			BasicAuth: BasicAuth{
-				Username: "username",
-				Password: "password",
-			},
-			UseLatest: true,
-		},
-	}
+		UseLatest: true,
+	},
+}
 
-	configJson, _ := json.Marshal(actual)
+func TestUnmarshalConfiguration(t *testing.T) {
+	configJson, _ := json.Marshal(configuration)
 	config, err := UnmarshalConfiguration(string(configJson))
 	assert.Nil(t, err)
-	assert.Equal(t, actual, config)
+	assert.Equal(t, configuration, config)
 }
 
 func TestUnmarshalConfigurationsFails(t *testing.T) {
@@ -42,47 +42,12 @@ func TestUnmarshalConfigurationsFails(t *testing.T) {
 }
 
 func TestValidateConfiguration(t *testing.T) {
-	configuration := Configuration{
-		Consumer: ConsumerConfiguration{
-			KeyDeserializer:   "org.apache.kafka.common.serialization.StringDeserializer",
-			ValueDeserializer: "org.apache.kafka.common.serialization.StringDeserializer",
-		},
-		Producer: ProducerConfiguration{
-			KeySerializer:   "org.apache.kafka.common.serialization.StringSerializer",
-			ValueSerializer: "org.apache.kafka.common.serialization.StringSerializer",
-		},
-		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
-			BasicAuth: BasicAuth{
-				Username: "username",
-				Password: "password",
-			},
-			UseLatest: true,
-		},
-	}
-
 	err := ValidateConfiguration(configuration)
 	assert.Nil(t, err)
 }
 
 func TestValidateConfigurationFallbackToDefaults(t *testing.T) {
 	configuration := Configuration{}
-
-	err := ValidateConfiguration(configuration)
-	assert.Nil(t, err)
-}
-
-func TestValidateConfigurationFails(t *testing.T) {
-	configuration := Configuration{
-		Consumer: ConsumerConfiguration{
-			KeyDeserializer:   "org.apache.kafka.common.serialization.StringDeserializer",
-			ValueDeserializer: "org.apache.kafka.common.serialization.StringDeserializer",
-		},
-		Producer: ProducerConfiguration{
-			KeySerializer:   "org.apache.kafka.common.serialization.StringSerializer",
-			ValueSerializer: "org.apache.kafka.common.serialization.StringSerializer",
-		},
-	}
 
 	err := ValidateConfiguration(configuration)
 	assert.Nil(t, err)
