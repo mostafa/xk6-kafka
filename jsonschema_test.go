@@ -25,6 +25,7 @@ func TestSerializeDeserializeJson(t *testing.T) {
 	for _, element := range []Element{Key, Value} {
 		// Serialize the key or value
 		serialized, err := SerializeJson(jsonConfig, "topic", `{"field":"value"}`, element, jsonSchema, 0)
+		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
 		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
 		assert.GreaterOrEqual(t, len(serialized), 10)
@@ -41,6 +42,7 @@ func TestSerializeDeserializeJsonWithoutSchemaRegistry(t *testing.T) {
 	for _, element := range []Element{Key, Value} {
 		// Serialize the key or value
 		serialized, err := SerializeJson(jsonConfig, "topic", `{"field":"value"}`, element, jsonSchema, 0)
+		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
 		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
 		assert.GreaterOrEqual(t, len(serialized), 10)
