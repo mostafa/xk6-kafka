@@ -37,23 +37,6 @@ func TestSerializeDeserializeAvro(t *testing.T) {
 	}
 }
 
-func TestSerializeDeserializeAvroWithoutSchemaRegistry(t *testing.T) {
-	// Test without a schema registry, which manually (de)serializes the data
-	for _, element := range []Element{Key, Value} {
-		// Serialize the key or value
-		serialized, err := SerializeAvro(avroConfig, "topic", `{"field":"value"}`, element, avroSchema, 0)
-		assert.Nil(t, err)
-		assert.NotNil(t, serialized)
-		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
-		assert.GreaterOrEqual(t, len(serialized), 10)
-
-		// Deserialize the deserialized (removes the magic bytes)
-		deserialized, err := DeserializeAvro(avroConfig, "", serialized, element, avroSchema, 0)
-		assert.Nil(t, err)
-		assert.Equal(t, map[string]interface{}{"field": "value"}, deserialized)
-	}
-}
-
 func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	jsonSchema = `{}`
 
