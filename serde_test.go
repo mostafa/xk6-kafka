@@ -9,8 +9,8 @@ import (
 func TestUseSerializer(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
-			ValueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
-			KeySerializer:   "io.confluent.kafka.serializers.KafkaAvroSerializer",
+			ValueSerializer: AvroSerializer,
+			KeySerializer:   AvroSerializer,
 		},
 	}
 
@@ -46,8 +46,8 @@ func TestUseSerializerFails(t *testing.T) {
 func TestUseDeserializer(t *testing.T) {
 	config := Configuration{
 		Consumer: ConsumerConfiguration{
-			ValueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-			KeyDeserializer:   "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+			ValueDeserializer: AvroDeserializer,
+			KeyDeserializer:   AvroDeserializer,
 		},
 	}
 
