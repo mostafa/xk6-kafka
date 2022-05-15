@@ -63,7 +63,7 @@ func GetSchema(
 	}
 	if err != nil {
 		return nil, NewXk6KafkaError(schemaNotFound,
-			"Failed to get schema from schema registry: %s", err)
+			"Failed to get schema from schema registry", err)
 	}
 
 	return schemaInfo, nil
