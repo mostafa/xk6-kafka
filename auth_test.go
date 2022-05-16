@@ -11,7 +11,7 @@ import (
 )
 
 func TestUnmarshalCredentials(t *testing.T) {
-	creds, err := unmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`)
+	creds, err := UnmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", creds.Username)
 	assert.Equal(t, "test", creds.Password)
@@ -23,7 +23,7 @@ func TestUnmarshalCredentials(t *testing.T) {
 
 func TestUnmarshalCredentialsFails(t *testing.T) {
 	// This only fails on invalid JSON (apparently)
-	creds, err := unmarshalCredentials(`{"invalid": "invalid`)
+	creds, err := UnmarshalCredentials(`{"invalid": "invalid`)
 	assert.Nil(t, creds)
 	assert.NotNil(t, err)
 	assert.Equal(t, err.Message, "Unable to unmarshal credentials")
@@ -37,7 +37,7 @@ func TestGetDialerFromCredsWithSASLPlain(t *testing.T) {
 		Password:  "test",
 		Algorithm: Plain,
 	}
-	dialer, err := getDialerFromCreds(creds)
+	dialer, err := GetDialerFromCreds(creds)
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
@@ -54,7 +54,7 @@ func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
 		Password:  "test",
 		Algorithm: SHA256,
 	}
-	dialer, err := getDialerFromCreds(creds)
+	dialer, err := GetDialerFromCreds(creds)
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
@@ -69,7 +69,7 @@ func TestGetDialerFromCredsFails(t *testing.T) {
 		Password:  "test",
 		Algorithm: "sha256",
 	}
-	dialer, wrappedError := getDialerFromCreds(creds)
+	dialer, wrappedError := GetDialerFromCreds(creds)
 	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")
 	// This is a stringprep (RFC3454) error wrapped inside the Xk6KafkaError
 	assert.Equal(t, wrappedError.Unwrap().Error(), "Error SASLprepping username 'https://www.exa\t\r\n': prohibited character (rune: '\\u0009')")
@@ -78,7 +78,7 @@ func TestGetDialerFromCredsFails(t *testing.T) {
 
 func TestGetDialerFromAuth(t *testing.T) {
 	auth := `{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`
-	dialer, err := getDialerFromAuth(auth)
+	dialer, err := GetDialerFromAuth(auth)
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
@@ -90,7 +90,7 @@ func TestGetDialerFromAuth(t *testing.T) {
 }
 
 func TestGetDialerFromAuthNoAuthString(t *testing.T) {
-	dialer, err := getDialerFromAuth("")
+	dialer, err := GetDialerFromAuth("")
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
@@ -99,8 +99,8 @@ func TestGetDialerFromAuthNoAuthString(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	assert.True(t, fileExists("auth_test.go"))
-	assert.False(t, fileExists("test.go.not"))
+	assert.True(t, FileExists("auth_test.go"))
+	assert.False(t, FileExists("test.go.not"))
 }
 
 type SimpleTLSConfig struct {
@@ -114,7 +114,7 @@ func TestTlsConfig(t *testing.T) {
 		ClientKeyPem:  "fixtures/client.pem",
 		ServerCaPem:   "fixtures/caroot.cer",
 	}
-	tlsConfig, err := tlsConfig(creds)
+	tlsConfig, err := TLSConfig(creds)
 	assert.Nil(t, err)
 	assert.NotNil(t, tlsConfig)
 }
@@ -172,7 +172,7 @@ func TestTlsConfigFails(t *testing.T) {
 	}
 
 	for _, c := range creds {
-		tlsConfig, err := tlsConfig(c.creds)
+		tlsConfig, err := TLSConfig(c.creds)
 		assert.NotNil(t, err)
 		assert.Equal(t, c.err, err)
 		assert.Nil(t, tlsConfig)

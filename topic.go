@@ -8,7 +8,7 @@ import (
 )
 
 func (k *Kafka) GetKafkaConnection(address, auth string) (*kafkago.Conn, *Xk6KafkaError) {
-	dialer, wrappedError := getDialerFromAuth(auth)
+	dialer, wrappedError := GetDialerFromAuth(auth)
 	if wrappedError != nil {
 		k.logger.WithField("error", wrappedError).Error(wrappedError)
 		return nil, wrappedError

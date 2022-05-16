@@ -25,7 +25,7 @@ var (
 
 // Writer creates a new Kafka writer
 func (k *Kafka) Writer(brokers []string, topic string, auth string, compression string) (*kafkago.Writer, *Xk6KafkaError) {
-	dialer, err := getDialerFromAuth(auth)
+	dialer, err := GetDialerFromAuth(auth)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)

@@ -17,7 +17,7 @@ func (k *Kafka) Reader(
 		partition = 0
 	}
 
-	dialer, err := getDialerFromAuth(auth)
+	dialer, err := GetDialerFromAuth(auth)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)
