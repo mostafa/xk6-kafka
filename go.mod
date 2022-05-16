@@ -3,6 +3,7 @@ module github.com/mostafa/xk6-kafka
 go 1.18
 
 require (
+	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf
 	github.com/linkedin/goavro/v2 v2.11.1
 	github.com/riferrei/srclient v0.5.2
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
@@ -15,7 +16,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
-	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4-0.20211119122758-180fcef48034+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
