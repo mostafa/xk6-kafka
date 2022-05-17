@@ -37,12 +37,17 @@ func (k *Kafka) Reader(
 	})
 
 	if offset > 0 {
-		err := reader.SetOffset(offset)
-		if err != nil {
-			wrappedError := NewXk6KafkaError(
-				failedSetOffset, "Unable to set offset, yet returning the reader.", err)
-			k.logger.WithField("error", wrappedError).Warn(wrappedError)
-			return reader, wrappedError
+		if groupID == "" {
+			err := reader.SetOffset(offset)
+			if err != nil {
+				wrappedError := NewXk6KafkaError(
+					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
+				k.logger.WithField("error", wrappedError).Warn(wrappedError)
+				return reader, wrappedError
+			}
+		} else {
+			return reader, NewXk6KafkaError(
+				failedSetOffset, "Offset and groupID are mutually exclusive options, so offset is not set, yet returning the reader.", nil)
 		}
 	}
 
