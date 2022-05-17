@@ -122,6 +122,7 @@ func (k *Kafka) consumeInternal(
 				}
 				return nil, err
 			}
+
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
 			k.logger.WithField("error", err).Info(err)
 			return messages, err

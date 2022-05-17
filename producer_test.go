@@ -100,7 +100,7 @@ func TestProduceWithoutKey(t *testing.T) {
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
-func TestContextCancelled(t *testing.T) {
+func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
