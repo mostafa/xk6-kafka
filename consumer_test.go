@@ -20,7 +20,7 @@ func TestConsume(t *testing.T) {
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
-	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 1, "", 0, "")
+	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 0, "", 0, "")
 	assert.Nil(t, err)
 	assert.NotNil(t, reader)
 	defer reader.Close()
@@ -36,7 +36,7 @@ func TestConsume(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Consume a message in the VU function
-	messages, err := test.module.Kafka.Consume(reader, 2, "", "")
+	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(messages))
 	assert.Equal(t, "key1", messages[0]["key"].(string))
@@ -46,7 +46,7 @@ func TestConsume(t *testing.T) {
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
-	assert.Equal(t, 64.0, metricsValues[test.module.metrics.ReaderBytes.Name])
+	assert.Equal(t, 10.0, metricsValues[test.module.metrics.ReaderBytes.Name])
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderMessages.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 }
