@@ -27,6 +27,10 @@ func TestProduce(t *testing.T) {
 	}, "", "")
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrorForbiddenInInitContext, err)
+
+	// Create a topic before producing messages, other tests will fail.
+	test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+
 	require.NoError(t, test.moveToVUCode())
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
@@ -38,8 +42,5 @@ func TestProduce(t *testing.T) {
 			"value": "value2",
 		},
 	}, "", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, ErrorForbiddenInInitContext, err)
-	// assert.True(t, mi.Kafka.metrics.WriterMessages.Observed)
-	// assert.Equal(t, 2, mi.Kafka.metrics.WriterMessages.Sink.(*metrics.CounterSink).Value)
+	assert.Nil(t, err)
 }
