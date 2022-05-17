@@ -1,5 +1,7 @@
 package kafka
 
+import "fmt"
+
 type errCode uint32
 
 const (
@@ -51,13 +53,11 @@ const (
 	failedReadPartitions errCode = 7002
 )
 
-var (
-	// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context
-	ErrorForbiddenInInitContext = NewXk6KafkaError(
-		kafkaForbiddenInInitContext,
-		"Producing Kafka messages in the init context is not supported",
-		nil)
-)
+// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context
+var ErrorForbiddenInInitContext = NewXk6KafkaError(
+	kafkaForbiddenInInitContext,
+	"Producing Kafka messages in the init context is not supported",
+	nil)
 
 type Xk6KafkaError struct {
 	Code          errCode
@@ -72,7 +72,10 @@ func NewXk6KafkaError(code errCode, msg string, originalErr error) *Xk6KafkaErro
 
 // Error implements the `error` interface, so Xk6KafkaError are normal Go errors.
 func (e Xk6KafkaError) Error() string {
-	return e.Message
+	if e.OriginalError == nil {
+		return e.Message
+	}
+	return fmt.Sprintf(e.Message+", OriginalError: %w", e.OriginalError)
 }
 
 // Unwrap implements the `xerrors.Wrapper` interface, so Xk6KafkaError are a bit

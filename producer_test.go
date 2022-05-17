@@ -4,19 +4,31 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProduce(t *testing.T) {
-	rt, mi := GetTestModuleInstance(t)
-	assert.NotNil(t, rt)
-	assert.NotNil(t, mi)
+	test := GetTestModuleInstance(t)
 
-	writer, err := mi.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
+	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
 	assert.Nil(t, err)
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
-	err = mi.Kafka.Produce(writer, []map[string]interface{}{
+	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
+		{
+			"key":   "key1",
+			"value": "value1",
+		},
+		{
+			"key":   "key2",
+			"value": "value2",
+		},
+	}, "", "")
+	assert.NotNil(t, err)
+	assert.Equal(t, ErrorForbiddenInInitContext, err)
+	require.NoError(t, test.moveToVUCode())
+	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":   "key1",
 			"value": "value1",

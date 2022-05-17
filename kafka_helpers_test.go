@@ -13,18 +13,46 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-func GetTestModuleInstance(t testing.TB) (*goja.Runtime, *KafkaModule) {
-	rootGroup, err := lib.NewGroup("", nil)
-	require.NoError(t, err)
+// struct to keep all the things test need in one place
+type kafkaTest struct {
+	rt     *goja.Runtime
+	module *KafkaModule
+	vu     *modulestest.VU
+}
 
+func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	rt := goja.New()
 	rt.SetFieldNameMapper(common.FieldNameMapper{})
-
-	samples := make(chan metrics.SampleContainer, 1000)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
+	root := New()
+	mockVU := &modulestest.VU{
+		RuntimeField: rt,
+		InitEnvField: &common.InitEnvironment{
+			Registry: metrics.NewRegistry(),
+		},
+		CtxField: ctx,
+	}
+	mi, ok := root.NewModuleInstance(mockVU).(*KafkaModule)
+	require.True(t, ok)
+
+	require.NoError(t, rt.Set("kafka", mi.Exports().Default))
+
+	return &kafkaTest{
+		rt:     rt,
+		module: mi,
+		vu:     mockVU,
+	}
+}
+
+func (k *kafkaTest) moveToVUCode() error {
+	rootGroup, err := lib.NewGroup("", nil)
+	if err != nil {
+		return err
+	}
+	samples := make(chan metrics.SampleContainer, 1000)
 	state := &lib.State{
 		Group: rootGroup,
 		Options: lib.Options{
@@ -34,20 +62,7 @@ func GetTestModuleInstance(t testing.TB) (*goja.Runtime, *KafkaModule) {
 		Samples:        samples,
 		BuiltinMetrics: metrics.RegisterBuiltinMetrics(metrics.NewRegistry()),
 	}
-
-	root := New()
-	mockVU := &modulestest.VU{
-		RuntimeField: rt,
-		InitEnvField: &common.InitEnvironment{
-			Registry: metrics.NewRegistry(),
-		},
-		CtxField:   ctx,
-		StateField: state,
-	}
-	mi, ok := root.NewModuleInstance(mockVU).(*KafkaModule)
-	require.True(t, ok)
-
-	require.NoError(t, rt.Set("kafka", mi.Exports().Default))
-
-	return rt, mi
+	k.vu.StateField = state
+	k.vu.InitEnvField = nil
+	return nil
 }
