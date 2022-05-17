@@ -15,6 +15,7 @@ func TestProduce(t *testing.T) {
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
+	// Produce a message in the init context
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":   "key1",
@@ -32,6 +33,7 @@ func TestProduce(t *testing.T) {
 	test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 
 	require.NoError(t, test.moveToVUCode())
+	// Produce a message in the VU function
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":   "key1",
@@ -43,4 +45,13 @@ func TestProduce(t *testing.T) {
 		},
 	}, "", "")
 	assert.Nil(t, err)
+
+	// Check if two message were produced
+	metricsValues := test.GetCounterMetricsValues()
+	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterDials.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
+	assert.Equal(t, 64.0, metricsValues[test.module.metrics.WriterBytes.Name])
+	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
+	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }

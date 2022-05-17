@@ -29,16 +29,16 @@ func TestTopics(t *testing.T) {
 
 	require.NoError(t, test.moveToVUCode())
 	err := test.module.Kafka.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 
 	topics, err := test.module.Kafka.ListTopics("localhost:9092", "")
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.Contains(t, topics, "test-topic")
 
 	err = test.module.Kafka.DeleteTopic("localhost:9092", "test-topic", "")
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 
 	topics, err = test.module.Kafka.ListTopics("localhost:9092", "")
-	assert.NoError(t, err)
+	assert.Nil(t, err)
 	assert.NotContains(t, topics, "test-topic")
 }

@@ -17,7 +17,7 @@ func TestSerializeStringFails(t *testing.T) {
 	originalData := 123
 	_, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
 	assert.EqualErrorf(
-		t, err, "Invalid data type provided for string serializer (requires string)",
+		t, err, "Invalid data type provided for string serializer (requires string), OriginalError: %!w(*errors.errorString=&{Expected: string, got: int})",
 		"Expected error message is correct")
 }
 
