@@ -163,7 +163,7 @@ func TestProduceJSON(t *testing.T) {
 	// Produce a message in the VU function
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
-			"value": serialized,
+			"value": string(serialized),
 		},
 	}, "", "")
 	assert.Nil(t, err)
@@ -172,7 +172,7 @@ func TestProduceJSON(t *testing.T) {
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
-	assert.Equal(t, 22, int(metricsValues[test.module.metrics.WriterBytes.Name]))
+	assert.Equal(t, 39, int(metricsValues[test.module.metrics.WriterBytes.Name]))
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
