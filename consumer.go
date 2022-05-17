@@ -85,7 +85,7 @@ func (k *Kafka) consumeInternal(
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		k.logger.WithField("error", err).Info(err)
 		return nil, err
 	}

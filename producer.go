@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -94,7 +93,7 @@ func (k *Kafka) produceInternal(
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(contextCancelled, "No context.", context.Canceled)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		k.logger.WithField("error", err).Info(err)
 		return err
 	}

@@ -8,10 +8,11 @@ const (
 	// non specific
 	kafkaForbiddenInInitContext errCode = 1000
 	configurationError          errCode = 1001
-	contextCancelled            errCode = 1002
-	cannotReportStats           errCode = 1003
-	fileNotFound                errCode = 1004
-	dialerError                 errCode = 1005
+	noContextError              errCode = 1002
+	contextCancelled            errCode = 1003
+	cannotReportStats           errCode = 1004
+	fileNotFound                errCode = 1005
+	dialerError                 errCode = 1006
 
 	// serdes errors
 	invalidDataType             errCode = 2000
