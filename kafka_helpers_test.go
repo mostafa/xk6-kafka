@@ -15,10 +15,11 @@ import (
 
 // struct to keep all the things test need in one place
 type kafkaTest struct {
-	rt      *goja.Runtime
-	module  *KafkaModule
-	vu      *modulestest.VU
-	samples chan metrics.SampleContainer
+	rt            *goja.Runtime
+	module        *KafkaModule
+	vu            *modulestest.VU
+	samples       chan metrics.SampleContainer
+	cancelContext context.CancelFunc
 }
 
 func GetTestModuleInstance(t testing.TB) *kafkaTest {
@@ -42,9 +43,10 @@ func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	require.NoError(t, rt.Set("kafka", mi.Exports().Default))
 
 	return &kafkaTest{
-		rt:     rt,
-		module: mi,
-		vu:     mockVU,
+		rt:            rt,
+		module:        mi,
+		vu:            mockVU,
+		cancelContext: cancel,
 	}
 }
 
