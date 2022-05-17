@@ -7,14 +7,20 @@ import (
 )
 
 func TestGetKafkaConnection(t *testing.T) {
-	_, mi := GetTestModuleInstance(t)
+	rt, mi := GetTestModuleInstance(t)
+	assert.NotNil(t, rt)
+	assert.NotNil(t, mi)
+
 	connection, xk6KafkaError := mi.Kafka.GetKafkaConnection("localhost:9092", "")
 	assert.Nil(t, xk6KafkaError)
 	assert.NotNil(t, connection)
 }
 
 func TestGetKafkaConnectionFails(t *testing.T) {
-	_, mi := GetTestModuleInstance(t)
+	rt, mi := GetTestModuleInstance(t)
+	assert.NotNil(t, rt)
+	assert.NotNil(t, mi)
+
 	connection, xk6KafkaError := mi.Kafka.GetKafkaConnection("localhost:9094", "")
 	assert.Nil(t, connection)
 	assert.NotNil(t, xk6KafkaError)
@@ -23,7 +29,10 @@ func TestGetKafkaConnectionFails(t *testing.T) {
 }
 
 func TestTopics(t *testing.T) {
-	_, mi := GetTestModuleInstance(t)
+	rt, mi := GetTestModuleInstance(t)
+	assert.NotNil(t, rt)
+	assert.NotNil(t, mi)
+
 	err := mi.Kafka.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 	assert.Nil(t, err)
 
