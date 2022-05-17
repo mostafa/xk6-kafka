@@ -32,12 +32,12 @@ func TestProduce(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrorForbiddenInInitContext, err)
 
-	// Create a topic before producing messages, other tests will fail.
+	// Create a topic before producing messages, otherwise tests will fail.
 	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
-	// Produce a message in the VU function
+	// Produce two messages in the VU function
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":   "key1",
@@ -68,12 +68,12 @@ func TestProduceWithoutKey(t *testing.T) {
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
-	// Create a topic before producing messages, other tests will fail.
+	// Create a topic before producing messages, otherwise tests will fail.
 	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
-	// Produce a message in the VU function
+	// Produce two messages in the VU function
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"value": "value1",
@@ -108,7 +108,7 @@ func TestContextCancelled(t *testing.T) {
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
-	// Create a topic before producing messages, other tests will fail.
+	// Create a topic before producing messages, otherwise tests will fail.
 	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 	assert.Nil(t, err)
 
@@ -117,7 +117,7 @@ func TestContextCancelled(t *testing.T) {
 
 	test.cancelContext()
 
-	// Produce a message in the VU function
+	// Produce two messages in the VU function
 	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":   "key1",
@@ -151,7 +151,7 @@ func TestProduceJSON(t *testing.T) {
 	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
 	assert.Nil(t, err)
 
-	// Create a topic before producing messages, other tests will fail.
+	// Create a topic before producing messages, otherwise tests will fail.
 	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
 	assert.Nil(t, err)
 
