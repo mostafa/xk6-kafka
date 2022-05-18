@@ -115,7 +115,7 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in the future versions when a new major version is released. These are the exported functions:
+All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in the future versions when a new major version is released. These are the exported functions and they always reflect the latest changes on the `main` branch.
 
 <details>
     <summary>The JavaScript API</summary>
@@ -125,13 +125,13 @@ All the exported functions are available by importing them from `k6/x/kafka`. Th
  * Create a new Writer object for writing messages to Kafka.
  *
  * @constructor
- * @param   {[string]}  brokers     An array of brokers.
- * @param   {string}    topic       The topic to write to.
- * @param   {string}    auth:       The authentication credentials for SASL PLAIN/SCRAM.
- * @param   {string}    compression The Compression algorithm.
- * @returns {object}    A Writer object.
+ * @param   {[string]}          brokers     An array of brokers.
+ * @param   {string}            topic       The topic to write to.
+ * @param   {string}            auth:       The authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {string}            compression The Compression algorithm.
+ * @returns {[object, error]}   An array of two objects: A Writer object and an error object.
  */
-function writer(brokers: [string], topic: string, auth: string, compression: string) => object {}
+function writer(brokers: [string], topic: string, auth: string, compression: string) => [object, error] {}
 
 /**
  * Write a sequence of messages to Kafka.
@@ -141,9 +141,9 @@ function writer(brokers: [string], topic: string, auth: string, compression: str
  * @param   {[object]}  messages    An array of message objects containing an optional key and a value.
  * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function produce(writer: object, messages: [object], keySchema: string, valueSchema: string) => string {}
+function produce(writer: object, messages: [object], keySchema: string, valueSchema: string) => error {}
 
 /**
  * Write a sequence of messages to Kafka with a specific serializer/deserializer.
@@ -154,23 +154,23 @@ function produce(writer: object, messages: [object], keySchema: string, valueSch
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
  * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function produceWithConfiguration(writer: object, messages: [object], configurationJson: string, keySchema: string, valueSchema: string) => string {}
+function produceWithConfiguration(writer: object, messages: [object], configurationJson: string, keySchema: string, valueSchema: string) => error {}
 
 /**
  * Create a new Reader object for reading messages from Kafka.
  *
  * @constructor
- * @param   {[string]}  brokers     An array of brokers.
- * @param   {string}    topic       The topic to read from.
- * @param   {number}    partition   The partition.
- * @param   {number}    groupID     The group ID.
- * @param   {number}    offset      The offset to begin reading from.
- * @param   {string}    auth        Authentication credentials for SASL PLAIN/SCRAM.
- * @returns {object}    A Reader object.
+ * @param   {[string]}          brokers     An array of brokers.
+ * @param   {string}            topic       The topic to read from.
+ * @param   {number}            partition   The partition.
+ * @param   {number}            groupID     The group ID.
+ * @param   {number}            offset      The offset to begin reading from.
+ * @param   {string}            auth        Authentication credentials for SASL PLAIN/SCRAM.
+ * @returns {[object, error]}   An array of two objects: A Reader object and an error object.
  */
-function reader(brokers: [string], topic: string, partition: number, groupID: string, offset: number, auth: string) => object {}
+function reader(brokers: [string], topic: string, partition: number, groupID: string, offset: number, auth: string) => [object, error] {}
 
 /**
  * Read a sequence of messages from Kafka.
@@ -180,9 +180,9 @@ function reader(brokers: [string], topic: string, partition: number, groupID: st
  * @param   {number}    limit       How many messages should be read in one go, which blocks. Defaults to 1.
  * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function consume(reader: object, limit: number, keySchema: string, valueSchema: string) => string {}
+function consume(reader: object, limit: number, keySchema: string, valueSchema: string) => error {}
 
 /**
  * Read a sequence of messages from Kafka.
@@ -193,9 +193,9 @@ function consume(reader: object, limit: number, keySchema: string, valueSchema: 
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
  * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function consumeWithConfiguration(reader: object, limit: number, configurationJson: string, keySchema: string, valueSchema: string) => string {}
+function consumeWithConfiguration(reader: object, limit: number, configurationJson: string, keySchema: string, valueSchema: string) => error {}
 
 /**
  * Create a topic in Kafka. It does nothing if the topic exists.
@@ -207,9 +207,9 @@ function consumeWithConfiguration(reader: object, limit: number, configurationJs
  * @param   {number}    replicationFactor   The replication factor in a clustered setup.
  * @param   {string}    compression         The compression algorithm.
  * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function createTopic(address: string, topic: string, partitions: number, replicationFactor: number, compression: string, auth: string) => string {}
+function createTopic(address: string, topic: string, partitions: number, replicationFactor: number, compression: string, auth: string) => error {}
 
 /**
  * Delete a topic from Kafka. It raises an error if the topic doesn't exist.
@@ -218,9 +218,9 @@ function createTopic(address: string, topic: string, partitions: number, replica
  * @param   {string}    address             The broker address.
  * @param   {string}    topic               The topic name.
  * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
- * @returns {string}    A string containing the error.
+ * @returns {object}    A error object.
  */
-function deleteTopic(address: string, topic: string, auth: string) => string {}
+function deleteTopic(address: string, topic: string, auth: string) => error {}
 
 /**
  * List all topics in Kafka.
@@ -228,9 +228,9 @@ function deleteTopic(address: string, topic: string, auth: string) => string {}
  * @function
  * @param   {string}    address The broker address.
  * @param   {string}    auth    Authentication credentials for SASL PLAIN/SCRAM.
- * @returns {string}    A nested list of strings containing a list of topics and the error (if any).
+ * @returns {[[string]], error]}    A nested list of strings containing a list of topics and the error object (if any).
  */
-function listTopics(address: string, auth: string) => [[string], string] {}
+function listTopics(address: string, auth: string) => [[string], error] {}
 ```
 
 </details>
