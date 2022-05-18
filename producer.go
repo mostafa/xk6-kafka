@@ -24,8 +24,9 @@ var (
 )
 
 // Writer creates a new Kafka writer
+// TODO: accept a configuration
 func (k *Kafka) Writer(brokers []string, topic string, auth string, compression string) (*kafkago.Writer, *Xk6KafkaError) {
-	dialer, err := getDialerFromAuth(auth)
+	dialer, err := GetDialerFromAuth(auth)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)
@@ -33,6 +34,7 @@ func (k *Kafka) Writer(brokers []string, topic string, auth string, compression 
 		return nil, err
 	}
 
+	// TODO: add AllowAutoTopicCreation to writer configuration
 	writerConfig := kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
@@ -46,6 +48,7 @@ func (k *Kafka) Writer(brokers []string, topic string, auth string, compression 
 		writerConfig.CompressionCodec = codec
 	}
 
+	// TODO: instantiate Writer directly
 	return kafkago.NewWriter(writerConfig), nil
 }
 
@@ -71,6 +74,13 @@ func (k *Kafka) ProduceWithConfiguration(
 	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
+func (k *Kafka) GetSerializer(schema string) Serializer {
+	if ser, ok := k.serializerRegistry.Registry[schema]; ok {
+		return ser.GetSerializer()
+	}
+	return SerializeString
+}
+
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
 	writer *kafkago.Writer, messages []map[string]interface{},
@@ -83,7 +93,7 @@ func (k *Kafka) produceInternal(
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		k.logger.WithField("error", err).Info(err)
 		return err
 	}
@@ -95,16 +105,17 @@ func (k *Kafka) produceInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := GetSerializer(configuration.Producer.KeySerializer, keySchema)
-	valueSerializer := GetSerializer(configuration.Producer.ValueSerializer, valueSchema)
+	keySerializer := k.GetSerializer(configuration.Producer.KeySerializer)
+	valueSerializer := k.GetSerializer(configuration.Producer.ValueSerializer)
 
 	kafkaMessages := make([]kafkago.Message, len(messages))
 	for i, message := range messages {
 		kafkaMessages[i] = kafkago.Message{}
 
-		// Topic can be explicitly set on the message
-		if _, has_topic := message["Topic"]; has_topic {
-			kafkaMessages[i].Topic = message["Topic"].(string)
+		// Topic can be explicitly set on each individual message
+		// Setting topic on the writer and the messages are mutually exclusive
+		if _, has_topic := message["topic"]; has_topic {
+			kafkaMessages[i].Topic = message["topic"].(string)
 		}
 
 		if _, has_offset := message["offset"]; has_offset {
@@ -157,7 +168,7 @@ func (k *Kafka) produceInternal(
 	if originalErr != nil {
 		if originalErr == k.vu.Context().Err() {
 			k.logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
-			return NewXk6KafkaError(contextCancelled, "Context cancelled.", err)
+			return NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr)
 		} else {
 			// TODO: fix this
 			// Ignore stats reporting errors here, because we can't return twice,

@@ -2,11 +2,37 @@ package kafka
 
 import (
 	"github.com/linkedin/goavro/v2"
+	"github.com/riferrei/srclient"
+	"github.com/sirupsen/logrus"
+)
+
+const (
+	AvroSerializer   string = "io.confluent.kafka.serializers.KafkaAvroSerializer"
+	AvroDeserializer string = "io.confluent.kafka.serializers.KafkaAvroDeserializer"
 )
 
 func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
+
+	client := SchemaRegistryClient(configuration.SchemaRegistry.Url,
+		configuration.SchemaRegistry.BasicAuth.Username,
+		configuration.SchemaRegistry.BasicAuth.Password)
+	subject := topic + "-" + string(element)
+	var schemaInfo *srclient.Schema
+	schemaID := 0
+
+	var xk6KafkaError *Xk6KafkaError
+
 	if schema != "" {
+		// Schema is provided, so we need to create it and get the schema ID
+		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
+	} else {
+		// Schema is not provided, so we need to fetch the schema from the Schema Registry
+		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, srclient.Avro, version)
+	}
+
+	if xk6KafkaError != nil {
+		logrus.New().WithError(xk6KafkaError).Warn("Failed to create or get schema, manually encoding the data")
 		codec, err := goavro.NewCodec(schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateAvroCodec,
@@ -29,25 +55,54 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 		}
 	}
 
-	byteData, err := encodeWireFormat(configuration, bytesData, topic, element, schema, version)
-	if err != nil {
-		return nil, NewXk6KafkaError(failedEncodeToWireFormat,
-			"Failed to encode data into wire format",
-			err)
+	if schemaInfo != nil {
+		schemaID = schemaInfo.ID()
+
+		// Encode the data into Avro and then the wire format
+		avroEncodedData, _, err := schemaInfo.Codec().NativeFromTextual(bytesData)
+		if err != nil {
+			return nil, NewXk6KafkaError(failedEncodeToAvro,
+				"Failed to encode data into Avro",
+				err)
+		}
+
+		bytesData, err = schemaInfo.Codec().BinaryFromNative(nil, avroEncodedData)
+		if err != nil {
+			return nil, NewXk6KafkaError(failedEncodeAvroToBinary,
+				"Failed to encode Avro data into binary",
+				err)
+		}
 	}
 
-	return byteData, nil
+	return EncodeWireFormat(bytesData, schemaID), nil
 }
 
-func DeserializeAvro(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
-	bytesDecodedData, err := decodeWireFormat(configuration, data, element)
+func DeserializeAvro(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+	bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
 			"Failed to remove wire format from the binary data",
 			err)
 	}
 
+	client := SchemaRegistryClient(configuration.SchemaRegistry.Url,
+		configuration.SchemaRegistry.BasicAuth.Username,
+		configuration.SchemaRegistry.BasicAuth.Password)
+	subject := topic + "-" + string(element)
+	var schemaInfo *srclient.Schema
+
+	var xk6KafkaError *Xk6KafkaError
+
 	if schema != "" {
+		// Schema is provided, so we need to create it and get the schema ID
+		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
+	} else {
+		// Schema is not provided, so we need to fetch the schema from the Schema Registry
+		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, srclient.Avro, version)
+	}
+
+	if xk6KafkaError != nil {
+		logrus.New().WithError(xk6KafkaError).Warn("Failed to create or get schema, manually decoding the data")
 		codec, err := goavro.NewCodec(schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateAvroCodec,
@@ -62,6 +117,17 @@ func DeserializeAvro(configuration Configuration, data []byte, element Element, 
 				err)
 		}
 
+		return avroDecodedData, nil
+	}
+
+	if schemaInfo != nil {
+		// Decode the data from Avro
+		avroDecodedData, _, err := schemaInfo.Codec().NativeFromBinary(bytesDecodedData)
+		if err != nil {
+			return nil, NewXk6KafkaError(failedDecodeAvroFromBinary,
+				"Failed to decode data from Avro",
+				err)
+		}
 		return avroDecodedData, nil
 	}
 
