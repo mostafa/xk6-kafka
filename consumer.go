@@ -17,7 +17,7 @@ func (k *Kafka) Reader(
 		partition = 0
 	}
 
-	dialer, err := getDialerFromAuth(auth)
+	dialer, err := GetDialerFromAuth(auth)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)
@@ -37,12 +37,17 @@ func (k *Kafka) Reader(
 	})
 
 	if offset > 0 {
-		err := reader.SetOffset(offset)
-		if err != nil {
-			wrappedError := NewXk6KafkaError(
-				failedSetOffset, "Unable to set offset, yet returning the reader.", err)
-			k.logger.WithField("error", wrappedError).Warn(wrappedError)
-			return reader, wrappedError
+		if groupID == "" {
+			err := reader.SetOffset(offset)
+			if err != nil {
+				wrappedError := NewXk6KafkaError(
+					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
+				k.logger.WithField("error", wrappedError).Warn(wrappedError)
+				return reader, wrappedError
+			}
+		} else {
+			return reader, NewXk6KafkaError(
+				failedSetOffset, "Offset and groupID are mutually exclusive options, so offset is not set, yet returning the reader.", nil)
 		}
 	}
 
@@ -67,6 +72,13 @@ func (k *Kafka) ConsumeWithConfiguration(
 	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
+func (k *Kafka) GetDeserializer(schema string) Deserializer {
+	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
+		return de.GetDeserializer()
+	}
+	return DeserializeString
+}
+
 func (k *Kafka) consumeInternal(
 	reader *kafkago.Reader, limit int64,
 	configuration Configuration, keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
@@ -78,7 +90,7 @@ func (k *Kafka) consumeInternal(
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		k.logger.WithField("error", err).Info(err)
 		return nil, err
 	}
@@ -94,8 +106,8 @@ func (k *Kafka) consumeInternal(
 		state.Logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := GetDeserializer(configuration.Consumer.KeyDeserializer, keySchema)
-	valueDeserializer := GetDeserializer(configuration.Consumer.ValueDeserializer, valueSchema)
+	keyDeserializer := k.GetDeserializer(configuration.Consumer.KeyDeserializer)
+	valueDeserializer := k.GetDeserializer(configuration.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 
@@ -110,6 +122,7 @@ func (k *Kafka) consumeInternal(
 				}
 				return nil, err
 			}
+
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
 			k.logger.WithField("error", err).Info(err)
 			return messages, err
@@ -131,7 +144,8 @@ func (k *Kafka) consumeInternal(
 		message := make(map[string]interface{})
 		if len(msg.Key) > 0 {
 			var wrappedError *Xk6KafkaError
-			message["key"], wrappedError = keyDeserializer(configuration, msg.Key, Key, keySchema, 0)
+			message["key"], wrappedError = keyDeserializer(
+				configuration, reader.Config().Topic, msg.Key, Key, keySchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				k.logger.WithField("error", wrappedError).Error(wrappedError)
 			}
@@ -140,7 +154,7 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Value) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["value"], wrappedError = valueDeserializer(
-				configuration, msg.Value, "value", valueSchema, 0)
+				configuration, reader.Config().Topic, msg.Value, "value", valueSchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				k.logger.WithField("error", wrappedError).Error(wrappedError)
 			}

@@ -1,94 +1,67 @@
 package kafka
 
 import (
+	"reflect"
+
 	"github.com/riferrei/srclient"
 )
 
 type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
-type Deserializer func(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
+type Deserializer func(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
 
-var (
-	// TODO: Find a better way to do this, like serde registry or something
-	Serializers = map[string]Serializer{
-		"org.apache.kafka.common.serialization.StringSerializer":          SerializeString,
-		"org.apache.kafka.common.serialization.ByteArraySerializer":       SerializeByteArray,
-		"io.confluent.kafka.serializers.KafkaAvroSerializer":              SerializeAvro,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer": nil,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":   SerializeJsonSchema,
-	}
-
-	Deserializers = map[string]Deserializer{
-		"org.apache.kafka.common.serialization.StringDeserializer":          DeserializeString,
-		"org.apache.kafka.common.serialization.ByteArrayDeserializer":       DeserializeByteArray,
-		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              DeserializeAvro,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": nil,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   DeserializeJsonSchema,
-	}
-
-	WireFormattedCodecs = map[string]bool{
-		// Serializers
-		"org.apache.kafka.common.serialization.StringSerializer":          false,
-		"org.apache.kafka.common.serialization.ByteArraySerializer":       false,
-		"io.confluent.kafka.serializers.KafkaAvroSerializer":              true,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer": true,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":   true,
-
-		// Deserializers
-		"org.apache.kafka.common.serialization.StringDeserializer":          false,
-		"org.apache.kafka.common.serialization.ByteArrayDeserializer":       false,
-		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              true,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": true,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   true,
-	}
-
-	SchemaTypes = map[string]srclient.SchemaType{
-		"io.confluent.kafka.serializers.KafkaAvroSerializer":                srclient.Avro,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer":   srclient.Protobuf,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer":     srclient.Json,
-		"io.confluent.kafka.serializers.KafkaAvroDeserializer":              srclient.Avro,
-		"io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer": srclient.Protobuf,
-		"io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer":   srclient.Json,
-	}
+const (
+	// TODO: move these to their own package
+	ProtobufSerializer   string = "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer"
+	ProtobufDeserializer string = "io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer"
 )
 
 func useSerializer(configuration Configuration, element Element) bool {
-	// TODO: Refactor this
-	if (Configuration{}) != configuration || (ProducerConfiguration{}) != configuration.Producer &&
-		(element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
+	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Producer).IsZero() {
+		return false
+	}
+
+	if (element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
 		return true
 	}
+
 	return false
 }
 
 func useDeserializer(configuration Configuration, element Element) bool {
-	// TODO: Refactor this
-	if (Configuration{}) != configuration || (ConsumerConfiguration{}) != configuration.Consumer &&
-		(element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
+	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Consumer).IsZero() {
+		return false
+	}
+
+	if (element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
 		return true
 	}
+
 	return false
 }
 
-func isWireFormatted(serde string) bool {
-	return WireFormattedCodecs[serde]
+type SerdeType[T Serializer | Deserializer] struct {
+	Function      T
+	Class         string
+	SchemaType    srclient.SchemaType
+	WireFormatted bool
 }
 
-func GetSerializer(serializer string, schema string) Serializer {
-	serializerFunction := Serializers[serializer]
-	if serializerFunction == nil {
-		return SerializeString
-	}
-	return serializerFunction
+func NewSerdes[T Serializer | Deserializer](function T, class string, schemaType srclient.SchemaType, wireFormatted bool) *SerdeType[T] {
+	return &SerdeType[T]{function, class, schemaType, wireFormatted}
 }
 
-func GetDeserializer(deserializer string, schema string) Deserializer {
-	deserializerFunction := Deserializers[deserializer]
-	if deserializerFunction == nil {
-		return DeserializeString
-	}
-	return deserializerFunction
+func (s *SerdeType[Serializer]) GetSerializer() Serializer {
+	return s.Function
 }
 
-func GetSchemaType(serializer string) srclient.SchemaType {
-	return SchemaTypes[serializer]
+func (s *SerdeType[Deserializer]) GetDeserializer() Deserializer {
+	return s.Function
+}
+
+func (s *SerdeType[T]) GetSchemaType() srclient.SchemaType {
+	return s.SchemaType
+}
+
+func (s *SerdeType[T]) IsWireFormatted() bool {
+	return s.WireFormatted
 }

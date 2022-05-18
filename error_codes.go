@@ -1,27 +1,32 @@
 package kafka
 
+import "fmt"
+
 type errCode uint32
 
 const (
 	// non specific
 	kafkaForbiddenInInitContext errCode = 1000
 	configurationError          errCode = 1001
-	contextCancelled            errCode = 1002
-	cannotReportStats           errCode = 1003
-	fileNotFound                errCode = 1004
-	dialerError                 errCode = 1005
+	noContextError              errCode = 1002
+	contextCancelled            errCode = 1003
+	cannotReportStats           errCode = 1004
+	fileNotFound                errCode = 1005
+	dialerError                 errCode = 1006
 
 	// serdes errors
 	invalidDataType             errCode = 2000
-	failedEncodeToWireFormat    errCode = 2001
-	failedDecodeFromWireFormat  errCode = 2002
-	failedCreateAvroCodec       errCode = 2003
-	failedEncodeToAvro          errCode = 2004
-	failedEncodeAvroToBinary    errCode = 2005
-	failedDecodeAvroFromBinary  errCode = 2006
-	failedCreateJsonSchemaCodec errCode = 2007
-	failedUnmarshalJsonSchema   errCode = 2008
-	failedValidateJsonSchema    errCode = 2009
+	failedDecodeFromWireFormat  errCode = 2001
+	failedCreateAvroCodec       errCode = 2002
+	failedEncodeToAvro          errCode = 2003
+	failedEncodeAvroToBinary    errCode = 2004
+	failedDecodeAvroFromBinary  errCode = 2005
+	failedCreateJsonSchemaCodec errCode = 2006
+	failedUnmarshalJson         errCode = 2007
+	failedValidateJson          errCode = 2008
+	failedEncodeToJson          errCode = 2009
+	failedEncodeJsonToBinary    errCode = 2010
+	failedDecodeJsonFromBinary  errCode = 2011
 
 	// producer
 	failedWriteMessage errCode = 3000
@@ -36,10 +41,12 @@ const (
 	failedUnmarshalCreds        errCode = 5001
 	failedLoadX509KeyPair       errCode = 5002
 	failedReadCaCertFile        errCode = 5003
+	failedAppendCaCertFile      errCode = 5004
 
 	// schema registry
 	messageTooShort      errCode = 6000
-	schemaCreationFailed errCode = 6001
+	schemaNotFound       errCode = 6001
+	schemaCreationFailed errCode = 6002
 
 	// topics
 	failedCreateTopic    errCode = 7000
@@ -47,13 +54,11 @@ const (
 	failedReadPartitions errCode = 7002
 )
 
-var (
-	// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context
-	ErrorForbiddenInInitContext = NewXk6KafkaError(
-		kafkaForbiddenInInitContext,
-		"Producing Kafka messages in the init context is not supported",
-		nil)
-)
+// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context
+var ErrorForbiddenInInitContext = NewXk6KafkaError(
+	kafkaForbiddenInInitContext,
+	"Producing Kafka messages in the init context is not supported",
+	nil)
 
 type Xk6KafkaError struct {
 	Code          errCode
@@ -68,7 +73,10 @@ func NewXk6KafkaError(code errCode, msg string, originalErr error) *Xk6KafkaErro
 
 // Error implements the `error` interface, so Xk6KafkaError are normal Go errors.
 func (e Xk6KafkaError) Error() string {
-	return e.Message
+	if e.OriginalError == nil {
+		return e.Message
+	}
+	return fmt.Sprintf(e.Message+", OriginalError: %w", e.OriginalError)
 }
 
 // Unwrap implements the `xerrors.Wrapper` interface, so Xk6KafkaError are a bit

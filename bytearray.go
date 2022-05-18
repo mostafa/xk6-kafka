@@ -1,6 +1,17 @@
 package kafka
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/riferrei/srclient"
+)
+
+const (
+	ByteArray srclient.SchemaType = "BYTEARRAY"
+
+	ByteArraySerializer   string = "org.apache.kafka.common.serialization.ByteArraySerializer"
+	ByteArrayDeserializer string = "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+)
 
 func SerializeByteArray(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	switch data.(type) {
@@ -19,6 +30,6 @@ func SerializeByteArray(configuration Configuration, topic string, data interfac
 	}
 }
 
-func DeserializeByteArray(configuration Configuration, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeByteArray(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	return data, nil
 }
