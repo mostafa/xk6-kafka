@@ -44,7 +44,12 @@ jobs:
           sleep 10s
 
       - name: Run Go tests 🔬
-        run: go test -cover -v .
+        run: go test -cover -covermode atomic -coverprofile=profile.cov -v .
+
+      - name: Report coverage to coveralls 📈
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
 
       - name: Run xk6-kafka tests 🧪
         run: ./k6 run --quiet -d 5s ./scripts/test_json.js
