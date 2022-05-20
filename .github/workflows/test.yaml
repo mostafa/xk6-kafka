@@ -47,7 +47,7 @@ jobs:
         run: go test -cover -v .
 
       - name: Run xk6-kafka tests 🧪
-        run: ./k6 run -d 5s ./scripts/test_json.js
+        run: ./k6 run --quiet -d 5s ./scripts/test_json.js
 
       - name: Stop containers 🛑
         if: always()
