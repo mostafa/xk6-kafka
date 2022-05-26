@@ -10,7 +10,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.31
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
-	go.k6.io/k6 v0.38.0
+	go.k6.io/k6 v0.38.3
 	gopkg.in/guregu/null.v3 v3.3.0
 )
 
