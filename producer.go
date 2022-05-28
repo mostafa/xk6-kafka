@@ -20,7 +20,7 @@ var (
 	}
 
 	// DefaultSerializer is string serializer
-	DefaultSerializer = "org.apache.kafka.common.serialization.StringSerializer"
+	DefaultSerializer = StringSerializer
 )
 
 // Writer creates a new Kafka writer
@@ -306,15 +306,11 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaErr
 		Value:  float64(currentStats.RequiredAcks),
 	})
 
-	var async float64
-	if currentStats.Async {
-		async = 1
-	}
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
 		Metric: k.metrics.WriterAsync,
 		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  async,
+		Value:  metrics.B(currentStats.Async),
 	})
 
 	return nil

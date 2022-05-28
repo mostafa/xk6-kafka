@@ -8,7 +8,7 @@ import (
 	"go.k6.io/k6/metrics"
 )
 
-var DefaultDeserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+var DefaultDeserializer = StringDeserializer
 
 func (k *Kafka) Reader(
 	brokers []string, topic string, partition int,
