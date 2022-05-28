@@ -28,30 +28,24 @@ type kafkaMetrics struct {
 	ReaderQueueLength   *metrics.Metric
 	ReaderQueueCapacity *metrics.Metric
 
-	WriterDials      *metrics.Metric
-	WriterWrites     *metrics.Metric
-	WriterMessages   *metrics.Metric
-	WriterBytes      *metrics.Metric
-	WriterRebalances *metrics.Metric
-	WriterErrors     *metrics.Metric
+	WriterWrites   *metrics.Metric
+	WriterMessages *metrics.Metric
+	WriterBytes    *metrics.Metric
+	WriterErrors   *metrics.Metric
 
-	WriterDialTime   *metrics.Metric
 	WriterWriteTime  *metrics.Metric
 	WriterWaitTime   *metrics.Metric
 	WriterRetries    *metrics.Metric
 	WriterBatchSize  *metrics.Metric
 	WriterBatchBytes *metrics.Metric
 
-	WriterMaxAttempts       *metrics.Metric
-	WriterMaxBatchSize      *metrics.Metric
-	WriterBatchTimeout      *metrics.Metric
-	WriterReadTimeout       *metrics.Metric
-	WriterWriteTimeout      *metrics.Metric
-	WriterRebalanceInterval *metrics.Metric
-	WriterRequiredAcks      *metrics.Metric
-	WriterAsync             *metrics.Metric
-	WriterQueueLength       *metrics.Metric
-	WriterQueueCapacity     *metrics.Metric
+	WriterMaxAttempts  *metrics.Metric
+	WriterMaxBatchSize *metrics.Metric
+	WriterBatchTimeout *metrics.Metric
+	WriterReadTimeout  *metrics.Metric
+	WriterWriteTimeout *metrics.Metric
+	WriterRequiredAcks *metrics.Metric
+	WriterAsync        *metrics.Metric
 }
 
 func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
@@ -154,11 +148,6 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 		return m, err
 	}
 
-	m.WriterDials, err = registry.NewMetric("kafka.writer.dial.count", metrics.Counter)
-	if err != nil {
-		return m, err
-	}
-
 	m.WriterWrites, err = registry.NewMetric("kafka.writer.write.count", metrics.Counter)
 	if err != nil {
 		return m, err
@@ -174,17 +163,7 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 		return m, err
 	}
 
-	m.WriterRebalances, err = registry.NewMetric("kafka.writer.rebalance.count", metrics.Counter)
-	if err != nil {
-		return m, err
-	}
-
 	m.WriterErrors, err = registry.NewMetric("kafka.writer.error.count", metrics.Counter)
-	if err != nil {
-		return m, err
-	}
-
-	m.WriterDialTime, err = registry.NewMetric("kafka.writer.dial.seconds", metrics.Trend, metrics.Time)
 	if err != nil {
 		return m, err
 	}
@@ -239,27 +218,12 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 		return m, err
 	}
 
-	m.WriterRebalanceInterval, err = registry.NewMetric("kafka.writer.rebalance.interval", metrics.Gauge, metrics.Time)
-	if err != nil {
-		return m, err
-	}
-
 	m.WriterRequiredAcks, err = registry.NewMetric("kafka.writer.acks.required", metrics.Gauge)
 	if err != nil {
 		return m, err
 	}
 
 	m.WriterAsync, err = registry.NewMetric("kafka.writer.async", metrics.Rate)
-	if err != nil {
-		return m, err
-	}
-
-	m.WriterQueueLength, err = registry.NewMetric("kafka.writer.queue.length", metrics.Gauge)
-	if err != nil {
-		return m, err
-	}
-
-	m.WriterQueueCapacity, err = registry.NewMetric("kafka.writer.queue.capacity", metrics.Gauge)
 	if err != nil {
 		return m, err
 	}

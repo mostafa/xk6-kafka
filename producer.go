@@ -197,17 +197,9 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaErr
 	}
 
 	tags := make(map[string]string)
-	tags["clientid"] = currentStats.ClientID
 	tags["topic"] = currentStats.Topic
 
 	now := time.Now()
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterDials,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Dials),
-	})
 
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
@@ -232,16 +224,97 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaErr
 
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: k.metrics.WriterRebalances,
+		Metric: k.metrics.WriterErrors,
 		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Rebalances),
+		Value:  float64(currentStats.Errors),
 	})
 
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
 		Time:   now,
-		Metric: k.metrics.WriterErrors,
+		Metric: k.metrics.WriterWriteTime,
 		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Errors),
+		Value:  metrics.D(currentStats.WriteTime.Avg),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterWaitTime,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  metrics.D(currentStats.WaitTime.Avg),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterRetries,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.Retries.Avg),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterBatchSize,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.BatchSize.Avg),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterBatchBytes,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.BatchBytes.Avg),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterMaxAttempts,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.MaxAttempts),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterMaxBatchSize,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.MaxBatchSize),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterBatchTimeout,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.BatchTimeout),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterReadTimeout,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.ReadTimeout),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterWriteTimeout,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.WriteTimeout),
+	})
+
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterRequiredAcks,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  float64(currentStats.RequiredAcks),
+	})
+
+	var async float64
+	if currentStats.Async {
+		async = 1
+	}
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
+		Time:   now,
+		Metric: k.metrics.WriterAsync,
+		Tags:   metrics.IntoSampleTags(&tags),
+		Value:  async,
 	})
 
 	return nil
