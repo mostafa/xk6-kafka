@@ -65,6 +65,21 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 	assert.NotNil(t, srClient)
 }
 
+func TestGetLatestSchemaFails(t *testing.T) {
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	schema, err := GetSchema(srClient, "test-subject", "test-schema", srclient.Avro, 0)
+	assert.Nil(t, schema)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Failed to get schema from schema registry", err.Message)
+}
+
 func TestGetSchemaFails(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
 		Url: "http://localhost:8081",
