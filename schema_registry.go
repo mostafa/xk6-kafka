@@ -2,8 +2,10 @@ package kafka
 
 import (
 	"encoding/binary"
+	"net/http"
 
 	"github.com/riferrei/srclient"
+	"github.com/sirupsen/logrus"
 )
 
 type Element string
@@ -19,9 +21,10 @@ type BasicAuth struct {
 }
 
 type SchemaRegistryConfiguration struct {
-	Url       string    `json:"url"`
-	BasicAuth BasicAuth `json:"basicAuth"`
-	UseLatest bool      `json:"useLatest"`
+	Url       string     `json:"url"`
+	BasicAuth BasicAuth  `json:"basicAuth"`
+	UseLatest bool       `json:"useLatest"`
+	TLSConfig *TLSConfig `json:"tlsConfig"`
 }
 
 // Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
@@ -42,11 +45,28 @@ func EncodeWireFormat(data []byte, schemaID int) []byte {
 	return append(append([]byte{0}, schemaIDBytes...), data...)
 }
 
-func SchemaRegistryClient(url, username, password string) *srclient.SchemaRegistryClient {
-	srClient := srclient.CreateSchemaRegistryClient(url)
-	if username != "" && password != "" {
-		srClient.SetCredentials(username, password)
+func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfiguration) *srclient.SchemaRegistryClient {
+	var srClient *srclient.SchemaRegistryClient
+
+	tlsConfig, err := GetTLSConfig(configuration.TLSConfig)
+	if err != nil {
+		logrus.New().WithError(err).Warn("Failed to get TLS config. Continuing without TLS.")
+		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)
 	}
+
+	if tlsConfig != nil {
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+			},
+		}
+		srClient = srclient.CreateSchemaRegistryClientWithOptions(configuration.Url, httpClient, 16)
+	}
+
+	if configuration.BasicAuth.Username != "" && configuration.BasicAuth.Password != "" {
+		srClient.SetCredentials(configuration.BasicAuth.Username, configuration.BasicAuth.Password)
+	}
+
 	return srClient
 }
 
