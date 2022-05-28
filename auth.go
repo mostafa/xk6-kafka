@@ -21,9 +21,13 @@ const (
 )
 
 type Credentials struct {
-	Username      string `json:"username"`
-	Password      string `json:"password"`
-	Algorithm     string `json:"algorithm"`
+	Username  string     `json:"username"`
+	Password  string     `json:"password"`
+	Algorithm string     `json:"algorithm"`
+	TLSConfig *TLSConfig `json:"tlsConfig"`
+}
+
+type TLSConfig struct {
 	ClientCertPem string `json:"clientCertPem"`
 	ClientKeyPem  string `json:"clientKeyPem"`
 	ServerCaPem   string `json:"serverCaPem"`
@@ -45,7 +49,7 @@ func UnmarshalCredentials(auth string) (*Credentials, *Xk6KafkaError) {
 }
 
 func GetDialerFromCreds(creds *Credentials) (*kafkago.Dialer, *Xk6KafkaError) {
-	tlsConfig, err := TLSConfig(creds)
+	tlsConfig, err := GetTLSConfig(creds.TLSConfig)
 	if err != nil && err.Unwrap() != nil {
 		return nil, err
 	}
@@ -109,13 +113,17 @@ func FileExists(filename string) bool {
 	return err == nil
 }
 
-func TLSConfig(creds *Credentials) (*tls.Config, *Xk6KafkaError) {
-	var clientCertFile = &creds.ClientCertPem
+func GetTLSConfig(tlsConfig *TLSConfig) (*tls.Config, *Xk6KafkaError) {
+	if tlsConfig == nil {
+		return nil, NewXk6KafkaError(noTLSConfig, "No TLS config provided.", nil)
+	}
+
+	var clientCertFile = &tlsConfig.ClientCertPem
 	if !FileExists(*clientCertFile) {
 		return nil, NewXk6KafkaError(fileNotFound, "Client certificate file not found.", nil)
 	}
 
-	var clientKeyFile = &creds.ClientKeyPem
+	var clientKeyFile = &tlsConfig.ClientKeyPem
 	if !FileExists(*clientKeyFile) {
 		return nil, NewXk6KafkaError(fileNotFound, "Client key file not found.", nil)
 	}
@@ -128,7 +136,7 @@ func TLSConfig(creds *Credentials) (*tls.Config, *Xk6KafkaError) {
 			err)
 	}
 
-	var caCertFile = &creds.ServerCaPem
+	var caCertFile = &tlsConfig.ServerCaPem
 	if !FileExists(*caCertFile) {
 		return nil, NewXk6KafkaError(fileNotFound, "CA certificate file not found.", nil)
 	}

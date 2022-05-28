@@ -14,9 +14,7 @@ const (
 func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
-	client := SchemaRegistryClient(configuration.SchemaRegistry.Url,
-		configuration.SchemaRegistry.BasicAuth.Username,
-		configuration.SchemaRegistry.BasicAuth.Password)
+	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 	subject := topic + "-" + string(element)
 	var schemaInfo *srclient.Schema
 	schemaID := 0
@@ -85,9 +83,7 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 			err)
 	}
 
-	client := SchemaRegistryClient(configuration.SchemaRegistry.Url,
-		configuration.SchemaRegistry.BasicAuth.Username,
-		configuration.SchemaRegistry.BasicAuth.Password)
+	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 	subject := topic + "-" + string(element)
 	var schemaInfo *srclient.Schema
 

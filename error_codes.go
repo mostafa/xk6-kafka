@@ -13,6 +13,7 @@ const (
 	cannotReportStats           errCode = 1004
 	fileNotFound                errCode = 1005
 	dialerError                 errCode = 1006
+	noTLSConfig                 errCode = 1007
 
 	// serdes errors
 	invalidDataType             errCode = 2000

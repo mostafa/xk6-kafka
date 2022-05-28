@@ -11,14 +11,14 @@ import (
 )
 
 func TestUnmarshalCredentials(t *testing.T) {
-	creds, err := UnmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`)
+	creds, err := UnmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", creds.Username)
 	assert.Equal(t, "test", creds.Password)
 	assert.Equal(t, "plain", creds.Algorithm)
-	assert.Equal(t, "client.pem", creds.ClientCertPem)
-	assert.Equal(t, "key.pem", creds.ClientKeyPem)
-	assert.Equal(t, "server.pem", creds.ServerCaPem)
+	assert.Equal(t, "client.pem", creds.TLSConfig.ClientCertPem)
+	assert.Equal(t, "key.pem", creds.TLSConfig.ClientKeyPem)
+	assert.Equal(t, "server.pem", creds.TLSConfig.ServerCaPem)
 }
 
 func TestUnmarshalCredentialsFails(t *testing.T) {
@@ -77,7 +77,7 @@ func TestGetDialerFromCredsFails(t *testing.T) {
 }
 
 func TestGetDialerFromAuth(t *testing.T) {
-	auth := `{"username": "test", "password": "test", "algorithm": "plain", "clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}`
+	auth := `{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`
 	dialer, err := GetDialerFromAuth(auth)
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
@@ -110,11 +110,13 @@ type SimpleTLSConfig struct {
 
 func TestTlsConfig(t *testing.T) {
 	creds := &Credentials{
-		ClientCertPem: "fixtures/client.cer",
-		ClientKeyPem:  "fixtures/client.pem",
-		ServerCaPem:   "fixtures/caroot.cer",
+		TLSConfig: &TLSConfig{
+			ClientCertPem: "fixtures/client.cer",
+			ClientKeyPem:  "fixtures/client.pem",
+			ServerCaPem:   "fixtures/caroot.cer",
+		},
 	}
-	tlsConfig, err := TLSConfig(creds)
+	tlsConfig, err := GetTLSConfig(creds.TLSConfig)
 	assert.Nil(t, err)
 	assert.NotNil(t, tlsConfig)
 }
@@ -124,13 +126,22 @@ func TestTlsConfigFails(t *testing.T) {
 		{
 			creds: &Credentials{},
 			err: &Xk6KafkaError{
+				Code:    noTLSConfig,
+				Message: "No TLS config provided.",
+			},
+		},
+		{
+			creds: &Credentials{TLSConfig: &TLSConfig{}},
+			err: &Xk6KafkaError{
 				Code:    fileNotFound,
 				Message: "Client certificate file not found.",
 			},
 		},
 		{
 			creds: &Credentials{
-				ClientCertPem: "fixtures/client.cer",
+				TLSConfig: &TLSConfig{
+					ClientCertPem: "fixtures/client.cer",
+				},
 			},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
@@ -139,8 +150,10 @@ func TestTlsConfigFails(t *testing.T) {
 		},
 		{
 			creds: &Credentials{
-				ClientCertPem: "fixtures/client.cer",
-				ClientKeyPem:  "fixtures/client.pem",
+				TLSConfig: &TLSConfig{
+					ClientCertPem: "fixtures/client.cer",
+					ClientKeyPem:  "fixtures/client.pem",
+				},
 			},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
@@ -149,8 +162,10 @@ func TestTlsConfigFails(t *testing.T) {
 		},
 		{
 			creds: &Credentials{
-				ClientCertPem: "fixtures/invalid-client.cer",
-				ClientKeyPem:  "fixtures/invalid-client.pem",
+				TLSConfig: &TLSConfig{
+					ClientCertPem: "fixtures/invalid-client.cer",
+					ClientKeyPem:  "fixtures/invalid-client.pem",
+				},
 			},
 			err: &Xk6KafkaError{
 				Code:          failedLoadX509KeyPair,
@@ -160,9 +175,11 @@ func TestTlsConfigFails(t *testing.T) {
 		},
 		{
 			creds: &Credentials{
-				ClientCertPem: "fixtures/client.cer",
-				ClientKeyPem:  "fixtures/client.pem",
-				ServerCaPem:   "fixtures/invalid-caroot.cer",
+				TLSConfig: &TLSConfig{
+					ClientCertPem: "fixtures/client.cer",
+					ClientKeyPem:  "fixtures/client.pem",
+					ServerCaPem:   "fixtures/invalid-caroot.cer",
+				},
 			},
 			err: &Xk6KafkaError{
 				Code:    failedAppendCaCertFile,
@@ -172,7 +189,7 @@ func TestTlsConfigFails(t *testing.T) {
 	}
 
 	for _, c := range creds {
-		tlsConfig, err := TLSConfig(c.creds)
+		tlsConfig, err := GetTLSConfig(c.creds.TLSConfig)
 		assert.NotNil(t, err)
 		assert.Equal(t, c.err, err)
 		assert.Nil(t, tlsConfig)
