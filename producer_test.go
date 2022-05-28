@@ -52,12 +52,22 @@ func TestProduce(t *testing.T) {
 
 	// Check if two message were produced
 	metricsValues := test.GetCounterMetricsValues()
-	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterDials.Name])
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
-	assert.Equal(t, 64.0, metricsValues[test.module.metrics.WriterBytes.Name])
-	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
+	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
+	assert.Equal(t, 64.0, metricsValues[test.module.metrics.WriterBytes.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
+	assert.GreaterOrEqual(t, 1.0, metricsValues[test.module.metrics.WriterWriteTime.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterWaitTime.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRetries.Name])
+	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterBatchSize.Name])
+	assert.Equal(t, 32.0, metricsValues[test.module.metrics.WriterBatchBytes.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterMaxAttempts.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterMaxBatchSize.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterBatchTimeout.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterReadTimeout.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterWriteTimeout.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRequiredAcks.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterAsync.Name])
 }
 
 func TestProduceWithoutKey(t *testing.T) {
@@ -91,12 +101,10 @@ func TestProduceWithoutKey(t *testing.T) {
 
 	// Check if two message were produced
 	metricsValues := test.GetCounterMetricsValues()
-	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
 	// Notice the smaller size because the key is not present (64 -> 56)
 	assert.Equal(t, 56.0, metricsValues[test.module.metrics.WriterBytes.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
@@ -135,11 +143,9 @@ func TestProducerContextCancelled(t *testing.T) {
 	// Cancelled context is immediately reflected in metrics, because
 	// we need the context object to update the metrics.
 	metricsValues := test.GetCounterMetricsValues()
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterBytes.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterMessages.Name])
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
@@ -170,10 +176,8 @@ func TestProduceJSON(t *testing.T) {
 
 	// Check if one message was produced
 	metricsValues := test.GetCounterMetricsValues()
-	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
 	assert.Equal(t, 39, int(metricsValues[test.module.metrics.WriterBytes.Name]))
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
-	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterRebalances.Name])
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
