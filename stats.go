@@ -17,8 +17,8 @@ type kafkaMetrics struct {
 	ReaderDialTime   *metrics.Metric
 	ReaderReadTime   *metrics.Metric
 	ReaderWaitTime   *metrics.Metric
-	ReaderFetchBytes *metrics.Metric
 	ReaderFetchSize  *metrics.Metric
+	ReaderFetchBytes *metrics.Metric
 
 	ReaderOffset        *metrics.Metric
 	ReaderLag           *metrics.Metric
