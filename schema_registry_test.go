@@ -37,12 +37,58 @@ func TestEncodeWireFormat(t *testing.T) {
 }
 
 func TestSchemaRegistryClient(t *testing.T) {
-	srClient := SchemaRegistryClient("http://localhost:8081", "username", "password")
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
 	assert.NotNil(t, srClient)
 }
 
+func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+		TLSConfig: &TLSConfig{
+			ClientCertPem: "fixtures/client.cer",
+			ClientKeyPem:  "fixtures/client.pem",
+			ServerCaPem:   "fixtures/caroot.cer",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	assert.NotNil(t, srClient)
+}
+
+func TestGetLatestSchemaFails(t *testing.T) {
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	schema, err := GetSchema(srClient, "test-subject", "test-schema", srclient.Avro, 0)
+	assert.Nil(t, schema)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Failed to get schema from schema registry", err.Message)
+}
+
 func TestGetSchemaFails(t *testing.T) {
-	srClient := SchemaRegistryClient("http://localhost:8081", "username", "password")
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
 	schema, err := GetSchema(srClient, "test-subject", "test-schema", srclient.Avro, 1)
 	assert.Nil(t, schema)
 	assert.NotNil(t, err)
@@ -50,7 +96,14 @@ func TestGetSchemaFails(t *testing.T) {
 }
 
 func TestCreateSchemaFails(t *testing.T) {
-	srClient := SchemaRegistryClient("http://localhost:8081", "username", "password")
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
 	schema, err := CreateSchema(srClient, "test-subject", "test-schema", srclient.Avro)
 	assert.Nil(t, schema)
 	assert.NotNil(t, err)
