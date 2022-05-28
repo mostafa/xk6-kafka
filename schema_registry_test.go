@@ -48,6 +48,23 @@ func TestSchemaRegistryClient(t *testing.T) {
 	assert.NotNil(t, srClient)
 }
 
+func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
+	srConfig := SchemaRegistryConfiguration{
+		Url: "http://localhost:8081",
+		BasicAuth: BasicAuth{
+			Username: "username",
+			Password: "password",
+		},
+		TLSConfig: &TLSConfig{
+			ClientCertPem: "fixtures/client.cer",
+			ClientKeyPem:  "fixtures/client.pem",
+			ServerCaPem:   "fixtures/caroot.cer",
+		},
+	}
+	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	assert.NotNil(t, srClient)
+}
+
 func TestGetSchemaFails(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
 		Url: "http://localhost:8081",
