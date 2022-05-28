@@ -9,8 +9,8 @@ on:
   pull_request:
 
 jobs:
-  build:
-    name: Build xk6-kafka
+  test:
+    name: Test xk6-kafka
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
