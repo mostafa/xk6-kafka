@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestSerializeString tests the serialization of a string
 func TestSerializeString(t *testing.T) {
 	originalData := "test"
 	result, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
@@ -13,6 +14,8 @@ func TestSerializeString(t *testing.T) {
 	assert.Equal(t, []byte(originalData), result)
 }
 
+// TestSerializeStringFails tests the serialization of a string and
+// fails if the given type is not string.
 func TestSerializeStringFails(t *testing.T) {
 	originalData := 123
 	_, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
@@ -21,6 +24,7 @@ func TestSerializeStringFails(t *testing.T) {
 		"Expected error message is correct")
 }
 
+// TestDeserializeString tests the deserialization of a string
 func TestDeserializeString(t *testing.T) {
 	originalData := "test"
 	result, err := DeserializeString(Configuration{}, "", []byte(originalData), "", "", 0)
