@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestProduce tests the produce function
 func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -70,6 +71,7 @@ func TestProduce(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterAsync.Name])
 }
 
+// TestProduceWithoutKey tests the produce function without a key
 func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -108,6 +110,7 @@ func TestProduceWithoutKey(t *testing.T) {
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
+// TestProducerContextCancelled tests the produce function with a cancelled context
 func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -149,6 +152,7 @@ func TestProducerContextCancelled(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
+// TestProduceJSON tests the produce function with a JSON value
 func TestProduceJSON(t *testing.T) {
 	// TODO: change this once the interfaces accept JSON
 
