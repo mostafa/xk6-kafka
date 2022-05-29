@@ -20,6 +20,8 @@ var (
 	jsonSchema string = `{"type":"object","title":"Key","properties":{"field": {"type":"string"}},"required":["field"]}`
 )
 
+// TestSerializeDeserializeJson tests serialization and deserialization (and validation) of
+// JSON data
 func TestSerializeDeserializeJson(t *testing.T) {
 	// Test with a schema registry, which fails and manually (de)serializes the data
 	for _, element := range []Element{Key, Value} {
@@ -37,6 +39,8 @@ func TestSerializeDeserializeJson(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeJsonFailsOnSchemaError tests serialization and deserialization (and
+// validation) of JSON data and fails on schema error
 func TestSerializeDeserializeJsonFailsOnSchemaError(t *testing.T) {
 	schema := `{`
 
@@ -57,6 +61,8 @@ func TestSerializeDeserializeJsonFailsOnSchemaError(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeJsonFailsOnWireFormatError tests serialization and deserialization (and
+// validation) of JSON data and fails on wire format error
 func TestSerializeDeserializeJsonFailsOnWireFormatError(t *testing.T) {
 	schema := `{}`
 
@@ -78,6 +84,8 @@ func TestSerializeDeserializeJsonFailsOnWireFormatError(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeJsonFailsOnMarshalError tests serialization and deserialization (and
+// validation) of JSON data and fails on JSON marshal error
 func TestSerializeDeserializeJsonFailsOnMarshalError(t *testing.T) {
 	data := `{"nonExistingField":"`
 
@@ -96,6 +104,8 @@ func TestSerializeDeserializeJsonFailsOnMarshalError(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeJsonFailsOnValidationError tests serialization and deserialization (and
+// validation) of JSON data and fails on JSON validation error
 func TestSerializeDeserializeJsonFailsOnValidationError(t *testing.T) {
 	// JSON schema validation fails, but the data is still returned
 	data := `{"nonExistingField":"value"}`

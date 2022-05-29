@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestGetKafkaConnection tests whether a connection can be established to a kafka broker
 func TestGetKafkaConnection(t *testing.T) {
 	test := GetTestModuleInstance(t)
 	connection, xk6KafkaError := test.module.Kafka.GetKafkaConnection("localhost:9092", "")
@@ -14,6 +15,8 @@ func TestGetKafkaConnection(t *testing.T) {
 	assert.NotNil(t, connection)
 }
 
+// TestGetKafkaConnectionFails tests whether a connection can be established to a kafka broker
+// and fails if the given broker is not reachable.
 func TestGetKafkaConnectionFails(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -24,6 +27,7 @@ func TestGetKafkaConnectionFails(t *testing.T) {
 	assert.Equal(t, xk6KafkaError.Code, dialerError)
 }
 
+// TestTopics tests various functions to create, delete and list topics.
 func TestTopics(t *testing.T) {
 	test := GetTestModuleInstance(t)
 

@@ -26,6 +26,7 @@ var configuration Configuration = Configuration{
 	},
 }
 
+// TestUnmarshalConfiguration tests unmarshalling of a given configuration
 func TestUnmarshalConfiguration(t *testing.T) {
 	configJson, _ := json.Marshal(configuration)
 	config, err := UnmarshalConfiguration(string(configJson))
@@ -33,6 +34,8 @@ func TestUnmarshalConfiguration(t *testing.T) {
 	assert.Equal(t, configuration, config)
 }
 
+// TestUnmarshalConfigurationsFails tests unmarshalling of a given configuration and fails
+// on invalid JSON.
 func TestUnmarshalConfigurationsFails(t *testing.T) {
 	configJson := `{"}`
 
@@ -41,11 +44,14 @@ func TestUnmarshalConfigurationsFails(t *testing.T) {
 	assert.Equal(t, "Cannot unmarshal configuration.", err.Message)
 }
 
+// TestValidateConfiguration tests the validation of a given configuration.
 func TestValidateConfiguration(t *testing.T) {
 	err := ValidateConfiguration(configuration)
 	assert.Nil(t, err)
 }
 
+// TestValidateConfigurationFallbackToDefaults tests the validation of a given configuration
+// and falls back to default on invalid configuration.
 func TestValidateConfigurationFallbackToDefaults(t *testing.T) {
 	configuration := Configuration{}
 
@@ -53,6 +59,7 @@ func TestValidateConfigurationFallbackToDefaults(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+// TestGivenCredentials tests the validation of a given credentials.
 func TestGivenCredentials(t *testing.T) {
 	configuration := Configuration{
 		SchemaRegistry: SchemaRegistryConfiguration{
@@ -69,6 +76,8 @@ func TestGivenCredentials(t *testing.T) {
 	assert.True(t, valid)
 }
 
+// TestGivenCredentialsFails tests if credentials are given in Schema Registry config
+// and fails on no auth creds.
 func TestGivenCredentialsFails(t *testing.T) {
 	configuration := Configuration{
 		SchemaRegistry: SchemaRegistryConfiguration{

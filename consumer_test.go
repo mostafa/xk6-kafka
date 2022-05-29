@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// initializeConsumerTest creates a k6 instance with the xk6-kafka extension
+// and then it creates a Kafka topic and a Kafka writer.
 func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	test := GetTestModuleInstance(t)
 
@@ -24,6 +26,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	return test, writer
 }
 
+// TestConsume tests the consume function
 func TestConsume(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
@@ -79,6 +82,7 @@ func TestConsume(t *testing.T) {
 	// _ = test.module.Kafka.DeleteTopic("localhost:9092", "test-topic", "")
 }
 
+// TestConsumeWithoutKey tests the consume function without a key
 func TestConsumeWithoutKey(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
@@ -117,6 +121,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 }
 
+// TestConsumerContextCancelled tests the consume function and fails on a cancelled context
 func TestConsumerContextCancelled(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
@@ -157,6 +162,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 }
 
+// TestConsumeJSON tests the consume function with a JSON value
 func TestConsumeJSON(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()

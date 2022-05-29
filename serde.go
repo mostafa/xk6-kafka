@@ -15,6 +15,7 @@ const (
 	ProtobufDeserializer string = "io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer"
 )
 
+// useSerializer returns true if the serializer should be used based on the given configuration
 func useSerializer(configuration Configuration, element Element) bool {
 	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Producer).IsZero() {
 		return false
@@ -27,6 +28,7 @@ func useSerializer(configuration Configuration, element Element) bool {
 	return false
 }
 
+// useDeserializer returns true if the deserializer should be used based on the given configuration
 func useDeserializer(configuration Configuration, element Element) bool {
 	if reflect.ValueOf(configuration).IsZero() || reflect.ValueOf(configuration.Consumer).IsZero() {
 		return false
@@ -46,22 +48,27 @@ type SerdeType[T Serializer | Deserializer] struct {
 	WireFormatted bool
 }
 
+// NewSerdes constructs a new SerdeType
 func NewSerdes[T Serializer | Deserializer](function T, class string, schemaType srclient.SchemaType, wireFormatted bool) *SerdeType[T] {
 	return &SerdeType[T]{function, class, schemaType, wireFormatted}
 }
 
+// GetSerializer returns the serializer if the given type is Serializer
 func (s *SerdeType[Serializer]) GetSerializer() Serializer {
 	return s.Function
 }
 
+// GetDeserializer returns the deserializer if the given type is Deserializer
 func (s *SerdeType[Deserializer]) GetDeserializer() Deserializer {
 	return s.Function
 }
 
+// GetSchemaType returns the schema type
 func (s *SerdeType[T]) GetSchemaType() srclient.SchemaType {
 	return s.SchemaType
 }
 
+// IsWireFormatted returns true if the schema is wire formatted
 func (s *SerdeType[T]) IsWireFormatted() bool {
 	return s.WireFormatted
 }

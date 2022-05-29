@@ -11,6 +11,11 @@ const (
 	AvroDeserializer string = "io.confluent.kafka.serializers.KafkaAvroDeserializer"
 )
 
+// SerializeAvro serializes the given data to wire-formatted Avro binary format and returns it
+// as a byte array. It uses the given version to retrieve the schema from Schema Registry, otherwise
+// it uses the given schema to manually create the codec and encode the data. The configuration
+// is used to configure the Schema Registry client. The element is used to define the subject.
+// The data should be a string.
 func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
@@ -75,6 +80,11 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 	return EncodeWireFormat(bytesData, schemaID), nil
 }
 
+// DeserializeAvro deserializes the given data from wire-formatted Avro binary format and returns it
+// as a byte array. It uses the given version to retrieve the schema from Schema Registry, otherwise
+// it uses the given schema to manually create the codec and decode the data. The configuration
+// is used to configure the Schema Registry client. The element is used to define the subject.
+// The data should be a byte array.
 func DeserializeAvro(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {

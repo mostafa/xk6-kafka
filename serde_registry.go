@@ -6,6 +6,7 @@ type Serde[T Serializer | Deserializer] struct {
 	Registry map[string]*SerdeType[T]
 }
 
+// NewSerializersRegistry creates a new instance of the Serializer registry
 func NewSerializersRegistry() *Serde[Serializer] {
 	return &Serde[Serializer]{
 		Registry: map[string]*SerdeType[Serializer]{
@@ -18,6 +19,7 @@ func NewSerializersRegistry() *Serde[Serializer] {
 	}
 }
 
+// NewDeserializersRegistry creates a new instance of the Deserializer registry
 func NewDeserializersRegistry() *Serde[Deserializer] {
 	return &Serde[Deserializer]{
 		Registry: map[string]*SerdeType[Deserializer]{

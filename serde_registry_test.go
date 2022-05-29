@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// getFuncName returns the name of the function as string
 func getFuncName(function interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
 }
 
-func TestSerializersRegistry(t *testing.T) {
+// TestSerializersRegistry tests the serdes registry.
+func TestSerdesRegistry(t *testing.T) {
 	serializersRegistry := NewSerializersRegistry()
 	deserializersRegistry := NewDeserializersRegistry()
 

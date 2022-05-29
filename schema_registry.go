@@ -27,7 +27,8 @@ type SchemaRegistryConfiguration struct {
 	TLSConfig *TLSConfig `json:"tlsConfig"`
 }
 
-// Account for proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
+// DecodeWireFormat removes the proprietary 5-byte prefix from the Avro, ProtoBuf
+// or JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func DecodeWireFormat(message []byte) ([]byte, *Xk6KafkaError) {
 	if len(message) < 5 {
@@ -37,7 +38,8 @@ func DecodeWireFormat(message []byte) ([]byte, *Xk6KafkaError) {
 	return message[5:], nil
 }
 
-// Add proprietary 5-byte prefix before the Avro, ProtoBuf or JSONSchema payload:
+// EncodeWireFormat adds the proprietary 5-byte prefix to the Avro, ProtoBuf or
+// JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func EncodeWireFormat(data []byte, schemaID int) []byte {
 	schemaIDBytes := make([]byte, 4)
@@ -45,6 +47,8 @@ func EncodeWireFormat(data []byte, schemaID int) []byte {
 	return append(append([]byte{0}, schemaIDBytes...), data...)
 }
 
+// SchemaRegistryClientWithConfiguration creates a SchemaRegistryClient instance
+// with the given configuration. It will also configure auth and TLS credentials if exists.
 func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfiguration) *srclient.SchemaRegistryClient {
 	var srClient *srclient.SchemaRegistryClient
 
@@ -70,6 +74,7 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 	return srClient
 }
 
+// GetSchema returns the schema for the given subject and schema ID and version
 func GetSchema(
 	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, *Xk6KafkaError) {
 	// The client always caches the schema
@@ -89,6 +94,7 @@ func GetSchema(
 	return schemaInfo, nil
 }
 
+// CreateSchema creates a new schema in the schema registry
 func CreateSchema(
 	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType) (*srclient.Schema, *Xk6KafkaError) {
 	schemaInfo, err := client.CreateSchema(subject, schema, schemaType)

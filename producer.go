@@ -74,6 +74,7 @@ func (k *Kafka) ProduceWithConfiguration(
 	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
+// GetSerializer returns the serializer for the given schema
 func (k *Kafka) GetSerializer(schema string) Serializer {
 	if ser, ok := k.serializerRegistry.Registry[schema]; ok {
 		return ser.GetSerializer()
