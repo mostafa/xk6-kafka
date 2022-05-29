@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestUnmarshalCredentials tests the unmarshalling of credentials
 func TestUnmarshalCredentials(t *testing.T) {
 	creds, err := UnmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`)
 	assert.Nil(t, err)
@@ -21,6 +22,7 @@ func TestUnmarshalCredentials(t *testing.T) {
 	assert.Equal(t, "server.pem", creds.TLSConfig.ServerCaPem)
 }
 
+// TestUnmarshalCredentialsFails tests the unmarshalling of credentials and fails on invalid format
 func TestUnmarshalCredentialsFails(t *testing.T) {
 	// This only fails on invalid JSON (apparently)
 	creds, err := UnmarshalCredentials(`{"invalid": "invalid`)
@@ -31,6 +33,7 @@ func TestUnmarshalCredentialsFails(t *testing.T) {
 	assert.Equal(t, err.Unwrap().Error(), "unexpected end of JSON input")
 }
 
+// TestGetDialerFromCredsWithSASLPlain tests the creation of a dialer with SASL PLAIN
 func TestGetDialerFromCredsWithSASLPlain(t *testing.T) {
 	creds := &Credentials{
 		Username:  "test",
@@ -48,6 +51,7 @@ func TestGetDialerFromCredsWithSASLPlain(t *testing.T) {
 	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
 }
 
+// TestGetDialerFromCredsWithSASLScram tests the creation of a dialer with SASL SCRAM
 func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
 	creds := &Credentials{
 		Username:  "test",
@@ -63,6 +67,7 @@ func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
 	assert.Equal(t, scram.SHA256.Name(), dialer.SASLMechanism.Name())
 }
 
+// TestGetDialerFromCredsFails tests the creation of a dialer with SASL PLAIN and fails on invalid credentials
 func TestGetDialerFromCredsFails(t *testing.T) {
 	creds := &Credentials{
 		Username:  "https://www.exa\t\r\n",
@@ -76,6 +81,7 @@ func TestGetDialerFromCredsFails(t *testing.T) {
 	assert.Nil(t, dialer)
 }
 
+// TestGetDialerFromAuth tests the creation of a dialer with SASL PLAIN and TLS config
 func TestGetDialerFromAuth(t *testing.T) {
 	auth := `{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`
 	dialer, err := GetDialerFromAuth(auth)
@@ -89,6 +95,7 @@ func TestGetDialerFromAuth(t *testing.T) {
 	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
 }
 
+// TestGetDialerFromAuthNoAuthString tests the creation of an unauthenticated dialer
 func TestGetDialerFromAuthNoAuthString(t *testing.T) {
 	dialer, err := GetDialerFromAuth("")
 	assert.Nil(t, err)
@@ -98,6 +105,7 @@ func TestGetDialerFromAuthNoAuthString(t *testing.T) {
 	assert.Nil(t, dialer.TLS)
 }
 
+// TestFileExists tests the file exists function
 func TestFileExists(t *testing.T) {
 	assert.True(t, FileExists("auth_test.go"))
 	assert.False(t, FileExists("test.go.not"))
@@ -108,6 +116,7 @@ type SimpleTLSConfig struct {
 	err   *Xk6KafkaError
 }
 
+// TestTlsConfig tests the creation of a TLS config
 func TestTlsConfig(t *testing.T) {
 	creds := &Credentials{
 		TLSConfig: &TLSConfig{
@@ -121,6 +130,7 @@ func TestTlsConfig(t *testing.T) {
 	assert.NotNil(t, tlsConfig)
 }
 
+// TestTlsConfigFails tests the creation of a TLS config and fails on invalid files and configs
 func TestTlsConfigFails(t *testing.T) {
 	creds := []*SimpleTLSConfig{
 		{
