@@ -20,6 +20,7 @@ var (
 	avroSchema string = `{"type":"record","name":"Schema","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
 )
 
+// TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages
 func TestSerializeDeserializeAvro(t *testing.T) {
 	// Test with a schema registry, which fails and manually (de)serializes the data
 	for _, element := range []Element{Key, Value} {
@@ -37,6 +38,7 @@ func TestSerializeDeserializeAvro(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeAvroFailsOnSchemaError tests serialization and deserialization of Avro messages and fails on schema error
 func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	jsonSchema = `{}`
 
@@ -57,6 +59,7 @@ func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeAvroFailsOnWireFormatError tests serialization and deserialization of Avro messages and fails on wire format error
 func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	schema := `{}`
 
@@ -78,6 +81,7 @@ func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	}
 }
 
+// TestSerializeDeserializeAvroFailsOnEncodeDecodeError tests serialization and deserialization of Avro messages and fails on encode/decode error
 func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 	data := `{"nonExistingField":"value"}`
 
