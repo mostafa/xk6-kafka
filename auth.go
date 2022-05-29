@@ -33,6 +33,7 @@ type TLSConfig struct {
 	ServerCaPem   string `json:"serverCaPem"`
 }
 
+// UnmarshalCredentials parses the given auth string into a Credentials struct
 func UnmarshalCredentials(auth string) (*Credentials, *Xk6KafkaError) {
 	creds := &Credentials{
 		Algorithm: None,
@@ -48,6 +49,7 @@ func UnmarshalCredentials(auth string) (*Credentials, *Xk6KafkaError) {
 	}
 }
 
+// GetDialerFromCreds creates a kafka dialer from the given credentials struct
 func GetDialerFromCreds(creds *Credentials) (*kafkago.Dialer, *Xk6KafkaError) {
 	tlsConfig, err := GetTLSConfig(creds.TLSConfig)
 	if err != nil && err.Unwrap() != nil {
@@ -87,6 +89,7 @@ func GetDialerFromCreds(creds *Credentials) (*kafkago.Dialer, *Xk6KafkaError) {
 	return dialer, nil
 }
 
+// GetDialerFromAuth creates a kafka dialer from the given auth string or an unauthenticated dialer if the auth string is empty
 func GetDialerFromAuth(auth string) (*kafkago.Dialer, *Xk6KafkaError) {
 	if auth != "" {
 		// Parse the auth string
@@ -108,11 +111,13 @@ func GetDialerFromAuth(auth string) (*kafkago.Dialer, *Xk6KafkaError) {
 	}
 }
 
+// FileExists returns true if the given file exists
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil
 }
 
+// GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors
 func GetTLSConfig(tlsConfig *TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	if tlsConfig == nil {
 		return nil, NewXk6KafkaError(noTLSConfig, "No TLS config provided.", nil)
