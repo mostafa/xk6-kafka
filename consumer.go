@@ -10,6 +10,7 @@ import (
 
 var DefaultDeserializer = StringDeserializer
 
+// Reader creates a Kafka reader with the given configuration
 func (k *Kafka) Reader(
 	brokers []string, topic string, partition int,
 	groupID string, offset int64, auth string) (*kafkago.Reader, *Xk6KafkaError) {
@@ -54,11 +55,13 @@ func (k *Kafka) Reader(
 	return reader, nil
 }
 
+// Consume consumes messages from the given reader
 func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
 	keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
 	return k.consumeInternal(reader, limit, Configuration{}, keySchema, valueSchema)
 }
 
+// ConsumeWithConfiguration consumes messages from the given reader with the given configuration
 func (k *Kafka) ConsumeWithConfiguration(
 	reader *kafkago.Reader, limit int64, configurationJson string,
 	keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
@@ -72,6 +75,7 @@ func (k *Kafka) ConsumeWithConfiguration(
 	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
+// GetDeserializer returns the deserializer for the given schema
 func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
 		return de.GetDeserializer()
@@ -79,6 +83,7 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	return DeserializeString
 }
 
+// consumeInternal consumes messages from the given reader
 func (k *Kafka) consumeInternal(
 	reader *kafkago.Reader, limit int64,
 	configuration Configuration, keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
@@ -182,6 +187,7 @@ func (k *Kafka) consumeInternal(
 	return messages, nil
 }
 
+// reportReaderStats reports the reader stats
 func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) *Xk6KafkaError {
 	state := k.vu.State()
 	if state == nil {
