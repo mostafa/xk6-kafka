@@ -7,6 +7,8 @@ import (
 	kafkago "github.com/segmentio/kafka-go"
 )
 
+// GetKafkaConnection returns a kafka connection to the given address. It will also try to
+// use the auth and TLS settings to create a secure connection.
 func (k *Kafka) GetKafkaConnection(address, auth string) (*kafkago.Conn, *Xk6KafkaError) {
 	dialer, wrappedError := GetDialerFromAuth(auth)
 	if wrappedError != nil {
@@ -31,6 +33,9 @@ func (k *Kafka) GetKafkaConnection(address, auth string) (*kafkago.Conn, *Xk6Kaf
 	return conn, nil
 }
 
+// CreateTopic creates a topic with the given name, partitions, replication factor and compression.
+// It will also try to use the auth and TLS settings to create a secure connection. If the topic
+// already exists, it will do no-op.
 func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) *Xk6KafkaError {
 	conn, wrappedError := k.GetKafkaConnection(address, auth)
 	if wrappedError != nil {
@@ -69,6 +74,9 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 	return nil
 }
 
+// DeleteTopic deletes the given topic from the given address. It will also try to
+// use the auth and TLS settings to create a secure connection. If the topic
+// does not exist, it will raise an error.
 func (k *Kafka) DeleteTopic(address, topic string, auth string) *Xk6KafkaError {
 	conn, wrappedError := k.GetKafkaConnection(address, auth)
 	if wrappedError != nil {
@@ -84,6 +92,9 @@ func (k *Kafka) DeleteTopic(address, topic string, auth string) *Xk6KafkaError {
 	return nil
 }
 
+// ListTopics lists the topics from the given address. It will also try to
+// use the auth and TLS settings to create a secure connection. If the topic
+// does not exist, it will raise an error.
 func (k *Kafka) ListTopics(address string, auth string) ([]string, *Xk6KafkaError) {
 	conn, wrappedError := k.GetKafkaConnection(address, auth)
 	if wrappedError != nil {
