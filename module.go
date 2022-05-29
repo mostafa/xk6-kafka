@@ -6,6 +6,7 @@ import (
 	"go.k6.io/k6/js/modules"
 )
 
+// init registers the xk6-kafka module as 'k6/x/kafka'
 func init() {
 	modules.Register("k6/x/kafka", New())
 }
@@ -29,10 +30,12 @@ var (
 	_ modules.Module   = &RootModule{}
 )
 
+// New creates a new instance of the root module
 func New() *RootModule {
 	return &RootModule{}
 }
 
+// NewModuleInstance creates a new instance of the Kafka module
 func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	m, err := registerMetrics(vu)
 	if err != nil {
@@ -48,6 +51,8 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	}
 }
 
+// Exports returns the exports of the Kafka module, which are the functions
+// that can be called from the JS code.
 func (c *KafkaModule) Exports() modules.Exports {
 	return modules.Exports{Default: c.Kafka}
 }
