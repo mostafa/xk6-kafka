@@ -20,6 +20,7 @@ type Configuration struct {
 	SchemaRegistry SchemaRegistryConfiguration `json:"schemaRegistry"`
 }
 
+// UnmarshalConfiguration unmarshalls the given JSON string into a Configuration.
 func UnmarshalConfiguration(jsonConfiguration string) (Configuration, *Xk6KafkaError) {
 	var configuration Configuration
 	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
@@ -30,6 +31,7 @@ func UnmarshalConfiguration(jsonConfiguration string) (Configuration, *Xk6KafkaE
 	return configuration, nil
 }
 
+// ValidateConfiguration validates the given configuration.
 func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
 	if (Configuration{}) == configuration {
 		// No configuration, fallback to default
@@ -43,6 +45,7 @@ func ValidateConfiguration(configuration Configuration) *Xk6KafkaError {
 	return nil
 }
 
+// GivenCredentials returns true if the given configuration has credentials.
 func GivenCredentials(configuration Configuration) bool {
 	if (Configuration{}) == configuration ||
 		(SchemaRegistryConfiguration{}) == configuration.SchemaRegistry ||
