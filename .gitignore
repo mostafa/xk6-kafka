@@ -16,3 +16,5 @@ vendor/
 k6
 .idea
 act
+__debug_bin
+
