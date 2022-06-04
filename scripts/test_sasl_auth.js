@@ -37,7 +37,7 @@ const [consumer, _readerError] = reader(
     auth
 );
 
-if (__VU == 1) {
+if (__VU == 0) {
     createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression, auth);
     console.log("Existing topics: ", listTopics(bootstrapServers[0], auth));
 }
@@ -87,7 +87,7 @@ export default function () {
 }
 
 export function teardown(data) {
-    if (__VU == 1) {
+    if (__VU == 0) {
         // Delete the topic
         const error = deleteTopic(bootstrapServers[0], kafkaTopic);
         if (error === undefined) {
