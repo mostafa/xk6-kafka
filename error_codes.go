@@ -50,9 +50,10 @@ const (
 	schemaCreationFailed errCode = 6002
 
 	// topics
-	failedCreateTopic    errCode = 7000
-	failedDeleteTopic    errCode = 7001
-	failedReadPartitions errCode = 7002
+	failedGetController  errCode = 7000
+	failedCreateTopic    errCode = 7001
+	failedDeleteTopic    errCode = 7002
+	failedReadPartitions errCode = 7003
 )
 
 // ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context

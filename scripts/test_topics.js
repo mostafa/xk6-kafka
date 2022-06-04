@@ -16,7 +16,7 @@ const error = createTopic(address, kafkaTopic);
 export default function () {
     results.forEach((topic) => console.log(topic));
 
-    if (error === undefined) {
+    if (error == null) {
         // If no error returns, it means that the topic
         // is successfully created or already exists
         console.log("Topic created successfully");
@@ -25,11 +25,11 @@ export default function () {
     }
 }
 
-export function teardown() {
-    if (__VU == 1) {
+export function teardown(data) {
+    if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error === undefined) {
+        const error = deleteTopic(address, kafkaTopic);
+        if (error == null) {
             // If no error returns, it means that the topic
             // is successfully deleted
             console.log("Topic deleted successfully");

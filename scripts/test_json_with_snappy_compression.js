@@ -27,7 +27,7 @@ const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 const replicationFactor = 1;
 const partitions = 1;
 
-if (__VU == 1) {
+if (__VU == 0) {
     // Create the topic or do nothing if the topic exists.
     createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression);
 }
@@ -77,7 +77,7 @@ export default function () {
 }
 
 export function teardown(data) {
-    if (__VU == 1) {
+    if (__VU == 0) {
         // Delete the topic
         const error = deleteTopic(bootstrapServers[0], kafkaTopic);
         if (error === undefined) {

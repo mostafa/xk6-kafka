@@ -59,7 +59,7 @@ var configuration = JSON.stringify({
     },
 });
 
-if (__VU == 1) {
+if (__VU == 0) {
     createTopic(bootstrapServers[0], kafkaTopic);
 }
 
@@ -113,7 +113,7 @@ export default function () {
 }
 
 export function teardown(data) {
-    if (__VU == 1) {
+    if (__VU == 0) {
         // Delete the kafkaTopic
         const error = deleteTopic(bootstrapServers[0], kafkaTopic);
         if (error === undefined) {
