@@ -6,7 +6,7 @@ The xk6-kafka project is a [k6 extension](https://k6.io/docs/extensions/guides/w
 
 The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, Avro and JSONSchema, are supported. Avro schema and JSONSchema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, Avro and JSON Schema, are supported. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
@@ -14,8 +14,8 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 
 ## Supported Features
 
-- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSONSchema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) format
-- Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) and [JSONSchema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) key and value schemas in the script
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) format
+- Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) key and value schemas in the script
 - Authentication with [SASL PLAIN and SCRAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
@@ -25,6 +25,7 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_key.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/e1a810d52112f05d7a66c12740d9885ebb64897e/scripts/test_json.js#L21-L27) on custom Kafka metrics
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
+- Lots of exported metrics, as shown in the result output of the [k6 test script](#k6-test-script)
 
 ## Backward Compatibility Notice
 
@@ -44,6 +45,10 @@ Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), there 
 docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
 ```
 
+## The Official Binaries
+
+Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), the binary version of xk6-kafka is built and published on each [release](https://github.com/mostafa/xk6-kafka/releases). For now, the binaries are only published for Linux, MacOS and Windows for `amd64` (`x86_64`) machines. If you want to see an official build for your machine, please build and test xk6-kafka from [source](#build-from-source) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) and I'll add it to the build pipeline and publish binaries on the next release.
+
 ## Build from Source
 
 The k6 binary can be built on various platforms, and each platform has its own set of requirements. The following shows how to build k6 binary with this extension on GNU/Linux distributions.
@@ -58,7 +63,7 @@ To build the source, you should have the latest version of Go installed. The lat
 
 ### Install and build
 
-Feel free the first two steps if you already have Go installed.
+Feel free to skip the first two steps if you already have Go installed.
 
 1. Install gvm by following its [installation guide](https://github.com/moovweb/gvm#installing).
 2. Install the latest version of Go using gvm. You need Go 1.4 installed for bootstrapping into higher Go versions, as explained [here](https://github.com/moovweb/gvm#a-note-on-compiling-go-15).
@@ -75,6 +80,15 @@ Feel free the first two steps if you already have Go installed.
     ```
 
 **Note:** you can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
+
+### Build for development
+
+If you want to add a feature or make a fix, clone the project and build it using the following commands. The xk6 here will force the build to use the local clone, instead of fetching the latest version from the repository. This enable you to update the code and test it locally.
+
+```bash
+git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
+xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+```
 
 ## Examples
 
@@ -125,7 +139,7 @@ All the exported functions are available by importing them from `k6/x/kafka`. Th
  * Create a new Writer object for writing messages to Kafka.
  *
  * @constructor
- * @param   {[string]}          brokers     An array of brokers.
+ * @param   {[string]}          brokers     An array of brokers, e.g. ["host:port", ...].
  * @param   {string}            topic       The topic to write to.
  * @param   {string}            auth:       The authentication credentials for SASL PLAIN/SCRAM.
  * @param   {string}            compression The Compression algorithm.
@@ -138,7 +152,7 @@ function writer(brokers: [string], topic: string, auth: string, compression: str
  *
  * @function
  * @param   {object}    writer      The writer object created with the writer constructor.
- * @param   {[object]}  messages    An array of message objects containing an optional key and a value.
+ * @param   {[object]}  messages    An array of message objects containing an optional key and a value. Topic, offset and time and headers are also available and optional. Headers are objects.
  * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
  * @returns {object}    A error object.
@@ -150,7 +164,7 @@ function produce(writer: object, messages: [object], keySchema: string, valueSch
  *
  * @function
  * @param   {object}    writer              The writer object created with the writer constructor.
- * @param   {[object]}  messages            An array of message objects containing an optional key and a value.
+ * @param   {[object]}  messages            An array of message objects containing an optional key and a value. Topic, offset and time and headers are also available and optional. Headers are objects.
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
  * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
@@ -162,7 +176,7 @@ function produceWithConfiguration(writer: object, messages: [object], configurat
  * Create a new Reader object for reading messages from Kafka.
  *
  * @constructor
- * @param   {[string]}          brokers     An array of brokers.
+ * @param   {[string]}          brokers     An array of brokers, e.g. ["host:port", ...].
  * @param   {string}            topic       The topic to read from.
  * @param   {number}            partition   The partition.
  * @param   {number}            groupID     The group ID.
@@ -176,26 +190,26 @@ function reader(brokers: [string], topic: string, partition: number, groupID: st
  * Read a sequence of messages from Kafka.
  *
  * @function
- * @param   {object}    reader      The reader object created with the reader constructor.
- * @param   {number}    limit       How many messages should be read in one go, which blocks. Defaults to 1.
- * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
- * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
- * @returns {object}    A error object.
+ * @param   {object}            reader      The reader object created with the reader constructor.
+ * @param   {number}            limit       How many messages should be read in one go, which blocks. Defaults to 1.
+ * @param   {string}            keySchema   An optional Avro/JSONSchema schema for the key.
+ * @param   {string}            valueSchema An optional Avro/JSONSchema schema for the value.
+ * @returns {[[object], error]} An array of two objects: an array of objects and an error object. Each message object can contain a value and an optional set of key, topic, partition, offset, time, highWaterMark and headers. Headers are objects.
  */
-function consume(reader: object, limit: number, keySchema: string, valueSchema: string) => error {}
+function consume(reader: object, limit: number, keySchema: string, valueSchema: string) => [[object], error] {}
 
 /**
  * Read a sequence of messages from Kafka.
  *
  * @function
- * @param   {object}    reader              The reader object created with the reader constructor.
- * @param   {number}    limit               How many messages should be read in one go, which blocks. Defaults to 1.
- * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
- * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
- * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
- * @returns {object}    A error object.
+ * @param   {object}            reader              The reader object created with the reader constructor.
+ * @param   {number}            limit               How many messages should be read in one go, which blocks. Defaults to 1.
+ * @param   {string}            configurationJson   Serializer, deserializer and schemaRegistry configuration.
+ * @param   {string}            keySchema           An optional Avro/JSONSchema schema for the key.
+ * @param   {string}            valueSchema         An optional Avro/JSONSchema schema for the value.
+ * @returns {[[object], error]} An array of two objects: an array of objects and an error object. Each message object can contain a value and an optional set of key, topic, partition, offset, time, highWaterMark and headers. Headers are objects.
  */
-function consumeWithConfiguration(reader: object, limit: number, configurationJson: string, keySchema: string, valueSchema: string) => error {}
+function consumeWithConfiguration(reader: object, limit: number, configurationJson: string, keySchema: string, valueSchema: string) => [[object], error] {}
 
 /**
  * Create a topic in Kafka. It does nothing if the topic exists.
