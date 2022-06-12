@@ -40,11 +40,10 @@ const (
 
 	// authentication
 	failedCreateDialerWithScram   errCode = 5000
-	failedUnmarshalCreds          errCode = 5001
+	failedCreateDialerWithSaslSSL errCode = 5001
 	failedLoadX509KeyPair         errCode = 5002
 	failedReadCaCertFile          errCode = 5003
 	failedAppendCaCertFile        errCode = 5004
-	failedCreateDialerWithSaslSSL errCode = 5005
 
 	// schema registry
 	messageTooShort      errCode = 6000
