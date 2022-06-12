@@ -1,0 +1,8 @@
+{
+    "theme": "markdown",
+    "hideBreadcrumbs": true,
+    "disableSources": true,
+    "entryPoints": ["index.d.ts"],
+    "plugin": ["typedoc-plugin-markdown"],
+    "readme": "none"
+}
