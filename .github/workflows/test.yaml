@@ -31,7 +31,7 @@ jobs:
       - name: Lint security issues 🔒
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec .
+          gosec -exclude=G402 .
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
