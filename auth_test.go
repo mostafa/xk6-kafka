@@ -146,7 +146,7 @@ func TestTlsConfigFails(t *testing.T) {
 			tlsConfig:  TLSConfig{EnableTLS: true, ClientCertPem: "test.cer"},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "Client certificate file not found. Continuing with default TLS settings.",
+				Message: "Client certificate file not found.",
 			},
 		},
 		{
@@ -157,7 +157,7 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "Client key file not found. Continuing with default TLS settings.",
+				Message: "Client key file not found.",
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "CA certificate file not found. Continuing with default TLS settings.",
+				Message: "CA certificate file not found.",
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 			err: &Xk6KafkaError{
 				Code:          failedLoadX509KeyPair,
-				Message:       "Error creating x509 key pair from client cert file \"fixtures/invalid-client.cer\" and client key file \"fixtures/invalid-client.pem\". Continuing with default TLS settings.",
+				Message:       "Error creating x509 key pair from client cert file \"fixtures/invalid-client.cer\" and client key file \"fixtures/invalid-client.pem\".",
 				OriginalError: errors.New("tls: failed to find any PEM data in certificate input"),
 			},
 		},
@@ -195,7 +195,7 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 			err: &Xk6KafkaError{
 				Code:    failedAppendCaCertFile,
-				Message: "Error appending CA certificate file \"fixtures/invalid-caroot.cer\". Continuing with default TLS settings.",
+				Message: "Error appending CA certificate file \"fixtures/invalid-caroot.cer\".",
 			},
 		},
 	}

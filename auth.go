@@ -157,21 +157,21 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	if !FileExists(*clientCertFile) {
 		return nil, NewXk6KafkaError(
 			fileNotFound,
-			"Client certificate file not found. Continuing with default TLS settings.", nil)
+			"Client certificate file not found.", nil)
 	}
 
 	var clientKeyFile = &tlsConfig.ClientKeyPem
 	if !FileExists(*clientKeyFile) {
 		return nil, NewXk6KafkaError(
 			fileNotFound,
-			"Client key file not found. Continuing with default TLS settings.", nil)
+			"Client key file not found.", nil)
 	}
 
 	var cert, err = tls.LoadX509KeyPair(*clientCertFile, *clientKeyFile)
 	if err != nil {
 		return nil, NewXk6KafkaError(
 			failedLoadX509KeyPair,
-			fmt.Sprintf("Error creating x509 key pair from client cert file \"%s\" and client key file \"%s\". Continuing with default TLS settings.", *clientCertFile, *clientKeyFile),
+			fmt.Sprintf("Error creating x509 key pair from client cert file \"%s\" and client key file \"%s\".", *clientCertFile, *clientKeyFile),
 			err)
 	}
 
@@ -180,7 +180,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	if !FileExists(*caCertFile) {
 		return nil, NewXk6KafkaError(
 			fileNotFound,
-			"CA certificate file not found. Continuing with default TLS settings.", nil)
+			"CA certificate file not found.", nil)
 	}
 
 	caCert, err := os.ReadFile(*caCertFile)
@@ -189,7 +189,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		return nil, NewXk6KafkaError(
 			failedReadCaCertFile,
 			fmt.Sprintf(
-				"Error reading CA certificate file \"%s\". Continuing with default TLS settings.",
+				"Error reading CA certificate file \"%s\".",
 				*caCertFile),
 			err)
 	}
@@ -198,7 +198,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		return nil, NewXk6KafkaError(
 			failedAppendCaCertFile,
 			fmt.Sprintf(
-				"Error appending CA certificate file \"%s\". Continuing with default TLS settings.",
+				"Error appending CA certificate file \"%s\".",
 				*caCertFile),
 			nil)
 	}
