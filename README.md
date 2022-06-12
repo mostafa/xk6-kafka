@@ -141,11 +141,12 @@ All the exported functions are available by importing them from `k6/x/kafka`. Th
  * @constructor
  * @param   {[string]}          brokers     An array of brokers, e.g. ["host:port", ...].
  * @param   {string}            topic       The topic to write to.
- * @param   {string}            auth:       The authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {object}            saslConfig  The SASL configuration.
+ * @param   {object}            tlsConfig   The TLS configuration.
  * @param   {string}            compression The Compression algorithm.
  * @returns {[object, error]}   An array of two objects: A Writer object and an error object.
  */
-function writer(brokers: [string], topic: string, auth: string, compression: string) => [object, error] {}
+function writer(brokers: [string], topic: string, saslConfig: object, tlsConfig: object, compression: string) => [object, error] {}
 
 /**
  * Write a sequence of messages to Kafka.
@@ -155,9 +156,10 @@ function writer(brokers: [string], topic: string, auth: string, compression: str
  * @param   {[object]}  messages    An array of message objects containing an optional key and a value. Topic, offset and time and headers are also available and optional. Headers are objects.
  * @param   {string}    keySchema   An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema An optional Avro/JSONSchema schema for the value.
+ * @param   {boolean}   autoCreateTopic     Automatically creates the topic on the first produced message. Defaults to false.
  * @returns {object}    A error object.
  */
-function produce(writer: object, messages: [object], keySchema: string, valueSchema: string) => error {}
+function produce(writer: object, messages: [object], keySchema: string, valueSchema: string, autoCreateTopic: boolean) => error {}
 
 /**
  * Write a sequence of messages to Kafka with a specific serializer/deserializer.
@@ -168,9 +170,10 @@ function produce(writer: object, messages: [object], keySchema: string, valueSch
  * @param   {string}    configurationJson   Serializer, deserializer and schemaRegistry configuration.
  * @param   {string}    keySchema           An optional Avro/JSONSchema schema for the key.
  * @param   {string}    valueSchema         An optional Avro/JSONSchema schema for the value.
+ * @param   {boolean}   autoCreateTopic     Automatically creates the topic on the first produced message. Defaults to false.
  * @returns {object}    A error object.
  */
-function produceWithConfiguration(writer: object, messages: [object], configurationJson: string, keySchema: string, valueSchema: string) => error {}
+function produceWithConfiguration(writer: object, messages: [object], configurationJson: string, keySchema: string, valueSchema: string, autoCreateTopic: boolean) => error {}
 
 /**
  * Create a new Reader object for reading messages from Kafka.
@@ -181,10 +184,11 @@ function produceWithConfiguration(writer: object, messages: [object], configurat
  * @param   {number}            partition   The partition.
  * @param   {number}            groupID     The group ID.
  * @param   {number}            offset      The offset to begin reading from.
- * @param   {string}            auth        Authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {object}            saslConfig  The SASL configuration.
+ * @param   {object}            tlsConfig   The TLS configuration.
  * @returns {[object, error]}   An array of two objects: A Reader object and an error object.
  */
-function reader(brokers: [string], topic: string, partition: number, groupID: string, offset: number, auth: string) => [object, error] {}
+function reader(brokers: [string], topic: string, partition: number, groupID: string, offset: number, saslConfig: object, tlsConfig: object) => [object, error] {}
 
 /**
  * Read a sequence of messages from Kafka.
@@ -220,10 +224,11 @@ function consumeWithConfiguration(reader: object, limit: number, configurationJs
  * @param   {number}    partitions          The number of partitions.
  * @param   {number}    replicationFactor   The replication factor in a clustered setup.
  * @param   {string}    compression         The compression algorithm.
- * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {object}    saslConfig          The SASL configuration.
+ * @param   {object}    tlsConfig           The TLS configuration.
  * @returns {object}    A error object.
  */
-function createTopic(address: string, topic: string, partitions: number, replicationFactor: number, compression: string, auth: string) => error {}
+function createTopic(address: string, topic: string, partitions: number, replicationFactor: number, compression: string, saslConfig: object, tlsConfig: object) => error {}
 
 /**
  * Delete a topic from Kafka. It raises an error if the topic doesn't exist.
@@ -231,20 +236,22 @@ function createTopic(address: string, topic: string, partitions: number, replica
  * @function
  * @param   {string}    address             The broker address.
  * @param   {string}    topic               The topic name.
- * @param   {string}    auth                Authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {object}    saslConfig          The SASL configuration.
+ * @param   {object}    tlsConfig           The TLS configuration.
  * @returns {object}    A error object.
  */
-function deleteTopic(address: string, topic: string, auth: string) => error {}
+function deleteTopic(address: string, topic: string, saslConfig: object, tlsConfig: object) => error {}
 
 /**
  * List all topics in Kafka.
  *
  * @function
  * @param   {string}    address The broker address.
- * @param   {string}    auth    Authentication credentials for SASL PLAIN/SCRAM.
+ * @param   {object}    saslConfig          The SASL configuration.
+ * @param   {object}    tlsConfig           The TLS configuration.
  * @returns {[[string]], error]}    A nested list of strings containing a list of topics and the error object (if any).
  */
-function listTopics(address: string, auth: string) => [[string], error] {}
+function listTopics(address: string, saslConfig: object, tlsConfig: object) => [[string], error] {}
 ```
 
 </details>
