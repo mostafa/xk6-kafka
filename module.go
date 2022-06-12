@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"github.com/dop251/goja"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modules"
@@ -41,6 +42,9 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	if err != nil {
 		common.Throw(vu.Runtime(), err)
 	}
+
+	// This causes the struct fields to be exported to the native (camelCases) JS code.
+	vu.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
 	return &KafkaModule{Kafka: &Kafka{
 		vu:                   vu,

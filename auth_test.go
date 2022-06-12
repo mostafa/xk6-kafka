@@ -10,94 +10,94 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestUnmarshalCredentials tests the unmarshalling of credentials
-func TestUnmarshalCredentials(t *testing.T) {
-	creds, err := UnmarshalCredentials(`{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`)
-	assert.Nil(t, err)
-	assert.Equal(t, "test", creds.Username)
-	assert.Equal(t, "test", creds.Password)
-	assert.Equal(t, "plain", creds.Algorithm)
-	assert.Equal(t, "client.pem", creds.TLSConfig.ClientCertPem)
-	assert.Equal(t, "key.pem", creds.TLSConfig.ClientKeyPem)
-	assert.Equal(t, "server.pem", creds.TLSConfig.ServerCaPem)
-}
-
-// TestUnmarshalCredentialsFails tests the unmarshalling of credentials and fails on invalid format
-func TestUnmarshalCredentialsFails(t *testing.T) {
-	// This only fails on invalid JSON (apparently)
-	creds, err := UnmarshalCredentials(`{"invalid": "invalid`)
-	assert.Nil(t, creds)
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Message, "Unable to unmarshal credentials")
-	// This is the error we get from the json package wrapped inside the Xk6KafkaError
-	assert.Equal(t, err.Unwrap().Error(), "unexpected end of JSON input")
-}
-
-// TestGetDialerFromCredsWithSASLPlain tests the creation of a dialer with SASL PLAIN
-func TestGetDialerFromCredsWithSASLPlain(t *testing.T) {
-	creds := &Credentials{
+// TestGetDialerWithSASLPlainAndFullTLSConfig tests the creation of a dialer with SASL PLAIN and TLS config
+func TestGetDialerWithSASLPlainAndFullTLSConfig(t *testing.T) {
+	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: Plain,
+		Algorithm: SASL_Plain,
 	}
-	dialer, err := GetDialerFromCreds(creds)
+	tlsConfig := TLSConfig{
+		EnableTLS:             true,
+		InsecureSkipTLSVerify: false,
+		ClientCertPem:         "client.cer",
+		ClientKeyPem:          "key.pem",
+		ServerCaPem:           "caroot.cer",
+	}
+	dialer, err := GetDialer(saslConfig, tlsConfig)
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, true, dialer.DualStack)
+	assert.Equal(t, false, dialer.DualStack)
 	assert.Nil(t, dialer.TLS)
 	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
 	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Username)
 	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
 }
 
-// TestGetDialerFromCredsWithSASLScram tests the creation of a dialer with SASL SCRAM
-func TestGetDialerFromCredsWithSASLScram(t *testing.T) {
-	creds := &Credentials{
+// TestGetDialerWithSASLPlainWithDefaultTLSConfig tests the creation of a dialer with SASL PLAIN
+func TestGetDialerWithSASLPlainWithDefaultTLSConfig(t *testing.T) {
+	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SHA256,
+		Algorithm: SASL_Plain,
 	}
-	dialer, err := GetDialerFromCreds(creds)
+	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
 	assert.Equal(t, true, dialer.DualStack)
-	assert.Nil(t, dialer.TLS)
+	assert.NotNil(t, dialer.TLS)
+	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
+	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Username)
+	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
+}
+
+// TestGetDialerWithSASLScramWithDefaultTLSConfig tests the creation of a dialer with SASL SCRAM
+func TestGetDialerWithSASLScram(t *testing.T) {
+	saslConfig := SASLConfig{
+		Username:  "test",
+		Password:  "test",
+		Algorithm: SASL_SCRAM_SHA256, // Same applies with SASL_SCRAM_SHA512
+	}
+	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
+	assert.Nil(t, err)
+	assert.NotNil(t, dialer)
+	assert.Equal(t, 10*time.Second, dialer.Timeout)
+	assert.Equal(t, true, dialer.DualStack)
+	assert.NotNil(t, dialer.TLS)
 	assert.Equal(t, scram.SHA256.Name(), dialer.SASLMechanism.Name())
 }
 
-// TestGetDialerFromCredsFails tests the creation of a dialer with SASL PLAIN and fails on invalid credentials
-func TestGetDialerFromCredsFails(t *testing.T) {
-	creds := &Credentials{
+// TestGetDialerWithSASLSSLWithNoTLSConfigFails tests the creation of a dialer with SASL SSL
+func TestGetDialerWithSASLSSLWithNoTLSConfigFails(t *testing.T) {
+	saslConfig := SASLConfig{
+		Username:  "test",
+		Password:  "test",
+		Algorithm: SASL_SSL,
+	}
+	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: false})
+	assert.NotNil(t, err)
+	assert.Nil(t, dialer)
+}
+
+// TestGetDialerFails tests the creation of a dialer with SASL PLAIN and fails on invalid credentials
+func TestGetDialerFails(t *testing.T) {
+	saslConfig := SASLConfig{
 		Username:  "https://www.exa\t\r\n",
 		Password:  "test",
-		Algorithm: "sha256",
+		Algorithm: SASL_SCRAM_SHA256,
 	}
-	dialer, wrappedError := GetDialerFromCreds(creds)
+	dialer, wrappedError := GetDialer(saslConfig, TLSConfig{})
 	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")
 	// This is a stringprep (RFC3454) error wrapped inside the Xk6KafkaError
 	assert.Equal(t, wrappedError.Unwrap().Error(), "Error SASLprepping username 'https://www.exa\t\r\n': prohibited character (rune: '\\u0009')")
 	assert.Nil(t, dialer)
 }
 
-// TestGetDialerFromAuth tests the creation of a dialer with SASL PLAIN and TLS config
-func TestGetDialerFromAuth(t *testing.T) {
-	auth := `{"username": "test", "password": "test", "algorithm": "plain", "tlsConfig": {"clientCertPem": "client.pem", "clientKeyPem": "key.pem", "serverCaPem": "server.pem"}}`
-	dialer, err := GetDialerFromAuth(auth)
-	assert.Nil(t, err)
-	assert.NotNil(t, dialer)
-	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, true, dialer.DualStack)
-	assert.Nil(t, dialer.TLS)
-	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Username)
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
-}
-
-// TestGetDialerFromAuthNoAuthString tests the creation of an unauthenticated dialer
-func TestGetDialerFromAuthNoAuthString(t *testing.T) {
-	dialer, err := GetDialerFromAuth("")
+// TestGetDialerUnauthenticatedNoTLS tests the creation of an unauthenticated dialer
+func TestGetDialerUnauthenticatedNoTLS(t *testing.T) {
+	dialer, err := GetDialer(SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 	assert.NotNil(t, dialer)
 	assert.Equal(t, 10*time.Second, dialer.Timeout)
@@ -112,96 +112,98 @@ func TestFileExists(t *testing.T) {
 }
 
 type SimpleTLSConfig struct {
-	creds *Credentials
-	err   *Xk6KafkaError
+	saslConfig SASLConfig
+	tlsConfig  TLSConfig
+	err        *Xk6KafkaError
 }
 
 // TestTlsConfig tests the creation of a TLS config
 func TestTlsConfig(t *testing.T) {
-	creds := &Credentials{
-		TLSConfig: &TLSConfig{
-			ClientCertPem: "fixtures/client.cer",
-			ClientKeyPem:  "fixtures/client.pem",
-			ServerCaPem:   "fixtures/caroot.cer",
-		},
+	tlsConfig := TLSConfig{
+		EnableTLS:     true,
+		ClientCertPem: "fixtures/client.cer",
+		ClientKeyPem:  "fixtures/client.pem",
+		ServerCaPem:   "fixtures/caroot.cer",
 	}
-	tlsConfig, err := GetTLSConfig(creds.TLSConfig)
+	tlsObject, err := GetTLSConfig(tlsConfig)
 	assert.Nil(t, err)
-	assert.NotNil(t, tlsConfig)
+	assert.NotNil(t, tlsObject)
 }
 
 // TestTlsConfigFails tests the creation of a TLS config and fails on invalid files and configs
 func TestTlsConfigFails(t *testing.T) {
-	creds := []*SimpleTLSConfig{
+	saslConfig := []*SimpleTLSConfig{
 		{
-			creds: &Credentials{},
+			saslConfig: SASLConfig{},
+			tlsConfig:  TLSConfig{},
 			err: &Xk6KafkaError{
 				Code:    noTLSConfig,
-				Message: "No TLS config provided.",
+				Message: "No TLS config provided. Continuing with TLS disabled.",
 			},
 		},
 		{
-			creds: &Credentials{TLSConfig: &TLSConfig{}},
+			saslConfig: SASLConfig{},
+			tlsConfig:  TLSConfig{EnableTLS: true, ClientCertPem: "test.cer"},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "Client certificate file not found.",
+				Message: "Client certificate file not found. Continuing with default TLS settings.",
 			},
 		},
 		{
-			creds: &Credentials{
-				TLSConfig: &TLSConfig{
-					ClientCertPem: "fixtures/client.cer",
-				},
-			},
-			err: &Xk6KafkaError{
-				Code:    fileNotFound,
-				Message: "Client key file not found.",
-			},
-		},
-		{
-			creds: &Credentials{
-				TLSConfig: &TLSConfig{
-					ClientCertPem: "fixtures/client.cer",
-					ClientKeyPem:  "fixtures/client.pem",
-				},
+			saslConfig: SASLConfig{},
+			tlsConfig: TLSConfig{
+				EnableTLS:     true,
+				ClientCertPem: "fixtures/client.cer",
 			},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "CA certificate file not found.",
+				Message: "Client key file not found. Continuing with default TLS settings.",
 			},
 		},
 		{
-			creds: &Credentials{
-				TLSConfig: &TLSConfig{
-					ClientCertPem: "fixtures/invalid-client.cer",
-					ClientKeyPem:  "fixtures/invalid-client.pem",
-				},
+			saslConfig: SASLConfig{},
+			tlsConfig: TLSConfig{
+				EnableTLS:     true,
+				ClientCertPem: "fixtures/client.cer",
+				ClientKeyPem:  "fixtures/client.pem",
+			},
+			err: &Xk6KafkaError{
+				Code:    fileNotFound,
+				Message: "CA certificate file not found. Continuing with default TLS settings.",
+			},
+		},
+		{
+			saslConfig: SASLConfig{},
+			tlsConfig: TLSConfig{
+				EnableTLS:     true,
+				ClientCertPem: "fixtures/invalid-client.cer",
+				ClientKeyPem:  "fixtures/invalid-client.pem",
 			},
 			err: &Xk6KafkaError{
 				Code:          failedLoadX509KeyPair,
-				Message:       "Error creating x509 keypair from client cert file \"fixtures/invalid-client.cer\" and client key file \"fixtures/invalid-client.pem\"",
+				Message:       "Error creating x509 key pair from client cert file \"fixtures/invalid-client.cer\" and client key file \"fixtures/invalid-client.pem\". Continuing with default TLS settings.",
 				OriginalError: errors.New("tls: failed to find any PEM data in certificate input"),
 			},
 		},
 		{
-			creds: &Credentials{
-				TLSConfig: &TLSConfig{
-					ClientCertPem: "fixtures/client.cer",
-					ClientKeyPem:  "fixtures/client.pem",
-					ServerCaPem:   "fixtures/invalid-caroot.cer",
-				},
+			saslConfig: SASLConfig{},
+			tlsConfig: TLSConfig{
+				EnableTLS:     true,
+				ClientCertPem: "fixtures/client.cer",
+				ClientKeyPem:  "fixtures/client.pem",
+				ServerCaPem:   "fixtures/invalid-caroot.cer",
 			},
 			err: &Xk6KafkaError{
 				Code:    failedAppendCaCertFile,
-				Message: "Error appending CA certificate file \"fixtures/invalid-caroot.cer\"",
+				Message: "Error appending CA certificate file \"fixtures/invalid-caroot.cer\". Continuing with default TLS settings.",
 			},
 		},
 	}
 
-	for _, c := range creds {
-		tlsConfig, err := GetTLSConfig(c.creds.TLSConfig)
+	for _, c := range saslConfig {
+		tlsObject, err := GetTLSConfig(c.tlsConfig)
 		assert.NotNil(t, err)
 		assert.Equal(t, c.err, err)
-		assert.Nil(t, tlsConfig)
+		assert.Nil(t, tlsObject)
 	}
 }

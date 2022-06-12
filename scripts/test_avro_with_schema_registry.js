@@ -106,7 +106,7 @@ export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
         const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error === undefined) {
+        if (error == null) {
             // If no error returns, it means that the topic
             // is successfully deleted
             console.log("Topic deleted successfully");

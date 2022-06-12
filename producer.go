@@ -25,8 +25,8 @@ var (
 
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
-func (k *Kafka) Writer(brokers []string, topic string, auth string, compression string) (*kafkago.Writer, *Xk6KafkaError) {
-	dialer, err := GetDialerFromAuth(auth)
+func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) (*kafkago.Writer, *Xk6KafkaError) {
+	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)
@@ -44,7 +44,7 @@ func (k *Kafka) Writer(brokers []string, topic string, auth string, compression 
 		Async:     false,
 	}
 
-	if codec, exists := CompressionCodecs[compression]; exists {
+	if codec, ok := CompressionCodecs[compression]; ok {
 		writerConfig.CompressionCodec = codec
 	}
 
@@ -55,14 +55,18 @@ func (k *Kafka) Writer(brokers []string, topic string, auth string, compression 
 // Produce sends messages to Kafka
 func (k *Kafka) Produce(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	keySchema string, valueSchema string) *Xk6KafkaError {
+	keySchema string, valueSchema string, autoCreateTopic bool) *Xk6KafkaError {
+	writer.AllowAutoTopicCreation = autoCreateTopic
+
 	return k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
 // ProduceWithConfiguration sends messages to Kafka with the given configuration
 func (k *Kafka) ProduceWithConfiguration(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	configurationJson string, keySchema string, valueSchema string) *Xk6KafkaError {
+	configurationJson string, keySchema string, valueSchema string, autoCreateTopic bool) *Xk6KafkaError {
+	writer.AllowAutoTopicCreation = autoCreateTopic
+
 	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
 		if err.Unwrap() != nil {

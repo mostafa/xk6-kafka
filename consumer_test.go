@@ -15,11 +15,12 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	test := GetTestModuleInstance(t)
 
 	// Create a topic before consuming messages, other tests will fail.
-	err := test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+	err := test.module.CreateTopic(
+		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 
 	// Create a writer to produce messages
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
+	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
 	assert.Nil(t, err)
 	assert.NotNil(t, writer)
 
@@ -32,7 +33,8 @@ func TestConsume(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 0, "", 0, "")
+	reader, err := test.module.Kafka.Reader(
+		[]string{"localhost:9092"}, "test-topic", 0, "", 0, SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 	assert.NotNil(t, reader)
 	defer reader.Close()
@@ -47,7 +49,7 @@ func TestConsume(t *testing.T) {
 			"value":  "value1",
 			"offset": int64(0),
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Consume a message in the VU function
@@ -88,7 +90,8 @@ func TestConsumeWithoutKey(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 0, "", 1, "")
+	reader, err := test.module.Kafka.Reader(
+		[]string{"localhost:9092"}, "test-topic", 0, "", 1, SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 	assert.NotNil(t, reader)
 	defer reader.Close()
@@ -102,7 +105,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 			"value":  "value1",
 			"offset": int64(1),
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Consume a message in the VU function
@@ -127,7 +130,8 @@ func TestConsumerContextCancelled(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 0, "", 2, "")
+	reader, err := test.module.Kafka.Reader(
+		[]string{"localhost:9092"}, "test-topic", 0, "", 2, SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 	assert.NotNil(t, reader)
 	defer reader.Close()
@@ -141,7 +145,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 			"value":  "value1",
 			"offset": int64(2),
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	test.cancelContext()
@@ -168,7 +172,8 @@ func TestConsumeJSON(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader([]string{"localhost:9092"}, "test-topic", 0, "", 3, "")
+	reader, err := test.module.Kafka.Reader(
+		[]string{"localhost:9092"}, "test-topic", 0, "", 3, SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 	assert.NotNil(t, reader)
 	defer reader.Close()
@@ -185,7 +190,7 @@ func TestConsumeJSON(t *testing.T) {
 			"value":  string(serialized),
 			"offset": int64(3),
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Consume the message

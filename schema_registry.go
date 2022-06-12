@@ -21,10 +21,10 @@ type BasicAuth struct {
 }
 
 type SchemaRegistryConfiguration struct {
-	Url       string     `json:"url"`
-	BasicAuth BasicAuth  `json:"basicAuth"`
-	UseLatest bool       `json:"useLatest"`
-	TLSConfig *TLSConfig `json:"tlsConfig"`
+	Url       string    `json:"url"`
+	BasicAuth BasicAuth `json:"basicAuth"`
+	UseLatest bool      `json:"useLatest"`
+	TLSConfig TLSConfig `json:"tlsConfig"`
 }
 
 // DecodeWireFormat removes the proprietary 5-byte prefix from the Avro, ProtoBuf
@@ -54,7 +54,7 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 
 	tlsConfig, err := GetTLSConfig(configuration.TLSConfig)
 	if err != nil {
-		logrus.New().WithError(err).Warn("Failed to get TLS config. Continuing without TLS.")
+		logrus.New().WithField("error", err).Warn("Failed to get TLS config. Continuing without TLS.")
 		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)
 	}
 
