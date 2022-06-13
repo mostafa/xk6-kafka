@@ -9,37 +9,80 @@ also uses SASL authentication.
 import { check } from "k6";
 import { writer, produce, reader, consume, createTopic, deleteTopic, listTopics } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["localhost:9093"];
+export const options = {
+    // This is used for testing purposes. For real-world use, you should use your own options:
+    // https://k6.io/docs/using-k6/k6-options/
+    scenarios: {
+        sasl_auth: {
+            executor: "constant-vus",
+            vus: 1,
+            duration: "10s",
+            gracefulStop: "1s",
+        },
+    },
+};
+
+const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
-const auth = JSON.stringify({
+
+// SASL config is optional
+const saslConfig = {
     username: "client",
     password: "client-secret",
     // Possible values for the algorithm is:
-    // SASL Plain: "plain" (default if omitted)
-    // SASL SCRAM: "sha256", "sha512"
-    algorithm: "sha256",
-});
+    // "none" (default)
+    // "sasl_plain"
+    // "sasl_scram_sha256"
+    // "sasl_scram_sha512"
+    // "sasl_ssl" (must enable TLS)
+    algorithm: "sasl_plain",
+};
+
+// TLS config is optional
+const tlsConfig = {
+    // Enable/disable TLS (default: false)
+    enableTLS: false,
+    // Skip TLS verification if the certificate is invalid or self-signed (default: false)
+    insecureSkipTLSVerify: false,
+    // Possible values: "TLSv1.0", "TLSv1.1", "TLSv1.2" (default), "TLSv1.3"
+    minVersion: "TLSv1.2",
+
+    // Only needed if you have a custom or self-signed certificate and keys
+    // clientCertPem: "/path/to/your/client.pem",
+    // clientKeyPem: "/path/to/your/client-key.pem",
+    // serverCaPem: "/path/to/your/ca.pem",
+};
+
 const offset = 0;
 // partition and groupID are mutually exclusive
 const partition = 0;
 const groupID = "";
-const partitions = 1;
+const numPartitions = 1;
 const replicationFactor = 1;
 const compression = "";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, auth);
+const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, saslConfig, tlsConfig);
 const [consumer, _readerError] = reader(
     bootstrapServers,
     kafkaTopic,
     partition,
     groupID,
     offset,
-    auth
+    saslConfig,
+    tlsConfig
 );
 
 if (__VU == 0) {
-    createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression, auth);
-    console.log("Existing topics: ", listTopics(bootstrapServers[0], auth));
+    createTopic(
+        bootstrapServers[0],
+        kafkaTopic,
+        numPartitions,
+        replicationFactor,
+        compression,
+        saslConfig,
+        tlsConfig
+    );
+    console.log("Existing topics: ", listTopics(bootstrapServers[0], saslConfig, tlsConfig));
 }
 
 export default function () {
@@ -89,8 +132,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error === undefined) {
+        const error = deleteTopic(bootstrapServers[0], kafkaTopic, saslConfig, tlsConfig);
+        if (error == null) {
             // If no error returns, it means that the topic
             // is successfully deleted
             console.log("Topic deleted successfully");

@@ -13,12 +13,12 @@ var DefaultDeserializer = StringDeserializer
 // Reader creates a Kafka reader with the given configuration
 func (k *Kafka) Reader(
 	brokers []string, topic string, partition int,
-	groupID string, offset int64, auth string) (*kafkago.Reader, *Xk6KafkaError) {
+	groupID string, offset int64, saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Reader, *Xk6KafkaError) {
 	if groupID != "" {
 		partition = 0
 	}
 
-	dialer, err := GetDialerFromAuth(auth)
+	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
 			k.logger.WithField("error", err).Error(err)

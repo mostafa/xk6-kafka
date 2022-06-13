@@ -12,11 +12,13 @@ import (
 // GetKafkaControllerConnection returns a kafka controller connection with a given node address.
 // It will also try to use the auth and TLS settings to create a secure connection. The connection
 // should be closed after use.
-func (k *Kafka) GetKafkaControllerConnection(address, auth string) (*kafkago.Conn, *Xk6KafkaError) {
-	dialer, wrappedError := GetDialerFromAuth(auth)
+func (k *Kafka) GetKafkaControllerConnection(address string, saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Conn, *Xk6KafkaError) {
+	dialer, wrappedError := GetDialer(saslConfig, tlsConfig)
 	if wrappedError != nil {
 		k.logger.WithField("error", wrappedError).Error(wrappedError)
-		return nil, wrappedError
+		if dialer == nil {
+			return nil, wrappedError
+		}
 	}
 
 	ctx := k.vu.Context()
@@ -40,7 +42,7 @@ func (k *Kafka) GetKafkaControllerConnection(address, auth string) (*kafkago.Con
 		return nil, wrappedError
 	}
 
-	controllerConn, err := kafkago.DialContext(
+	controllerConn, err := dialer.DialContext(
 		ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
@@ -54,8 +56,8 @@ func (k *Kafka) GetKafkaControllerConnection(address, auth string) (*kafkago.Con
 // CreateTopic creates a topic with the given name, partitions, replication factor and compression.
 // It will also try to use the auth and TLS settings to create a secure connection. If the topic
 // already exists, it will do no-op.
-func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, auth string) *Xk6KafkaError {
-	conn, wrappedError := k.GetKafkaControllerConnection(address, auth)
+func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor int, compression string, saslConfig SASLConfig, tlsConfig TLSConfig) *Xk6KafkaError {
+	conn, wrappedError := k.GetKafkaControllerConnection(address, saslConfig, tlsConfig)
 	if wrappedError != nil {
 		return wrappedError
 	}
@@ -75,7 +77,7 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 		ReplicationFactor: replicationFactor,
 	}
 
-	if _, exists := CompressionCodecs[compression]; exists {
+	if _, ok := CompressionCodecs[compression]; ok {
 		topicConfig.ConfigEntries = append(topicConfig.ConfigEntries, kafkago.ConfigEntry{
 			ConfigName:  "compression.type",
 			ConfigValue: strings.ToLower(compression),
@@ -95,8 +97,8 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 // DeleteTopic deletes the given topic from the given address. It will also try to
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
-func (k *Kafka) DeleteTopic(address, topic string, auth string) *Xk6KafkaError {
-	conn, wrappedError := k.GetKafkaControllerConnection(address, auth)
+func (k *Kafka) DeleteTopic(address, topic string, saslConfig SASLConfig, tlsConfig TLSConfig) *Xk6KafkaError {
+	conn, wrappedError := k.GetKafkaControllerConnection(address, saslConfig, tlsConfig)
 	if wrappedError != nil {
 		return wrappedError
 	}
@@ -113,8 +115,8 @@ func (k *Kafka) DeleteTopic(address, topic string, auth string) *Xk6KafkaError {
 // ListTopics lists the topics from the given address. It will also try to
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
-func (k *Kafka) ListTopics(address string, auth string) ([]string, *Xk6KafkaError) {
-	conn, wrappedError := k.GetKafkaControllerConnection(address, auth)
+func (k *Kafka) ListTopics(address string, saslConfig SASLConfig, tlsConfig TLSConfig) ([]string, *Xk6KafkaError) {
+	conn, wrappedError := k.GetKafkaControllerConnection(address, saslConfig, tlsConfig)
 	if wrappedError != nil {
 		return nil, wrappedError
 	}

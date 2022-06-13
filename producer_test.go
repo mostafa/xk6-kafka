@@ -14,7 +14,8 @@ import (
 func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
+	writer, err := test.module.Kafka.Writer(
+		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
 	assert.Nil(t, err)
 	assert.NotNil(t, writer)
 	defer writer.Close()
@@ -29,12 +30,13 @@ func TestProduce(t *testing.T) {
 			"key":   "key2",
 			"value": "value2",
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrorForbiddenInInitContext, err)
 
 	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+	err = test.module.CreateTopic(
+		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
@@ -48,7 +50,7 @@ func TestProduce(t *testing.T) {
 			"key":   "key2",
 			"value": "value2",
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Check if two message were produced
@@ -75,13 +77,15 @@ func TestProduce(t *testing.T) {
 func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "", "", "")
+	writer, err := test.module.Kafka.Writer(
+		[]string{"localhost:9092"}, "", SASLConfig{}, TLSConfig{}, "")
 	assert.Nil(t, err)
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
 	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+	err = test.module.CreateTopic(
+		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
@@ -98,7 +102,7 @@ func TestProduceWithoutKey(t *testing.T) {
 			"value": "value2",
 			"topic": "test-topic",
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Check if two message were produced
@@ -114,13 +118,15 @@ func TestProduceWithoutKey(t *testing.T) {
 func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
+	writer, err := test.module.Kafka.Writer(
+		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
 	assert.Nil(t, err)
 	assert.NotNil(t, writer)
 	defer writer.Close()
 
 	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+	err = test.module.CreateTopic(
+		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
@@ -138,7 +144,7 @@ func TestProducerContextCancelled(t *testing.T) {
 			"key":   "key2",
 			"value": "value2",
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Context cancelled.", err.Message)
 	assert.Equal(t, context.Canceled, err.Unwrap())
@@ -158,11 +164,13 @@ func TestProduceJSON(t *testing.T) {
 
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", "", "")
+	writer, err := test.module.Kafka.Writer(
+		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
 	assert.Nil(t, err)
 
 	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic("localhost:9092", "test-topic", 1, 1, "", "")
+	err = test.module.CreateTopic(
+		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 	assert.Nil(t, err)
 
 	require.NoError(t, test.moveToVUCode())
@@ -175,7 +183,7 @@ func TestProduceJSON(t *testing.T) {
 		{
 			"value": string(serialized),
 		},
-	}, "", "")
+	}, "", "", false)
 	assert.Nil(t, err)
 
 	// Check if one message was produced

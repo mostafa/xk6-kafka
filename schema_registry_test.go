@@ -63,7 +63,7 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 			Username: "username",
 			Password: "password",
 		},
-		TLSConfig: &TLSConfig{
+		TLSConfig: TLSConfig{
 			ClientCertPem: "fixtures/client.cer",
 			ClientKeyPem:  "fixtures/client.pem",
 			ServerCaPem:   "fixtures/caroot.cer",

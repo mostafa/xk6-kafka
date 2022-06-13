@@ -14,6 +14,7 @@ const (
 	fileNotFound                errCode = 1005
 	dialerError                 errCode = 1006
 	noTLSConfig                 errCode = 1007
+	invalidTLSVersion           errCode = 1008
 
 	// serdes errors
 	invalidDataType             errCode = 2000
@@ -38,11 +39,11 @@ const (
 	noMoreMessages    errCode = 4002
 
 	// authentication
-	failedCreateDialerWithScram errCode = 5000
-	failedUnmarshalCreds        errCode = 5001
-	failedLoadX509KeyPair       errCode = 5002
-	failedReadCaCertFile        errCode = 5003
-	failedAppendCaCertFile      errCode = 5004
+	failedCreateDialerWithScram   errCode = 5000
+	failedCreateDialerWithSaslSSL errCode = 5001
+	failedLoadX509KeyPair         errCode = 5002
+	failedReadCaCertFile          errCode = 5003
+	failedAppendCaCertFile        errCode = 5004
 
 	// schema registry
 	messageTooShort      errCode = 6000
