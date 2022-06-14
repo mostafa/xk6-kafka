@@ -88,7 +88,7 @@ func SerializeJson(configuration Configuration, topic string, data interface{}, 
 // configuration is used to configure the Schema Registry client. The element is
 // used to define the subject. The data should be a byte array.
 func DeserializeJson(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
-	bytesDecodedData, err := DecodeWireFormat(data)
+	_, bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
 			"Failed to remove wire format from the binary data",

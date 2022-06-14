@@ -2,10 +2,11 @@ package kafka
 
 import (
 	"encoding/binary"
-	"net/http"
-
+	"encoding/json"
+	"fmt"
 	"github.com/riferrei/srclient"
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 type Element string
@@ -30,12 +31,17 @@ type SchemaRegistryConfiguration struct {
 // DecodeWireFormat removes the proprietary 5-byte prefix from the Avro, ProtoBuf
 // or JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
-func DecodeWireFormat(message []byte) ([]byte, *Xk6KafkaError) {
+func DecodeWireFormat(message []byte) (int, []byte, *Xk6KafkaError) {
 	if len(message) < 5 {
-		return nil, NewXk6KafkaError(messageTooShort,
+		return 0, nil, NewXk6KafkaError(messageTooShort,
 			"Invalid message: message too short to contain schema id.", nil)
 	}
-	return message[5:], nil
+	if message[0] != 0 {
+		return 0, nil, NewXk6KafkaError(messageTooShort,
+			"Invalid message: invalid start byte.", nil)
+	}
+	magicPrefix := int(binary.BigEndian.Uint32(message[1:5]))
+	return magicPrefix, message[5:], nil
 }
 
 // EncodeWireFormat adds the proprietary 5-byte prefix to the Avro, ProtoBuf or
@@ -102,4 +108,31 @@ func CreateSchema(
 		return nil, NewXk6KafkaError(schemaCreationFailed, "Failed to create schema.", err)
 	}
 	return schemaInfo, nil
+}
+
+func GetSubjectName(schema string, topic string, element Element, subjectNameStrategy string) (string, *Xk6KafkaError) {
+	if subjectNameStrategy == "" || subjectNameStrategy == "TopicNameStrategy" {
+		return topic + "-" + string(element), nil
+	}
+
+	var schemaMap map[string]interface{}
+	err := json.Unmarshal([]byte(schema), &schemaMap)
+	if err != nil {
+		return "", NewXk6KafkaError(failedEncodeToAvro, "Schema invalid json", nil)
+	}
+	var recordName = ""
+	if namespace, ok := schemaMap["namespace"]; ok {
+		recordName = namespace.(string) + "."
+	}
+	recordName += schemaMap["name"].(string)
+
+	if subjectNameStrategy == "RecordNameStrategy" {
+		return recordName, nil
+	}
+	if subjectNameStrategy == "TopicRecordNameStrategy" {
+		return topic + "-" + recordName, nil
+	}
+
+	return "", NewXk6KafkaError(failedEncodeToAvro, fmt.Sprintf(
+		"Unknown subject name strategy: %v", subjectNameStrategy), nil)
 }

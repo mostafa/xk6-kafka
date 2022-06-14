@@ -5,13 +5,16 @@ import (
 )
 
 type ConsumerConfiguration struct {
-	KeyDeserializer   string `json:"keyDeserializer"`
-	ValueDeserializer string `json:"valueDeserializer"`
+	KeyDeserializer     string `json:"keyDeserializer"`
+	ValueDeserializer   string `json:"valueDeserializer"`
+	SubjectNameStrategy string `json:"subjectNameStrategy"`
+	UseMagicPrefix      bool   `json:"useMagicPrefix"`
 }
 
 type ProducerConfiguration struct {
-	KeySerializer   string `json:"keySerializer"`
-	ValueSerializer string `json:"valueSerializer"`
+	KeySerializer       string `json:"keySerializer"`
+	ValueSerializer     string `json:"valueSerializer"`
+	SubjectNameStrategy string `json:"subjectNameStrategy"`
 }
 
 type Configuration struct {

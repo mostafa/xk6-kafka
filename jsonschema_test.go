@@ -53,7 +53,7 @@ func TestSerializeDeserializeJsonFailsOnSchemaError(t *testing.T) {
 		assert.Equal(t, failedCreateJsonSchemaCodec, err.Code)
 
 		// Deserialize the key or value
-		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{1, 2, 3, 4, 5, 6}, element, schema, 0)
+		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{0, 2, 3, 4, 5, 6}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to create codec for decoding JSON data", err.Message)
@@ -96,7 +96,7 @@ func TestSerializeDeserializeJsonFailsOnMarshalError(t *testing.T) {
 		assert.Equal(t, "Failed to unmarshal JSON data", err.Message)
 		assert.Equal(t, failedUnmarshalJson, err.Code)
 
-		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{1, 2, 3, 4, 5, 6}, element, jsonSchema, 0)
+		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{0, 2, 3, 4, 5, 6}, element, jsonSchema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to unmarshal JSON data", err.Message)

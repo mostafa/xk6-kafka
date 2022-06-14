@@ -9,20 +9,22 @@ import (
 
 // TestDecodeWireFormat tests the decoding of a wire-formatted message.
 func TestDecodeWireFormat(t *testing.T) {
-	encoded := []byte{1, 2, 3, 4, 5, 6}
-	decoded := []byte{6}
+	encoded := []byte{0, 1, 2, 3, 4, 5}
+	decoded := []byte{5}
+	prefix := 16909060
 
-	result, err := DecodeWireFormat(encoded)
+	magic, result, err := DecodeWireFormat(encoded)
 	assert.Nil(t, err)
 	assert.Equal(t, decoded, result)
+	assert.Equal(t, magic, prefix)
 }
 
 // TestDecodeWireFormatFails tests the decoding of a wire-formatted message and
 // fails because the message is too short.
 func TestDecodeWireFormatFails(t *testing.T) {
-	encoded := []byte{1, 2, 3, 4} // too short
+	encoded := []byte{0, 1, 2, 3} // too short
 
-	result, err := DecodeWireFormat(encoded)
+	_, result, err := DecodeWireFormat(encoded)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Invalid message: message too short to contain schema id.", err.Message)
@@ -122,4 +124,75 @@ func TestCreateSchemaFails(t *testing.T) {
 	assert.Nil(t, schema)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Failed to create schema.", err.Message)
+}
+
+func TestGetSubjectNameFailsIfInvalidSchema(t *testing.T) {
+	_, err := GetSubjectName(`Bad Schema`, "test-topic", Value, "RecordNameStrategy")
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Message, "Schema invalid")
+}
+
+func TestGetSubjectNameFailsIfSubjectNameStrategyUnknown(t *testing.T) {
+	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	_, err := GetSubjectName(avroSchema, "test-topic", Value, "Unknown")
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Message, "Unknown subject name strategy")
+}
+
+func TestGetSubjectNameCanUseDefaultSubjectNameStrategy(t *testing.T) {
+	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	for _, element := range []Element{Key, Value} {
+		subject, err := GetSubjectName(avroSchema, "test-topic", element, "")
+		assert.Nil(t, err)
+		assert.Equal(t, "test-topic-"+string(element), subject)
+	}
+}
+
+func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
+	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+
+	for _, element := range []Element{Key, Value} {
+		subject, err := GetSubjectName(avroSchema, "test-topic", element, "TopicNameStrategy")
+		assert.Nil(t, err)
+		assert.Equal(t, "test-topic-"+string(element), subject)
+	}
+}
+
+func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) {
+	avroSchema := `{"type":"record","namespace":"com.example.person","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	subject, err := GetSubjectName(avroSchema, "test-topic", Value, "TopicRecordNameStrategy")
+	assert.Nil(t, err)
+	assert.Equal(t, "test-topic-com.example.person.Schema", subject)
+}
+
+func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.T) {
+	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	subject, err := GetSubjectName(avroSchema, "test-topic", Value, "TopicRecordNameStrategy")
+	assert.Nil(t, err)
+	assert.Equal(t, "test-topic-Schema", subject)
+}
+
+func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
+	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	subject, err := GetSubjectName(avroSchema, "test-topic", Value, "RecordNameStrategy")
+	assert.Nil(t, err)
+	assert.Equal(t, "Schema", subject)
+}
+
+func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
+	avroSchema := `{"type":"record","namespace":"com.example.person","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	subject, err := GetSubjectName(avroSchema, "test-topic", Value, "RecordNameStrategy")
+	assert.Nil(t, err)
+	assert.Equal(t, "com.example.person.Schema", subject)
+}
+
+func TestDecodeWireRequiresMagicPrefixByte(t *testing.T) {
+	encoded := []byte{1, 1, 2, 3, 4} // too short
+
+	_, result, err := DecodeWireFormat(encoded)
+	assert.Nil(t, result)
+	assert.NotNil(t, err)
+	assert.Equal(t, "Invalid message: invalid start byte.", err.Message)
+	assert.Equal(t, messageTooShort, err.Code)
+	assert.Nil(t, err.Unwrap())
 }
