@@ -37,6 +37,10 @@ I make no guarantee to keep the API stable, as this project is in active develop
 
 Since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), CycloneDX SBOMs will be generated for [go.mod](go.mod) and it can be accessed from the latest build of GitHub Actions for a tagged release, for example, [this one](https://github.com/mostafa/xk6-kafka/actions/runs/2275475853). The artifacts are only kept for 90 days.
 
+## The Release Process
+
+The `main` branch is the *development* branch and the pull requests will be *squashed and merged* to the `main` branch. When a commit is tagged with a version, e.g. `v0.10.0`, the build pipeline will build the `main` branch on that commit. When the build is completed, the binaries and the Docker image will be created. If you want to test the latest unreleased features, you need to clone the `main` branch and instruct the `xk6` to use the local cloned repository, instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](#build-for-development) section.
+
 ## The Official Docker Image
 
 Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), there is an [official Docker image](https://hub.docker.com/r/mostafamoradian/xk6-kafka) plus binaries in the assets. Before running your script, make sure to make it available to the container by mounting a volume (a directory) or passing it via stdin.
