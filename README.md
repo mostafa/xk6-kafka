@@ -4,9 +4,9 @@
 
 The xk6-kafka project is a [k6 extension](https://k6.io/docs/extensions/guides/what-are-k6-extensions/) that enables k6 users to load test Apache Kafka using a producer and possibly a consumer for debugging.
 
-The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, and hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
+The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats, including strings, JSON, binary, Avro and JSON Schema, are supported. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats are supported, including strings, JSON, binary, Avro, and JSON Schema. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
@@ -39,11 +39,11 @@ Since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), Cyclon
 
 ## The Release Process
 
-The `main` branch is the *development* branch and the pull requests will be *squashed and merged* to the `main` branch. When a commit is tagged with a version, e.g. `v0.10.0`, the build pipeline will build the `main` branch on that commit. When the build is completed, the binaries and the Docker image will be created. If you want to test the latest unreleased features, you need to clone the `main` branch and instruct the `xk6` to use the local cloned repository, instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
+The `main` branch is the *development* branch, and the pull requests will be *squashed and merged* into the `main` branch. When a commit is tagged with a version, for example, `v0.10.0`, the build pipeline will build the `main` branch on that commit. The build process creates the binaries and the Docker image. If you want to test the latest unreleased features, you can clone the `main` branch and instruct the `xk6` to use the locally cloned repository instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
 
 ## The Official Docker Image
 
-Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), there is an [official Docker image](https://hub.docker.com/r/mostafamoradian/xk6-kafka) plus binaries in the assets. Before running your script, make sure to make it available to the container by mounting a volume (a directory) or passing it via stdin.
+Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), there is an [official Docker image](https://hub.docker.com/r/mostafamoradian/xk6-kafka) plus binaries in the assets. Before running your script, make it available to the container by mounting a volume (a directory) or passing it via stdin.
 
 ```bash
 docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
@@ -51,21 +51,21 @@ docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
 
 ## The Official Binaries
 
-Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), the binary version of xk6-kafka is built and published on each [release](https://github.com/mostafa/xk6-kafka/releases). For now, the binaries are only published for Linux, MacOS and Windows for `amd64` (`x86_64`) machines. If you want to see an official build for your machine, please build and test xk6-kafka from [source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) and I'll add it to the build pipeline and publish binaries on the next release.
+Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), the build process creates the binary versions of xk6-kafka and publishes them on the [releases page](https://github.com/mostafa/xk6-kafka/releases). It currently creates the binaries for GNU/Linux, macOS, and Windows on `amd64` (`x86_64`) machines. If you want to see an official build for your machine, please build and test xk6-kafka from [source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) with details. I'll add the specific binary to the build pipeline and publish them on the next release.
 
 ## Build from Source
 
-The k6 binary can be built on various platforms, and each platform has its own set of requirements. The following shows how to build k6 binary with this extension on GNU/Linux distributions.
+You can build the k6 binary on various platforms, each with its requirements. The following shows how to build k6 binary with this extension on GNU/Linux distributions.
 
 ### Prerequisites
 
-To build the source, you should have the latest version of Go installed. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend you to have [gvm](https://github.com/moovweb/gvm) installed.
+You must have the latest Go version installed to build the k6 binary. The latest version should match [k6](https://github.com/grafana/k6#build-from-source) and [xk6](https://github.com/grafana/xk6#requirements). I recommend [gvm](https://github.com/moovweb/gvm) because it eases version management.
 
 - [gvm](https://github.com/moovweb/gvm) for easier installation and management of Go versions on your machine
 - [Git](https://git-scm.com/) for cloning the project
 - [xk6](https://github.com/grafana/xk6) for building k6 binary with extensions
 
-### Install and build
+### Install and build the latest tagged version
 
 Feel free to skip the first two steps if you already have Go installed.
 
@@ -83,11 +83,12 @@ Feel free to skip the first two steps if you already have Go installed.
     xk6 build --with github.com/mostafa/xk6-kafka@latest
     ```
 
-**Note:** you can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
+> **Note**
+> You can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
 
 ### Build for development
 
-If you want to add a feature or make a fix, clone the project and build it using the following commands. The xk6 here will force the build to use the local clone, instead of fetching the latest version from the repository. This enable you to update the code and test it locally.
+If you want to add a feature or make a fix, clone the project and build it using the following commands. The xk6 will force the build to use the local clone instead of fetching the latest version from the repository. This process enables you to update the code and test it locally.
 
 ```bash
 git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
@@ -96,11 +97,11 @@ xk6 build --with github.com/mostafa/xk6-kafka@latest=.
 
 ## Examples
 
-There are lots of examples in the [script](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory that show how to use various features of the extension.
+There are many examples in the [script](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory that show how to use various features of the extension.
 
 ## Run and Test
 
-You can start testing your own environment right away, but it takes some time to develop the script, so it would better to test your script against a development environment, and then start testing your own environment.
+You can start testing your environment immediately, but it takes some time to develop the script, so it would be better to test your script against a development environment and then start testing your environment.
 
 ### Development environment
 
@@ -133,21 +134,21 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in the future versions when a new major version is released. The exported functions are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file and they always reflect the latest changes on the `main` branch. The generated documentation can be accessed at [`docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/docs/README.md).
+All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in future versions unless a new major version is released. The exported functions are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/docs/README.md).
 
 ### k6 Test Script
 
-The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. The scripts usually have 4 parts:
+The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. The scripts usually have four parts:
 
 1. The __imports__ at the top show the exported functions from the Go extension and k6.
-2. The __Avro schema__ defines a key and a value schema that are used by both producer and consumer, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the [test_avro.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) script.
+2. The __Avro schema__ defines a key and a value schema that both producer and consumer use, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the [test_avro.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) script.
 3. The __message producer__:
-    1. The `writer` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as possible. This object is created in init code and is reused in the exported default function.
-    2. The `produce` function sends a list of messages to Kafka. The first argument is the `producer` object, and the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `produceWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
+    1. The `writer` function opens a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as possible. This object is created in the init code and is reused in the exported default function.
+    2. The `produce` function sends a list of messages to Kafka. The first argument is the `producer` object, and the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format if the Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either the schema is Avro and the other will be a string. You can use the `produceWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
     3. The `producer.close()` function closes the `producer` object (in `tearDown`).
 4. The __message consumer__:
-    1. The `reader` function is used to open a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to read from. This object is created in init code and is reused in the exported default function.
-    2. The `consume` function is used to read a list of messages from Kafka. The first argument is the `consumer` object, and the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format, if Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either of the schema is Avro and the other will be a string. You can use the `consumeWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
+    1. The `reader` function opens a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to read from. This object is created in init code and is reused in the exported default function.
+    2. The `consume` function reads a list of Kafka's messages. The first argument is the `consumer` object, and the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format if the Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either the schema is Avro and the other will be a string. You can use the `consumeWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
     3. The `consumer.close()` function closes the `consumer` object (in `tearDown`).
 
 You can run k6 with the Kafka extension using the following command:
@@ -244,7 +245,7 @@ To avoid getting the following error while running the test:
 Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
 ```
 
-You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kakfa partitions and also how to create a topic.
+You can now use `createTopic` function to create topics in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kafka partitions and create a topic.
 
 You always have the option to create it using `kafka-topics` command:
 
@@ -254,14 +255,14 @@ $ docker exec -it lensesio bash
 (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
 ```
 
-If you want to test SASL authentication, have a look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
+If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
 
 ## Contributions, Issues and Feedback
 
-I'd be thrilled to receive contributions and feedback on this piece of software. You're always welcome to create an issue if you find one (or many). I'd do my best to address the issues.
+I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I'd do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
 
 ## Disclaimer
 
-This was a proof of concept, but seems to be used by some companies nowadays, but it still isn't supported by the k6 team, rather by [me](https://github.com/mostafa) personally, and the APIs may change in the future. USE AT YOUR OWN RISK!
+This project was a proof of concept but seems to be used by some companies nowadays. However, it isn't supported by the k6 team, but rather by [me](https://github.com/mostafa) personally, and the APIs may change in the future. USE AT YOUR OWN RISK!
 
-This work is licensed under the [Apache License 2.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).
+This project is licensed under the [Apache License 2.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).
