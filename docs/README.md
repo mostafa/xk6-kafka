@@ -1,5 +1,7 @@
 # xk6-kafka
 
+This documentation refers to the development version of the xk6-kafka project, which means the latest changes on `main` branch and might not be released yet, as explained in [the release process](https://github.com/mostafa/xk6-kafka#the-release-process).
+
 ## Table of contents
 
 ### Functions
