@@ -133,7 +133,7 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in the future versions when a new major version is released. The exported functions are available in the [`index.d.ts`](/index.d.ts) file and they always reflect the latest changes on the `main` branch. The generated documentation can be accessed at [`docs/README.md`](/docs/README.md).
+All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in the future versions when a new major version is released. The exported functions are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file and they always reflect the latest changes on the `main` branch. The generated documentation can be accessed at [`docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/docs/README.md).
 
 ### k6 Test Script
 
