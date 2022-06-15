@@ -25,13 +25,13 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_key.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/e1a810d52112f05d7a66c12740d9885ebb64897e/scripts/test_json.js#L21-L27) on custom Kafka metrics
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
-- Lots of exported metrics, as shown in the result output of the [k6 test script](#k6-test-script)
+- Lots of exported metrics, as shown in the result output of the [k6 test script](https://github.com/mostafa/xk6-kafka/blob/main/README.md#k6-test-script)
 
 ## Backward Compatibility Notice
 
-If you want to keep up to date with the latest changes, please follow the [project board](https://github.com/users/mostafa/projects/1). Also, since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), the `main` branch is the development branch and usually has the latest changes and might be unstable. If you want to use the latest features, you might need to build your binary by following the [build from source](#build-from-source) instructions. In turn, the tagged releases and the Docker images are more stable.
+If you want to keep up to date with the latest changes, please follow the [project board](https://github.com/users/mostafa/projects/1). Also, since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), the `main` branch is the development branch and usually has the latest changes and might be unstable. If you want to use the latest features, you might need to build your binary by following the [build from source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) instructions. In turn, the tagged releases and the Docker images are more stable.
 
-I make no guarantee to keep the API stable, as this project is in active development unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
+I make no guarantee to keep the API stable, as this project is in active development unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](https://github.com/mostafa/xk6-kafka/blob/main/README.md#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
 
 ## CycloneDX SBOM
 
@@ -39,7 +39,7 @@ Since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), Cyclon
 
 ## The Release Process
 
-The `main` branch is the *development* branch and the pull requests will be *squashed and merged* to the `main` branch. When a commit is tagged with a version, e.g. `v0.10.0`, the build pipeline will build the `main` branch on that commit. When the build is completed, the binaries and the Docker image will be created. If you want to test the latest unreleased features, you need to clone the `main` branch and instruct the `xk6` to use the local cloned repository, instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](#build-for-development) section.
+The `main` branch is the *development* branch and the pull requests will be *squashed and merged* to the `main` branch. When a commit is tagged with a version, e.g. `v0.10.0`, the build pipeline will build the `main` branch on that commit. When the build is completed, the binaries and the Docker image will be created. If you want to test the latest unreleased features, you need to clone the `main` branch and instruct the `xk6` to use the local cloned repository, instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
 
 ## The Official Docker Image
 
@@ -51,7 +51,7 @@ docker run --rm -i mostafamoradian/xk6-kafka:latest run - <scripts/test_json.js
 
 ## The Official Binaries
 
-Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), the binary version of xk6-kafka is built and published on each [release](https://github.com/mostafa/xk6-kafka/releases). For now, the binaries are only published for Linux, MacOS and Windows for `amd64` (`x86_64`) machines. If you want to see an official build for your machine, please build and test xk6-kafka from [source](#build-from-source) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) and I'll add it to the build pipeline and publish binaries on the next release.
+Since [v0.8.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.8.0), the binary version of xk6-kafka is built and published on each [release](https://github.com/mostafa/xk6-kafka/releases). For now, the binaries are only published for Linux, MacOS and Windows for `amd64` (`x86_64`) machines. If you want to see an official build for your machine, please build and test xk6-kafka from [source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) and I'll add it to the build pipeline and publish binaries on the next release.
 
 ## Build from Source
 
