@@ -107,7 +107,7 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "TopicNameStrategy",
+			SubjectNameStrategy: TopicNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -158,7 +158,7 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "TopicRecordNameStrategy",
+			SubjectNameStrategy: TopicRecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -183,7 +183,7 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "RecordNameStrategy",
+			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -211,7 +211,7 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 		},
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "RecordNameStrategy",
+			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -257,11 +257,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "RecordNameStrategy",
+			SubjectNameStrategy: RecordNameStrategy,
 		},
 		Consumer: ConsumerConfiguration{
 			ValueDeserializer:   AvroSerializer,
-			SubjectNameStrategy: "RecordNameStrategy",
+			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -283,11 +283,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "TopicRecordNameStrategy",
+			SubjectNameStrategy: TopicRecordNameStrategy,
 		},
 		Consumer: ConsumerConfiguration{
 			ValueDeserializer:   AvroSerializer,
-			SubjectNameStrategy: "TopicRecordNameStrategy",
+			SubjectNameStrategy: TopicRecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",
@@ -309,11 +309,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer:     AvroSerializer,
-			SubjectNameStrategy: "TopicNameStrategy",
+			SubjectNameStrategy: TopicNameStrategy,
 		},
 		Consumer: ConsumerConfiguration{
 			ValueDeserializer:   AvroSerializer,
-			SubjectNameStrategy: "TopicNameStrategy",
+			SubjectNameStrategy: TopicNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
 			Url: "http://localhost:8081",

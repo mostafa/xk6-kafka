@@ -100,6 +100,7 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 
 	var schemaInfo *srclient.Schema
 	var xk6KafkaError *Xk6KafkaError
+	var getSchemaError error
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 
@@ -113,12 +114,11 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
 	} else if configuration.Consumer.UseMagicPrefix {
 		// Schema not provided and no valid version flag, so we use te schemaID in the magic prefix
-		schemaResult, err := client.GetSchema(schemaID)
-		schemaInfo = schemaResult
-		if err != nil {
+		schemaInfo, getSchemaError = client.GetSchema(schemaID)
+		if getSchemaError != nil {
 			xk6KafkaError = NewXk6KafkaError(failedCreateAvroCodec,
 				"Failed to get schema by magic prefix",
-				err)
+				getSchemaError)
 		}
 	} else {
 		// Schema is not provided, so we need to fetch the schema from the Schema Registry

@@ -28,6 +28,12 @@ type SchemaRegistryConfiguration struct {
 	TLSConfig *TLSConfig `json:"tlsConfig"`
 }
 
+const (
+	TopicNameStrategy       string = "TopicNameStrategy"
+	RecordNameStrategy      string = "RecordNameStrategy"
+	TopicRecordNameStrategy string = "TopicRecordNameStrategy"
+)
+
 // DecodeWireFormat removes the proprietary 5-byte prefix from the Avro, ProtoBuf
 // or JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
@@ -111,14 +117,14 @@ func CreateSchema(
 }
 
 func GetSubjectName(schema string, topic string, element Element, subjectNameStrategy string) (string, *Xk6KafkaError) {
-	if subjectNameStrategy == "" || subjectNameStrategy == "TopicNameStrategy" {
+	if subjectNameStrategy == "" || subjectNameStrategy == TopicNameStrategy {
 		return topic + "-" + string(element), nil
 	}
 
 	var schemaMap map[string]interface{}
 	err := json.Unmarshal([]byte(schema), &schemaMap)
 	if err != nil {
-		return "", NewXk6KafkaError(failedEncodeToAvro, "Schema invalid json", nil)
+		return "", NewXk6KafkaError(failedToUnmarshalSchema, "Failed to unmarshal schema", nil)
 	}
 	var recordName = ""
 	if namespace, ok := schemaMap["namespace"]; ok {
@@ -126,10 +132,10 @@ func GetSubjectName(schema string, topic string, element Element, subjectNameStr
 	}
 	recordName += schemaMap["name"].(string)
 
-	if subjectNameStrategy == "RecordNameStrategy" {
+	if subjectNameStrategy == RecordNameStrategy {
 		return recordName, nil
 	}
-	if subjectNameStrategy == "TopicRecordNameStrategy" {
+	if subjectNameStrategy == TopicRecordNameStrategy {
 		return topic + "-" + recordName, nil
 	}
 
