@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"github.com/riferrei/srclient"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,7 +52,7 @@ func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 		assert.Equal(t, failedCreateAvroCodec, err.Code)
 
 		// Deserialize the key or value
-		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{1, 2, 3, 4, 5, 6}, element, jsonSchema, 0)
+		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3, 4, 5}, element, jsonSchema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to create codec for decoding Avro", err.Message)
@@ -73,7 +74,7 @@ func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 
 		// Deserialize a broken key or value
 		// Proper wire-formatted message has 5 bytes (the wire format) plus data
-		deserialized, err = DeserializeAvro(avroConfig, "topic", []byte{1, 2, 3, 4}, element, schema, 0)
+		deserialized, err = DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to remove wire format from the binary data", err.Message)
@@ -92,10 +93,238 @@ func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 		assert.Equal(t, "Failed to encode data into Avro", err.Message)
 		assert.Equal(t, failedEncodeToAvro, err.Code)
 
-		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{1, 2, 3, 4, 5, 6}, element, avroSchema, 0)
+		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3, 5}, element, avroSchema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to decode data from Avro", err.Message)
 		assert.Equal(t, failedDecodeAvroFromBinary, err.Code)
 	}
+}
+
+func TestAvroSerializeTopicNameStrategy(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroSerializeTopicNameStrategy-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: TopicNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+
+	schema := `{"type":"record","name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, serialized)
+
+	expectedSubject := topic + "-value"
+	srClient := SchemaRegistryClientWithConfiguration(config.SchemaRegistry)
+	schemaResult, err := GetSchema(srClient, expectedSubject, schema, srclient.Avro, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, schemaResult)
+}
+
+func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroSerializeTopicNameStrategyIsDefaultStrategy-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer: AvroSerializer,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+
+	schema := `{"type":"record","name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, serialized)
+
+	expectedSubject := topic + "-value"
+	srClient := SchemaRegistryClientWithConfiguration(config.SchemaRegistry)
+	schemaResult, err := GetSchema(srClient, expectedSubject, schema, srclient.Avro, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, schemaResult)
+}
+
+func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroSerializeTopicRecordNameStrategy-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: TopicRecordNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroSerializeTopicRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, serialized)
+
+	expectedSubject := topic + "-io.confluent.kafka.avro.TestAvroSerializeTopicRecordNameStrategy"
+	srClient := SchemaRegistryClientWithConfiguration(config.SchemaRegistry)
+	schemaResult, err := GetSchema(srClient, expectedSubject, schema, srclient.Avro, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, schemaResult)
+}
+
+func TestAvroSerializeRecordNameStrategy(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroSerializeRecordNameStrategy-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: RecordNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroSerializeRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, serialized)
+
+	expectedSubject := "io.confluent.kafka.avro.TestAvroSerializeRecordNameStrategy"
+	srClient := SchemaRegistryClientWithConfiguration(config.SchemaRegistry)
+	resultSchema, err := GetSchema(srClient, expectedSubject, avroSchema, srclient.Avro, 0)
+	assert.Nil(t, err)
+	assert.NotNil(t, resultSchema)
+}
+
+func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroDeserializeUsingMagicPrefix-topic"
+	config := Configuration{
+		Consumer: ConsumerConfiguration{
+			UseMagicPrefix: true,
+		},
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: RecordNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroDeserializeUsingMagicPrefix","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+
+	dData, dErr := DeserializeAvro(config, topic, serialized, Value, "", 0)
+	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	assert.Nil(t, dErr)
+}
+
+func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroDeserializeUsingDefaultSubjectNameStrategy-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer: AvroSerializer,
+		},
+		Consumer: ConsumerConfiguration{
+			ValueDeserializer: AvroSerializer,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroDeserializeUsingDefaultSubjectNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+
+	dData, dErr := DeserializeAvro(config, topic, serialized, Value, "", 0)
+	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	assert.Nil(t, dErr)
+}
+
+func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroDeserializeUsingSubjectNameStrategyRecordName-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: RecordNameStrategy,
+		},
+		Consumer: ConsumerConfiguration{
+			ValueDeserializer:   AvroSerializer,
+			SubjectNameStrategy: RecordNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+
+	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
+	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	assert.Nil(t, dErr)
+}
+
+func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: TopicRecordNameStrategy,
+		},
+		Consumer: ConsumerConfiguration{
+			ValueDeserializer:   AvroSerializer,
+			SubjectNameStrategy: TopicRecordNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+
+	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
+	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	assert.Nil(t, dErr)
+}
+
+func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
+	data := `{"field":"value"}`
+	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicName-topic"
+	config := Configuration{
+		Producer: ProducerConfiguration{
+			ValueSerializer:     AvroSerializer,
+			SubjectNameStrategy: TopicNameStrategy,
+		},
+		Consumer: ConsumerConfiguration{
+			ValueDeserializer:   AvroSerializer,
+			SubjectNameStrategy: TopicNameStrategy,
+		},
+		SchemaRegistry: SchemaRegistryConfiguration{
+			Url: "http://localhost:8081",
+		},
+	}
+	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+
+	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
+	assert.Nil(t, err)
+
+	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
+	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	assert.Nil(t, dErr)
 }

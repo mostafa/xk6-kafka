@@ -20,7 +20,12 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 	bytesData := []byte(data.(string))
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
-	subject := topic + "-" + string(element)
+
+	var subject, subjectNameError = GetSubjectName(schema, topic, element, configuration.Producer.SubjectNameStrategy)
+	if subjectNameError != nil {
+		return nil, subjectNameError
+	}
+
 	var schemaInfo *srclient.Schema
 	schemaID := 0
 
@@ -86,22 +91,35 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 // is used to configure the Schema Registry client. The element is used to define the subject.
 // The data should be a byte array.
 func DeserializeAvro(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
-	bytesDecodedData, err := DecodeWireFormat(data)
+	schemaID, bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,
 			"Failed to remove wire format from the binary data",
 			err)
 	}
 
-	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
-	subject := topic + "-" + string(element)
 	var schemaInfo *srclient.Schema
-
 	var xk6KafkaError *Xk6KafkaError
+	var getSchemaError error
+
+	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
+
+	var subject, subjectNameError = GetSubjectName(schema, topic, element, configuration.Consumer.SubjectNameStrategy)
+	if subjectNameError != nil {
+		return nil, subjectNameError
+	}
 
 	if schema != "" {
 		// Schema is provided, so we need to create it and get the schema ID
 		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
+	} else if configuration.Consumer.UseMagicPrefix {
+		// Schema not provided and no valid version flag, so we use te schemaID in the magic prefix
+		schemaInfo, getSchemaError = client.GetSchema(schemaID)
+		if getSchemaError != nil {
+			xk6KafkaError = NewXk6KafkaError(failedCreateAvroCodec,
+				"Failed to get schema by magic prefix",
+				getSchemaError)
+		}
 	} else {
 		// Schema is not provided, so we need to fetch the schema from the Schema Registry
 		schemaInfo, xk6KafkaError = GetSchema(client, subject, schema, srclient.Avro, version)
