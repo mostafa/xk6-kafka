@@ -107,7 +107,7 @@ func (k *Kafka) produceInternal(
 	if err != nil {
 		configuration.Producer.KeySerializer = DefaultSerializer
 		configuration.Producer.ValueSerializer = DefaultSerializer
-		state.Logger.WithField("error", err).Warn("Using default string serializers")
+		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
 	keySerializer := k.GetSerializer(configuration.Producer.KeySerializer)

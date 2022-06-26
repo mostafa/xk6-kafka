@@ -108,7 +108,7 @@ func (k *Kafka) consumeInternal(
 	if err != nil {
 		configuration.Consumer.KeyDeserializer = DefaultDeserializer
 		configuration.Consumer.ValueDeserializer = DefaultDeserializer
-		state.Logger.WithField("error", err).Warn("Using default string serializers")
+		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
 	keyDeserializer := k.GetDeserializer(configuration.Consumer.KeyDeserializer)
