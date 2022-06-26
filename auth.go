@@ -146,6 +146,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		}
 	} else {
 		// TLS is disabled, and we continue with a unauthenticated dialer
+		// FIXME: This is not an actual error, and we should return nil instead
 		return nil, NewXk6KafkaError(
 			noTLSConfig, "No TLS config provided. Continuing with TLS disabled.", nil)
 	}
