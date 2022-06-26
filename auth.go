@@ -11,7 +11,6 @@ import (
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -44,7 +43,6 @@ type TLSConfig struct {
 
 // GetDialer creates a kafka dialer from the given auth string or an unauthenticated dialer if the auth string is empty
 func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk6KafkaError) {
-	logger := logrus.New()
 	// Create a unauthenticated dialer with no TLS
 	dialer := &kafkago.Dialer{
 		Timeout:   10 * time.Second,
@@ -148,6 +146,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		}
 	} else {
 		// TLS is disabled, and we continue with a unauthenticated dialer
+		// FIXME: This is not an actual error, and we should return nil instead
 		return nil, NewXk6KafkaError(
 			noTLSConfig, "No TLS config provided. Continuing with TLS disabled.", nil)
 	}

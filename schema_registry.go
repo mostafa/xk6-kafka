@@ -4,9 +4,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/riferrei/srclient"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/riferrei/srclient"
 )
 
 type Element string
@@ -66,7 +66,7 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 
 	tlsConfig, err := GetTLSConfig(configuration.TLSConfig)
 	if err != nil {
-		logrus.New().WithField("error", err).Warn("Failed to get TLS config. Continuing without TLS.")
+		logger.WithField("error", err).Warn("Failed to get TLS config. Continuing without TLS.")
 		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)
 	}
 

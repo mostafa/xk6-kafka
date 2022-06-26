@@ -5,7 +5,6 @@ import (
 
 	"github.com/riferrei/srclient"
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -37,7 +36,8 @@ func SerializeJson(configuration Configuration, topic string, data interface{}, 
 	}
 
 	if xk6KafkaError != nil {
-		logrus.New().WithField("error", xk6KafkaError).Warn("Failed to create or get schema, manually encoding the data")
+		logger.WithField("error", xk6KafkaError).Warn(
+			"Failed to create or get schema, manually encoding the data")
 		codec, err := jsonschema.CompileString(subject, schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,
@@ -110,7 +110,8 @@ func DeserializeJson(configuration Configuration, topic string, data []byte, ele
 	}
 
 	if xk6KafkaError != nil {
-		logrus.New().WithField("error", xk6KafkaError).Warn("Failed to create or get schema, manually decoding the data")
+		logger.WithField("error", xk6KafkaError).Warn(
+			"Failed to create or get schema, manually decoding the data")
 		codec, err := jsonschema.CompileString(string(element), schema)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedCreateJsonSchemaCodec,

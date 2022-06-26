@@ -21,7 +21,7 @@ func (k *Kafka) Reader(
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (k *Kafka) Reader(
 			if err != nil {
 				wrappedError := NewXk6KafkaError(
 					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
-				k.logger.WithField("error", wrappedError).Warn(wrappedError)
+				logger.WithField("error", wrappedError).Warn(wrappedError)
 				return reader, wrappedError
 			}
 		} else {
@@ -68,7 +68,7 @@ func (k *Kafka) ConsumeWithConfiguration(
 	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
 		if err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 		return nil, err
 	}
@@ -89,14 +89,14 @@ func (k *Kafka) consumeInternal(
 	configuration Configuration, keySchema string, valueSchema string) ([]map[string]interface{}, *Xk6KafkaError) {
 	state := k.vu.State()
 	if state == nil {
-		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		return nil, ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		k.logger.WithField("error", err).Info(err)
+		logger.WithField("error", err).Info(err)
 		return nil, err
 	}
 
@@ -123,13 +123,13 @@ func (k *Kafka) consumeInternal(
 			err := k.reportReaderStats(reader.Stats())
 			if err != nil {
 				if err.Unwrap() != nil {
-					k.logger.WithField("error", err).Error(err)
+					logger.WithField("error", err).Error(err)
 				}
 				return nil, err
 			}
 
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
-			k.logger.WithField("error", err).Info(err)
+			logger.WithField("error", err).Info(err)
 			return messages, err
 		}
 
@@ -137,12 +137,12 @@ func (k *Kafka) consumeInternal(
 			err := k.reportReaderStats(reader.Stats())
 			if err != nil {
 				if err.Unwrap() != nil {
-					k.logger.WithField("error", err).Error(err)
+					logger.WithField("error", err).Error(err)
 				}
 				return messages, err
 			}
 			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", nil)
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 			return messages, err
 		}
 
@@ -152,7 +152,7 @@ func (k *Kafka) consumeInternal(
 			message["key"], wrappedError = keyDeserializer(
 				configuration, reader.Config().Topic, msg.Key, Key, keySchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
-				k.logger.WithField("error", wrappedError).Error(wrappedError)
+				logger.WithField("error", wrappedError).Error(wrappedError)
 			}
 		}
 
@@ -161,7 +161,7 @@ func (k *Kafka) consumeInternal(
 			message["value"], wrappedError = valueDeserializer(
 				configuration, reader.Config().Topic, msg.Value, "value", valueSchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
-				k.logger.WithField("error", wrappedError).Error(wrappedError)
+				logger.WithField("error", wrappedError).Error(wrappedError)
 			}
 		}
 
@@ -179,7 +179,7 @@ func (k *Kafka) consumeInternal(
 	err = k.reportReaderStats(reader.Stats())
 	if err != nil {
 		if err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 		return messages, err
 	}
@@ -191,14 +191,14 @@ func (k *Kafka) consumeInternal(
 func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) *Xk6KafkaError {
 	state := k.vu.State()
 	if state == nil {
-		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
-		k.logger.WithField("error", err).Info(err)
+		logger.WithField("error", err).Info(err)
 		return err
 	}
 
