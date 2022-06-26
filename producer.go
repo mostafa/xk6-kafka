@@ -10,14 +10,14 @@ import (
 )
 
 var (
-	// CompressionCodecs is a map of compression codec names to their respective codecs
-	// TODO: add as global constants to JS
-	CompressionCodecs = map[string]compress.Codec{
-		"Gzip":   &compress.GzipCodec,
-		"Snappy": &compress.SnappyCodec,
-		"Lz4":    &compress.Lz4Codec,
-		"Zstd":   &compress.ZstdCodec,
-	}
+	// Compression codecs
+	CODEC_GZIP   = "gzip"
+	CODEC_SNAPPY = "snappy"
+	CODEC_LZ4    = "lz4"
+	CODEC_ZSTD   = "zstd"
+
+	// CompressionCodecs is a map of compression codec names to their respective codecs.
+	CompressionCodecs map[string]compress.Compression
 
 	// DefaultSerializer is string serializer
 	DefaultSerializer = StringSerializer
@@ -45,7 +45,7 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 	}
 
 	if codec, ok := CompressionCodecs[compression]; ok {
-		writerConfig.CompressionCodec = codec
+		writerConfig.CompressionCodec = compress.Codecs[codec]
 	}
 
 	// TODO: instantiate Writer directly
