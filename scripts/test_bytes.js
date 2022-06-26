@@ -13,6 +13,10 @@ import {
     consumeWithConfiguration,
     createTopic,
     deleteTopic,
+    STRING_SERIALIZER,
+    STRING_DESERIALIZER,
+    BYTE_ARRAY_SERIALIZER,
+    BYTE_ARRAY_DESERIALIZER,
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
@@ -27,12 +31,12 @@ if (__VU == 0) {
 
 var configuration = JSON.stringify({
     producer: {
-        keySerializer: "org.apache.kafka.common.serialization.StringSerializer",
-        valueSerializer: "org.apache.kafka.common.serialization.ByteArraySerializer",
+        keySerializer: STRING_SERIALIZER,
+        valueSerializer: BYTE_ARRAY_SERIALIZER,
     },
     consumer: {
-        keyDeserializer: "org.apache.kafka.common.serialization.StringDeserializer",
-        valueDeserializer: "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+        keyDeserializer: STRING_DESERIALIZER,
+        valueDeserializer: BYTE_ARRAY_DESERIALIZER,
     },
 });
 

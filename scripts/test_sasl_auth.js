@@ -7,7 +7,18 @@ also uses SASL authentication.
 */
 
 import { check } from "k6";
-import { writer, produce, reader, consume, createTopic, deleteTopic, listTopics } from "k6/x/kafka"; // import kafka extension
+import {
+    writer,
+    produce,
+    reader,
+    consume,
+    createTopic,
+    deleteTopic,
+    listTopics,
+    constants,
+    SASL_PLAIN,
+    TLS_1_2,
+} from "k6/x/kafka"; // import kafka extension
 
 export const options = {
     // This is used for testing purposes. For real-world use, you should use your own options:
@@ -30,12 +41,12 @@ const saslConfig = {
     username: "client",
     password: "client-secret",
     // Possible values for the algorithm is:
-    // "none" (default)
-    // "sasl_plain"
-    // "sasl_scram_sha256"
-    // "sasl_scram_sha512"
-    // "sasl_ssl" (must enable TLS)
-    algorithm: "sasl_plain",
+    // NONE (default)
+    // SASL_PLAIN
+    // SASL_SCRAM_SHA256
+    // SASL_SCRAM_SHA512
+    // SASL_SSL (must enable TLS)
+    algorithm: SASL_PLAIN,
 };
 
 // TLS config is optional
@@ -44,8 +55,12 @@ const tlsConfig = {
     enableTLS: false,
     // Skip TLS verification if the certificate is invalid or self-signed (default: false)
     insecureSkipTLSVerify: false,
-    // Possible values: "TLSv1.0", "TLSv1.1", "TLSv1.2" (default), "TLSv1.3"
-    minVersion: "TLSv1.2",
+    // Possible values:
+    // TLS_1_0
+    // TLS_1_1
+    // TLS_1_2 (default)
+    // TLS_1_3
+    minVersion: TLS_1_2,
 
     // Only needed if you have a custom or self-signed certificate and keys
     // clientCertPem: "/path/to/your/client.pem",

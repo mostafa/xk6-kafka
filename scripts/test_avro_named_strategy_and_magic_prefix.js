@@ -3,7 +3,7 @@ This is a k6 test script that imports the xk6-kafka and
 tests Kafka with a 100 Avro messages per iteration.
 */
 
-import {check} from "k6";
+import { check } from "k6";
 import {
     writer,
     reader,
@@ -11,8 +11,11 @@ import {
     produceWithConfiguration,
     createTopic,
     deleteTopic,
+    AVRO_SERIALIZER,
+    AVRO_DESERIALIZER,
+    RECORD_NAME_STRATEGY,
 } from "k6/x/kafka";
-import {getSubject} from "./helpers/schema_registry.js";
+import { getSubject } from "./helpers/schema_registry.js";
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "test_schema_registry_consume_magic_prefix";
@@ -20,22 +23,21 @@ const kafkaTopic = "test_schema_registry_consume_magic_prefix";
 const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, null);
 const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic, null, "", null, null);
 
-let configuration = JSON.stringify(
-    {
-        consumer: {
-            keyDeserializer: "",
-            valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-            userMagicPrefix: true,
-        },
-        producer: {
-            keySerializer: "",
-            valueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
-            subjectNameStrategy: "RecordNameStrategy"
-        },
-        schemaRegistry: {
-            url: "http://localhost:8081",
-        },
-    });
+let configuration = JSON.stringify({
+    consumer: {
+        keyDeserializer: "",
+        valueDeserializer: AVRO_DESERIALIZER,
+        userMagicPrefix: true,
+    },
+    producer: {
+        keySerializer: "",
+        valueSerializer: AVRO_SERIALIZER,
+        subjectNameStrategy: RECORD_NAME_STRATEGY,
+    },
+    schemaRegistry: {
+        url: "http://localhost:8081",
+    },
+});
 
 if (__VU == 0) {
     createTopic(bootstrapServers[0], kafkaTopic);
@@ -47,21 +49,21 @@ export default function () {
             firstname: "firstname",
             lastname: "lastname",
         }),
-    }
+    };
     const valueSchema = JSON.stringify({
-        "name": "MagicNameValueSchema",
-        "type": "record",
-        "namespace": "com.example",
-        "fields": [
+        name: "MagicNameValueSchema",
+        type: "record",
+        namespace: "com.example",
+        fields: [
             {
-                "name": "firstname",
-                "type": "string"
+                name: "firstname",
+                type: "string",
             },
             {
-                "name": "lastname",
-                "type": "string"
-            }
-        ]
+                name: "lastname",
+                type: "string",
+            },
+        ],
     });
     let error = produceWithConfiguration(producer, [message], configuration, null, valueSchema);
 
@@ -69,8 +71,9 @@ export default function () {
         "is sent": (err) => err == undefined,
     });
 
-    check(getSubject("com.example.MagicNameValueSchema"),
-        { 'status is 200': (r) => r.status === 200 });
+    check(getSubject("com.example.MagicNameValueSchema"), {
+        "status is 200": (r) => r.status === 200,
+    });
 
     let [messages, _consumeError] = consumeWithConfiguration(
         consumer,

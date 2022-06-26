@@ -6,7 +6,15 @@ tests Kafka with a 200 JSON messages per iteration.
 */
 
 import { check } from "k6";
-import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import {
+    writer,
+    produce,
+    reader,
+    consume,
+    createTopic,
+    deleteTopic,
+    CODEC_SNAPPY,
+} from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_snappy_topic";
@@ -14,12 +22,12 @@ const no_auth = "";
 /*
 Supported compression codecs:
 
-- Gzip
-- Snappy
-- Lz4
-- Zstd
+- CODEC_GZIP
+- CODEC_SNAPPY
+- CODEC_LZ4
+- CODEC_ZSTD
 */
-const compression = "Snappy";
+const compression = CODEC_SNAPPY;
 
 const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, no_auth, compression);
 const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
