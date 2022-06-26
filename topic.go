@@ -15,7 +15,7 @@ import (
 func (k *Kafka) GetKafkaControllerConnection(address string, saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Conn, *Xk6KafkaError) {
 	dialer, wrappedError := GetDialer(saslConfig, tlsConfig)
 	if wrappedError != nil {
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		if dialer == nil {
 			return nil, wrappedError
 		}
@@ -24,21 +24,21 @@ func (k *Kafka) GetKafkaControllerConnection(address string, saslConfig SASLConf
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		k.logger.WithField("error", err).Info(err)
+		logger.WithField("error", err).Info(err)
 		return nil, err
 	}
 
 	conn, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
 		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		return nil, wrappedError
 	}
 
 	controller, err := conn.Controller()
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		return nil, wrappedError
 	}
 
@@ -46,7 +46,7 @@ func (k *Kafka) GetKafkaControllerConnection(address string, saslConfig SASLConf
 		ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		return nil, wrappedError
 	}
 
@@ -87,7 +87,7 @@ func (k *Kafka) CreateTopic(address, topic string, partitions, replicationFactor
 	err := conn.CreateTopics([]kafkago.TopicConfig{topicConfig}...)
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedCreateTopic, "Failed to create topic.", err)
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		return wrappedError
 	}
 
@@ -125,7 +125,7 @@ func (k *Kafka) ListTopics(address string, saslConfig SASLConfig, tlsConfig TLSC
 	partitions, err := conn.ReadPartitions()
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedReadPartitions, "Failed to read partitions.", err)
-		k.logger.WithField("error", wrappedError).Error(wrappedError)
+		logger.WithField("error", wrappedError).Error(wrappedError)
 		return nil, wrappedError
 	}
 

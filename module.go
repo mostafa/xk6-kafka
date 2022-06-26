@@ -7,8 +7,15 @@ import (
 	"go.k6.io/k6/js/modules"
 )
 
+// Global logger used by the Kafka module.
+var logger *logrus.Logger
+
 // init registers the xk6-kafka module as 'k6/x/kafka'
 func init() {
+	// Initialize the global logger
+	logger = logrus.New()
+
+	// Register the module namespace (aka. JS import path)
 	modules.Register("k6/x/kafka", New())
 }
 
@@ -16,7 +23,6 @@ type (
 	Kafka struct {
 		vu                   modules.VU
 		metrics              kafkaMetrics
-		logger               *logrus.Logger
 		serializerRegistry   *Serde[Serializer]
 		deserializerRegistry *Serde[Deserializer]
 	}
@@ -49,7 +55,6 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	return &KafkaModule{Kafka: &Kafka{
 		vu:                   vu,
 		metrics:              m,
-		logger:               logrus.New(),
 		serializerRegistry:   NewSerializersRegistry(),
 		deserializerRegistry: NewDeserializersRegistry()},
 	}

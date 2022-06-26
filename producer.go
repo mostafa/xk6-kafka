@@ -29,7 +29,7 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (k *Kafka) ProduceWithConfiguration(
 	configuration, err := UnmarshalConfiguration(configurationJson)
 	if err != nil {
 		if err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 		return err
 	}
@@ -92,14 +92,14 @@ func (k *Kafka) produceInternal(
 	configuration Configuration, keySchema string, valueSchema string) *Xk6KafkaError {
 	state := k.vu.State()
 	if state == nil {
-		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		k.logger.WithField("error", err).Info(err)
+		logger.WithField("error", err).Info(err)
 		return err
 	}
 
@@ -138,7 +138,7 @@ func (k *Kafka) produceInternal(
 			keyData, err := keySerializer(
 				configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
 			if err != nil && err.Unwrap() != nil {
-				k.logger.WithField("error", err).Error(err)
+				logger.WithField("error", err).Error(err)
 			}
 
 			kafkaMessages[i].Key = keyData
@@ -147,7 +147,7 @@ func (k *Kafka) produceInternal(
 		// Then add the message
 		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema, 0)
 		if err != nil && err.Unwrap() != nil {
-			k.logger.WithField("error", err).Error(err)
+			logger.WithField("error", err).Error(err)
 		}
 
 		kafkaMessages[i].Value = valueData
@@ -167,18 +167,18 @@ func (k *Kafka) produceInternal(
 
 	err = k.reportWriterStats(writer.Stats())
 	if err != nil {
-		k.logger.WithField("error", err).Error(err)
+		logger.WithField("error", err).Error(err)
 	}
 
 	if originalErr != nil {
 		if originalErr == k.vu.Context().Err() {
-			k.logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
+			logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
 			return NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr)
 		} else {
 			// TODO: fix this
 			// Ignore stats reporting errors here, because we can't return twice,
 			// and there is no way to wrap the error in another one.
-			k.logger.WithField("error", originalErr).Error(originalErr)
+			logger.WithField("error", originalErr).Error(originalErr)
 			return NewXk6KafkaError(failedWriteMessage, "Failed to write messages.", err)
 		}
 	}
@@ -190,14 +190,14 @@ func (k *Kafka) produceInternal(
 func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaError {
 	state := k.vu.State()
 	if state == nil {
-		k.logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		return ErrorForbiddenInInitContext
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(cannotReportStats, "Cannot report writer stats, no context.", nil)
-		k.logger.WithField("error", err).Info(err)
+		logger.WithField("error", err).Info(err)
 		return err
 	}
 
