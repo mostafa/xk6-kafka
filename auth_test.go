@@ -15,7 +15,7 @@ func TestGetDialerWithSASLPlainAndFullTLSConfig(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_Plain,
+		Algorithm: SASL_PLAIN,
 	}
 	tlsConfig := TLSConfig{
 		EnableTLS:             true,
@@ -40,7 +40,7 @@ func TestGetDialerWithSASLPlainWithDefaultTLSConfig(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_Plain,
+		Algorithm: SASL_PLAIN,
 	}
 	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
 	assert.Nil(t, err)

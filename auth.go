@@ -13,17 +13,17 @@ import (
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
+var (
+	// TLSVersions is a map of TLS versions to their numeric values.
+	TLSVersions map[string]uint16
+)
+
 const (
-	None              = "none"
-	SASL_Plain        = "sasl_plain"
+	NONE              = "none"
+	SASL_PLAIN        = "sasl_plain"
 	SASL_SCRAM_SHA256 = "sasl_scram_sha256"
 	SASL_SCRAM_SHA512 = "sasl_scram_sha512"
 	SASL_SSL          = "sasl_ssl"
-
-	TLSv10 = "TLSv1.0"
-	TLSv11 = "TLSv1.1"
-	TLSv12 = "TLSv1.2"
-	TLSv13 = "TLSv1.3"
 )
 
 type SASLConfig struct {
@@ -77,13 +77,13 @@ func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk
 // GetSASLMechanism returns a kafka SASL config from the given credentials
 func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 	if saslConfig.Algorithm == "" {
-		saslConfig.Algorithm = None
+		saslConfig.Algorithm = NONE
 	}
 
 	switch saslConfig.Algorithm {
-	case None:
+	case NONE:
 		return nil, nil
-	case SASL_Plain, SASL_SSL:
+	case SASL_PLAIN, SASL_SSL:
 		mechanism := plain.Mechanism{
 			Username: saslConfig.Username,
 			Password: saslConfig.Password,
@@ -115,13 +115,6 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	var tlsObject *tls.Config
 
 	if tlsConfig.EnableTLS {
-		// TODO: Export them as module level constants (flags)
-		TLSVersions := make(map[string]uint16)
-		TLSVersions[TLSv10] = tls.VersionTLS10
-		TLSVersions[TLSv11] = tls.VersionTLS11
-		TLSVersions[TLSv12] = tls.VersionTLS12
-		TLSVersions[TLSv13] = tls.VersionTLS13
-
 		// Create a TLS config with default settings
 		tlsObject = &tls.Config{
 			InsecureSkipVerify: tlsConfig.InsecureSkipTLSVerify,

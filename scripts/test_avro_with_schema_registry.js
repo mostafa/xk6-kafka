@@ -11,6 +11,8 @@ import {
     produceWithConfiguration,
     createTopic,
     deleteTopic,
+    AVRO_SERIALIZER,
+    AVRO_DESERIALIZER,
 } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
@@ -49,12 +51,12 @@ const valueSchema = `{
 
 var configuration = JSON.stringify({
     consumer: {
-        keyDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-        valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+        keyDeserializer: AVRO_DESERIALIZER,
+        valueDeserializer: AVRO_DESERIALIZER,
     },
     producer: {
-        keySerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
-        valueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer",
+        keySerializer: AVRO_SERIALIZER,
+        valueSerializer: AVRO_SERIALIZER,
     },
     schemaRegistry: {
         url: "http://localhost:8081",
