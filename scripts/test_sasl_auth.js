@@ -15,7 +15,6 @@ import {
     createTopic,
     deleteTopic,
     listTopics,
-    constants,
     SASL_PLAIN,
     TLS_1_2,
 } from "k6/x/kafka"; // import kafka extension
