@@ -7,6 +7,7 @@ import (
 	"github.com/dop251/goja"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
+	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/metrics"
 )
 
@@ -60,13 +61,16 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		compression = call.Arguments[4].Export().(string)
 	}
 
-	writer, _ := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
+	writer, err := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
+	if err != nil {
+		common.Throw(rt, err)
+	}
 	return rt.ToValue(writer).ToObject(rt)
 }
 
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
-// Deprecated: use Writer instead
+// Deprecated: use XWriter instead
 func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) (*kafkago.Writer, *Xk6KafkaError) {
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
