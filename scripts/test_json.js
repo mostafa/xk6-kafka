@@ -9,12 +9,17 @@ import { check } from "k6";
 // import * as kafka from "k6/x/kafka";
 import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
-// // Prints module-level constants
+// Prints module-level constants
 // console.log(kafka);
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_topic";
 
+// The writer and reader functions will be deprecated soon after
+// the new constructor changes is released. So, the new syntax need to be used,
+// for example:
+// const writer = new kafka.Writer(...);
+// const reader = new kafka.Reader(...);
 const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
 const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
 

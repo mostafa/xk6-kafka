@@ -94,9 +94,17 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	}
 
 	// Export the functions from the Kafka module to the JS code
+	// The Writer is a constructor and must be called with new, e.g. new Writer(...)
+	mustExport("Writer", kafkaModuleInstance.XWriter)
+	// The writer function will continue to work as before,
+	// until the Writer constructor accepts arguments as a struct instead
 	mustExport("writer", kafkaModuleInstance.Writer)
 	mustExport("produce", kafkaModuleInstance.Produce)
 	mustExport("produceWithConfiguration", kafkaModuleInstance.ProduceWithConfiguration)
+	// The Reader is a constructor and must be called with new, e.g. new Reader(...)
+	mustExport("Reader", kafkaModuleInstance.XReader)
+	// The reader function will continue to work as before,
+	// until the Reader constructor accepts arguments as a struct instead
 	mustExport("reader", kafkaModuleInstance.Reader)
 	mustExport("consume", kafkaModuleInstance.Consume)
 	mustExport("consumeWithConfiguration", kafkaModuleInstance.ConsumeWithConfiguration)

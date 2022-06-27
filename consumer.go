@@ -4,13 +4,69 @@ import (
 	"io"
 	"time"
 
+	"github.com/dop251/goja"
 	kafkago "github.com/segmentio/kafka-go"
+	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/metrics"
 )
 
 var DefaultDeserializer = StringDeserializer
 
+// XReader is a wrapper around kafkago.Reader and acts as a JS constructor
+// for this extension, thus it must be called with new operator, e.g. new Reader(...).
+func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
+	rt := k.vu.Runtime()
+	var (
+		brokers    []string
+		topic      string
+		partition  int
+		groupID    string
+		offset     int64
+		saslConfig SASLConfig
+		tlsConfig  TLSConfig
+	)
+
+	if len(call.Arguments) > 0 {
+		b := call.Arguments[0].Export().([]interface{})
+		brokers = make([]string, len(b))
+		for i, v := range b {
+			brokers[i] = v.(string)
+		}
+	}
+
+	if len(call.Arguments) > 1 {
+		topic = call.Arguments[1].Export().(string)
+	}
+
+	if len(call.Arguments) > 2 {
+		partition = call.Arguments[2].Export().(int)
+	}
+
+	if len(call.Arguments) > 3 {
+		groupID = call.Arguments[3].Export().(string)
+	}
+
+	if len(call.Arguments) > 4 {
+		offset = call.Arguments[4].Export().(int64)
+	}
+
+	if len(call.Arguments) > 5 {
+		saslConfig = call.Arguments[5].Export().(SASLConfig)
+	}
+
+	if len(call.Arguments) > 6 {
+		tlsConfig = call.Arguments[6].Export().(TLSConfig)
+	}
+
+	reader, err := k.Reader(brokers, topic, partition, groupID, offset, saslConfig, tlsConfig)
+	if err != nil {
+		common.Throw(rt, err)
+	}
+	return rt.ToValue(reader).ToObject(rt)
+}
+
 // Reader creates a Kafka reader with the given configuration
+// Deprecated: use XReader instead
 func (k *Kafka) Reader(
 	brokers []string, topic string, partition int,
 	groupID string, offset int64, saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Reader, *Xk6KafkaError) {

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dop251/goja"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
+	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/metrics"
 )
 
@@ -23,8 +25,52 @@ var (
 	DefaultSerializer = StringSerializer
 )
 
+// XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
+// for this extension, thus it must be called with new operator, e.g. new Writer(...).
+func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
+	rt := k.vu.Runtime()
+	var (
+		brokers     []string
+		topic       string
+		saslConfig  SASLConfig
+		tlsConfig   TLSConfig
+		compression string
+	)
+
+	if len(call.Arguments) > 0 {
+		b := call.Arguments[0].Export().([]interface{})
+		brokers = make([]string, len(b))
+		for i, v := range b {
+			brokers[i] = v.(string)
+		}
+	}
+
+	if len(call.Arguments) > 1 {
+		topic = call.Arguments[1].Export().(string)
+	}
+
+	if len(call.Arguments) > 2 {
+		saslConfig = call.Arguments[2].Export().(SASLConfig)
+	}
+
+	if len(call.Arguments) > 3 {
+		tlsConfig = call.Arguments[3].Export().(TLSConfig)
+	}
+
+	if len(call.Arguments) > 4 {
+		compression = call.Arguments[4].Export().(string)
+	}
+
+	writer, err := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
+	if err != nil {
+		common.Throw(rt, err)
+	}
+	return rt.ToValue(writer).ToObject(rt)
+}
+
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
+// Deprecated: use XWriter instead
 func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) (*kafkago.Writer, *Xk6KafkaError) {
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
