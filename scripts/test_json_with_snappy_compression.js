@@ -7,9 +7,9 @@ tests Kafka with a 200 JSON messages per iteration.
 
 import { check } from "k6";
 import {
-    writer,
+    Writer,
     produce,
-    reader,
+    Reader,
     consume,
     createTopic,
     deleteTopic,
@@ -29,8 +29,8 @@ Supported compression codecs:
 */
 const compression = CODEC_SNAPPY;
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, no_auth, compression);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
+const writer = new Writer(bootstrapServers, kafkaTopic, no_auth, compression);
+const reader = new Reader(bootstrapServers, kafkaTopic);
 
 const replicationFactor = 1;
 const partitions = 1;
@@ -71,14 +71,14 @@ export default function () {
             },
         ];
 
-        let error = produce(producer, messages);
+        let error = produce(writer, messages);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(consumer, 10);
+    let [messages, _consumeError] = consume(reader, 10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
@@ -87,15 +87,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error == null) {
-            // If no error returns, it means that the topic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting topic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }

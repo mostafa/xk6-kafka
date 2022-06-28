@@ -8,9 +8,9 @@ also uses SASL authentication.
 
 import { check } from "k6";
 import {
-    writer,
+    Writer,
     produce,
-    reader,
+    Reader,
     consume,
     createTopic,
     deleteTopic,
@@ -75,8 +75,8 @@ const numPartitions = 1;
 const replicationFactor = 1;
 const compression = "";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, saslConfig, tlsConfig);
-const [consumer, _readerError] = reader(
+const writer = new Writer(bootstrapServers, kafkaTopic, saslConfig, tlsConfig);
+const reader = new Reader(
     bootstrapServers,
     kafkaTopic,
     partition,
@@ -130,14 +130,14 @@ export default function () {
             },
         ];
 
-        let error = produce(producer, messages);
+        let error = produce(writer, messages);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(consumer, 10);
+    let [messages, _consumeError] = consume(reader, 10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
@@ -146,15 +146,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic, saslConfig, tlsConfig);
-        if (error == null) {
-            // If no error returns, it means that the topic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting topic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic, saslConfig, tlsConfig);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }
