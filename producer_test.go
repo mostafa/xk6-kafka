@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -14,44 +13,48 @@ import (
 func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer(
-		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
-	assert.Nil(t, err)
-	assert.NotNil(t, writer)
-	defer writer.Close()
+	assert.NotPanics(t, func() {
+		writer := test.module.Kafka.Writer(
+			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		assert.NotNil(t, writer)
+		defer writer.Close()
 
-	// Produce a message in the init context
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"key":   "key1",
-			"value": "value1",
-		},
-		{
-			"key":   "key2",
-			"value": "value2",
-		},
-	}, "", "", false)
-	assert.NotNil(t, err)
-	assert.Equal(t, ErrorForbiddenInInitContext, err)
+		// Produce a message in the init context
+		assert.Panics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"key":   "key1",
+					"value": "value1",
+				},
+				{
+					"key":   "key2",
+					"value": "value2",
+				},
+			}, "", "", false)
+		})
 
-	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic(
-		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
+		// Create a topic before producing messages, otherwise tests will fail.
+		assert.NotPanics(t, func() {
+			test.module.CreateTopic(
+				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+		})
 
-	require.NoError(t, test.moveToVUCode())
-	// Produce two messages in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"key":   "key1",
-			"value": "value1",
-		},
-		{
-			"key":   "key2",
-			"value": "value2",
-		},
-	}, "", "", false)
-	assert.Nil(t, err)
+		require.NoError(t, test.moveToVUCode())
+
+		// Produce two messages in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"key":   "key1",
+					"value": "value1",
+				},
+				{
+					"key":   "key2",
+					"value": "value2",
+				},
+			}, "", "", false)
+		})
+	})
 
 	// Check if two message were produced
 	metricsValues := test.GetCounterMetricsValues()
@@ -77,33 +80,37 @@ func TestProduce(t *testing.T) {
 func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer(
-		[]string{"localhost:9092"}, "", SASLConfig{}, TLSConfig{}, "")
-	assert.Nil(t, err)
-	assert.NotNil(t, writer)
-	defer writer.Close()
+	assert.NotPanics(t, func() {
+		writer := test.module.Kafka.Writer(
+			[]string{"localhost:9092"}, "", SASLConfig{}, TLSConfig{}, "")
+		assert.NotNil(t, writer)
+		defer writer.Close()
 
-	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic(
-		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
+		// Create a topic before producing messages, otherwise tests will fail.
+		assert.NotPanics(t, func() {
+			test.module.CreateTopic(
+				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+		})
 
-	require.NoError(t, test.moveToVUCode())
-	// Produce two messages in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"value": "value1",
-			// The topic should be set either on the writer or on individual messages
-			"topic":  "test-topic",
-			"offset": int64(0),
-			"time":   time.Now().UnixMilli(),
-		},
-		{
-			"value": "value2",
-			"topic": "test-topic",
-		},
-	}, "", "", false)
-	assert.Nil(t, err)
+		require.NoError(t, test.moveToVUCode())
+
+		// Produce two messages in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"value": "value1",
+					// The topic should be set either on the writer or on individual messages
+					"topic":  "test-topic",
+					"offset": int64(0),
+					"time":   time.Now().UnixMilli(),
+				},
+				{
+					"value": "value2",
+					"topic": "test-topic",
+				},
+			}, "", "", false)
+		})
+	})
 
 	// Check if two message were produced
 	metricsValues := test.GetCounterMetricsValues()
@@ -118,36 +125,37 @@ func TestProduceWithoutKey(t *testing.T) {
 func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer(
-		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
-	assert.Nil(t, err)
-	assert.NotNil(t, writer)
-	defer writer.Close()
+	assert.NotPanics(t, func() {
+		writer := test.module.Kafka.Writer(
+			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		assert.NotNil(t, writer)
+		defer writer.Close()
 
-	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic(
-		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
+		// Create a topic before producing messages, otherwise tests will fail.
+		assert.NotPanics(t, func() {
+			test.module.CreateTopic(
+				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+		})
 
-	require.NoError(t, test.moveToVUCode())
-	// This will cancel the context, so the produce will fail
+		require.NoError(t, test.moveToVUCode())
 
-	test.cancelContext()
+		// This will cancel the context, so the produce will fail
+		test.cancelContext()
 
-	// Produce two messages in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"key":   "key1",
-			"value": "value1",
-		},
-		{
-			"key":   "key2",
-			"value": "value2",
-		},
-	}, "", "", false)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Context cancelled.", err.Message)
-	assert.Equal(t, context.Canceled, err.Unwrap())
+		// Produce two messages in the VU function
+		assert.Panics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"key":   "key1",
+					"value": "value1",
+				},
+				{
+					"key":   "key2",
+					"value": "value2",
+				},
+			}, "", "", false)
+		})
+	})
 
 	// Cancelled context is immediately reflected in metrics, because
 	// we need the context object to update the metrics.
@@ -164,27 +172,32 @@ func TestProduceJSON(t *testing.T) {
 
 	test := GetTestModuleInstance(t)
 
-	writer, err := test.module.Kafka.Writer(
-		[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
-	assert.Nil(t, err)
+	assert.NotPanics(t, func() {
+		writer := test.module.Kafka.Writer(
+			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		assert.NotNil(t, writer)
+		defer writer.Close()
 
-	// Create a topic before producing messages, otherwise tests will fail.
-	err = test.module.CreateTopic(
-		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
+		// Create a topic before producing messages, otherwise tests will fail.
+		assert.NotPanics(t, func() {
+			test.module.CreateTopic(
+				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+		})
 
-	require.NoError(t, test.moveToVUCode())
+		require.NoError(t, test.moveToVUCode())
 
-	serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
-	assert.Nil(t, jsonErr)
+		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
+		assert.Nil(t, jsonErr)
 
-	// Produce a message in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"value": string(serialized),
-		},
-	}, "", "", false)
-	assert.Nil(t, err)
+		// Produce a message in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"value": string(serialized),
+				},
+			}, "", "", false)
+		})
+	})
 
 	// Check if one message was produced
 	metricsValues := test.GetCounterMetricsValues()

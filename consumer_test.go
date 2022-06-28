@@ -20,8 +20,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	assert.Nil(t, err)
 
 	// Create a writer to produce messages
-	writer, err := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
-	assert.Nil(t, err)
+	writer := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
 	assert.NotNil(t, writer)
 
 	return test, writer
@@ -43,14 +42,13 @@ func TestConsume(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 
 	// Produce a message in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
+	test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"key":    "key1",
 			"value":  "value1",
 			"offset": int64(0),
 		},
 	}, "", "", false)
-	assert.Nil(t, err)
 
 	// Consume a message in the VU function
 	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
@@ -100,13 +98,12 @@ func TestConsumeWithoutKey(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 
 	// Produce a message in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
+	test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"value":  "value1",
 			"offset": int64(1),
 		},
 	}, "", "", false)
-	assert.Nil(t, err)
 
 	// Consume a message in the VU function
 	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
@@ -140,13 +137,12 @@ func TestConsumerContextCancelled(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 
 	// Produce a message in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
+	test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"value":  "value1",
 			"offset": int64(2),
 		},
 	}, "", "", false)
-	assert.Nil(t, err)
 
 	test.cancelContext()
 
@@ -185,13 +181,12 @@ func TestConsumeJSON(t *testing.T) {
 	assert.Nil(t, jsonErr)
 
 	// Produce a message in the VU function
-	err = test.module.Kafka.Produce(writer, []map[string]interface{}{
+	test.module.Kafka.Produce(writer, []map[string]interface{}{
 		{
 			"value":  string(serialized),
 			"offset": int64(3),
 		},
 	}, "", "", false)
-	assert.Nil(t, err)
 
 	// Consume the message
 	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
