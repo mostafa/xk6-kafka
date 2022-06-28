@@ -32,30 +32,34 @@ func TestConsume(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader(
-		[]string{"localhost:9092"}, "test-topic", 0, "", 0, SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
-	assert.NotNil(t, reader)
-	defer reader.Close()
+	assert.NotPanics(t, func() {
+		reader := test.module.Kafka.Reader(
+			[]string{"localhost:9092"}, "test-topic", 0, "", 0, SASLConfig{}, TLSConfig{})
+		assert.NotNil(t, reader)
+		defer reader.Close()
 
-	// Switch to VU code
-	require.NoError(t, test.moveToVUCode())
+		// Switch to VU code
+		require.NoError(t, test.moveToVUCode())
 
-	// Produce a message in the VU function
-	test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"key":    "key1",
-			"value":  "value1",
-			"offset": int64(0),
-		},
-	}, "", "", false)
+		// Produce a message in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"key":    "key1",
+					"value":  "value1",
+					"offset": int64(0),
+				},
+			}, "", "", false)
+		})
 
-	// Consume a message in the VU function
-	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(messages))
-	assert.Equal(t, "key1", messages[0]["key"].(string))
-	assert.Equal(t, "value1", messages[0]["value"].(string))
+		// Consume a message in the VU function
+		assert.NotPanics(t, func() {
+			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			assert.Equal(t, 1, len(messages))
+			assert.Equal(t, "key1", messages[0]["key"].(string))
+			assert.Equal(t, "value1", messages[0]["value"].(string))
+		})
+	})
 
 	// Check if one message was consumed
 	metricsValues := test.GetCounterMetricsValues()
@@ -88,29 +92,33 @@ func TestConsumeWithoutKey(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader(
-		[]string{"localhost:9092"}, "test-topic", 0, "", 1, SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
-	assert.NotNil(t, reader)
-	defer reader.Close()
+	assert.NotPanics(t, func() {
+		reader := test.module.Kafka.Reader(
+			[]string{"localhost:9092"}, "test-topic", 0, "", 1, SASLConfig{}, TLSConfig{})
+		assert.NotNil(t, reader)
+		defer reader.Close()
 
-	// Switch to VU code
-	require.NoError(t, test.moveToVUCode())
+		// Switch to VU code
+		require.NoError(t, test.moveToVUCode())
 
-	// Produce a message in the VU function
-	test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"value":  "value1",
-			"offset": int64(1),
-		},
-	}, "", "", false)
+		// Produce a message in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"value":  "value1",
+					"offset": int64(1),
+				},
+			}, "", "", false)
+		})
 
-	// Consume a message in the VU function
-	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(messages))
-	assert.NotContains(t, messages[0], "key")
-	assert.Equal(t, "value1", messages[0]["value"].(string))
+		// Consume a message in the VU function
+		assert.NotPanics(t, func() {
+			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			assert.Equal(t, 1, len(messages))
+			assert.NotContains(t, messages[0], "key")
+			assert.Equal(t, "value1", messages[0]["value"].(string))
+		})
+	})
 
 	// Check if one message was consumed
 	metricsValues := test.GetCounterMetricsValues()
@@ -127,31 +135,33 @@ func TestConsumerContextCancelled(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader(
-		[]string{"localhost:9092"}, "test-topic", 0, "", 2, SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
-	assert.NotNil(t, reader)
-	defer reader.Close()
+	assert.NotPanics(t, func() {
+		reader := test.module.Kafka.Reader(
+			[]string{"localhost:9092"}, "test-topic", 0, "", 2, SASLConfig{}, TLSConfig{})
+		assert.NotNil(t, reader)
+		defer reader.Close()
 
-	// Switch to VU code
-	require.NoError(t, test.moveToVUCode())
+		// Switch to VU code
+		require.NoError(t, test.moveToVUCode())
 
-	// Produce a message in the VU function
-	test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"value":  "value1",
-			"offset": int64(2),
-		},
-	}, "", "", false)
+		// Produce a message in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"value":  "value1",
+					"offset": int64(2),
+				},
+			}, "", "", false)
+		})
 
-	test.cancelContext()
+		test.cancelContext()
 
-	// Consume a message in the VU function
-	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
-	assert.NotNil(t, err)
-	assert.Empty(t, messages)
-	assert.Equal(t, "Unable to read messages.", err.Message)
-	assert.Equal(t, nil, err.Unwrap())
+		// Consume a message in the VU function
+		assert.NotPanics(t, func() {
+			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			assert.Empty(t, messages)
+		})
+	})
 
 	// Check if one message was consumed
 	metricsValues := test.GetCounterMetricsValues()
@@ -168,36 +178,40 @@ func TestConsumeJSON(t *testing.T) {
 	defer writer.Close()
 
 	// Create a reader to consume messages
-	reader, err := test.module.Kafka.Reader(
-		[]string{"localhost:9092"}, "test-topic", 0, "", 3, SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
-	assert.NotNil(t, reader)
-	defer reader.Close()
+	assert.NotPanics(t, func() {
+		reader := test.module.Kafka.Reader(
+			[]string{"localhost:9092"}, "test-topic", 0, "", 3, SASLConfig{}, TLSConfig{})
+		assert.NotNil(t, reader)
+		defer reader.Close()
 
-	// Switch to VU code
-	require.NoError(t, test.moveToVUCode())
+		// Switch to VU code
+		require.NoError(t, test.moveToVUCode())
 
-	serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
-	assert.Nil(t, jsonErr)
+		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
+		assert.Nil(t, jsonErr)
 
-	// Produce a message in the VU function
-	test.module.Kafka.Produce(writer, []map[string]interface{}{
-		{
-			"value":  string(serialized),
-			"offset": int64(3),
-		},
-	}, "", "", false)
+		// Produce a message in the VU function
+		assert.NotPanics(t, func() {
+			test.module.Kafka.Produce(writer, []map[string]interface{}{
+				{
+					"value":  string(serialized),
+					"offset": int64(3),
+				},
+			}, "", "", false)
+		})
 
-	// Consume the message
-	messages, err := test.module.Kafka.Consume(reader, 1, "", "")
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(messages))
+		// Consume the message
+		assert.NotPanics(t, func() {
+			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			assert.Equal(t, 1, len(messages))
 
-	type F struct {
-		Field string `json:"field"`
-	}
-	var f *F
-	jsonErr = json.Unmarshal([]byte(messages[0]["value"].(string)), &f)
-	assert.Nil(t, jsonErr)
-	assert.Equal(t, "value", f.Field)
+			type F struct {
+				Field string `json:"field"`
+			}
+			var f *F
+			jsonErr = json.Unmarshal([]byte(messages[0]["value"].(string)), &f)
+			assert.Nil(t, jsonErr)
+			assert.Equal(t, "value", f.Field)
+		})
+	})
 }
