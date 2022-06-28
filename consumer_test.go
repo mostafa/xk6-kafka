@@ -15,9 +15,8 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	test := GetTestModuleInstance(t)
 
 	// Create a topic before consuming messages, other tests will fail.
-	err := test.module.CreateTopic(
+	test.module.CreateTopic(
 		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
 
 	// Create a writer to produce messages
 	writer := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
