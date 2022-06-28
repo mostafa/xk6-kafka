@@ -6,13 +6,13 @@ without any associated key.
 */
 
 import { check } from "k6";
-import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, produce, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_avro_topic";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
+const writer = new Writer(bootstrapServers, kafkaTopic);
+const reader = new Reader(bootstrapServers, kafkaTopic);
 
 const valueSchema = JSON.stringify({
     type: "record",
@@ -76,14 +76,14 @@ export default function () {
                 }),
             },
         ];
-        let error = produce(producer, messages, null, valueSchema);
+        let error = produce(writer, messages, null, valueSchema);
         check(error, {
             "is sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(consumer, 10, null, valueSchema);
+    let [messages, _consumeError] = consume(reader, 10, null, valueSchema);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
@@ -96,15 +96,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error == null) {
-            // If no error returns, it means that the topic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting topic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }

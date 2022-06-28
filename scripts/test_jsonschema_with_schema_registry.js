@@ -5,8 +5,8 @@ tests Kafka with a 100 Avro messages per iteration.
 
 import { check } from "k6";
 import {
-    writer,
-    reader,
+    Writer,
+    Reader,
     consumeWithConfiguration,
     produceWithConfiguration,
     createTopic,
@@ -18,8 +18,8 @@ import {
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_jsonschema_test";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, null);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const writer = new Writer(bootstrapServers, kafkaTopic, null);
+const reader = new Reader(bootstrapServers, kafkaTopic, null, "", null, null);
 
 const keySchema = JSON.stringify({
     title: "Key",
@@ -91,7 +91,7 @@ export default function () {
     }
 
     let [messages, _consumeError] = consumeWithConfiguration(
-        consumer,
+        reader,
         20,
         configuration,
         keySchema,
@@ -117,15 +117,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the kafkaTopic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error == null) {
-            // If no error returns, it means that the kafkaTopic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting kafkaTopic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }

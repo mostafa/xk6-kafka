@@ -7,9 +7,9 @@ tests Kafka with a 200 byte array messages per iteration.
 
 import { check } from "k6";
 import {
-    writer,
+    Writer,
     produceWithConfiguration,
-    reader,
+    Reader,
     consumeWithConfiguration,
     createTopic,
     deleteTopic,
@@ -22,8 +22,8 @@ import {
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_byte_array_topic";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
+const writer = new Writer(bootstrapServers, kafkaTopic);
+const reader = new Reader(bootstrapServers, kafkaTopic);
 
 if (__VU == 0) {
     createTopic(bootstrapServers[0], kafkaTopic);
@@ -55,7 +55,7 @@ export default function () {
             },
         ];
 
-        let error = produceWithConfiguration(producer, messages, configuration);
+        let error = produceWithConfiguration(writer, messages, configuration);
         check(error, {
             "is sent": (err) => err == undefined,
         });
@@ -73,15 +73,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error == null) {
-            // If no error returns, it means that the topic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting topic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }

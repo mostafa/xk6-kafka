@@ -7,7 +7,7 @@ tests Kafka with a 200 JSON messages per iteration.
 
 import { check } from "k6";
 // import * as kafka from "k6/x/kafka";
-import { writer, produce, reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, produce, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 // Prints module-level constants
 // console.log(kafka);
@@ -20,8 +20,8 @@ const kafkaTopic = "xk6_kafka_json_topic";
 // for example:
 // const writer = new kafka.Writer(...);
 // const reader = new kafka.Reader(...);
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic);
+const writer = new Writer(bootstrapServers, kafkaTopic);
+const reader = new Reader(bootstrapServers, kafkaTopic);
 
 if (__VU == 0) {
     createTopic(bootstrapServers[0], kafkaTopic);
@@ -75,14 +75,14 @@ export default function () {
             },
         ];
 
-        let error = produce(producer, messages);
+        let error = produce(writer, messages);
         check(error, {
             "Messages are sent": (err) => err == undefined,
         });
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(consumer, 10);
+    let [messages, _consumeError] = consume(reader, 10);
 
     check(messages, {
         "10 messages are received": (messages) => messages.length == 10,
@@ -114,15 +114,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error == null) {
-            // If no error returns, it means that the topic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting topic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }

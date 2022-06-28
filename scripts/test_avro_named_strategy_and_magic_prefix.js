@@ -5,8 +5,8 @@ tests Kafka with a 100 Avro messages per iteration.
 
 import { check } from "k6";
 import {
-    writer,
-    reader,
+    Writer,
+    Reader,
     consumeWithConfiguration,
     produceWithConfiguration,
     createTopic,
@@ -20,8 +20,8 @@ import { getSubject } from "./helpers/schema_registry.js";
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "test_schema_registry_consume_magic_prefix";
 
-const [producer, _writerError] = writer(bootstrapServers, kafkaTopic, null);
-const [consumer, _readerError] = reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const writer = new Writer(bootstrapServers, kafkaTopic, null);
+const reader = new Reader(bootstrapServers, kafkaTopic, null, "", null, null);
 
 let configuration = JSON.stringify({
     consumer: {
@@ -65,7 +65,7 @@ export default function () {
             },
         ],
     });
-    let error = produceWithConfiguration(producer, [message], configuration, null, valueSchema);
+    let error = produceWithConfiguration(writer, [message], configuration, null, valueSchema);
 
     check(error, {
         "is sent": (err) => err == undefined,
@@ -76,7 +76,7 @@ export default function () {
     });
 
     let [messages, _consumeError] = consumeWithConfiguration(
-        consumer,
+        reader,
         1,
         configuration,
         null,
@@ -90,15 +90,8 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the kafkaTopic
-        const error = deleteTopic(bootstrapServers[0], kafkaTopic);
-        if (error === undefined) {
-            // If no error returns, it means that the kafkaTopic
-            // is successfully deleted
-            console.log("Topic deleted successfully");
-        } else {
-            console.log("Error while deleting kafkaTopic: ", error);
-        }
+        deleteTopic(bootstrapServers[0], kafkaTopic);
     }
-    producer.close();
-    consumer.close();
+    writer.close();
+    reader.close();
 }
