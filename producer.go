@@ -61,23 +61,21 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		compression = call.Arguments[4].Export().(string)
 	}
 
-	writer, err := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
-	if err != nil {
-		common.Throw(rt, err)
-	}
+	writer := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
 	return rt.ToValue(writer).ToObject(rt)
 }
 
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
 // Deprecated: use XWriter instead
-func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) (*kafkago.Writer, *Xk6KafkaError) {
+func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) *kafkago.Writer {
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
 		}
-		return nil, err
+		common.Throw(k.vu.Runtime(), err)
+		return nil
 	}
 
 	// TODO: add AllowAutoTopicCreation to writer configuration
@@ -95,22 +93,22 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 	}
 
 	// TODO: instantiate Writer directly
-	return kafkago.NewWriter(writerConfig), nil
+	return kafkago.NewWriter(writerConfig)
 }
 
 // Produce sends messages to Kafka
 func (k *Kafka) Produce(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	keySchema string, valueSchema string, autoCreateTopic bool) *Xk6KafkaError {
+	keySchema string, valueSchema string, autoCreateTopic bool) {
 	writer.AllowAutoTopicCreation = autoCreateTopic
 
-	return k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
+	k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
 }
 
 // ProduceWithConfiguration sends messages to Kafka with the given configuration
 func (k *Kafka) ProduceWithConfiguration(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	configurationJson string, keySchema string, valueSchema string, autoCreateTopic bool) *Xk6KafkaError {
+	configurationJson string, keySchema string, valueSchema string, autoCreateTopic bool) {
 	writer.AllowAutoTopicCreation = autoCreateTopic
 
 	configuration, err := UnmarshalConfiguration(configurationJson)
@@ -118,10 +116,10 @@ func (k *Kafka) ProduceWithConfiguration(
 		if err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
 		}
-		return err
+		common.Throw(k.vu.Runtime(), err)
 	}
 
-	return k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
+	k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
 // GetSerializer returns the serializer for the given schema
@@ -135,18 +133,18 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
 	writer *kafkago.Writer, messages []map[string]interface{},
-	configuration Configuration, keySchema string, valueSchema string) *Xk6KafkaError {
+	configuration Configuration, keySchema string, valueSchema string) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		return ErrorForbiddenInInitContext
+		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
-		return err
+		common.Throw(k.vu.Runtime(), err)
 	}
 
 	err := ValidateConfiguration(configuration)
@@ -211,40 +209,37 @@ func (k *Kafka) produceInternal(
 
 	originalErr := writer.WriteMessages(k.vu.Context(), kafkaMessages...)
 
-	err = k.reportWriterStats(writer.Stats())
-	if err != nil {
-		logger.WithField("error", err).Error(err)
-	}
+	k.reportWriterStats(writer.Stats())
 
 	if originalErr != nil {
 		if originalErr == k.vu.Context().Err() {
 			logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
-			return NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr)
+			common.Throw(k.vu.Runtime(),
+				NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr))
 		} else {
 			// TODO: fix this
 			// Ignore stats reporting errors here, because we can't return twice,
 			// and there is no way to wrap the error in another one.
 			logger.WithField("error", originalErr).Error(originalErr)
-			return NewXk6KafkaError(failedWriteMessage, "Failed to write messages.", err)
+			common.Throw(k.vu.Runtime(),
+				NewXk6KafkaError(failedWriteMessage, "Failed to write messages.", err))
 		}
 	}
-
-	return nil
 }
 
 // reportWriterStats reports the writer stats to the state
-func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaError {
+func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		return ErrorForbiddenInInitContext
+		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
 		err := NewXk6KafkaError(cannotReportStats, "Cannot report writer stats, no context.", nil)
 		logger.WithField("error", err).Info(err)
-		return err
+		common.Throw(k.vu.Runtime(), err)
 	}
 
 	tags := make(map[string]string)
@@ -363,6 +358,4 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) *Xk6KafkaErr
 		Tags:   metrics.IntoSampleTags(&tags),
 		Value:  metrics.B(currentStats.Async),
 	})
-
-	return nil
 }
