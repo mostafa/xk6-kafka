@@ -59,7 +59,84 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	}
 
 	reader := k.Reader(brokers, topic, partition, groupID, offset, saslConfig, tlsConfig)
-	return rt.ToValue(reader).ToObject(rt)
+	readerObject := rt.NewObject()
+	err := readerObject.Set("This", reader)
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
+		var (
+			limit       int64
+			keySchema   string
+			valueSchema string
+		)
+
+		if len(call.Arguments) > 0 {
+			limit = call.Arguments[0].Export().(int64)
+		}
+
+		if len(call.Arguments) > 1 {
+			keySchema = call.Arguments[1].Export().(string)
+		}
+
+		if len(call.Arguments) > 2 {
+			valueSchema = call.Arguments[2].Export().(string)
+		}
+
+		return rt.ToValue(k.Consume(reader, limit, keySchema, valueSchema))
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	err = readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
+		var (
+			limit             int64
+			configurationJson string
+			keySchema         string
+			valueSchema       string
+		)
+
+		if len(call.Arguments) > 0 {
+			limit = call.Arguments[0].Export().(int64)
+		}
+
+		if len(call.Arguments) > 1 {
+			configurationJson = call.Arguments[1].Export().(string)
+		}
+
+		if len(call.Arguments) > 2 {
+			keySchema = call.Arguments[2].Export().(string)
+		}
+
+		if len(call.Arguments) > 3 {
+			valueSchema = call.Arguments[3].Export().(string)
+		}
+
+		return rt.ToValue(
+			k.ConsumeWithConfiguration(reader, limit, configurationJson, keySchema, valueSchema))
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	// This is unnecessary, but it's here for reference purposes
+	err = readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+		err := reader.Close()
+		if err != nil {
+			common.Throw(rt, err)
+		}
+
+		return goja.Undefined()
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	freeze(readerObject)
+
+	return rt.ToValue(readerObject).ToObject(rt)
 }
 
 // Reader creates a Kafka reader with the given configuration

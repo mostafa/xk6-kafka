@@ -6,15 +6,7 @@ tests Kafka with a 200 JSON messages per iteration.
 */
 
 import { check } from "k6";
-import {
-    Writer,
-    produce,
-    Reader,
-    consume,
-    createTopic,
-    deleteTopic,
-    CODEC_SNAPPY,
-} from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, createTopic, deleteTopic, CODEC_SNAPPY } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_json_snappy_topic";
@@ -71,14 +63,11 @@ export default function () {
             },
         ];
 
-        let error = produce(writer, messages);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produce(messages);
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(reader, 10);
+    let messages = reader.consume(10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

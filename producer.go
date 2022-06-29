@@ -25,6 +25,17 @@ var (
 	DefaultSerializer = StringSerializer
 )
 
+// freeze disallows resetting or changing the properties of the object
+func freeze(o *goja.Object) {
+	for _, key := range o.Keys() {
+		err := o.DefineDataProperty(
+			key, o.Get(key), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
@@ -62,7 +73,107 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	writer := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
-	return rt.ToValue(writer).ToObject(rt)
+
+	writerObject := rt.NewObject()
+	// This is the writer object itself
+	err := writerObject.Set("This", writer)
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
+		var (
+			messages        []map[string]interface{}
+			keySchema       string
+			valueSchema     string
+			autoCreateTopic bool
+		)
+
+		if len(call.Arguments) > 0 {
+			m := call.Arguments[0].Export().([]interface{})
+			messages = make([]map[string]interface{}, len(m))
+			for i, v := range m {
+				messages[i] = v.(map[string]interface{})
+			}
+		}
+
+		if len(call.Arguments) > 1 {
+			keySchema = call.Arguments[1].Export().(string)
+		}
+
+		if len(call.Arguments) > 2 {
+			valueSchema = call.Arguments[2].Export().(string)
+		}
+
+		if len(call.Arguments) > 3 {
+			autoCreateTopic = call.Arguments[3].Export().(bool)
+		}
+
+		k.Produce(writer, messages, keySchema, valueSchema, autoCreateTopic)
+
+		return goja.Undefined()
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	err = writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
+		var (
+			messages          []map[string]interface{}
+			configurationJson string
+			keySchema         string
+			valueSchema       string
+			autoCreateTopic   bool
+		)
+
+		if len(call.Arguments) > 0 {
+			m := call.Arguments[0].Export().([]interface{})
+			messages = make([]map[string]interface{}, len(m))
+			for i, v := range m {
+				messages[i] = v.(map[string]interface{})
+			}
+		}
+
+		if len(call.Arguments) > 1 {
+			configurationJson = call.Arguments[1].Export().(string)
+		}
+
+		if len(call.Arguments) > 2 {
+			keySchema = call.Arguments[2].Export().(string)
+		}
+
+		if len(call.Arguments) > 3 {
+			valueSchema = call.Arguments[3].Export().(string)
+		}
+
+		if len(call.Arguments) > 4 {
+			autoCreateTopic = call.Arguments[4].Export().(bool)
+		}
+
+		k.ProduceWithConfiguration(writer, messages, configurationJson, keySchema, valueSchema, autoCreateTopic)
+
+		return goja.Undefined()
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	// This is unnecessary, but it's here for reference purposes
+	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+		err := writer.Close()
+		if err != nil {
+			common.Throw(rt, err)
+		}
+
+		return goja.Undefined()
+	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
+
+	freeze(writerObject)
+
+	return rt.ToValue(writerObject).ToObject(rt)
 }
 
 // Writer creates a new Kafka writer

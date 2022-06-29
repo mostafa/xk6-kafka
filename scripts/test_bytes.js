@@ -8,9 +8,7 @@ tests Kafka with a 200 byte array messages per iteration.
 import { check } from "k6";
 import {
     Writer,
-    produceWithConfiguration,
     Reader,
-    consumeWithConfiguration,
     createTopic,
     deleteTopic,
     STRING_SERIALIZER,
@@ -55,14 +53,11 @@ export default function () {
             },
         ];
 
-        let error = produceWithConfiguration(writer, messages, configuration);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produceWithConfiguration(messages, configuration);
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consumeWithConfiguration(consumer, 10, configuration);
+    let messages = reader.consume(consumer, 10, configuration);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
         "key starts with 'test-id-' string": (msgs) => msgs[0].key.startsWith("test-id-"),

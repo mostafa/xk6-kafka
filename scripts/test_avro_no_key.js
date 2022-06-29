@@ -6,7 +6,7 @@ without any associated key.
 */
 
 import { check } from "k6";
-import { Writer, produce, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_avro_topic";
@@ -76,14 +76,11 @@ export default function () {
                 }),
             },
         ];
-        let error = produce(writer, messages, null, valueSchema);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produce(messages, null, valueSchema);
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(reader, 10, null, valueSchema);
+    let messages = reader.consume(10, null, valueSchema);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

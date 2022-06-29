@@ -7,8 +7,6 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    consumeWithConfiguration,
-    produceWithConfiguration,
     createTopic,
     deleteTopic,
     AVRO_SERIALIZER,
@@ -65,19 +63,10 @@ export default function () {
                 }),
             },
         ];
-        let error = produceWithConfiguration(writer, messages, configuration, null, valueSchema);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produceWithConfiguration(messages, configuration, null, valueSchema);
     }
 
-    let [messages, _consumeError] = consumeWithConfiguration(
-        reader,
-        20,
-        configuration,
-        null,
-        valueSchema
-    );
+    let messages = reader.consumeWithConfiguration(20, configuration, null, valueSchema);
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
