@@ -146,11 +146,13 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	})
 
 	// This is unnecessary, but it's here for reference purposes
-	writerObject.Set("close", func(call goja.FunctionCall) {
+	writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		err := writer.Close()
 		if err != nil {
 			common.Throw(rt, err)
 		}
+
+		return goja.Undefined()
 	})
 
 	freeze(writerObject)
