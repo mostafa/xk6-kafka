@@ -10,7 +10,6 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    consume,
     createTopic,
     deleteTopic,
     listTopics,
@@ -133,7 +132,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(reader, 10);
+    let messages = reader.consume(10);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

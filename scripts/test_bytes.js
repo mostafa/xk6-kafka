@@ -9,7 +9,6 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    consumeWithConfiguration,
     createTopic,
     deleteTopic,
     STRING_SERIALIZER,
@@ -58,7 +57,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consumeWithConfiguration(consumer, 10, configuration);
+    let messages = reader.consume(consumer, 10, configuration);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
         "key starts with 'test-id-' string": (msgs) => msgs[0].key.startsWith("test-id-"),

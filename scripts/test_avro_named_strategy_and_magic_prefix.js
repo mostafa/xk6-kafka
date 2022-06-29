@@ -7,7 +7,6 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    consumeWithConfiguration,
     createTopic,
     deleteTopic,
     AVRO_SERIALIZER,
@@ -70,13 +69,7 @@ export default function () {
         "status is 200": (r) => r.status === 200,
     });
 
-    let [messages, _consumeError] = consumeWithConfiguration(
-        reader,
-        1,
-        configuration,
-        null,
-        valueSchema
-    );
+    let messages = reader.consumeWithConfiguration(reader, 1, configuration, null, valueSchema);
     check(messages, {
         "1 message returned": (msgs) => msgs.length === 1,
     });

@@ -6,7 +6,7 @@ tests Kafka with a 200 Avro messages per iteration.
 */
 
 import { check } from "k6";
-import { Writer, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 const bootstrapServers = ["localhost:9092"];
 const kafkaTopic = "xk6_kafka_avro_topic";
@@ -98,7 +98,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let [messages, _consumeError] = consume(reader, 10, keySchema, valueSchema);
+    let messages = reader.consume(10, keySchema, valueSchema);
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });
