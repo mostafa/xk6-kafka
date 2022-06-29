@@ -28,7 +28,11 @@ var (
 // freeze disallows resetting or changing the properties of the object
 func freeze(o *goja.Object) {
 	for _, key := range o.Keys() {
-		o.DefineDataProperty(key, o.Get(key), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE)
+		err := o.DefineDataProperty(
+			key, o.Get(key), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -72,9 +76,12 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
-	writerObject.Set("This", writer)
+	err := writerObject.Set("This", writer)
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
-	writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
+	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var (
 			messages        []map[string]interface{}
 			keySchema       string
@@ -106,8 +113,11 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 		return goja.Undefined()
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
-	writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
+	err = writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
 		var (
 			messages          []map[string]interface{}
 			configurationJson string
@@ -144,9 +154,12 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 		return goja.Undefined()
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
 	// This is unnecessary, but it's here for reference purposes
-	writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		err := writer.Close()
 		if err != nil {
 			common.Throw(rt, err)
@@ -154,6 +167,9 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 		return goja.Undefined()
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
 	freeze(writerObject)
 

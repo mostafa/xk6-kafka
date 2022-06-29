@@ -60,9 +60,12 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	reader := k.Reader(brokers, topic, partition, groupID, offset, saslConfig, tlsConfig)
 	readerObject := rt.NewObject()
-	readerObject.Set("This", reader)
+	err := readerObject.Set("This", reader)
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
-	readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
+	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var (
 			limit       int64
 			keySchema   string
@@ -83,8 +86,11 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 		return rt.ToValue(k.Consume(reader, limit, keySchema, valueSchema))
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
-	readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
+	err = readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
 		var (
 			limit             int64
 			configurationJson string
@@ -111,9 +117,12 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 		return rt.ToValue(
 			k.ConsumeWithConfiguration(reader, limit, configurationJson, keySchema, valueSchema))
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
 	// This is unnecessary, but it's here for reference purposes
-	readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+	err = readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		err := reader.Close()
 		if err != nil {
 			common.Throw(rt, err)
@@ -121,6 +130,9 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 		return goja.Undefined()
 	})
+	if err != nil {
+		common.Throw(rt, err)
+	}
 
 	freeze(readerObject)
 
