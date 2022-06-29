@@ -8,7 +8,6 @@ import {
     Writer,
     Reader,
     consumeWithConfiguration,
-    produceWithConfiguration,
     createTopic,
     deleteTopic,
     AVRO_SERIALIZER,
@@ -65,11 +64,7 @@ export default function () {
             },
         ],
     });
-    let error = produceWithConfiguration(writer, [message], configuration, null, valueSchema);
-
-    check(error, {
-        "is sent": (err) => err == undefined,
-    });
+    writer.produceWithConfiguration([message], configuration, null, valueSchema);
 
     check(getSubject("com.example.MagicNameValueSchema"), {
         "status is 200": (r) => r.status === 200,

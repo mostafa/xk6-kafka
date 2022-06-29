@@ -9,7 +9,6 @@ also uses SASL authentication.
 import { check } from "k6";
 import {
     Writer,
-    produce,
     Reader,
     consume,
     createTopic,
@@ -130,10 +129,7 @@ export default function () {
             },
         ];
 
-        let error = produce(writer, messages);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produce(messages);
     }
 
     // Read 10 messages only

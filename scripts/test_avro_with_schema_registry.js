@@ -8,7 +8,6 @@ import {
     Writer,
     Reader,
     consumeWithConfiguration,
-    produceWithConfiguration,
     createTopic,
     deleteTopic,
     AVRO_SERIALIZER,
@@ -80,16 +79,7 @@ export default function () {
                 }),
             },
         ];
-        let error = produceWithConfiguration(
-            producer,
-            messages,
-            configuration,
-            keySchema,
-            valueSchema
-        );
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produceWithConfiguration(messages, configuration, keySchema, valueSchema);
     }
 
     let [messages, _consumeError] = consumeWithConfiguration(

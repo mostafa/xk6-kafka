@@ -8,7 +8,6 @@ tests Kafka with a 200 byte array messages per iteration.
 import { check } from "k6";
 import {
     Writer,
-    produceWithConfiguration,
     Reader,
     consumeWithConfiguration,
     createTopic,
@@ -55,10 +54,7 @@ export default function () {
             },
         ];
 
-        let error = produceWithConfiguration(writer, messages, configuration);
-        check(error, {
-            "is sent": (err) => err == undefined,
-        });
+        writer.produceWithConfiguration(messages, configuration);
     }
 
     // Read 10 messages only

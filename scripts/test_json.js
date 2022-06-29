@@ -7,7 +7,7 @@ tests Kafka with a 200 JSON messages per iteration.
 
 import { check } from "k6";
 // import * as kafka from "k6/x/kafka";
-import { Writer, produce, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, consume, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
 
 // Prints module-level constants
 // console.log(kafka);
@@ -75,10 +75,7 @@ export default function () {
             },
         ];
 
-        let error = produce(writer, messages);
-        check(error, {
-            "Messages are sent": (err) => err == undefined,
-        });
+        writer.produce(messages);
     }
 
     // Read 10 messages only
