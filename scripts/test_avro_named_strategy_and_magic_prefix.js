@@ -15,11 +15,17 @@ import {
 } from "k6/x/kafka";
 import { getSubject } from "./helpers/schema_registry.js";
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "test_schema_registry_consume_magic_prefix";
+const brokers = ["localhost:9092"];
+const topic = "test_schema_registry_consume_magic_prefix";
 
-const writer = new Writer(bootstrapServers, kafkaTopic, null);
-const reader = new Reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+});
 
 let configuration = JSON.stringify({
     consumer: {
@@ -38,7 +44,7 @@ let configuration = JSON.stringify({
 });
 
 if (__VU == 0) {
-    createTopic(bootstrapServers[0], kafkaTopic);
+    createTopic(brokers[0], topic);
 }
 
 export default function () {
@@ -77,8 +83,8 @@ export default function () {
 
 export function teardown(data) {
     if (__VU == 0) {
-        // Delete the kafkaTopic
-        deleteTopic(bootstrapServers[0], kafkaTopic);
+        // Delete the topic
+        deleteTopic(brokers[0], topic);
     }
     writer.close();
     reader.close();

@@ -13,11 +13,17 @@ import {
     JSON_SCHEMA_DESERIALIZER,
 } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "xk6_jsonschema_test";
+const brokers = ["localhost:9092"];
+const topic = "xk6_jsonschema_test";
 
-const writer = new Writer(bootstrapServers, kafkaTopic, null);
-const reader = new Reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+});
 
 const keySchema = JSON.stringify({
     title: "Key",
@@ -60,7 +66,7 @@ var configuration = JSON.stringify({
 });
 
 if (__VU == 0) {
-    createTopic(bootstrapServers[0], kafkaTopic);
+    createTopic(brokers[0], topic);
 }
 
 export default function () {
@@ -85,7 +91,7 @@ export default function () {
     });
 
     check(messages[0], {
-        "Topic equals to xk6_jsonschema_test": (msg) => msg.topic == kafkaTopic,
+        "Topic equals to xk6_jsonschema_test": (msg) => msg.topic == topic,
         "Key is correct": (msg) => msg.key.key == "key0",
         "Value is correct": (msg) =>
             msg.value.firstName == "firstName-0" && msg.value.lastName == "lastName-0",
@@ -99,8 +105,8 @@ export default function () {
 
 export function teardown(data) {
     if (__VU == 0) {
-        // Delete the kafkaTopic
-        deleteTopic(bootstrapServers[0], kafkaTopic);
+        // Delete the topic
+        deleteTopic(brokers[0], topic);
     }
     writer.close();
     reader.close();

@@ -8,9 +8,8 @@ tests Kafka with a 200 JSON messages per iteration.
 import { check } from "k6";
 import { Writer, Reader, createTopic, deleteTopic, CODEC_SNAPPY } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "xk6_kafka_json_snappy_topic";
-const no_auth = "";
+const brokers = ["localhost:9092"];
+const topic = "xk6_kafka_json_snappy_topic";
 /*
 Supported compression codecs:
 
@@ -21,15 +20,22 @@ Supported compression codecs:
 */
 const compression = CODEC_SNAPPY;
 
-const writer = new Writer(bootstrapServers, kafkaTopic, no_auth, compression);
-const reader = new Reader(bootstrapServers, kafkaTopic);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+    compression: compression,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+});
 
 const replicationFactor = 1;
 const partitions = 1;
 
 if (__VU == 0) {
     // Create the topic or do nothing if the topic exists.
-    createTopic(bootstrapServers[0], kafkaTopic, partitions, replicationFactor, compression);
+    createTopic(brokers[0], topic, partitions, replicationFactor, compression);
 }
 
 export default function () {
@@ -76,7 +82,7 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(bootstrapServers[0], kafkaTopic);
+        deleteTopic(brokers[0], topic);
     }
     writer.close();
     reader.close();
