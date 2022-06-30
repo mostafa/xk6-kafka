@@ -48,13 +48,21 @@ func freeze(o *goja.Object) {
 }
 
 type WriterConfig struct {
-	Brokers     []string   `json:"brokers"`
-	Topic       string     `json:"topic"`
-	SaslConfig  SASLConfig `json:"saslConfig"`
-	TlsConfig   TLSConfig  `json:"tlsConfig"`
-	Compression string     `json:"compression"`
-	BatchSize   int        `json:"batchSize"`
-	Balancer    string     `json:"balancer"`
+	Brokers         []string      `json:"brokers"`
+	Topic           string        `json:"topic"`
+	AutoCreateTopic bool          `json:"autoCreateTopic"`
+	Balancer        string        `json:"balancer"`
+	MaxAttempts     int           `json:"maxAttempts"`
+	BatchSize       int           `json:"batchSize"`
+	BatchBytes      int           `json:"batchBytes"`
+	BatchTimeout    time.Duration `json:"batchTimeout"`
+	ReadTimeout     time.Duration `json:"readTimeout"`
+	WriteTimeout    time.Duration `json:"writeTimeout"`
+	RequiredAcks    int           `json:"requiredAcks"`
+	Compression     string        `json:"compression"`
+	SASL            SASLConfig    `json:"sasl"`
+	TLS             TLSConfig     `json:"tls"`
+	ConnectLogger   bool          `json:"connectLogger"`
 }
 
 type ProduceConfig struct {
@@ -83,10 +91,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		}
 	}
 
-	writer := k.Writer(
-		wConfig.Brokers, wConfig.Topic, wConfig.SaslConfig,
-		wConfig.TlsConfig, wConfig.Compression,
-		wConfig.BatchSize, wConfig.Balancer)
+	writer := k.Writer(wConfig)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -180,8 +185,8 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
 // Deprecated: use XWriter instead
-func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string, batchSize int, balancer string) *kafkago.Writer {
-	dialer, err := GetDialer(saslConfig, tlsConfig)
+func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
+	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
@@ -190,31 +195,44 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 		return nil
 	}
 
-	if batchSize <= 0 {
-		batchSize = 1
+	if writerConfig.BatchSize <= 0 {
+		writerConfig.BatchSize = 1
 	}
 
 	balancerType := BalancerRegistry[BALANCER_LEAST_BYTES]
-	if b, ok := BalancerRegistry[balancer]; ok {
+	if b, ok := BalancerRegistry[writerConfig.Balancer]; ok {
 		balancerType = b
 	}
 
 	// TODO: add AllowAutoTopicCreation to writer configuration
-	writerConfig := kafkago.WriterConfig{
-		Brokers:   brokers,
-		Topic:     topic,
-		Balancer:  balancerType,
-		BatchSize: batchSize,
-		Dialer:    dialer,
-		Async:     false,
+	config := kafkago.WriterConfig{
+		Brokers:      writerConfig.Brokers,
+		Topic:        writerConfig.Topic,
+		Balancer:     balancerType,
+		MaxAttempts:  writerConfig.MaxAttempts,
+		BatchSize:    writerConfig.BatchSize,
+		BatchBytes:   writerConfig.BatchBytes,
+		BatchTimeout: writerConfig.BatchTimeout,
+		ReadTimeout:  writerConfig.ReadTimeout,
+		WriteTimeout: writerConfig.WriteTimeout,
+		RequiredAcks: writerConfig.RequiredAcks,
+		Dialer:       dialer,
+		Async:        false,
 	}
 
-	if codec, ok := CompressionCodecs[compression]; ok {
-		writerConfig.CompressionCodec = compress.Codecs[codec]
+	if writerConfig.ConnectLogger {
+		config.Logger = logger
+	}
+
+	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
+		config.CompressionCodec = compress.Codecs[codec]
 	}
 
 	// TODO: instantiate Writer directly
-	return kafkago.NewWriter(writerConfig)
+	writer := kafkago.NewWriter(config)
+	writer.AllowAutoTopicCreation = writerConfig.AutoCreateTopic
+
+	return writer
 }
 
 // Produce sends messages to Kafka
