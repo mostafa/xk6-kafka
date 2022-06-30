@@ -19,7 +19,9 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 
 	// Create a writer to produce messages
-	writer := test.module.Kafka.Writer([]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+	writer := test.module.Kafka.Writer(
+		[]string{"localhost:9092"}, "test-topic",
+		SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
 	assert.NotNil(t, writer)
 
 	return test, writer

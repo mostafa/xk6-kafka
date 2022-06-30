@@ -15,7 +15,8 @@ func TestProduce(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+			[]string{"localhost:9092"}, "test-topic",
+			SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -82,7 +83,8 @@ func TestProduceWithoutKey(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "", SASLConfig{}, TLSConfig{}, "")
+			[]string{"localhost:9092"}, "",
+			SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -127,7 +129,8 @@ func TestProducerContextCancelled(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+			[]string{"localhost:9092"}, "test-topic",
+			SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -174,7 +177,8 @@ func TestProduceJSON(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+			[]string{"localhost:9092"}, "test-topic",
+			SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
