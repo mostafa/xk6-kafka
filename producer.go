@@ -22,6 +22,16 @@ var (
 	// CompressionCodecs is a map of compression codec names to their respective codecs.
 	CompressionCodecs map[string]compress.Compression
 
+	// Balancers
+	BALANCER_ROUND_ROBIN = "balancer_roundrobin"
+	BALANCER_LEAST_BYTES = "balancer_leastbytes"
+	BALANCER_HASH        = "balancer_hash"
+	BALANCER_CRC32       = "balancer_crc32"
+	BALANCER_MURMUR2     = "balancer_murmur2"
+
+	// BalancerRegistry is a map of balancer names to their respective balancers.
+	BalancerRegistry map[string]kafkago.Balancer
+
 	// DefaultSerializer is string serializer
 	DefaultSerializer = StringSerializer
 )
@@ -43,6 +53,8 @@ type WriterConfig struct {
 	SaslConfig  SASLConfig `json:"saslConfig"`
 	TlsConfig   TLSConfig  `json:"tlsConfig"`
 	Compression string     `json:"compression"`
+	BatchSize   int        `json:"batchSize"`
+	Balancer    string     `json:"balancer"`
 }
 
 type ProduceConfig struct {
@@ -72,7 +84,9 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	writer := k.Writer(
-		wConfig.Brokers, wConfig.Topic, wConfig.SaslConfig, wConfig.TlsConfig, wConfig.Compression)
+		wConfig.Brokers, wConfig.Topic, wConfig.SaslConfig,
+		wConfig.TlsConfig, wConfig.Compression,
+		wConfig.BatchSize, wConfig.Balancer)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -166,7 +180,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 // Writer creates a new Kafka writer
 // TODO: accept a configuration
 // Deprecated: use XWriter instead
-func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) *kafkago.Writer {
+func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string, batchSize int, balancer string) *kafkago.Writer {
 	dialer, err := GetDialer(saslConfig, tlsConfig)
 	if err != nil {
 		if err.Unwrap() != nil {
@@ -176,12 +190,21 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 		return nil
 	}
 
+	if batchSize <= 0 {
+		batchSize = 1
+	}
+
+	balancerType := BalancerRegistry[BALANCER_LEAST_BYTES]
+	if b, ok := BalancerRegistry[balancer]; ok {
+		balancerType = b
+	}
+
 	// TODO: add AllowAutoTopicCreation to writer configuration
 	writerConfig := kafkago.WriterConfig{
 		Brokers:   brokers,
 		Topic:     topic,
-		Balancer:  &kafkago.LeastBytes{},
-		BatchSize: 1,
+		Balancer:  balancerType,
+		BatchSize: batchSize,
 		Dialer:    dialer,
 		Async:     false,
 	}

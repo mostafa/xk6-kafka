@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/dop251/goja"
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
@@ -34,6 +35,14 @@ func init() {
 		CODEC_SNAPPY: compress.Snappy,
 		CODEC_LZ4:    compress.Lz4,
 		CODEC_ZSTD:   compress.Zstd,
+	}
+
+	BalancerRegistry = map[string]kafkago.Balancer{
+		BALANCER_ROUND_ROBIN: &kafkago.RoundRobin{},
+		BALANCER_LEAST_BYTES: &kafkago.LeastBytes{},
+		BALANCER_HASH:        &kafkago.Hash{},
+		BALANCER_CRC32:       &kafkago.CRC32Balancer{},
+		BALANCER_MURMUR2:     &kafkago.Murmur2Balancer{},
 	}
 
 	// Register the module namespace (aka. JS import path)
@@ -155,6 +164,13 @@ func (c *KafkaModule) defineConstants() {
 	mustAddProp("CODEC_SNAPPY", CODEC_SNAPPY)
 	mustAddProp("CODEC_LZ4", CODEC_LZ4)
 	mustAddProp("CODEC_ZSTD", CODEC_ZSTD)
+
+	// Balancer types
+	mustAddProp("BALANCER_ROUND_ROBIN", BALANCER_ROUND_ROBIN)
+	mustAddProp("BALANCER_LEAST_BYTES", BALANCER_LEAST_BYTES)
+	mustAddProp("BALANCER_HASH", BALANCER_HASH)
+	mustAddProp("BALANCER_CRC32", BALANCER_CRC32)
+	mustAddProp("BALANCER_MURMUR2", BALANCER_MURMUR2)
 
 	// Serde types
 	mustAddProp("STRING_SERIALIZER", StringSerializer)
