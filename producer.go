@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -36,43 +37,42 @@ func freeze(o *goja.Object) {
 	}
 }
 
+type WriterConfig struct {
+	Brokers     []string   `json:"brokers"`
+	Topic       string     `json:"topic"`
+	SaslConfig  SASLConfig `json:"saslConfig"`
+	TlsConfig   TLSConfig  `json:"tlsConfig"`
+	Compression string     `json:"compression"`
+}
+
+type ProduceConfig struct {
+	Messages          []map[string]interface{} `json:"messages"`
+	ConfigurationJson string                   `json:"config"`
+	KeySchema         string                   `json:"keySchema"`
+	ValueSchema       string                   `json:"valueSchema"`
+	AutoCreateTopic   bool                     `json:"autoCreateTopic"`
+}
+
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
-	var (
-		brokers     []string
-		topic       string
-		saslConfig  SASLConfig
-		tlsConfig   TLSConfig
-		compression string
-	)
-
+	var wConfig *WriterConfig
 	if len(call.Arguments) > 0 {
-		b := call.Arguments[0].Export().([]interface{})
-		brokers = make([]string, len(b))
-		for i, v := range b {
-			brokers[i] = v.(string)
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+			b, err := json.Marshal(params)
+			if err != nil {
+				common.Throw(rt, err)
+			}
+			err = json.Unmarshal(b, &wConfig)
+			if err != nil {
+				common.Throw(rt, err)
+			}
 		}
 	}
 
-	if len(call.Arguments) > 1 {
-		topic = call.Arguments[1].Export().(string)
-	}
-
-	if len(call.Arguments) > 2 {
-		saslConfig = call.Arguments[2].Export().(SASLConfig)
-	}
-
-	if len(call.Arguments) > 3 {
-		tlsConfig = call.Arguments[3].Export().(TLSConfig)
-	}
-
-	if len(call.Arguments) > 4 {
-		compression = call.Arguments[4].Export().(string)
-	}
-
-	writer := k.Writer(brokers, topic, saslConfig, tlsConfig, compression)
+	writer := k.Writer(
+		wConfig.Brokers, wConfig.Topic, wConfig.SaslConfig, wConfig.TlsConfig, wConfig.Compression)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -82,34 +82,26 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
-		var (
-			messages        []map[string]interface{}
-			keySchema       string
-			valueSchema     string
-			autoCreateTopic bool
-		)
-
+		pConfig := ProduceConfig{}
 		if len(call.Arguments) > 0 {
 			m := call.Arguments[0].Export().([]interface{})
-			messages = make([]map[string]interface{}, len(m))
+			pConfig.Messages = make([]map[string]interface{}, len(m))
 			for i, v := range m {
-				messages[i] = v.(map[string]interface{})
+				pConfig.Messages[i] = v.(map[string]interface{})
 			}
 		}
 
 		if len(call.Arguments) > 1 {
-			keySchema = call.Arguments[1].Export().(string)
+			pConfig.KeySchema = call.Arguments[1].Export().(string)
 		}
 
 		if len(call.Arguments) > 2 {
-			valueSchema = call.Arguments[2].Export().(string)
+			pConfig.ValueSchema = call.Arguments[2].Export().(string)
 		}
 
-		if len(call.Arguments) > 3 {
-			autoCreateTopic = call.Arguments[3].Export().(bool)
-		}
-
-		k.Produce(writer, messages, keySchema, valueSchema, autoCreateTopic)
+		k.Produce(
+			writer, pConfig.Messages, pConfig.KeySchema,
+			pConfig.ValueSchema, pConfig.AutoCreateTopic)
 
 		return goja.Undefined()
 	})
@@ -118,39 +110,34 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		var (
-			messages          []map[string]interface{}
-			configurationJson string
-			keySchema         string
-			valueSchema       string
-			autoCreateTopic   bool
-		)
-
+		pConfig := ProduceConfig{}
 		if len(call.Arguments) > 0 {
 			m := call.Arguments[0].Export().([]interface{})
-			messages = make([]map[string]interface{}, len(m))
+			pConfig.Messages = make([]map[string]interface{}, len(m))
 			for i, v := range m {
-				messages[i] = v.(map[string]interface{})
+				pConfig.Messages[i] = v.(map[string]interface{})
 			}
 		}
 
 		if len(call.Arguments) > 1 {
-			configurationJson = call.Arguments[1].Export().(string)
+			pConfig.ConfigurationJson = call.Arguments[1].Export().(string)
 		}
 
 		if len(call.Arguments) > 2 {
-			keySchema = call.Arguments[2].Export().(string)
+			pConfig.KeySchema = call.Arguments[2].Export().(string)
 		}
 
 		if len(call.Arguments) > 3 {
-			valueSchema = call.Arguments[3].Export().(string)
+			pConfig.ValueSchema = call.Arguments[3].Export().(string)
 		}
 
 		if len(call.Arguments) > 4 {
-			autoCreateTopic = call.Arguments[4].Export().(bool)
+			pConfig.AutoCreateTopic = call.Arguments[4].Export().(bool)
 		}
 
-		k.ProduceWithConfiguration(writer, messages, configurationJson, keySchema, valueSchema, autoCreateTopic)
+		k.ProduceWithConfiguration(
+			writer, pConfig.Messages, pConfig.ConfigurationJson,
+			pConfig.KeySchema, pConfig.ValueSchema, pConfig.AutoCreateTopic)
 
 		return goja.Undefined()
 	})

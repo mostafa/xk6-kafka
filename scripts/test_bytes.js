@@ -17,14 +17,20 @@ import {
     BYTE_ARRAY_DESERIALIZER,
 } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "xk6_kafka_byte_array_topic";
+const brokers = ["localhost:9092"];
+const topic = "xk6_kafka_byte_array_topic";
 
-const writer = new Writer(bootstrapServers, kafkaTopic);
-const reader = new Reader(bootstrapServers, kafkaTopic);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+});
 
 if (__VU == 0) {
-    createTopic(bootstrapServers[0], kafkaTopic);
+    createTopic(brokers[0], topic);
 }
 
 var configuration = JSON.stringify({
@@ -68,7 +74,7 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(bootstrapServers[0], kafkaTopic);
+        deleteTopic(brokers[0], topic);
     }
     writer.close();
     reader.close();

@@ -13,11 +13,17 @@ import {
     AVRO_DESERIALIZER,
 } from "k6/x/kafka"; // import kafka extension
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "com.example.person";
+const brokers = ["localhost:9092"];
+const topic = "com.example.person";
 
-const writer = new Writer(bootstrapServers, kafkaTopic, null);
-const reader = new Reader(bootstrapServers, kafkaTopic, null, "", null, null);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+});
 
 const valueSchema = `{
   "name": "ValueSchema",
@@ -50,7 +56,7 @@ var configuration = JSON.stringify({
 });
 
 if (__VU == 0) {
-    createTopic(bootstrapServers[0], kafkaTopic);
+    createTopic(brokers[0], topic);
 }
 
 export default function () {
@@ -78,8 +84,8 @@ export default function () {
 
 export function teardown(data) {
     if (__VU == 0) {
-        // Delete the kafkaTopic
-        deleteTopic(bootstrapServers[0], kafkaTopic);
+        // Delete the topic
+        deleteTopic(brokers[0], topic);
     }
     writer.close();
     reader.close();

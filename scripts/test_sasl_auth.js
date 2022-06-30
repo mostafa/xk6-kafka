@@ -30,8 +30,8 @@ export const options = {
     },
 };
 
-const bootstrapServers = ["localhost:9092"];
-const kafkaTopic = "xk6_kafka_json_topic";
+const brokers = ["localhost:9092"];
+const topic = "xk6_kafka_json_topic";
 
 // SASL config is optional
 const saslConfig = {
@@ -73,28 +73,33 @@ const numPartitions = 1;
 const replicationFactor = 1;
 const compression = "";
 
-const writer = new Writer(bootstrapServers, kafkaTopic, saslConfig, tlsConfig);
-const reader = new Reader(
-    bootstrapServers,
-    kafkaTopic,
-    partition,
-    groupID,
-    offset,
-    saslConfig,
-    tlsConfig
-);
+const writer = new Writer({
+    brokers: brokers,
+    topic: topic,
+    saslConfig: saslConfig,
+    tlsConfig: tlsConfig,
+});
+const reader = new Reader({
+    brokers: brokers,
+    topic: topic,
+    partition: partition,
+    groupID: groupID,
+    offset: offset,
+    saslConfig: saslConfig,
+    tlsConfig: tlsConfig,
+});
 
 if (__VU == 0) {
     createTopic(
-        bootstrapServers[0],
-        kafkaTopic,
+        brokers[0],
+        topic,
         numPartitions,
         replicationFactor,
         compression,
         saslConfig,
         tlsConfig
     );
-    console.log("Existing topics: ", listTopics(bootstrapServers[0], saslConfig, tlsConfig));
+    console.log("Existing topics: ", listTopics(brokers[0], saslConfig, tlsConfig));
 }
 
 export default function () {
@@ -141,7 +146,7 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(bootstrapServers[0], kafkaTopic, saslConfig, tlsConfig);
+        deleteTopic(brokers[0], topic, saslConfig, tlsConfig);
     }
     writer.close();
     reader.close();
