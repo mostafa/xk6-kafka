@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"encoding/json"
 	"io"
 	"time"
 
@@ -12,110 +13,95 @@ import (
 
 var DefaultDeserializer = StringDeserializer
 
+type ReaderConfig struct {
+	Brokers    []string   `json:"brokers"`
+	Topic      string     `json:"topic"`
+	Partition  int        `json:"partition"`
+	GroupID    string     `json:"groupID"`
+	Offset     int64      `json:"offset"`
+	SaslConfig SASLConfig `json:"saslConfig"`
+	TlsConfig  TLSConfig  `json:"tlsConfig"`
+}
+
+type ConsumeConfig struct {
+	Limit             int64  `json:"limit"`
+	ConfigurationJson string `json:"configurationJson"`
+	KeySchema         string `json:"keySchema"`
+	ValueSchema       string `json:"valueSchema"`
+}
+
 // XReader is a wrapper around kafkago.Reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
-	var (
-		brokers    []string
-		topic      string
-		partition  int
-		groupID    string
-		offset     int64
-		saslConfig SASLConfig
-		tlsConfig  TLSConfig
-	)
-
+	var rConfig *ReaderConfig
 	if len(call.Arguments) > 0 {
-		b := call.Arguments[0].Export().([]interface{})
-		brokers = make([]string, len(b))
-		for i, v := range b {
-			brokers[i] = v.(string)
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+			b, err := json.Marshal(params)
+			if err != nil {
+				common.Throw(rt, err)
+			}
+			err = json.Unmarshal(b, &rConfig)
+			if err != nil {
+				common.Throw(rt, err)
+			}
 		}
 	}
 
-	if len(call.Arguments) > 1 {
-		topic = call.Arguments[1].Export().(string)
-	}
+	reader := k.Reader(
+		rConfig.Brokers, rConfig.Topic, rConfig.Partition, rConfig.GroupID, rConfig.Offset,
+		rConfig.SaslConfig, rConfig.TlsConfig)
 
-	if len(call.Arguments) > 2 {
-		partition = call.Arguments[2].Export().(int)
-	}
-
-	if len(call.Arguments) > 3 {
-		groupID = call.Arguments[3].Export().(string)
-	}
-
-	if len(call.Arguments) > 4 {
-		offset = call.Arguments[4].Export().(int64)
-	}
-
-	if len(call.Arguments) > 5 {
-		saslConfig = call.Arguments[5].Export().(SASLConfig)
-	}
-
-	if len(call.Arguments) > 6 {
-		tlsConfig = call.Arguments[6].Export().(TLSConfig)
-	}
-
-	reader := k.Reader(brokers, topic, partition, groupID, offset, saslConfig, tlsConfig)
 	readerObject := rt.NewObject()
+	// This is the reader object itself
 	err := readerObject.Set("This", reader)
 	if err != nil {
 		common.Throw(rt, err)
 	}
 
 	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
-		var (
-			limit       int64
-			keySchema   string
-			valueSchema string
-		)
-
+		cConfig := ConsumeConfig{}
 		if len(call.Arguments) > 0 {
-			limit = call.Arguments[0].Export().(int64)
+			cConfig.Limit = call.Arguments[0].Export().(int64)
 		}
 
 		if len(call.Arguments) > 1 {
-			keySchema = call.Arguments[1].Export().(string)
+			cConfig.KeySchema = call.Arguments[1].Export().(string)
 		}
 
 		if len(call.Arguments) > 2 {
-			valueSchema = call.Arguments[2].Export().(string)
+			cConfig.ValueSchema = call.Arguments[2].Export().(string)
 		}
 
-		return rt.ToValue(k.Consume(reader, limit, keySchema, valueSchema))
+		return rt.ToValue(k.Consume(
+			reader, cConfig.Limit, cConfig.KeySchema, cConfig.ValueSchema))
 	})
 	if err != nil {
 		common.Throw(rt, err)
 	}
 
 	err = readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		var (
-			limit             int64
-			configurationJson string
-			keySchema         string
-			valueSchema       string
-		)
-
+		cConfig := ConsumeConfig{}
 		if len(call.Arguments) > 0 {
-			limit = call.Arguments[0].Export().(int64)
+			cConfig.Limit = call.Arguments[0].Export().(int64)
 		}
 
 		if len(call.Arguments) > 1 {
-			configurationJson = call.Arguments[1].Export().(string)
+			cConfig.ConfigurationJson = call.Arguments[1].Export().(string)
 		}
 
 		if len(call.Arguments) > 2 {
-			keySchema = call.Arguments[2].Export().(string)
+			cConfig.KeySchema = call.Arguments[2].Export().(string)
 		}
 
 		if len(call.Arguments) > 3 {
-			valueSchema = call.Arguments[3].Export().(string)
+			cConfig.ValueSchema = call.Arguments[3].Export().(string)
 		}
 
 		return rt.ToValue(
-			k.ConsumeWithConfiguration(reader, limit, configurationJson, keySchema, valueSchema))
+			k.ConsumeWithConfiguration(
+				reader, cConfig.Limit, cConfig.ConfigurationJson,
+				cConfig.KeySchema, cConfig.ValueSchema))
 	})
 	if err != nil {
 		common.Throw(rt, err)
