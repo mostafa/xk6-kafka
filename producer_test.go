@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,8 +16,9 @@ func TestProduce(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(&WriterConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Brokers:         []string{"localhost:9092"},
+			Topic:           "test-topic",
+			AutoCreateTopic: true,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
@@ -34,12 +36,6 @@ func TestProduce(t *testing.T) {
 						Value: "value2",
 					},
 				}})
-		})
-
-		// Create a topic before producing messages, otherwise tests will fail.
-		assert.NotPanics(t, func() {
-			test.module.CreateTopic(
-				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 		})
 
 		require.NoError(t, test.moveToVUCode())
@@ -93,8 +89,15 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		// Create a topic before producing messages, otherwise tests will fail.
 		assert.NotPanics(t, func() {
-			test.module.CreateTopic(
-				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+			connection := test.module.GetKafkaControllerConnection(&ConnectionConfig{
+				Address: "localhost:9092",
+			})
+			defer connection.Close()
+			test.module.CreateTopic(connection, &kafkago.TopicConfig{
+				Topic:             "test-topic",
+				NumPartitions:     1,
+				ReplicationFactor: 1,
+			})
 		})
 
 		require.NoError(t, test.moveToVUCode())
@@ -132,17 +135,12 @@ func TestProducerContextCancelled(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(&WriterConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Brokers:         []string{"localhost:9092"},
+			Topic:           "test-topic",
+			AutoCreateTopic: true,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
-
-		// Create a topic before producing messages, otherwise tests will fail.
-		assert.NotPanics(t, func() {
-			test.module.CreateTopic(
-				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-		})
 
 		require.NoError(t, test.moveToVUCode())
 
@@ -182,17 +180,12 @@ func TestProduceJSON(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.Writer(&WriterConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Brokers:         []string{"localhost:9092"},
+			Topic:           "test-topic",
+			AutoCreateTopic: true,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
-
-		// Create a topic before producing messages, otherwise tests will fail.
-		assert.NotPanics(t, func() {
-			test.module.CreateTopic(
-				"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
-		})
 
 		require.NoError(t, test.moveToVUCode())
 

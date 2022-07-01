@@ -3,6 +3,7 @@ package kafka
 import (
 	"testing"
 
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,8 +12,9 @@ import (
 func TestGetKafkaControllerConnection(t *testing.T) {
 	test := GetTestModuleInstance(t)
 	assert.NotPanics(t, func() {
-		connection := test.module.Kafka.GetKafkaControllerConnection(
-			"localhost:9092", SASLConfig{}, TLSConfig{})
+		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+			Address: "localhost:9092",
+		})
 		defer connection.Close()
 		assert.NotNil(t, connection)
 	})
@@ -24,8 +26,9 @@ func TestGetKafkaControllerConnectionFails(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		connection := test.module.Kafka.GetKafkaControllerConnection(
-			"localhost:9094", SASLConfig{}, TLSConfig{})
+		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+			Address: "localhost:9094",
+		})
 		assert.Nil(t, connection)
 	})
 }
@@ -36,15 +39,21 @@ func TestTopics(t *testing.T) {
 
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
-		test.module.Kafka.CreateTopic(
-			"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
+		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+			Address: "localhost:9092",
+		})
+		defer connection.Close()
 
-		topics := test.module.Kafka.ListTopics("localhost:9092", SASLConfig{}, TLSConfig{})
+		test.module.Kafka.CreateTopic(connection, &kafkago.TopicConfig{
+			Topic: "test-topic",
+		})
+
+		topics := test.module.Kafka.ListTopics(connection)
 		assert.Contains(t, topics, "test-topic")
 
-		test.module.Kafka.DeleteTopic("localhost:9092", "test-topic", SASLConfig{}, TLSConfig{})
+		test.module.Kafka.DeleteTopic(connection, "test-topic")
 
-		topics = test.module.Kafka.ListTopics("localhost:9092", SASLConfig{}, TLSConfig{})
+		topics = test.module.Kafka.ListTopics(connection)
 		assert.NotContains(t, topics, "test-topic")
 	})
 }
