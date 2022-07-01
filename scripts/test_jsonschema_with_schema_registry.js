@@ -4,14 +4,7 @@ tests Kafka with a 100 Avro messages per iteration.
 */
 
 import { check } from "k6";
-import {
-    Writer,
-    Reader,
-    createTopic,
-    deleteTopic,
-    JSON_SCHEMA_SERIALIZER,
-    JSON_SCHEMA_DESERIALIZER,
-} from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, JSON_SCHEMA_SERIALIZER, JSON_SCHEMA_DESERIALIZER } from "k6/x/kafka"; // import kafka extension
 
 const brokers = ["localhost:9092"];
 const topic = "xk6_jsonschema_test";
@@ -19,6 +12,7 @@ const topic = "xk6_jsonschema_test";
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
+    autoCreateTopic: true,
 });
 const reader = new Reader({
     brokers: brokers,
@@ -64,10 +58,6 @@ var config = JSON.stringify({
         url: "http://localhost:8081",
     },
 });
-
-if (__VU == 0) {
-    createTopic(brokers[0], topic);
-}
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -116,8 +106,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }

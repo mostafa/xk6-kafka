@@ -7,7 +7,7 @@ tests Kafka with a 200 JSON messages per iteration.
 
 import { check } from "k6";
 // import * as kafka from "k6/x/kafka";
-import { Writer, Reader, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, Connection } from "k6/x/kafka"; // import kafka extension
 
 // Prints module-level constants
 // console.log(kafka);
@@ -15,23 +15,20 @@ import { Writer, Reader, createTopic, deleteTopic } from "k6/x/kafka"; // import
 const brokers = ["localhost:9092"];
 const topic = "xk6_kafka_json_topic";
 
-// The writer and reader functions will be deprecated soon after
-// the new constructor changes is released. So, the new syntax need to be used,
-// for example:
 // const writer = new kafka.Writer(...);
 // const reader = new kafka.Reader(...);
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
+    autoCreateTopic: true,
 });
 const reader = new Reader({
     brokers: brokers,
     topic: topic,
 });
-
-if (__VU == 0) {
-    createTopic(brokers[0], topic);
-}
+const connection = new Connection({
+    address: brokers[0],
+});
 
 export const options = {
     thresholds: {
@@ -117,8 +114,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }

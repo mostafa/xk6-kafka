@@ -7,15 +7,7 @@ also uses SASL authentication.
 */
 
 import { check } from "k6";
-import {
-    Writer,
-    Reader,
-    createTopic,
-    deleteTopic,
-    listTopics,
-    SASL_PLAIN,
-    TLS_1_2,
-} from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, Connection, SASL_PLAIN, TLS_1_2 } from "k6/x/kafka"; // import kafka extension
 
 export const options = {
     // This is used for testing purposes. For real-world use, you should use your own options:
@@ -68,10 +60,8 @@ const tlsConfig = {
 const offset = 0;
 // partition and groupID are mutually exclusive
 const partition = 0;
-const groupID = "";
 const numPartitions = 1;
 const replicationFactor = 1;
-const compression = "";
 
 const writer = new Writer({
     brokers: brokers,
@@ -88,18 +78,19 @@ const reader = new Reader({
     sasl: saslConfig,
     tls: tlsConfig,
 });
+const connection = new Connection({
+    address: brokers[0],
+    sasl: saslConfig,
+    tls: tlsConfig,
+});
 
 if (__VU == 0) {
-    createTopic(
-        brokers[0],
-        topic,
-        numPartitions,
-        replicationFactor,
-        compression,
-        saslConfig,
-        tlsConfig
-    );
-    console.log("Existing topics: ", listTopics(brokers[0], saslConfig, tlsConfig));
+    connection.createTopic({
+        topic: topic,
+        numPartitions: numPartitions,
+        replicationFactor: replicationFactor,
+    });
+    console.log("Existing topics: ", connection.listTopics(saslConfig, tlsConfig));
 }
 
 export default function () {
@@ -146,8 +137,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic, saslConfig, tlsConfig);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }

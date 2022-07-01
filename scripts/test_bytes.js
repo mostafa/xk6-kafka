@@ -9,8 +9,7 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    createTopic,
-    deleteTopic,
+    Connection,
     STRING_SERIALIZER,
     STRING_DESERIALIZER,
     BYTE_ARRAY_SERIALIZER,
@@ -23,15 +22,15 @@ const topic = "xk6_kafka_byte_array_topic";
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
+    autoCreateTopic: true,
 });
 const reader = new Reader({
     brokers: brokers,
     topic: topic,
 });
-
-if (__VU == 0) {
-    createTopic(brokers[0], topic);
-}
+const connection = new Connection({
+    address: brokers[0],
+});
 
 var config = JSON.stringify({
     producer: {
@@ -80,8 +79,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }
