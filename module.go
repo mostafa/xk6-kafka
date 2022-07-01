@@ -122,9 +122,8 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	mustExport("Writer", kafkaModuleInstance.XWriter)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...)
 	mustExport("Reader", kafkaModuleInstance.XReader)
-	mustExport("createTopic", kafkaModuleInstance.CreateTopic)
-	mustExport("deleteTopic", kafkaModuleInstance.DeleteTopic)
-	mustExport("listTopics", kafkaModuleInstance.ListTopics)
+	// The Connection is a constructor and must be called with new, e.g. new Connection(...)
+	mustExport("Connection", kafkaModuleInstance.XConnection)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.
 	vu.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
