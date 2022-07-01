@@ -19,9 +19,10 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 		"localhost:9092", "test-topic", 1, 1, "", SASLConfig{}, TLSConfig{})
 
 	// Create a writer to produce messages
-	writer := test.module.Kafka.Writer(
-		[]string{"localhost:9092"}, "test-topic",
-		SASLConfig{}, TLSConfig{}, "", 1, BALANCER_LEAST_BYTES)
+	writer := test.module.Kafka.Writer(&WriterConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   "test-topic",
+	})
 	assert.NotNil(t, writer)
 
 	return test, writer
@@ -44,13 +45,14 @@ func TestConsume(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"key":    "key1",
-					"value":  "value1",
-					"offset": int64(0),
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Key:    "key1",
+						Value:  "value1",
+						Offset: 0,
+					},
+				}})
 		})
 
 		// Consume a message in the VU function
@@ -104,12 +106,13 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"value":  "value1",
-					"offset": int64(1),
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Value:  "value1",
+						Offset: 1,
+					},
+				}})
 		})
 
 		// Consume a message in the VU function
@@ -147,12 +150,13 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"value":  "value1",
-					"offset": int64(2),
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Value:  "value1",
+						Offset: 2,
+					},
+				}})
 		})
 
 		test.cancelContext()
@@ -193,12 +197,13 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"value":  string(serialized),
-					"offset": int64(3),
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Value:  string(serialized),
+						Offset: 3,
+					},
+				}})
 		})
 
 		// Consume the message
