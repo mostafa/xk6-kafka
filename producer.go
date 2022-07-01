@@ -29,8 +29,8 @@ var (
 	BALANCER_CRC32       = "balancer_crc32"
 	BALANCER_MURMUR2     = "balancer_murmur2"
 
-	// BalancerRegistry is a map of balancer names to their respective balancers.
-	BalancerRegistry map[string]kafkago.Balancer
+	// Balancers is a map of balancer names to their respective balancers.
+	Balancers map[string]kafkago.Balancer
 
 	// DefaultSerializer is string serializer
 	DefaultSerializer = StringSerializer
@@ -156,8 +156,6 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 }
 
 // Writer creates a new Kafka writer
-// TODO: accept a configuration
-// Deprecated: use XWriter instead
 func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
@@ -172,8 +170,8 @@ func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 		writerConfig.BatchSize = 1
 	}
 
-	balancerType := BalancerRegistry[BALANCER_LEAST_BYTES]
-	if b, ok := BalancerRegistry[writerConfig.Balancer]; ok {
+	balancerType := Balancers[BALANCER_LEAST_BYTES]
+	if b, ok := Balancers[writerConfig.Balancer]; ok {
 		balancerType = b
 	}
 

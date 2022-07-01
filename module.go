@@ -30,6 +30,7 @@ func init() {
 		netext.TLS_1_3: tls.VersionTLS13,
 	}
 
+	// Initialize the compression types map
 	CompressionCodecs = map[string]compress.Compression{
 		CODEC_GZIP:   compress.Gzip,
 		CODEC_SNAPPY: compress.Snappy,
@@ -37,12 +38,26 @@ func init() {
 		CODEC_ZSTD:   compress.Zstd,
 	}
 
-	BalancerRegistry = map[string]kafkago.Balancer{
+	// Initialize the balancer types map
+	Balancers = map[string]kafkago.Balancer{
 		BALANCER_ROUND_ROBIN: &kafkago.RoundRobin{},
 		BALANCER_LEAST_BYTES: &kafkago.LeastBytes{},
 		BALANCER_HASH:        &kafkago.Hash{},
 		BALANCER_CRC32:       &kafkago.CRC32Balancer{},
 		BALANCER_MURMUR2:     &kafkago.Murmur2Balancer{},
+	}
+
+	// Initialize the group balancer types map
+	GroupBalancers = map[string]kafkago.GroupBalancer{
+		GROUP_BALANCER_RANGE:         &kafkago.RangeGroupBalancer{},
+		GROUP_BALANCER_ROUND_ROBIN:   &kafkago.RoundRobinGroupBalancer{},
+		GROUP_BALANCER_RACK_AFFINITY: &kafkago.RackAffinityGroupBalancer{},
+	}
+
+	// Initialize the isolation levels map
+	IsolationLevels = map[string]kafkago.IsolationLevel{
+		ISOLATION_LEVEL_READ_UNCOMMITTED: kafkago.ReadUncommitted,
+		ISOLATION_LEVEL_READ_COMMITTED:   kafkago.ReadCommitted,
 	}
 
 	// Register the module namespace (aka. JS import path)
@@ -161,6 +176,15 @@ func (c *KafkaModule) defineConstants() {
 	mustAddProp("BALANCER_HASH", BALANCER_HASH)
 	mustAddProp("BALANCER_CRC32", BALANCER_CRC32)
 	mustAddProp("BALANCER_MURMUR2", BALANCER_MURMUR2)
+
+	// Group balancer types
+	mustAddProp("GROUP_BALANCER_RANGE", GROUP_BALANCER_RANGE)
+	mustAddProp("GROUP_BALANCER_ROUND_ROBIN", GROUP_BALANCER_ROUND_ROBIN)
+	mustAddProp("GROUP_BALANCER_RACK_AFFINITY", GROUP_BALANCER_RACK_AFFINITY)
+
+	// Isolation levels
+	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", ISOLATION_LEVEL_READ_UNCOMMITTED)
+	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", ISOLATION_LEVEL_READ_COMMITTED)
 
 	// Serde types
 	mustAddProp("STRING_SERIALIZER", StringSerializer)
