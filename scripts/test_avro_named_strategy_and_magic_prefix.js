@@ -27,14 +27,12 @@ const reader = new Reader({
     topic: topic,
 });
 
-let configuration = JSON.stringify({
+let config = JSON.stringify({
     consumer: {
-        keyDeserializer: "",
         valueDeserializer: AVRO_DESERIALIZER,
         userMagicPrefix: true,
     },
     producer: {
-        keySerializer: "",
         valueSerializer: AVRO_SERIALIZER,
         subjectNameStrategy: RECORD_NAME_STRATEGY,
     },
@@ -69,13 +67,17 @@ export default function () {
             },
         ],
     });
-    writer.produceWithConfiguration([message], configuration, null, valueSchema);
+    writer.produce({
+        messages: [message],
+        config: config,
+        valueSchema: valueSchema,
+    });
 
     check(getSubject("com.example.MagicNameValueSchema"), {
         "status is 200": (r) => r.status === 200,
     });
 
-    let messages = reader.consumeWithConfiguration(reader, 1, configuration, null, valueSchema);
+    let messages = reader.consumeWithConfiguration(reader, 1, config, null, valueSchema);
     check(messages, {
         "1 message returned": (msgs) => msgs.length === 1,
     });

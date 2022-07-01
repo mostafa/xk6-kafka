@@ -69,7 +69,7 @@ export default function () {
             },
         ];
 
-        writer.produce(messages);
+        writer.produce({ messages: messages });
     }
 
     // Read 10 messages only

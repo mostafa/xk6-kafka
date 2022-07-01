@@ -100,7 +100,11 @@ export default function () {
                 }),
             },
         ];
-        writer.produce(messages, keySchema, valueSchema);
+        writer.produce({
+            messages: messages,
+            keySchema: keySchema,
+            valueSchema: valueSchema,
+        });
     }
 
     // Read 10 messages only

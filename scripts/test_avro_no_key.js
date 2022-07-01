@@ -82,7 +82,7 @@ export default function () {
                 }),
             },
         ];
-        writer.produce(messages, null, valueSchema);
+        writer.produce({ messages: messages, valueSchema: valueSchema });
     }
 
     // Read 10 messages only

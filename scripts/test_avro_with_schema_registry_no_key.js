@@ -41,7 +41,7 @@ const valueSchema = `{
   ]
 }`;
 
-var configuration = JSON.stringify({
+var config = JSON.stringify({
     consumer: {
         keyDeserializer: "",
         valueDeserializer: AVRO_DESERIALIZER,
@@ -69,10 +69,14 @@ export default function () {
                 }),
             },
         ];
-        writer.produceWithConfiguration(messages, configuration, null, valueSchema);
+        writer.produce({
+            messages: [message],
+            config: config,
+            valueSchema: valueSchema,
+        });
     }
 
-    let messages = reader.consumeWithConfiguration(20, configuration, null, valueSchema);
+    let messages = reader.consumeWithConfiguration(20, config, null, valueSchema);
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });

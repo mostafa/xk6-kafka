@@ -82,7 +82,12 @@ export default function () {
                 }),
             },
         ];
-        writer.produceWithConfiguration(messages, configuration, keySchema, valueSchema);
+        writer.produce({
+            messages: messages,
+            config: config,
+            keySchema: keySchema,
+            valueSchema: valueSchema,
+        });
     }
 
     let messages = reader.consumeWithConfiguration(20, configuration, keySchema, valueSchema);
