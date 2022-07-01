@@ -85,7 +85,11 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = connectionObject.Set("close", func(call goja.FunctionCall) goja.Value {
-		connection.Close()
+		err := connection.Close()
+		if err != nil {
+			common.Throw(rt, err)
+		}
+
 		return goja.Undefined()
 	})
 	if err != nil {
