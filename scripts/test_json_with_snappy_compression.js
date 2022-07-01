@@ -6,28 +6,22 @@ tests Kafka with a 200 JSON messages per iteration.
 */
 
 import { check } from "k6";
-import { Writer, Reader, createTopic, deleteTopic, CODEC_SNAPPY } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, Connection, CODEC_SNAPPY } from "k6/x/kafka"; // import kafka extension
 
 const brokers = ["localhost:9092"];
 const topic = "xk6_kafka_json_snappy_topic";
-/*
-Supported compression codecs:
-
-- CODEC_GZIP
-- CODEC_SNAPPY
-- CODEC_LZ4
-- CODEC_ZSTD
-*/
-const compression = CODEC_SNAPPY;
 
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
-    compression: compression,
+    compression: CODEC_SNAPPY,
 });
 const reader = new Reader({
     brokers: brokers,
     topic: topic,
+});
+const connection = new Connection({
+    address: brokers[0],
 });
 
 const replicationFactor = 1;
@@ -35,7 +29,25 @@ const partitions = 1;
 
 if (__VU == 0) {
     // Create the topic or do nothing if the topic exists.
-    createTopic(brokers[0], topic, partitions, replicationFactor, compression);
+    /*
+     Supported compression codecs:
+
+     - CODEC_GZIP
+     - CODEC_SNAPPY
+     - CODEC_LZ4
+     - CODEC_ZSTD
+    */
+    connection.createTopic({
+        topic: topic,
+        numPartitions: partitions,
+        replicationFactor: replicationFactor,
+        configEntries: [
+            {
+                configName: "compression.type",
+                configValue: CODEC_SNAPPY,
+            },
+        ],
+    });
 }
 
 export default function () {
@@ -82,8 +94,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }

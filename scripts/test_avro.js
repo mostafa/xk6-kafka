@@ -6,7 +6,7 @@ tests Kafka with a 200 Avro messages per iteration.
 */
 
 import { check } from "k6";
-import { Writer, Reader, createTopic, deleteTopic } from "k6/x/kafka"; // import kafka extension
+import { Writer, Reader, Connection } from "k6/x/kafka"; // import kafka extension
 
 const brokers = ["localhost:9092"];
 const topic = "xk6_kafka_avro_topic";
@@ -14,10 +14,14 @@ const topic = "xk6_kafka_avro_topic";
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
+    autoCreateTopic: true,
 });
 const reader = new Reader({
     brokers: brokers,
     topic: topic,
+});
+const connection = new Connection({
+    address: brokers[0],
 });
 
 const keySchema = JSON.stringify({
@@ -63,10 +67,6 @@ const valueSchema = JSON.stringify({
         },
     ],
 });
-
-if (__VU == 0) {
-    createTopic(brokers[0], topic);
-}
 
 export default function () {
     for (let index = 0; index < 100; index++) {
@@ -121,8 +121,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }

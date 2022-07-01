@@ -7,8 +7,7 @@ import { check } from "k6";
 import {
     Writer,
     Reader,
-    createTopic,
-    deleteTopic,
+    Connection,
     AVRO_SERIALIZER,
     AVRO_DESERIALIZER,
     RECORD_NAME_STRATEGY,
@@ -21,10 +20,14 @@ const topic = "test_schema_registry_consume_magic_prefix";
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
+    autoCreateTopic: true,
 });
 const reader = new Reader({
     brokers: brokers,
     topic: topic,
+});
+const connection = new Connection({
+    address: brokers[0],
 });
 
 let config = JSON.stringify({
@@ -40,10 +43,6 @@ let config = JSON.stringify({
         url: "http://localhost:8081",
     },
 });
-
-if (__VU == 0) {
-    createTopic(brokers[0], topic);
-}
 
 export default function () {
     let message = {
@@ -86,8 +85,9 @@ export default function () {
 export function teardown(data) {
     if (__VU == 0) {
         // Delete the topic
-        deleteTopic(brokers[0], topic);
+        connection.deleteTopic(topic);
     }
     writer.close();
     reader.close();
+    connection.close();
 }
