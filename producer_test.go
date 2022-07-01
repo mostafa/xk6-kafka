@@ -14,23 +14,26 @@ func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		writer := test.module.Kafka.Writer(&WriterConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
 		// Produce a message in the init context
 		assert.Panics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"key":   "key1",
-					"value": "value1",
-				},
-				{
-					"key":   "key2",
-					"value": "value2",
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Key:   "key1",
+						Value: "value1",
+					},
+					{
+						Key:   "key2",
+						Value: "value2",
+					},
+				}})
 		})
 
 		// Create a topic before producing messages, otherwise tests will fail.
@@ -43,16 +46,17 @@ func TestProduce(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"key":   "key1",
-					"value": "value1",
-				},
-				{
-					"key":   "key2",
-					"value": "value2",
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Key:   "key1",
+						Value: "value1",
+					},
+					{
+						Key:   "key2",
+						Value: "value2",
+					},
+				}})
 		})
 	})
 
@@ -81,8 +85,9 @@ func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "", SASLConfig{}, TLSConfig{}, "")
+		writer := test.module.Kafka.Writer(&WriterConfig{
+			Brokers: []string{"localhost:9092"},
+		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -96,19 +101,19 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"value": "value1",
-					// The topic should be set either on the writer or on individual messages
-					"topic":  "test-topic",
-					"offset": int64(0),
-					"time":   time.Now().UnixMilli(),
-				},
-				{
-					"value": "value2",
-					"topic": "test-topic",
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Value:  "value1",
+						Topic:  "test-topic",
+						Offset: 0,
+						Time:   time.Now(),
+					},
+					{
+						Value: "value2",
+						Topic: "test-topic",
+					},
+				}})
 		})
 	})
 
@@ -126,8 +131,10 @@ func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		writer := test.module.Kafka.Writer(&WriterConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -144,16 +151,17 @@ func TestProducerContextCancelled(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.Panics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"key":   "key1",
-					"value": "value1",
-				},
-				{
-					"key":   "key2",
-					"value": "value2",
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Key:   "key1",
+						Value: "value1",
+					},
+					{
+						Key:   "key2",
+						Value: "value2",
+					},
+				}})
 		})
 	})
 
@@ -173,8 +181,10 @@ func TestProduceJSON(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(
-			[]string{"localhost:9092"}, "test-topic", SASLConfig{}, TLSConfig{}, "")
+		writer := test.module.Kafka.Writer(&WriterConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
@@ -191,11 +201,12 @@ func TestProduceJSON(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.Produce(writer, []map[string]interface{}{
-				{
-					"value": string(serialized),
-				},
-			}, "", "", false)
+			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Value: string(serialized),
+					},
+				}})
 		})
 	})
 

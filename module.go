@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/dop251/goja"
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
@@ -29,11 +30,34 @@ func init() {
 		netext.TLS_1_3: tls.VersionTLS13,
 	}
 
+	// Initialize the compression types map
 	CompressionCodecs = map[string]compress.Compression{
 		CODEC_GZIP:   compress.Gzip,
 		CODEC_SNAPPY: compress.Snappy,
 		CODEC_LZ4:    compress.Lz4,
 		CODEC_ZSTD:   compress.Zstd,
+	}
+
+	// Initialize the balancer types map
+	Balancers = map[string]kafkago.Balancer{
+		BALANCER_ROUND_ROBIN: &kafkago.RoundRobin{},
+		BALANCER_LEAST_BYTES: &kafkago.LeastBytes{},
+		BALANCER_HASH:        &kafkago.Hash{},
+		BALANCER_CRC32:       &kafkago.CRC32Balancer{},
+		BALANCER_MURMUR2:     &kafkago.Murmur2Balancer{},
+	}
+
+	// Initialize the group balancer types map
+	GroupBalancers = map[string]kafkago.GroupBalancer{
+		GROUP_BALANCER_RANGE:         &kafkago.RangeGroupBalancer{},
+		GROUP_BALANCER_ROUND_ROBIN:   &kafkago.RoundRobinGroupBalancer{},
+		GROUP_BALANCER_RACK_AFFINITY: &kafkago.RackAffinityGroupBalancer{},
+	}
+
+	// Initialize the isolation levels map
+	IsolationLevels = map[string]kafkago.IsolationLevel{
+		ISOLATION_LEVEL_READ_UNCOMMITTED: kafkago.ReadUncommitted,
+		ISOLATION_LEVEL_READ_COMMITTED:   kafkago.ReadCommitted,
 	}
 
 	// Register the module namespace (aka. JS import path)
@@ -96,18 +120,8 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	// Export the functions from the Kafka module to the JS code
 	// The Writer is a constructor and must be called with new, e.g. new Writer(...)
 	mustExport("Writer", kafkaModuleInstance.XWriter)
-	// The writer function will continue to work as before,
-	// until the Writer constructor accepts arguments as a struct instead
-	mustExport("writer", kafkaModuleInstance.Writer)
-	mustExport("produce", kafkaModuleInstance.Produce)
-	mustExport("produceWithConfiguration", kafkaModuleInstance.ProduceWithConfiguration)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...)
 	mustExport("Reader", kafkaModuleInstance.XReader)
-	// The reader function will continue to work as before,
-	// until the Reader constructor accepts arguments as a struct instead
-	mustExport("reader", kafkaModuleInstance.Reader)
-	mustExport("consume", kafkaModuleInstance.Consume)
-	mustExport("consumeWithConfiguration", kafkaModuleInstance.ConsumeWithConfiguration)
 	mustExport("createTopic", kafkaModuleInstance.CreateTopic)
 	mustExport("deleteTopic", kafkaModuleInstance.DeleteTopic)
 	mustExport("listTopics", kafkaModuleInstance.ListTopics)
@@ -155,6 +169,22 @@ func (c *KafkaModule) defineConstants() {
 	mustAddProp("CODEC_SNAPPY", CODEC_SNAPPY)
 	mustAddProp("CODEC_LZ4", CODEC_LZ4)
 	mustAddProp("CODEC_ZSTD", CODEC_ZSTD)
+
+	// Balancer types
+	mustAddProp("BALANCER_ROUND_ROBIN", BALANCER_ROUND_ROBIN)
+	mustAddProp("BALANCER_LEAST_BYTES", BALANCER_LEAST_BYTES)
+	mustAddProp("BALANCER_HASH", BALANCER_HASH)
+	mustAddProp("BALANCER_CRC32", BALANCER_CRC32)
+	mustAddProp("BALANCER_MURMUR2", BALANCER_MURMUR2)
+
+	// Group balancer types
+	mustAddProp("GROUP_BALANCER_RANGE", GROUP_BALANCER_RANGE)
+	mustAddProp("GROUP_BALANCER_ROUND_ROBIN", GROUP_BALANCER_ROUND_ROBIN)
+	mustAddProp("GROUP_BALANCER_RACK_AFFINITY", GROUP_BALANCER_RACK_AFFINITY)
+
+	// Isolation levels
+	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", ISOLATION_LEVEL_READ_UNCOMMITTED)
+	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", ISOLATION_LEVEL_READ_COMMITTED)
 
 	// Serde types
 	mustAddProp("STRING_SERIALIZER", StringSerializer)

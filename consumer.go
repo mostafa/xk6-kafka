@@ -11,46 +11,81 @@ import (
 	"go.k6.io/k6/metrics"
 )
 
-var DefaultDeserializer = StringDeserializer
+var (
+	// Group balancers
+	GROUP_BALANCER_RANGE         = "group_balancer_range"
+	GROUP_BALANCER_ROUND_ROBIN   = "group_balancer_round_robin"
+	GROUP_BALANCER_RACK_AFFINITY = "group_balancer_rack_affinity"
+
+	GroupBalancers map[string]kafkago.GroupBalancer
+
+	// Isolation levels
+	ISOLATION_LEVEL_READ_UNCOMMITTED = "isolation_level_read_uncommitted"
+	ISOLATION_LEVEL_READ_COMMITTED   = "isolation_level_read_committed"
+
+	IsolationLevels map[string]kafkago.IsolationLevel
+
+	DefaultDeserializer = StringDeserializer
+)
 
 type ReaderConfig struct {
-	Brokers    []string   `json:"brokers"`
-	Topic      string     `json:"topic"`
-	Partition  int        `json:"partition"`
-	GroupID    string     `json:"groupID"`
-	Offset     int64      `json:"offset"`
-	SaslConfig SASLConfig `json:"saslConfig"`
-	TlsConfig  TLSConfig  `json:"tlsConfig"`
+	*kafkago.ReaderConfig
+	Brokers                []string      `json:"brokers"`
+	GroupID                string        `json:"groupID"`
+	GroupTopics            []string      `json:"groupTopics"`
+	Topic                  string        `json:"topic"`
+	Partition              int           `json:"partition"`
+	QueueCapacity          int           `json:"queueCapacity"`
+	MinBytes               int           `json:"minBytes"`
+	MaxBytes               int           `json:"maxBytes"`
+	MaxWait                time.Duration `json:"maxWait"`
+	ReadLagInterval        time.Duration `json:"readLagInterval"`
+	GroupBalancers         []string      `json:"groupBalancers"`
+	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
+	CommitInterval         time.Duration `json:"commitInterval"`
+	PartitionWatchInterval time.Duration `json:"partitionWatchInterval"`
+	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
+	SessionTimeout         time.Duration `json:"sessionTimeout"`
+	RebalanceTimeout       time.Duration `json:"rebalanceTimeout"`
+	JoinGroupBackoff       time.Duration `json:"joinGroupBackoff"`
+	RetentionTime          time.Duration `json:"retentionTime"`
+	StartOffset            int64         `json:"startOffset"`
+	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
+	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
+	ConnectLogger          bool          `json:"connectLogger"`
+	MaxAttempts            int           `json:"maxAttempts"`
+	IsolationLevel         string        `json:"isolationLevel"`
+	Offset                 int64         `json:"offset"`
+	SASL                   SASLConfig    `json:"sasl"`
+	TLS                    TLSConfig     `json:"tls"`
 }
 
 type ConsumeConfig struct {
-	Limit             int64  `json:"limit"`
-	ConfigurationJson string `json:"configurationJson"`
-	KeySchema         string `json:"keySchema"`
-	ValueSchema       string `json:"valueSchema"`
+	Limit       int64         `json:"limit"`
+	Config      Configuration `json:"config"`
+	KeySchema   string        `json:"keySchema"`
+	ValueSchema string        `json:"valueSchema"`
 }
 
 // XReader is a wrapper around kafkago.Reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
-	var rConfig *ReaderConfig
+	var readerConfig *ReaderConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			b, err := json.Marshal(params)
 			if err != nil {
 				common.Throw(rt, err)
 			}
-			err = json.Unmarshal(b, &rConfig)
+			err = json.Unmarshal(b, &readerConfig)
 			if err != nil {
 				common.Throw(rt, err)
 			}
 		}
 	}
 
-	reader := k.Reader(
-		rConfig.Brokers, rConfig.Topic, rConfig.Partition, rConfig.GroupID, rConfig.Offset,
-		rConfig.SaslConfig, rConfig.TlsConfig)
+	reader := k.Reader(readerConfig)
 
 	readerObject := rt.NewObject()
 	// This is the reader object itself
@@ -60,48 +95,21 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
-		cConfig := ConsumeConfig{}
+		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) > 0 {
-			cConfig.Limit = call.Arguments[0].Export().(int64)
+			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+				b, err := json.Marshal(params)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+				err = json.Unmarshal(b, &consumeConfig)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+			}
 		}
 
-		if len(call.Arguments) > 1 {
-			cConfig.KeySchema = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			cConfig.ValueSchema = call.Arguments[2].Export().(string)
-		}
-
-		return rt.ToValue(k.Consume(
-			reader, cConfig.Limit, cConfig.KeySchema, cConfig.ValueSchema))
-	})
-	if err != nil {
-		common.Throw(rt, err)
-	}
-
-	err = readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		cConfig := ConsumeConfig{}
-		if len(call.Arguments) > 0 {
-			cConfig.Limit = call.Arguments[0].Export().(int64)
-		}
-
-		if len(call.Arguments) > 1 {
-			cConfig.ConfigurationJson = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			cConfig.KeySchema = call.Arguments[2].Export().(string)
-		}
-
-		if len(call.Arguments) > 3 {
-			cConfig.ValueSchema = call.Arguments[3].Export().(string)
-		}
-
-		return rt.ToValue(
-			k.ConsumeWithConfiguration(
-				reader, cConfig.Limit, cConfig.ConfigurationJson,
-				cConfig.KeySchema, cConfig.ValueSchema))
+		return rt.ToValue(k.consumeInternal(reader, consumeConfig))
 	})
 	if err != nil {
 		common.Throw(rt, err)
@@ -126,15 +134,12 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 }
 
 // Reader creates a Kafka reader with the given configuration
-// Deprecated: use XReader instead
-func (k *Kafka) Reader(
-	brokers []string, topic string, partition int,
-	groupID string, offset int64, saslConfig SASLConfig, tlsConfig TLSConfig) *kafkago.Reader {
-	if groupID != "" {
-		partition = 0
+func (k *Kafka) Reader(readerConfig *ReaderConfig) *kafkago.Reader {
+	if readerConfig.GroupID != "" {
+		readerConfig.Partition = 0
 	}
 
-	dialer, err := GetDialer(saslConfig, tlsConfig)
+	dialer, err := GetDialer(readerConfig.SASL, readerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
@@ -142,20 +147,72 @@ func (k *Kafka) Reader(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	reader := kafkago.NewReader(kafkago.ReaderConfig{
-		Brokers:          brokers,
-		Topic:            topic,
-		Partition:        partition,
-		GroupID:          groupID,
-		MaxWait:          time.Millisecond * 200,
-		RebalanceTimeout: time.Second * 5,
-		QueueCapacity:    1,
-		Dialer:           dialer,
-	})
+	if readerConfig.MaxWait == 0 {
+		readerConfig.MaxWait = time.Millisecond * 200
+	}
 
-	if offset > 0 {
-		if groupID == "" {
-			err := reader.SetOffset(offset)
+	if readerConfig.RebalanceTimeout == 0 {
+		readerConfig.RebalanceTimeout = time.Second * 5
+	}
+
+	if readerConfig.QueueCapacity == 0 {
+		readerConfig.QueueCapacity = 1
+	}
+
+	groupBalancers := []kafkago.GroupBalancer{}
+	for _, balancer := range readerConfig.GroupBalancers {
+		if b, ok := GroupBalancers[balancer]; ok {
+			groupBalancers = append(groupBalancers, b)
+		}
+	}
+	if len(groupBalancers) == 0 {
+		// Default to [Range, RoundRobin] if no balancer is specified
+		groupBalancers = append(groupBalancers, GroupBalancers[GROUP_BALANCER_RANGE])
+		groupBalancers = append(groupBalancers, GroupBalancers[GROUP_BALANCER_ROUND_ROBIN])
+	}
+
+	isolationLevel := IsolationLevels[ISOLATION_LEVEL_READ_UNCOMMITTED]
+	if readerConfig.IsolationLevel == "" {
+		isolationLevel = IsolationLevels[readerConfig.IsolationLevel]
+	}
+
+	consolidatedConfig := kafkago.ReaderConfig{
+		Brokers:                readerConfig.Brokers,
+		GroupID:                readerConfig.GroupID,
+		GroupTopics:            readerConfig.GroupTopics,
+		Topic:                  readerConfig.Topic,
+		Partition:              readerConfig.Partition,
+		QueueCapacity:          readerConfig.QueueCapacity,
+		MinBytes:               readerConfig.MinBytes,
+		MaxBytes:               readerConfig.MaxBytes,
+		MaxWait:                readerConfig.MaxWait,
+		ReadLagInterval:        readerConfig.ReadLagInterval,
+		GroupBalancers:         groupBalancers,
+		HeartbeatInterval:      readerConfig.HeartbeatInterval,
+		CommitInterval:         readerConfig.CommitInterval,
+		PartitionWatchInterval: readerConfig.PartitionWatchInterval,
+		WatchPartitionChanges:  readerConfig.WatchPartitionChanges,
+		SessionTimeout:         readerConfig.SessionTimeout,
+		RebalanceTimeout:       readerConfig.RebalanceTimeout,
+		JoinGroupBackoff:       readerConfig.JoinGroupBackoff,
+		RetentionTime:          readerConfig.RetentionTime,
+		StartOffset:            readerConfig.StartOffset,
+		ReadBackoffMin:         readerConfig.ReadBackoffMin,
+		ReadBackoffMax:         readerConfig.ReadBackoffMax,
+		IsolationLevel:         isolationLevel,
+		MaxAttempts:            readerConfig.MaxAttempts,
+		Dialer:                 dialer,
+	}
+
+	if readerConfig.ConnectLogger {
+		consolidatedConfig.Logger = logger
+	}
+
+	reader := kafkago.NewReader(consolidatedConfig)
+
+	if readerConfig.Offset > 0 {
+		if readerConfig.GroupID == "" {
+			err := reader.SetOffset(readerConfig.Offset)
 			if err != nil {
 				wrappedError := NewXk6KafkaError(
 					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
@@ -173,26 +230,6 @@ func (k *Kafka) Reader(
 	return reader
 }
 
-// Consume consumes messages from the given reader
-func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
-	keySchema string, valueSchema string) []map[string]interface{} {
-	return k.consumeInternal(reader, limit, Configuration{}, keySchema, valueSchema)
-}
-
-// ConsumeWithConfiguration consumes messages from the given reader with the given configuration
-func (k *Kafka) ConsumeWithConfiguration(
-	reader *kafkago.Reader, limit int64, configurationJson string,
-	keySchema string, valueSchema string) []map[string]interface{} {
-	configuration, err := UnmarshalConfiguration(configurationJson)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
-	}
-	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
-}
-
 // GetDeserializer returns the deserializer for the given schema
 func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
@@ -203,8 +240,7 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 
 // consumeInternal consumes messages from the given reader
 func (k *Kafka) consumeInternal(
-	reader *kafkago.Reader, limit int64,
-	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
+	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
@@ -218,23 +254,23 @@ func (k *Kafka) consumeInternal(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	if limit <= 0 {
-		limit = 1
+	if consumeConfig.Limit <= 0 {
+		consumeConfig.Limit = 1
 	}
 
-	err := ValidateConfiguration(configuration)
+	err := ValidateConfiguration(consumeConfig.Config)
 	if err != nil {
-		configuration.Consumer.KeyDeserializer = DefaultDeserializer
-		configuration.Consumer.ValueDeserializer = DefaultDeserializer
+		consumeConfig.Config.Consumer.KeyDeserializer = DefaultDeserializer
+		consumeConfig.Config.Consumer.ValueDeserializer = DefaultDeserializer
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := k.GetDeserializer(configuration.Consumer.KeyDeserializer)
-	valueDeserializer := k.GetDeserializer(configuration.Consumer.ValueDeserializer)
+	keyDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.KeyDeserializer)
+	valueDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 
-	for i := int64(0); i < limit; i++ {
+	for i := int64(0); i < consumeConfig.Limit; i++ {
 		msg, err := reader.ReadMessage(ctx)
 
 		if err == io.EOF {
@@ -257,7 +293,8 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Key) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["key"], wrappedError = keyDeserializer(
-				configuration, reader.Config().Topic, msg.Key, Key, keySchema, 0)
+				consumeConfig.Config, reader.Config().Topic, msg.Key,
+				Key, consumeConfig.KeySchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				logger.WithField("error", wrappedError).Error(wrappedError)
 			}
@@ -266,7 +303,8 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Value) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["value"], wrappedError = valueDeserializer(
-				configuration, reader.Config().Topic, msg.Value, "value", valueSchema, 0)
+				consumeConfig.Config, reader.Config().Topic, msg.Value,
+				Value, consumeConfig.ValueSchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				logger.WithField("error", wrappedError).Error(wrappedError)
 			}

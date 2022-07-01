@@ -33,7 +33,7 @@ if (__VU == 0) {
     createTopic(brokers[0], topic);
 }
 
-var configuration = JSON.stringify({
+var config = JSON.stringify({
     producer: {
         keySerializer: STRING_SERIALIZER,
         valueSerializer: BYTE_ARRAY_SERIALIZER,
@@ -59,11 +59,17 @@ export default function () {
             },
         ];
 
-        writer.produceWithConfiguration(messages, configuration);
+        writer.produce({
+            messages: messages,
+            config: config,
+        });
     }
 
     // Read 10 messages only
-    let messages = reader.consume(consumer, 10, configuration);
+    let messages = reader.consume({
+        limit: 10,
+        config: config,
+    });
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
         "key starts with 'test-id-' string": (msgs) => msgs[0].key.startsWith("test-id-"),

@@ -61,7 +61,7 @@ export default function () {
                 },
                 offset: index,
                 partition: 0,
-                time: new Date().getTime(), // timestamp
+                time: new Date(), // Will be converted to timestamp automatically
             },
             {
                 key: JSON.stringify({
@@ -81,11 +81,11 @@ export default function () {
             },
         ];
 
-        writer.produce(messages);
+        writer.produce({ messages: messages });
     }
 
     // Read 10 messages only
-    let messages = reader.consume(10);
+    let messages = reader.consume({ limit: 10 });
 
     check(messages, {
         "10 messages are received": (messages) => messages.length == 10,

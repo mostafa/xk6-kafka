@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,24 +23,6 @@ var configuration Configuration = Configuration{
 		},
 		UseLatest: true,
 	},
-}
-
-// TestUnmarshalConfiguration tests unmarshalling of a given configuration
-func TestUnmarshalConfiguration(t *testing.T) {
-	configJson, _ := json.Marshal(configuration)
-	config, err := UnmarshalConfiguration(string(configJson))
-	assert.Nil(t, err)
-	assert.Equal(t, configuration, config)
-}
-
-// TestUnmarshalConfigurationsFails tests unmarshalling of a given configuration and fails
-// on invalid JSON.
-func TestUnmarshalConfigurationsFails(t *testing.T) {
-	configJson := `{"}`
-
-	_, err := UnmarshalConfiguration(configJson)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Cannot unmarshal configuration.", err.Message)
 }
 
 // TestValidateConfiguration tests the validation of a given configuration.

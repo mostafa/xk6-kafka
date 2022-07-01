@@ -1,9 +1,5 @@
 package kafka
 
-import (
-	"encoding/json"
-)
-
 type ConsumerConfiguration struct {
 	KeyDeserializer     string `json:"keyDeserializer"`
 	ValueDeserializer   string `json:"valueDeserializer"`
@@ -21,17 +17,6 @@ type Configuration struct {
 	Consumer       ConsumerConfiguration       `json:"consumer"`
 	Producer       ProducerConfiguration       `json:"producer"`
 	SchemaRegistry SchemaRegistryConfiguration `json:"schemaRegistry"`
-}
-
-// UnmarshalConfiguration unmarshalls the given JSON string into a Configuration.
-func UnmarshalConfiguration(jsonConfiguration string) (Configuration, *Xk6KafkaError) {
-	var configuration Configuration
-	err := json.Unmarshal([]byte(jsonConfiguration), &configuration)
-	if err != nil {
-		return Configuration{}, NewXk6KafkaError(
-			configurationError, "Cannot unmarshal configuration.", err)
-	}
-	return configuration, nil
 }
 
 // ValidateConfiguration validates the given configuration.

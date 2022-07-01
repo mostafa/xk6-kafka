@@ -51,7 +51,7 @@ const valueSchema = JSON.stringify({
     },
 });
 
-var configuration = JSON.stringify({
+var config = JSON.stringify({
     consumer: {
         keyDeserializer: JSON_SCHEMA_DESERIALIZER,
         valueDeserializer: JSON_SCHEMA_DESERIALIZER,
@@ -82,10 +82,20 @@ export default function () {
                 }),
             },
         ];
-        writer.produceWithConfiguration(messages, configuration, keySchema, valueSchema);
+        writer.produce({
+            messages: messages,
+            config: config,
+            keySchema: keySchema,
+            valueSchema: valueSchema,
+        });
     }
 
-    let messages = reader.consumeWithConfiguration(20, configuration, keySchema, valueSchema);
+    let messages = reader.consume({
+        limit: 20,
+        config: config,
+        keySchema: keySchema,
+        valueSchema: valueSchema,
+    });
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });

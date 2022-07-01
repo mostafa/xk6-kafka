@@ -76,8 +76,8 @@ const compression = "";
 const writer = new Writer({
     brokers: brokers,
     topic: topic,
-    saslConfig: saslConfig,
-    tlsConfig: tlsConfig,
+    sasl: saslConfig,
+    tls: tlsConfig,
 });
 const reader = new Reader({
     brokers: brokers,
@@ -85,8 +85,8 @@ const reader = new Reader({
     partition: partition,
     groupID: groupID,
     offset: offset,
-    saslConfig: saslConfig,
-    tlsConfig: tlsConfig,
+    sasl: saslConfig,
+    tls: tlsConfig,
 });
 
 if (__VU == 0) {
@@ -133,11 +133,11 @@ export default function () {
             },
         ];
 
-        writer.produce(messages);
+        writer.produce({ messages: messages });
     }
 
     // Read 10 messages only
-    let messages = reader.consume(10);
+    let messages = reader.consume({ limit: 10 });
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
     });

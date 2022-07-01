@@ -22,6 +22,16 @@ var (
 	// CompressionCodecs is a map of compression codec names to their respective codecs.
 	CompressionCodecs map[string]compress.Compression
 
+	// Balancers
+	BALANCER_ROUND_ROBIN = "balancer_roundrobin"
+	BALANCER_LEAST_BYTES = "balancer_leastbytes"
+	BALANCER_HASH        = "balancer_hash"
+	BALANCER_CRC32       = "balancer_crc32"
+	BALANCER_MURMUR2     = "balancer_murmur2"
+
+	// Balancers is a map of balancer names to their respective balancers.
+	Balancers map[string]kafkago.Balancer
+
 	// DefaultSerializer is string serializer
 	DefaultSerializer = StringSerializer
 )
@@ -38,41 +48,65 @@ func freeze(o *goja.Object) {
 }
 
 type WriterConfig struct {
-	Brokers     []string   `json:"brokers"`
-	Topic       string     `json:"topic"`
-	SaslConfig  SASLConfig `json:"saslConfig"`
-	TlsConfig   TLSConfig  `json:"tlsConfig"`
-	Compression string     `json:"compression"`
+	Brokers         []string      `json:"brokers"`
+	Topic           string        `json:"topic"`
+	AutoCreateTopic bool          `json:"autoCreateTopic"`
+	Balancer        string        `json:"balancer"`
+	MaxAttempts     int           `json:"maxAttempts"`
+	BatchSize       int           `json:"batchSize"`
+	BatchBytes      int           `json:"batchBytes"`
+	BatchTimeout    time.Duration `json:"batchTimeout"`
+	ReadTimeout     time.Duration `json:"readTimeout"`
+	WriteTimeout    time.Duration `json:"writeTimeout"`
+	RequiredAcks    int           `json:"requiredAcks"`
+	Compression     string        `json:"compression"`
+	SASL            SASLConfig    `json:"sasl"`
+	TLS             TLSConfig     `json:"tls"`
+	ConnectLogger   bool          `json:"connectLogger"`
+}
+
+type Message struct {
+	Topic string `json:"topic"`
+
+	// Setting Partition has no effect when writing messages
+	Partition     int                    `json:"partition"`
+	Offset        int64                  `json:"offset"`
+	HighWaterMark int64                  `json:"highWaterMark"`
+	Key           string                 `json:"key"`
+	Value         string                 `json:"value"`
+	Headers       map[string]interface{} `json:"headers"`
+
+	// If not set at the creation, Time will be automatically set when
+	// writing the message.
+	Time time.Time `json:"time"`
 }
 
 type ProduceConfig struct {
-	Messages          []map[string]interface{} `json:"messages"`
-	ConfigurationJson string                   `json:"config"`
-	KeySchema         string                   `json:"keySchema"`
-	ValueSchema       string                   `json:"valueSchema"`
-	AutoCreateTopic   bool                     `json:"autoCreateTopic"`
+	Messages    []Message     `json:"messages"`
+	Config      Configuration `json:"config"`
+	KeySchema   string        `json:"keySchema"`
+	ValueSchema string        `json:"valueSchema"`
 }
 
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
-	var wConfig *WriterConfig
+	var writerConfig *WriterConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			b, err := json.Marshal(params)
 			if err != nil {
 				common.Throw(rt, err)
 			}
-			err = json.Unmarshal(b, &wConfig)
+			err = json.Unmarshal(b, &writerConfig)
 			if err != nil {
 				common.Throw(rt, err)
 			}
 		}
 	}
 
-	writer := k.Writer(
-		wConfig.Brokers, wConfig.Topic, wConfig.SaslConfig, wConfig.TlsConfig, wConfig.Compression)
+	writer := k.Writer(writerConfig)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -82,63 +116,21 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
-		pConfig := ProduceConfig{}
+		var producerConfig *ProduceConfig
 		if len(call.Arguments) > 0 {
-			m := call.Arguments[0].Export().([]interface{})
-			pConfig.Messages = make([]map[string]interface{}, len(m))
-			for i, v := range m {
-				pConfig.Messages[i] = v.(map[string]interface{})
+			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+				b, err := json.Marshal(params)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+				err = json.Unmarshal(b, &producerConfig)
+				if err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 
-		if len(call.Arguments) > 1 {
-			pConfig.KeySchema = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			pConfig.ValueSchema = call.Arguments[2].Export().(string)
-		}
-
-		k.Produce(
-			writer, pConfig.Messages, pConfig.KeySchema,
-			pConfig.ValueSchema, pConfig.AutoCreateTopic)
-
-		return goja.Undefined()
-	})
-	if err != nil {
-		common.Throw(rt, err)
-	}
-
-	err = writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		pConfig := ProduceConfig{}
-		if len(call.Arguments) > 0 {
-			m := call.Arguments[0].Export().([]interface{})
-			pConfig.Messages = make([]map[string]interface{}, len(m))
-			for i, v := range m {
-				pConfig.Messages[i] = v.(map[string]interface{})
-			}
-		}
-
-		if len(call.Arguments) > 1 {
-			pConfig.ConfigurationJson = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			pConfig.KeySchema = call.Arguments[2].Export().(string)
-		}
-
-		if len(call.Arguments) > 3 {
-			pConfig.ValueSchema = call.Arguments[3].Export().(string)
-		}
-
-		if len(call.Arguments) > 4 {
-			pConfig.AutoCreateTopic = call.Arguments[4].Export().(bool)
-		}
-
-		k.ProduceWithConfiguration(
-			writer, pConfig.Messages, pConfig.ConfigurationJson,
-			pConfig.KeySchema, pConfig.ValueSchema, pConfig.AutoCreateTopic)
-
+		k.produceInternal(writer, producerConfig)
 		return goja.Undefined()
 	})
 	if err != nil {
@@ -164,10 +156,8 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 }
 
 // Writer creates a new Kafka writer
-// TODO: accept a configuration
-// Deprecated: use XWriter instead
-func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tlsConfig TLSConfig, compression string) *kafkago.Writer {
-	dialer, err := GetDialer(saslConfig, tlsConfig)
+func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
+	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
@@ -176,48 +166,43 @@ func (k *Kafka) Writer(brokers []string, topic string, saslConfig SASLConfig, tl
 		return nil
 	}
 
-	// TODO: add AllowAutoTopicCreation to writer configuration
-	writerConfig := kafkago.WriterConfig{
-		Brokers:   brokers,
-		Topic:     topic,
-		Balancer:  &kafkago.LeastBytes{},
-		BatchSize: 1,
-		Dialer:    dialer,
-		Async:     false,
+	if writerConfig.BatchSize <= 0 {
+		writerConfig.BatchSize = 1
 	}
 
-	if codec, ok := CompressionCodecs[compression]; ok {
-		writerConfig.CompressionCodec = compress.Codecs[codec]
+	balancerType := Balancers[BALANCER_LEAST_BYTES]
+	if b, ok := Balancers[writerConfig.Balancer]; ok {
+		balancerType = b
+	}
+
+	consolidatedConfig := kafkago.WriterConfig{
+		Brokers:      writerConfig.Brokers,
+		Topic:        writerConfig.Topic,
+		Balancer:     balancerType,
+		MaxAttempts:  writerConfig.MaxAttempts,
+		BatchSize:    writerConfig.BatchSize,
+		BatchBytes:   writerConfig.BatchBytes,
+		BatchTimeout: writerConfig.BatchTimeout,
+		ReadTimeout:  writerConfig.ReadTimeout,
+		WriteTimeout: writerConfig.WriteTimeout,
+		RequiredAcks: writerConfig.RequiredAcks,
+		Dialer:       dialer,
+		Async:        false,
+	}
+
+	if writerConfig.ConnectLogger {
+		consolidatedConfig.Logger = logger
+	}
+
+	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
+		consolidatedConfig.CompressionCodec = compress.Codecs[codec]
 	}
 
 	// TODO: instantiate Writer directly
-	return kafkago.NewWriter(writerConfig)
-}
+	writer := kafkago.NewWriter(consolidatedConfig)
+	writer.AllowAutoTopicCreation = writerConfig.AutoCreateTopic
 
-// Produce sends messages to Kafka
-func (k *Kafka) Produce(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	keySchema string, valueSchema string, autoCreateTopic bool) {
-	writer.AllowAutoTopicCreation = autoCreateTopic
-
-	k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
-}
-
-// ProduceWithConfiguration sends messages to Kafka with the given configuration
-func (k *Kafka) ProduceWithConfiguration(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	configurationJson string, keySchema string, valueSchema string, autoCreateTopic bool) {
-	writer.AllowAutoTopicCreation = autoCreateTopic
-
-	configuration, err := UnmarshalConfiguration(configurationJson)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
-	}
-
-	k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
+	return writer
 }
 
 // GetSerializer returns the serializer for the given schema
@@ -230,8 +215,7 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	configuration Configuration, keySchema string, valueSchema string) {
+	writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
@@ -245,40 +229,39 @@ func (k *Kafka) produceInternal(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	err := ValidateConfiguration(configuration)
+	err := ValidateConfiguration(produceConfig.Config)
 	if err != nil {
-		configuration.Producer.KeySerializer = DefaultSerializer
-		configuration.Producer.ValueSerializer = DefaultSerializer
+		produceConfig.Config.Producer.KeySerializer = DefaultSerializer
+		produceConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := k.GetSerializer(configuration.Producer.KeySerializer)
-	valueSerializer := k.GetSerializer(configuration.Producer.ValueSerializer)
+	keySerializer := k.GetSerializer(produceConfig.Config.Producer.KeySerializer)
+	valueSerializer := k.GetSerializer(produceConfig.Config.Producer.ValueSerializer)
 
-	kafkaMessages := make([]kafkago.Message, len(messages))
-	for i, message := range messages {
+	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
+	for i, message := range produceConfig.Messages {
 		kafkaMessages[i] = kafkago.Message{}
 
 		// Topic can be explicitly set on each individual message
 		// Setting topic on the writer and the messages are mutually exclusive
-		if _, has_topic := message["topic"]; has_topic {
-			kafkaMessages[i].Topic = message["topic"].(string)
+		if message.Topic != "" {
+			kafkaMessages[i].Topic = message.Topic
 		}
 
-		if _, has_offset := message["offset"]; has_offset {
-			kafkaMessages[i].Offset = message["offset"].(int64)
-		}
+		kafkaMessages[i].Offset = message.Offset
 
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
-		if _, has_time := message["time"]; has_time {
-			kafkaMessages[i].Time = time.UnixMilli(message["time"].(int64))
+		if !message.Time.IsZero() {
+			kafkaMessages[i].Time = message.Time
 		}
 
 		// If a key was provided, add it to the message. Keys are optional.
-		if _, has_key := message["key"]; has_key {
+		if message.Key != "" {
 			keyData, err := keySerializer(
-				configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
+				produceConfig.Config, writer.Stats().Topic,
+				message.Key, Key, produceConfig.KeySchema, 0)
 			if err != nil && err.Unwrap() != nil {
 				logger.WithField("error", err).Error(err)
 			}
@@ -287,7 +270,9 @@ func (k *Kafka) produceInternal(
 		}
 
 		// Then add the message
-		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema, 0)
+		valueData, err := valueSerializer(
+			produceConfig.Config, writer.Stats().Topic,
+			message.Value, Value, produceConfig.ValueSchema, 0)
 		if err != nil && err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
 		}
@@ -295,8 +280,8 @@ func (k *Kafka) produceInternal(
 		kafkaMessages[i].Value = valueData
 
 		// If headers are provided, add them to the message.
-		if _, has_headers := message["headers"]; has_headers {
-			for key, value := range message["headers"].(map[string]interface{}) {
+		if len(message.Headers) > 0 {
+			for key, value := range message.Headers {
 				kafkaMessages[i].Headers = append(kafkaMessages[i].Headers, kafkago.Header{
 					Key:   key,
 					Value: []byte(fmt.Sprint(value)),
