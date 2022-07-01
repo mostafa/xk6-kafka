@@ -14,13 +14,13 @@ import (
 var DefaultDeserializer = StringDeserializer
 
 type ReaderConfig struct {
-	Brokers    []string   `json:"brokers"`
-	Topic      string     `json:"topic"`
-	Partition  int        `json:"partition"`
-	GroupID    string     `json:"groupID"`
-	Offset     int64      `json:"offset"`
-	SaslConfig SASLConfig `json:"saslConfig"`
-	TlsConfig  TLSConfig  `json:"tlsConfig"`
+	Brokers   []string   `json:"brokers"`
+	Topic     string     `json:"topic"`
+	Partition int        `json:"partition"`
+	GroupID   string     `json:"groupID"`
+	Offset    int64      `json:"offset"`
+	SASL      SASLConfig `json:"sasl"`
+	TLS       TLSConfig  `json:"tls"`
 }
 
 type ConsumeConfig struct {
@@ -50,7 +50,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	reader := k.Reader(
 		rConfig.Brokers, rConfig.Topic, rConfig.Partition, rConfig.GroupID, rConfig.Offset,
-		rConfig.SaslConfig, rConfig.TlsConfig)
+		rConfig.SASL, rConfig.TLS)
 
 	readerObject := rt.NewObject()
 	// This is the reader object itself
