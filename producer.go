@@ -65,33 +65,48 @@ type WriterConfig struct {
 	ConnectLogger   bool          `json:"connectLogger"`
 }
 
+type Message struct {
+	Topic string `json:"topic"`
+
+	// Setting Partition has no effect when writing messages
+	Partition     int                    `json:"partition"`
+	Offset        int64                  `json:"offset"`
+	HighWaterMark int64                  `json:"highWaterMark"`
+	Key           string                 `json:"key"`
+	Value         string                 `json:"value"`
+	Headers       map[string]interface{} `json:"headers"`
+
+	// If not set at the creation, Time will be automatically set when
+	// writing the message.
+	Time time.Time `json:"time"`
+}
+
 type ProduceConfig struct {
-	Messages          []map[string]interface{} `json:"messages"`
-	ConfigurationJson string                   `json:"config"`
-	KeySchema         string                   `json:"keySchema"`
-	ValueSchema       string                   `json:"valueSchema"`
-	AutoCreateTopic   bool                     `json:"autoCreateTopic"`
+	Messages    []Message     `json:"messages"`
+	Config      Configuration `json:"config"`
+	KeySchema   string        `json:"keySchema"`
+	ValueSchema string        `json:"valueSchema"`
 }
 
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
-	var wConfig *WriterConfig
+	var writerConfig *WriterConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			b, err := json.Marshal(params)
 			if err != nil {
 				common.Throw(rt, err)
 			}
-			err = json.Unmarshal(b, &wConfig)
+			err = json.Unmarshal(b, &writerConfig)
 			if err != nil {
 				common.Throw(rt, err)
 			}
 		}
 	}
 
-	writer := k.Writer(wConfig)
+	writer := k.Writer(writerConfig)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -101,63 +116,21 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
-		pConfig := ProduceConfig{}
+		var producerConfig *ProduceConfig
 		if len(call.Arguments) > 0 {
-			m := call.Arguments[0].Export().([]interface{})
-			pConfig.Messages = make([]map[string]interface{}, len(m))
-			for i, v := range m {
-				pConfig.Messages[i] = v.(map[string]interface{})
+			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+				b, err := json.Marshal(params)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+				err = json.Unmarshal(b, &producerConfig)
+				if err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 
-		if len(call.Arguments) > 1 {
-			pConfig.KeySchema = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			pConfig.ValueSchema = call.Arguments[2].Export().(string)
-		}
-
-		k.Produce(
-			writer, pConfig.Messages, pConfig.KeySchema,
-			pConfig.ValueSchema, pConfig.AutoCreateTopic)
-
-		return goja.Undefined()
-	})
-	if err != nil {
-		common.Throw(rt, err)
-	}
-
-	err = writerObject.Set("produceWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		pConfig := ProduceConfig{}
-		if len(call.Arguments) > 0 {
-			m := call.Arguments[0].Export().([]interface{})
-			pConfig.Messages = make([]map[string]interface{}, len(m))
-			for i, v := range m {
-				pConfig.Messages[i] = v.(map[string]interface{})
-			}
-		}
-
-		if len(call.Arguments) > 1 {
-			pConfig.ConfigurationJson = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			pConfig.KeySchema = call.Arguments[2].Export().(string)
-		}
-
-		if len(call.Arguments) > 3 {
-			pConfig.ValueSchema = call.Arguments[3].Export().(string)
-		}
-
-		if len(call.Arguments) > 4 {
-			pConfig.AutoCreateTopic = call.Arguments[4].Export().(bool)
-		}
-
-		k.ProduceWithConfiguration(
-			writer, pConfig.Messages, pConfig.ConfigurationJson,
-			pConfig.KeySchema, pConfig.ValueSchema, pConfig.AutoCreateTopic)
-
+		k.produceInternal(writer, producerConfig)
 		return goja.Undefined()
 	})
 	if err != nil {
@@ -205,7 +178,7 @@ func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 	}
 
 	// TODO: add AllowAutoTopicCreation to writer configuration
-	config := kafkago.WriterConfig{
+	consolidatedConfig := kafkago.WriterConfig{
 		Brokers:      writerConfig.Brokers,
 		Topic:        writerConfig.Topic,
 		Balancer:     balancerType,
@@ -221,44 +194,18 @@ func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 	}
 
 	if writerConfig.ConnectLogger {
-		config.Logger = logger
+		consolidatedConfig.Logger = logger
 	}
 
 	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
-		config.CompressionCodec = compress.Codecs[codec]
+		consolidatedConfig.CompressionCodec = compress.Codecs[codec]
 	}
 
 	// TODO: instantiate Writer directly
-	writer := kafkago.NewWriter(config)
+	writer := kafkago.NewWriter(consolidatedConfig)
 	writer.AllowAutoTopicCreation = writerConfig.AutoCreateTopic
 
 	return writer
-}
-
-// Produce sends messages to Kafka
-func (k *Kafka) Produce(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	keySchema string, valueSchema string, autoCreateTopic bool) {
-	writer.AllowAutoTopicCreation = autoCreateTopic
-
-	k.produceInternal(writer, messages, Configuration{}, keySchema, valueSchema)
-}
-
-// ProduceWithConfiguration sends messages to Kafka with the given configuration
-func (k *Kafka) ProduceWithConfiguration(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	configurationJson string, keySchema string, valueSchema string, autoCreateTopic bool) {
-	writer.AllowAutoTopicCreation = autoCreateTopic
-
-	configuration, err := UnmarshalConfiguration(configurationJson)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
-	}
-
-	k.produceInternal(writer, messages, configuration, keySchema, valueSchema)
 }
 
 // GetSerializer returns the serializer for the given schema
@@ -271,8 +218,7 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
-	writer *kafkago.Writer, messages []map[string]interface{},
-	configuration Configuration, keySchema string, valueSchema string) {
+	writer *kafkago.Writer, producerConfig *ProduceConfig) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
@@ -286,40 +232,39 @@ func (k *Kafka) produceInternal(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	err := ValidateConfiguration(configuration)
+	err := ValidateConfiguration(producerConfig.Config)
 	if err != nil {
-		configuration.Producer.KeySerializer = DefaultSerializer
-		configuration.Producer.ValueSerializer = DefaultSerializer
+		producerConfig.Config.Producer.KeySerializer = DefaultSerializer
+		producerConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := k.GetSerializer(configuration.Producer.KeySerializer)
-	valueSerializer := k.GetSerializer(configuration.Producer.ValueSerializer)
+	keySerializer := k.GetSerializer(producerConfig.Config.Producer.KeySerializer)
+	valueSerializer := k.GetSerializer(producerConfig.Config.Producer.ValueSerializer)
 
-	kafkaMessages := make([]kafkago.Message, len(messages))
-	for i, message := range messages {
+	kafkaMessages := make([]kafkago.Message, len(producerConfig.Messages))
+	for i, message := range producerConfig.Messages {
 		kafkaMessages[i] = kafkago.Message{}
 
 		// Topic can be explicitly set on each individual message
 		// Setting topic on the writer and the messages are mutually exclusive
-		if _, has_topic := message["topic"]; has_topic {
-			kafkaMessages[i].Topic = message["topic"].(string)
+		if message.Topic != "" {
+			kafkaMessages[i].Topic = message.Topic
 		}
 
-		if _, has_offset := message["offset"]; has_offset {
-			kafkaMessages[i].Offset = message["offset"].(int64)
-		}
+		kafkaMessages[i].Offset = message.Offset
 
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
-		if _, has_time := message["time"]; has_time {
-			kafkaMessages[i].Time = time.UnixMilli(message["time"].(int64))
+		if !message.Time.IsZero() {
+			kafkaMessages[i].Time = message.Time
 		}
 
 		// If a key was provided, add it to the message. Keys are optional.
-		if _, has_key := message["key"]; has_key {
+		if message.Key != "" {
 			keyData, err := keySerializer(
-				configuration, writer.Stats().Topic, message["key"], "key", keySchema, 0)
+				producerConfig.Config, writer.Stats().Topic,
+				message.Key, Key, producerConfig.KeySchema, 0)
 			if err != nil && err.Unwrap() != nil {
 				logger.WithField("error", err).Error(err)
 			}
@@ -328,7 +273,9 @@ func (k *Kafka) produceInternal(
 		}
 
 		// Then add the message
-		valueData, err := valueSerializer(configuration, writer.Stats().Topic, message["value"], "value", valueSchema, 0)
+		valueData, err := valueSerializer(
+			producerConfig.Config, writer.Stats().Topic,
+			message.Value, Value, producerConfig.ValueSchema, 0)
 		if err != nil && err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
 		}
@@ -336,8 +283,8 @@ func (k *Kafka) produceInternal(
 		kafkaMessages[i].Value = valueData
 
 		// If headers are provided, add them to the message.
-		if _, has_headers := message["headers"]; has_headers {
-			for key, value := range message["headers"].(map[string]interface{}) {
+		if len(message.Headers) > 0 {
+			for key, value := range message.Headers {
 				kafkaMessages[i].Headers = append(kafkaMessages[i].Headers, kafkago.Header{
 					Key:   key,
 					Value: []byte(fmt.Sprint(value)),
