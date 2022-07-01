@@ -98,8 +98,8 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 // GetKafkaControllerConnection returns a kafka controller connection with a given node address.
 // It will also try to use the auth and TLS settings to create a secure connection. The connection
 // should be closed after use.
-func (k *Kafka) GetKafkaControllerConnection(topicsConfig *ConnectionConfig) *kafkago.Conn {
-	dialer, wrappedError := GetDialer(topicsConfig.SASL, topicsConfig.TLS)
+func (k *Kafka) GetKafkaControllerConnection(connectionConfig *ConnectionConfig) *kafkago.Conn {
+	dialer, wrappedError := GetDialer(connectionConfig.SASL, connectionConfig.TLS)
 	if wrappedError != nil {
 		logger.WithField("error", wrappedError).Error(wrappedError)
 		if dialer == nil {
@@ -116,7 +116,7 @@ func (k *Kafka) GetKafkaControllerConnection(topicsConfig *ConnectionConfig) *ka
 		return nil
 	}
 
-	conn, err := dialer.DialContext(ctx, "tcp", topicsConfig.Address)
+	conn, err := dialer.DialContext(ctx, "tcp", connectionConfig.Address)
 	if err != nil {
 		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
 		logger.WithField("error", wrappedError).Error(wrappedError)
