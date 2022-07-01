@@ -1,292 +1,46 @@
 # xk6-kafka
 
+**`description`**
+The xk6-kafka project is a k6 extension that enables k6 users to load test Apache Kafka using a producer and possibly a consumer for debugging.
 This documentation refers to the development version of the xk6-kafka project, which means the latest changes on `main` branch and might not be released yet, as explained in [the release process](https://github.com/mostafa/xk6-kafka#the-release-process).
+
+**`see`** [https://github.com/mostafa/xk6-kafka](https://github.com/mostafa/xk6-kafka)
 
 ## Table of contents
 
-### Module-level constants
-
-The following constants are available on the module-level (and the default export) and you can use them for various purposes. The usage of these constants are available in the example [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
-
-```json
-{
-    // TLS versions
-    "TLS_1_0": "tls1.0",
-    "TLS_1_1": "tls1.1",
-    "TLS_1_2": "tls1.2",
-    "TLS_1_3": "tls1.3",
-
-    // SASL mechanisms
-    "NONE": "none",
-    "SASL_PLAIN": "sasl_plain",
-    "SASL_SCRAM_SHA256": "sasl_scram_sha256",
-    "SASL_SCRAM_SHA512": "sasl_scram_sha512",
-    "SASL_SSL": "sasl_ssl",
-
-    // Compression codecs
-    "CODEC_GZIP": "gzip",
-    "CODEC_SNAPPY": "snappy",
-    "CODEC_LZ4": "lz4",
-    "CODEC_ZSTD": "zstd",
-
-    // Serde types
-    "STRING_SERIALIZER": "org.apache.kafka.common.serialization.StringSerializer",
-    "STRING_DESERIALIZER": "org.apache.kafka.common.serialization.StringDeserializer",
-    "BYTE_ARRAY_SERIALIZER": "org.apache.kafka.common.serialization.ByteArraySerializer",
-    "BYTE_ARRAY_DESERIALIZER": "org.apache.kafka.common.serialization.ByteArrayDeserializer",
-    "JSON_SCHEMA_SERIALIZER": "io.confluent.kafka.serializers.json.KafkaJsonSchemaSerializer",
-    "JSON_SCHEMA_DESERIALIZER": "io.confluent.kafka.serializers.json.KafkaJsonSchemaDeserializer",
-    "AVRO_SERIALIZER": "io.confluent.kafka.serializers.KafkaAvroSerializer",
-    "AVRO_DESERIALIZER": "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-    "PROTOBUF_SERIALIZER": "io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializer",
-    "PROTOBUF_DESERIALIZER": "io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer",
-
-    // TopicNameStrategy types
-    "TOPIC_NAME_STRATEGY": "TopicNameStrategy",
-    "RECORD_NAME_STRATEGY": "RecordNameStrategy",
-    "TOPIC_RECORD_NAME_STRATEGY": "TopicRecordNameStrategy",
-}
-```
-
-### Functions
-
-- [consume](README.md#consume)
-- [consumeWithConfiguration](README.md#consumewithconfiguration)
-- [createTopic](README.md#createtopic)
-- [deleteTopic](README.md#deletetopic)
-- [listTopics](README.md#listtopics)
-- [produce](README.md#produce)
-- [produceWithConfiguration](README.md#producewithconfiguration)
-- [reader](README.md#reader)
-- [writer](README.md#writer)
-
-## Functions
-
-### consume
-
-▸ **consume**(`reader`, `limit`, `keySchema`, `valueSchema`): [[`Object`], `Object`]
-
-Read a sequence of messages from Kafka.
-
-**`function`**
-
-#### Parameters
-
-| Name          | Type     | Description                                                              |
-| :------------ | :------- | :----------------------------------------------------------------------- |
-| `reader`      | `Object` | The reader object created with the reader constructor.                   |
-| `limit`       | `Number` | How many messages should be read in one go, which blocks. Defaults to 1. |
-| `keySchema`   | `String` | An optional Avro/JSONSchema schema for the key.                          |
-| `valueSchema` | `String` | An optional Avro/JSONSchema schema for the value.                        |
-
-#### Returns
-
-[[`Object`], `Object`]
-
-An array of two objects: an array of objects and an error object. Each message object can contain a value and an optional set of key, topic, partition, offset, time, highWaterMark and headers. Headers are objects.
-
-___
-
-### consumeWithConfiguration
-
-▸ **consumeWithConfiguration**(`reader`, `limit`, `configurationJson`, `keySchema`, `valueSchema`): [[`Object`], `Object`]
-
-Read a sequence of messages from Kafka.
-
-**`function`**
-
-#### Parameters
-
-| Name                | Type     | Description                                                              |
-| :------------------ | :------- | :----------------------------------------------------------------------- |
-| `reader`            | `object` | The reader object created with the reader constructor.                   |
-| `limit`             | `Number` | How many messages should be read in one go, which blocks. Defaults to 1. |
-| `configurationJson` | `String` | Serializer, deserializer and schemaRegistry configuration.               |
-| `keySchema`         | `String` | An optional Avro/JSONSchema schema for the key.                          |
-| `valueSchema`       | `String` | An optional Avro/JSONSchema schema for the value.                        |
-
-#### Returns
-
-[[`Object`], `Object`]
-
-An array of two objects: an array of objects and an error object. Each message object can contain a value and an optional set of key, topic, partition, offset, time, highWaterMark and headers. Headers are objects.
-
-___
-
-### createTopic
-
-▸ **createTopic**(`address`, `topic`, `partitions`, `replicationFactor`, `compression`, `saslConfig`, `tlsConfig`): `Object`
-
-Create a topic in Kafka. It does nothing if the topic exists.
-
-**`function`**
-
-#### Parameters
-
-| Name                | Type     | Description                                  |
-| :------------------ | :------- | :------------------------------------------- |
-| `address`           | `String` | The broker address.                          |
-| `topic`             | `String` | The topic name.                              |
-| `partitions`        | `Number` | The Number of partitions.                    |
-| `replicationFactor` | `Number` | The replication factor in a clustered setup. |
-| `compression`       | `String` | The compression algorithm.                   |
-| `saslConfig`        | `object` | The SASL configuration.                      |
-| `tlsConfig`         | `object` | The TLS configuration.                       |
-
-#### Returns
-
-`Object`
-
-A error object.
-
-___
-
-### deleteTopic
-
-▸ **deleteTopic**(`address`, `topic`, `saslConfig`, `tlsConfig`): `Object`
-
-Delete a topic from Kafka. It raises an error if the topic doesn't exist.
-
-**`function`**
-
-#### Parameters
-
-| Name         | Type     | Description             |
-| :----------- | :------- | :---------------------- |
-| `address`    | `String` | The broker address.     |
-| `topic`      | `String` | The topic name.         |
-| `saslConfig` | `Object` | The SASL configuration. |
-| `tlsConfig`  | `object` | The TLS configuration.  |
-
-#### Returns
-
-`Object`
-
-A error object.
-
-___
-
-### listTopics
-
-▸ **listTopics**(`address`, `saslConfig`, `tlsConfig`): [[`String`], `Object`]
-
-List all topics in Kafka.
-
-**`function`**
-
-#### Parameters
-
-| Name         | Type     | Description             |
-| :----------- | :------- | :---------------------- |
-| `address`    | `String` | The broker address.     |
-| `saslConfig` | `Object` | The SASL configuration. |
-| `tlsConfig`  | `Object` | The TLS configuration.  |
-
-#### Returns
-
-[[`String`], `Object`]
-
-A nested list of strings containing a list of topics and the error object (if any).
-
-___
-
-### produce
-
-▸ **produce**(`writer`, `messages`, `keySchema`, `valueSchema`, `autoCreateTopic`): `Object`
-
-Write a sequence of messages to Kafka.
-
-**`function`**
-
-#### Parameters
-
-| Name              | Type       | Description                                                                                                                                                  |
-| :---------------- | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `writer`          | `Object`   | The writer object created with the writer constructor.                                                                                                       |
-| `messages`        | [`Object`] | An array of message objects containing an optional key and a value. Topic, offset and time and headers are also available and optional. Headers are objects. |
-| `keySchema`       | `String`   | An optional Avro/JSONSchema schema for the key.                                                                                                              |
-| `valueSchema`     | `String`   | An optional Avro/JSONSchema schema for the value.                                                                                                            |
-| `autoCreateTopic` | `boolean`  | Automatically creates the topic on the first produced message. Defaults to false.                                                                            |
-
-#### Returns
-
-`Object`
-
-A error object.
-
-___
-
-### produceWithConfiguration
-
-▸ **produceWithConfiguration**(`writer`, `messages`, `configurationJson`, `keySchema`, `valueSchema`, `autoCreateTopic`): `Object`
-
-Write a sequence of messages to Kafka with a specific serializer/deserializer.
-
-**`function`**
-
-#### Parameters
-
-| Name                | Type       | Description                                                                                                                                                  |
-| :------------------ | :--------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `writer`            | `Object`   | The writer object created with the writer constructor.                                                                                                       |
-| `messages`          | [`Object`] | An array of message objects containing an optional key and a value. Topic, offset and time and headers are also available and optional. Headers are objects. |
-| `configurationJson` | `String`   | Serializer, deserializer and schemaRegistry configuration.                                                                                                   |
-| `keySchema`         | `String`   | An optional Avro/JSONSchema schema for the key.                                                                                                              |
-| `valueSchema`       | `String`   | An optional Avro/JSONSchema schema for the value.                                                                                                            |
-| `autoCreateTopic`   | `boolean`  | Automatically creates the topic on the first produced message. Defaults to false.                                                                            |
-
-#### Returns
-
-`Object`
-
-A error object.
-
-___
-
-### reader
-
-▸ **reader**(`brokers`, `topic`, `partition`, `groupID`, `offset`, `saslConfig`, `tlsConfig`): [`Object`, `Object`]
-
-Create a new Reader object for reading messages from Kafka.
-
-#### Parameters
-
-| Name         | Type       | Description                                   |
-| :----------- | :--------- | :-------------------------------------------- |
-| `brokers`    | [`String`] | An array of brokers, e.g. ["host:port", ...]. |
-| `topic`      | `String`   | The topic to read from.                       |
-| `partition`  | `Number`   | The partition.                                |
-| `groupID`    | `String`   | The group ID.                                 |
-| `offset`     | `Number`   | The offset to begin reading from.             |
-| `saslConfig` | `object`   | The SASL configuration.                       |
-| `tlsConfig`  | `object`   | The TLS configuration.                        |
-
-#### Returns
-
-[`Object`, `Object`]
-
-An array of two objects: A Reader object and an error object.
-
-___
-
-### writer
-
-▸ **writer**(`brokers`, `topic`, `saslConfig`, `tlsConfig`, `compression`): [`Object`, `Object`]
-
-Create a new Writer object for writing messages to Kafka.
-
-#### Parameters
-
-| Name          | Type       | Description                                   |
-| :------------ | :--------- | :-------------------------------------------- |
-| `brokers`     | [`String`] | An array of brokers, e.g. ["host:port", ...]. |
-| `topic`       | `String`   | The topic to write to.                        |
-| `saslConfig`  | `object`   | The SASL configuration.                       |
-| `tlsConfig`   | `object`   | The TLS configuration.                        |
-| `compression` | `String`   | The Compression algorithm.                    |
-
-#### Returns
-
-[`Object`, `Object`]
-
-An array of two objects: A Writer object and an error object.
+### Enumerations
+
+- [BALANCERS](enums/BALANCERS.md)
+- [COMPRESSION\_CODECS](enums/COMPRESSION_CODECS.md)
+- [DESERIALIZERS](enums/DESERIALIZERS.md)
+- [GROUP\_BALANCERS](enums/GROUP_BALANCERS.md)
+- [ISOLATION\_LEVEL](enums/ISOLATION_LEVEL.md)
+- [SASL\_MECHANISMS](enums/SASL_MECHANISMS.md)
+- [SERIALIZERS](enums/SERIALIZERS.md)
+- [SUBJECT\_NAME\_STRATEGY](enums/SUBJECT_NAME_STRATEGY.md)
+- [TLS\_VERSIONS](enums/TLS_VERSIONS.md)
+
+### Classes
+
+- [Connection](classes/Connection.md)
+- [Reader](classes/Reader.md)
+- [Writer](classes/Writer.md)
+
+### Interfaces
+
+- [BasicAuth](interfaces/BasicAuth.md)
+- [ConfigEntry](interfaces/ConfigEntry.md)
+- [Configuration](interfaces/Configuration.md)
+- [ConnectionConfig](interfaces/ConnectionConfig.md)
+- [ConsumeConfig](interfaces/ConsumeConfig.md)
+- [ConsumerConfiguration](interfaces/ConsumerConfiguration.md)
+- [Message](interfaces/Message.md)
+- [ProduceConfig](interfaces/ProduceConfig.md)
+- [ProducerConfiguration](interfaces/ProducerConfiguration.md)
+- [ReaderConfig](interfaces/ReaderConfig.md)
+- [ReplicaAssignment](interfaces/ReplicaAssignment.md)
+- [SASLConfig](interfaces/SASLConfig.md)
+- [SchemaRegistryConfiguration](interfaces/SchemaRegistryConfiguration.md)
+- [TLSConfig](interfaces/TLSConfig.md)
+- [TopicConfig](interfaces/TopicConfig.md)
+- [WriterConfig](interfaces/WriterConfig.md)
