@@ -22,6 +22,10 @@ const connection = new Connection({
     address: brokers[0],
 });
 
+if (__VU == 0) {
+    connection.createTopic({ topic: topic });
+}
+
 const keySchema = `{
   "name": "KeySchema",
   "type": "record",
