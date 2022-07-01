@@ -61,10 +61,10 @@ type ReaderConfig struct {
 }
 
 type ConsumeConfig struct {
-	Limit             int64  `json:"limit"`
-	ConfigurationJson string `json:"configurationJson"`
-	KeySchema         string `json:"keySchema"`
-	ValueSchema       string `json:"valueSchema"`
+	Limit       int64         `json:"limit"`
+	Config      Configuration `json:"config"`
+	KeySchema   string        `json:"keySchema"`
+	ValueSchema string        `json:"valueSchema"`
 }
 
 // XReader is a wrapper around kafkago.Reader and acts as a JS constructor
@@ -95,21 +95,21 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
-		cConfig := ConsumeConfig{}
+		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) > 0 {
-			cConfig.Limit = call.Arguments[0].Export().(int64)
+			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+				b, err := json.Marshal(params)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+				err = json.Unmarshal(b, &consumeConfig)
+				if err != nil {
+					common.Throw(rt, err)
+				}
+			}
 		}
 
-		if len(call.Arguments) > 1 {
-			cConfig.KeySchema = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			cConfig.ValueSchema = call.Arguments[2].Export().(string)
-		}
-
-		return rt.ToValue(k.consumeInternal(
-			reader, cConfig.Limit, Configuration{}, cConfig.KeySchema, cConfig.ValueSchema))
+		return rt.ToValue(k.consumeInternal(reader, consumeConfig))
 	})
 	if err != nil {
 		common.Throw(rt, err)
@@ -240,8 +240,7 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 
 // consumeInternal consumes messages from the given reader
 func (k *Kafka) consumeInternal(
-	reader *kafkago.Reader, limit int64,
-	configuration Configuration, keySchema string, valueSchema string) []map[string]interface{} {
+	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
@@ -255,23 +254,23 @@ func (k *Kafka) consumeInternal(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	if limit <= 0 {
-		limit = 1
+	if consumeConfig.Limit <= 0 {
+		consumeConfig.Limit = 1
 	}
 
-	err := ValidateConfiguration(configuration)
+	err := ValidateConfiguration(consumeConfig.Config)
 	if err != nil {
-		configuration.Consumer.KeyDeserializer = DefaultDeserializer
-		configuration.Consumer.ValueDeserializer = DefaultDeserializer
+		consumeConfig.Config.Consumer.KeyDeserializer = DefaultDeserializer
+		consumeConfig.Config.Consumer.ValueDeserializer = DefaultDeserializer
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := k.GetDeserializer(configuration.Consumer.KeyDeserializer)
-	valueDeserializer := k.GetDeserializer(configuration.Consumer.ValueDeserializer)
+	keyDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.KeyDeserializer)
+	valueDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 
-	for i := int64(0); i < limit; i++ {
+	for i := int64(0); i < consumeConfig.Limit; i++ {
 		msg, err := reader.ReadMessage(ctx)
 
 		if err == io.EOF {
@@ -294,7 +293,8 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Key) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["key"], wrappedError = keyDeserializer(
-				configuration, reader.Config().Topic, msg.Key, Key, keySchema, 0)
+				consumeConfig.Config, reader.Config().Topic, msg.Key,
+				Key, consumeConfig.KeySchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				logger.WithField("error", wrappedError).Error(wrappedError)
 			}
@@ -303,7 +303,8 @@ func (k *Kafka) consumeInternal(
 		if len(msg.Value) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["value"], wrappedError = valueDeserializer(
-				configuration, reader.Config().Topic, msg.Value, "value", valueSchema, 0)
+				consumeConfig.Config, reader.Config().Topic, msg.Value,
+				Value, consumeConfig.ValueSchema, 0)
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				logger.WithField("error", wrappedError).Error(wrappedError)
 			}

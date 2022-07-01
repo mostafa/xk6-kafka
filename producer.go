@@ -175,7 +175,6 @@ func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 		balancerType = b
 	}
 
-	// TODO: add AllowAutoTopicCreation to writer configuration
 	consolidatedConfig := kafkago.WriterConfig{
 		Brokers:      writerConfig.Brokers,
 		Topic:        writerConfig.Topic,
@@ -216,7 +215,7 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 
 // produceInternal sends messages to Kafka with the given configuration
 func (k *Kafka) produceInternal(
-	writer *kafkago.Writer, producerConfig *ProduceConfig) {
+	writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
@@ -230,18 +229,18 @@ func (k *Kafka) produceInternal(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	err := ValidateConfiguration(producerConfig.Config)
+	err := ValidateConfiguration(produceConfig.Config)
 	if err != nil {
-		producerConfig.Config.Producer.KeySerializer = DefaultSerializer
-		producerConfig.Config.Producer.ValueSerializer = DefaultSerializer
+		produceConfig.Config.Producer.KeySerializer = DefaultSerializer
+		produceConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := k.GetSerializer(producerConfig.Config.Producer.KeySerializer)
-	valueSerializer := k.GetSerializer(producerConfig.Config.Producer.ValueSerializer)
+	keySerializer := k.GetSerializer(produceConfig.Config.Producer.KeySerializer)
+	valueSerializer := k.GetSerializer(produceConfig.Config.Producer.ValueSerializer)
 
-	kafkaMessages := make([]kafkago.Message, len(producerConfig.Messages))
-	for i, message := range producerConfig.Messages {
+	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
+	for i, message := range produceConfig.Messages {
 		kafkaMessages[i] = kafkago.Message{}
 
 		// Topic can be explicitly set on each individual message
@@ -261,8 +260,8 @@ func (k *Kafka) produceInternal(
 		// If a key was provided, add it to the message. Keys are optional.
 		if message.Key != "" {
 			keyData, err := keySerializer(
-				producerConfig.Config, writer.Stats().Topic,
-				message.Key, Key, producerConfig.KeySchema, 0)
+				produceConfig.Config, writer.Stats().Topic,
+				message.Key, Key, produceConfig.KeySchema, 0)
 			if err != nil && err.Unwrap() != nil {
 				logger.WithField("error", err).Error(err)
 			}
@@ -272,8 +271,8 @@ func (k *Kafka) produceInternal(
 
 		// Then add the message
 		valueData, err := valueSerializer(
-			producerConfig.Config, writer.Stats().Topic,
-			message.Value, Value, producerConfig.ValueSchema, 0)
+			produceConfig.Config, writer.Stats().Topic,
+			message.Value, Value, produceConfig.ValueSchema, 0)
 		if err != nil && err.Unwrap() != nil {
 			logger.WithField("error", err).Error(err)
 		}
