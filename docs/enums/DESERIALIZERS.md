@@ -1,0 +1,41 @@
+# Enumeration: DESERIALIZERS
+
+## Table of contents
+
+### Enumeration Members
+
+- [AVRO\_DESERIALIZER](DESERIALIZERS.md#avro_deserializer)
+- [BYTE\_ARRAY\_DESERIALIZER](DESERIALIZERS.md#byte_array_deserializer)
+- [JSON\_SCHEMA\_DESERIALIZER](DESERIALIZERS.md#json_schema_deserializer)
+- [PROTOBUF\_DESERIALIZER](DESERIALIZERS.md#protobuf_deserializer)
+- [STRING\_DESERIALIZER](DESERIALIZERS.md#string_deserializer)
+
+## Enumeration Members
+
+### AVRO\_DESERIALIZER
+
+• **AVRO\_DESERIALIZER**
+
+___
+
+### BYTE\_ARRAY\_DESERIALIZER
+
+• **BYTE\_ARRAY\_DESERIALIZER**
+
+___
+
+### JSON\_SCHEMA\_DESERIALIZER
+
+• **JSON\_SCHEMA\_DESERIALIZER**
+
+___
+
+### PROTOBUF\_DESERIALIZER
+
+• **PROTOBUF\_DESERIALIZER**
+
+___
+
+### STRING\_DESERIALIZER
+
+• **STRING\_DESERIALIZER**

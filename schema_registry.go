@@ -25,7 +25,7 @@ type SchemaRegistryConfiguration struct {
 	Url       string    `json:"url"`
 	BasicAuth BasicAuth `json:"basicAuth"`
 	UseLatest bool      `json:"useLatest"`
-	TLSConfig TLSConfig `json:"tlsConfig"`
+	TLS       TLSConfig `json:"tls"`
 }
 
 const (
@@ -64,7 +64,7 @@ func EncodeWireFormat(data []byte, schemaID int) []byte {
 func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfiguration) *srclient.SchemaRegistryClient {
 	var srClient *srclient.SchemaRegistryClient
 
-	tlsConfig, err := GetTLSConfig(configuration.TLSConfig)
+	tlsConfig, err := GetTLSConfig(configuration.TLS)
 	if err != nil {
 		logger.WithField("error", err).Warn("Failed to get TLS config. Continuing without TLS.")
 		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)

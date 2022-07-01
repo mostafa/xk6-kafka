@@ -29,7 +29,6 @@ var (
 )
 
 type ReaderConfig struct {
-	*kafkago.ReaderConfig
 	Brokers                []string      `json:"brokers"`
 	GroupID                string        `json:"groupID"`
 	GroupTopics            []string      `json:"groupTopics"`
