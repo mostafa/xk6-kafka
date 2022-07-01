@@ -14,11 +14,20 @@ import (
 func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	test := GetTestModuleInstance(t)
 
+	// Create a Kafka topic
+	connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+		Address: "localhost:9092",
+	})
+	defer connection.Close()
+
+	test.module.Kafka.CreateTopic(connection, &kafkago.TopicConfig{
+		Topic: "test-topic",
+	})
+
 	// Create a writer to produce messages
 	writer := test.module.Kafka.Writer(&WriterConfig{
-		Brokers:         []string{"localhost:9092"},
-		Topic:           "test-topic",
-		AutoCreateTopic: true,
+		Brokers: []string{"localhost:9092"},
+		Topic:   "test-topic",
 	})
 	assert.NotNil(t, writer)
 
