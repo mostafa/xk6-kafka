@@ -30,6 +30,10 @@ const connection = new Connection({
     address: brokers[0],
 });
 
+if (__VU == 0) {
+    connection.createTopic({ topic: topic });
+}
+
 let config = JSON.stringify({
     consumer: {
         valueDeserializer: AVRO_DESERIALIZER,

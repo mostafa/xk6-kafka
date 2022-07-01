@@ -32,6 +32,10 @@ const connection = new Connection({
     address: brokers[0],
 });
 
+if (__VU == 0) {
+    connection.createTopic({ topic: topic });
+}
+
 var config = JSON.stringify({
     producer: {
         keySerializer: STRING_SERIALIZER,

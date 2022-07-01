@@ -30,6 +30,10 @@ const connection = new Connection({
     address: brokers[0],
 });
 
+if (__VU == 0) {
+    connection.createTopic({ topic: topic });
+}
+
 export const options = {
     thresholds: {
         // Base thresholds to see if the writer or reader is working
