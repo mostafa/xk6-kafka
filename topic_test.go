@@ -15,8 +15,8 @@ func TestGetKafkaControllerConnection(t *testing.T) {
 		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
-		defer connection.Close()
 		assert.NotNil(t, connection)
+		connection.Close()
 	})
 }
 
@@ -42,7 +42,6 @@ func TestTopics(t *testing.T) {
 		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
-		defer connection.Close()
 
 		test.module.Kafka.CreateTopic(connection, &kafkago.TopicConfig{
 			Topic: "test-topic",
@@ -55,5 +54,7 @@ func TestTopics(t *testing.T) {
 
 		topics = test.module.Kafka.ListTopics(connection)
 		assert.NotContains(t, topics, "test-topic")
+
+		connection.Close()
 	})
 }

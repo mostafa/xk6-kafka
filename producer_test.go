@@ -92,12 +92,12 @@ func TestProduceWithoutKey(t *testing.T) {
 			connection := test.module.GetKafkaControllerConnection(&ConnectionConfig{
 				Address: "localhost:9092",
 			})
-			defer connection.Close()
 			test.module.CreateTopic(connection, &kafkago.TopicConfig{
 				Topic:             "test-topic",
 				NumPartitions:     1,
 				ReplicationFactor: 1,
 			})
+			connection.Close()
 		})
 
 		require.NoError(t, test.moveToVUCode())
