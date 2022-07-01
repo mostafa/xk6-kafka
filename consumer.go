@@ -73,35 +73,8 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 			cConfig.ValueSchema = call.Arguments[2].Export().(string)
 		}
 
-		return rt.ToValue(k.Consume(
-			reader, cConfig.Limit, cConfig.KeySchema, cConfig.ValueSchema))
-	})
-	if err != nil {
-		common.Throw(rt, err)
-	}
-
-	err = readerObject.Set("consumeWithConfiguration", func(call goja.FunctionCall) goja.Value {
-		cConfig := ConsumeConfig{}
-		if len(call.Arguments) > 0 {
-			cConfig.Limit = call.Arguments[0].Export().(int64)
-		}
-
-		if len(call.Arguments) > 1 {
-			cConfig.ConfigurationJson = call.Arguments[1].Export().(string)
-		}
-
-		if len(call.Arguments) > 2 {
-			cConfig.KeySchema = call.Arguments[2].Export().(string)
-		}
-
-		if len(call.Arguments) > 3 {
-			cConfig.ValueSchema = call.Arguments[3].Export().(string)
-		}
-
-		return rt.ToValue(
-			k.ConsumeWithConfiguration(
-				reader, cConfig.Limit, cConfig.ConfigurationJson,
-				cConfig.KeySchema, cConfig.ValueSchema))
+		return rt.ToValue(k.consumeInternal(
+			reader, cConfig.Limit, Configuration{}, cConfig.KeySchema, cConfig.ValueSchema))
 	})
 	if err != nil {
 		common.Throw(rt, err)
@@ -171,26 +144,6 @@ func (k *Kafka) Reader(
 	}
 
 	return reader
-}
-
-// Consume consumes messages from the given reader
-func (k *Kafka) Consume(reader *kafkago.Reader, limit int64,
-	keySchema string, valueSchema string) []map[string]interface{} {
-	return k.consumeInternal(reader, limit, Configuration{}, keySchema, valueSchema)
-}
-
-// ConsumeWithConfiguration consumes messages from the given reader with the given configuration
-func (k *Kafka) ConsumeWithConfiguration(
-	reader *kafkago.Reader, limit int64, configurationJson string,
-	keySchema string, valueSchema string) []map[string]interface{} {
-	configuration, err := UnmarshalConfiguration(configurationJson)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
-	}
-	return k.consumeInternal(reader, limit, configuration, keySchema, valueSchema)
 }
 
 // GetDeserializer returns the deserializer for the given schema

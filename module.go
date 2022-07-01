@@ -107,11 +107,6 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	mustExport("Writer", kafkaModuleInstance.XWriter)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...)
 	mustExport("Reader", kafkaModuleInstance.XReader)
-	// The reader function will continue to work as before,
-	// until the Reader constructor accepts arguments as a struct instead
-	mustExport("reader", kafkaModuleInstance.Reader)
-	mustExport("consume", kafkaModuleInstance.Consume)
-	mustExport("consumeWithConfiguration", kafkaModuleInstance.ConsumeWithConfiguration)
 	mustExport("createTopic", kafkaModuleInstance.CreateTopic)
 	mustExport("deleteTopic", kafkaModuleInstance.DeleteTopic)
 	mustExport("listTopics", kafkaModuleInstance.ListTopics)
