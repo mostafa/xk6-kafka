@@ -77,7 +77,7 @@ export default function () {
         "status is 200": (r) => r.status === 200,
     });
 
-    let messages = reader.consumeWithConfiguration(reader, 1, config, null, valueSchema);
+    let messages = reader.consume({ limit: 1, config: config, valueSchema: valueSchema });
     check(messages, {
         "1 message returned": (msgs) => msgs.length === 1,
     });

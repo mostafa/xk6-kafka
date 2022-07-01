@@ -85,7 +85,7 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = reader.consume(10);
+    let messages = reader.consume({ limit: 10 });
 
     check(messages, {
         "10 messages are received": (messages) => messages.length == 10,

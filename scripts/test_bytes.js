@@ -66,7 +66,10 @@ export default function () {
     }
 
     // Read 10 messages only
-    let messages = reader.consume(consumer, 10, config);
+    let messages = reader.consume({
+        limit: 10,
+        config: config,
+    });
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
         "key starts with 'test-id-' string": (msgs) => msgs[0].key.startsWith("test-id-"),

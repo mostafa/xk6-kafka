@@ -92,7 +92,12 @@ export default function () {
         });
     }
 
-    let messages = reader.consumeWithConfiguration(20, config, keySchema, valueSchema);
+    let messages = reader.consume({
+        limit: 20,
+        config: config,
+        keySchema: keySchema,
+        valueSchema: valueSchema,
+    });
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
