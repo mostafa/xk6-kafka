@@ -35,8 +35,10 @@ func TestConsume(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(
-			[]string{"localhost:9092"}, "test-topic", 0, "", 0, SASLConfig{}, TLSConfig{})
+		reader := test.module.Kafka.Reader(&ReaderConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+		})
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
@@ -57,7 +59,7 @@ func TestConsume(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.Equal(t, "key1", messages[0]["key"].(string))
 			assert.Equal(t, "value1", messages[0]["value"].(string))
@@ -96,8 +98,11 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(
-			[]string{"localhost:9092"}, "test-topic", 0, "", 1, SASLConfig{}, TLSConfig{})
+		reader := test.module.Kafka.Reader(&ReaderConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+			Offset:  1,
+		})
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
@@ -117,7 +122,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.NotContains(t, messages[0], "key")
 			assert.Equal(t, "value1", messages[0]["value"].(string))
@@ -140,8 +145,10 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(
-			[]string{"localhost:9092"}, "test-topic", 0, "", 2, SASLConfig{}, TLSConfig{})
+		reader := test.module.Kafka.Reader(&ReaderConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+		})
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
@@ -163,7 +170,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
 			assert.Empty(t, messages)
 		})
 	})
@@ -184,8 +191,11 @@ func TestConsumeJSON(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(
-			[]string{"localhost:9092"}, "test-topic", 0, "", 3, SASLConfig{}, TLSConfig{})
+		reader := test.module.Kafka.Reader(&ReaderConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+			Offset:  3,
+		})
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
@@ -208,7 +218,7 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Consume the message
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.Consume(reader, 1, "", "")
+			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 
 			type F struct {
