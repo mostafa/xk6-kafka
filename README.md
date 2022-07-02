@@ -136,106 +136,180 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 All the exported functions are available by importing them from `k6/x/kafka`. They are subject to change in future versions unless a new major version is released. The exported functions are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/docs/README.md).
 
-### k6 Test Script
+### k6 Test Scripts
 
-The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. The scripts usually have four parts:
+The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. Since this project extends the functionality of k6, it has four stages in the [test life cycle](https://k6.io/docs/using-k6/test-life-cycle/).
 
-1. The __imports__ at the top show the exported functions from the Go extension and k6.
-2. The __Avro schema__ defines a key and a value schema that both producer and consumer use, according to the [Avro schema specification](https://avro.apache.org/docs/current/spec.html). These are defined in the [test_avro.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) script.
-3. The __message producer__:
-    1. The `writer` function opens a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to write to. You can reuse this writer object to produce as many messages as possible. This object is created in the init code and is reused in the exported default function.
-    2. The `produce` function sends a list of messages to Kafka. The first argument is the `producer` object, and the second is the list of messages (with key and value). The third and the fourth arguments are the key schema and value schema in Avro format if the Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either the schema is Avro and the other will be a string. You can use the `produceWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry.js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The produce function returns an `error` if it fails. The check is optional, but `error` being `undefined` means that `produce` function successfully sent the message.
-    3. The `producer.close()` function closes the `producer` object (in `tearDown`).
-4. The __message consumer__:
-    1. The `reader` function opens a connection to the bootstrap servers. The first argument is an array of strings that signifies the bootstrap server addresses, and the second is the topic you want to read from. This object is created in init code and is reused in the exported default function.
-    2. The `consume` function reads a list of Kafka's messages. The first argument is the `consumer` object, and the second is the number of messages to read in one go. The third and the fourth arguments are the key schema and value schema in Avro format if the Avro format is used. The values are treated as normal strings if the schema are not passed to the function for either the key or the value. Use an empty string, `""` if either the schema is Avro and the other will be a string. You can use the `consumeWithConfiguration` function to pass separate serializer, deserializer, and schema registry settings, as shown in the [test_avro_with_schema_registry js](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) script. The consume function returns an empty array if it fails. The check is optional, but it checks to see if the length of the message array is exactly 10.
-    3. The `consumer.close()` function closes the `consumer` object (in `tearDown`).
+1. To use the extension, you need to import it in your script, like any other JS module:
 
-You can run k6 with the Kafka extension using the following command:
+    ```javascript
+    // Either import the module object
+    import * as kafka from "k6/x/kafka";
 
-```bash
-./k6 run --vus 50 --duration 60s scripts/test_json.js
-```
+    // Or individual classes and constants
+    import { Writer, Reader, Connection, SOME_CONSTANT } from "k6/x/kafka";
+    ```
 
-And here's the test result output:
+2. You need to instantiate the classes in the `init` context. All the [k6 options](https://k6.io/docs/using-k6/k6-options/) are also configured here:
 
-```bash
+    ```javascript
+    // Creates a new Writer object to produce messages to Kafka
+    const writer = new Writer({
+        // WriterConfig object
+        brokers: ["localhost:9092"],
+        topic: "my-topic",
+    });
 
-          /\      |‾‾| /‾‾/   /‾‾/
-     /\  /  \     |  |/  /   /  /
-    /  \/    \    |     (   /   ‾‾\
-   /          \   |  |\  \ |  (‾)  |
-  / __________ \  |__| \__\ \_____/ .io
+    const reader = new Reader({
+        // ReaderConfig object
+        brokers: ["localhost:9092"],
+        topic: "my-topic",
+    });
 
-  execution: local
-     script: scripts/test_json.js
-     output: -
+    const connection = new Connection({
+        // ConnectionConfig object
+        address: "localhost:9092",
+    });
 
-  scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
-           * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
+    if (__VU == 0) {
+        // Create a topic on initialization (before producing messages)
+        connection.createTopic({
+            // TopicConfig object
+            topic: "my-topic",
+        });
+    }
+    ```
+
+3. In the VU code, you can produce messages to Kafka or consume messages from it:
+
+    ```javascript
+    export default function() {
+        // Fetch the list of all topics
+        const topics = connection.listTopics();
+        console.log(topics); // list of topics
+
+        // Produces message to Kafka
+        writer.produce({
+            // ProduceConfig object
+            messages: [
+                // Message object(s)
+                {
+                    key: "my-key",
+                    value: "my-value",
+                },
+            ],
+        });
+
+        // Consume messages from Kafka
+        let messages = reader.consume({
+            // ConsumeConfig object
+            limit: 10
+        });
+
+        // your messages
+        console.log(message);
+
+        // You can use checks to verify the contents,
+        // length and other properties of the message(s)
+    }
+    ```
+
+4. In the `teardown` function, close all the connections and possibly delete the topic:
+
+    ```javascript
+    export function teardown(data) {
+        // Delete the topic
+        connection.deleteTopic("my-topic");
+
+        // Close all connections
+        writer.close();
+        reader.close();
+        connection.close();
+    }
+    ```
+
+5. You can now run k6 with the extension using the following command:
+
+    ```bash
+    ./k6 run --vus 50 --duration 60s scripts/test_json.js
+    ```
+
+6. And here's the test result output:
+
+    ```bash
+
+              /\      |‾‾| /‾‾/   /‾‾/
+         /\  /  \     |  |/  /   /  /
+        /  \/    \    |     (   /   ‾‾\
+       /          \   |  |\  \ |  (‾)  |
+      / __________ \  |__| \__\ \_____/ .io
+
+    execution: local
+        script: scripts/test_json.js
+        output: -
+
+    scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
+            * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
 
 
-running (1m00.1s), 00/50 VUs, 12064 complete and 0 interrupted iterations
-default ✓ [======================================] 50 VUs  1m0s
+    running (1m00.2s), 00/50 VUs, 13778 complete and 0 interrupted iterations
+    default ✓ [======================================] 50 VUs  1m0s
 
-     ✓ Messages are sent
-     ✓ 10 messages are received
-     ✓ Topic equals to xk6_kafka_json_topic
-     ✗ Key is correct
-      ↳  2% — ✓ 300 / ✗ 11764
-     ✗ Value is correct
-      ↳  4% — ✓ 500 / ✗ 11564
-     ✓ Header equals {mykey: 'myvalue'}
-     ✓ Time is past
-     ✓ Partition is zero
-     ✓ Offset is gte zero
-     ✓ High watermark is gte zero
+        ✓ 10 messages are received
+        ✓ Topic equals to xk6_kafka_json_topic
+        ✓ Key is correct
+        ✓ Value is correct
+        ✓ Header equals {'mykey': 'myvalue'}
+        ✓ Time is past
+        ✓ Partition is zero
+        ✓ Offset is gte zero
+        ✓ High watermark is gte zero
 
-     █ teardown
+        █ teardown
 
-     checks.........................: 98.22%  ✓ 1291648      ✗ 23328
-     data_received..................: 0 B     0 B/s
-     data_sent......................: 0 B     0 B/s
-     iteration_duration.............: avg=248.98ms min=20.92µs med=246.77ms max=542.53ms p(90)=279.71ms p(95)=291.04ms
-     iterations.....................: 12064   200.622726/s
-     kafka.reader.dial.count........: 50      0.831493/s
-     kafka.reader.dial.seconds......: avg=57.38µs  min=0s      med=0s       max=77.09ms  p(90)=0s       p(95)=0s
-   ✓ kafka.reader.error.count.......: 0       0/s
-     kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
-     kafka.reader.fetch_bytes.min...: 1       min=1          max=1
-     kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
-     kafka.reader.fetch.bytes.......: 0 B     0 B/s
-     kafka.reader.fetch.size........: 0       0/s
-     kafka.reader.fetches.count.....: 50      0.831493/s
-     kafka.reader.lag...............: 7787    min=6515       max=11267
-     kafka.reader.message.bytes.....: 24 MB   394 kB/s
-     kafka.reader.message.count.....: 120690  2007.058751/s
-     kafka.reader.offset............: 2440    min=11         max=2460
-     kafka.reader.queue.capacity....: 1       min=1          max=1
-     kafka.reader.queue.length......: 1       min=0          max=1
-     kafka.reader.read.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
-     kafka.reader.rebalance.count...: 0       0/s
-     kafka.reader.timeouts.count....: 0       0/s
-     kafka.reader.wait.seconds......: avg=24.61µs  min=0s      med=0s       max=62.83ms  p(90)=0s       p(95)=0s
-     kafka.writer.acks.required.....: -1      min=-1         max=0
-     kafka.writer.async.............: 0.00%   ✓ 0            ✗ 1206400
-     kafka.writer.attempts.max......: 0       min=0          max=0
-     kafka.writer.batch.bytes.......: 264 MB  4.4 MB/s
-     kafka.writer.batch.max.........: 1       min=1          max=1
-     kafka.writer.batch.size........: 1206400 20062.272574/s
-     kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
-   ✓ kafka.writer.error.count.......: 0       0/s
-     kafka.writer.message.bytes.....: 528 MB  8.8 MB/s
-     kafka.writer.message.count.....: 2412800 40124.545147/s
-     kafka.writer.read.timeout......: 0s      min=0s         max=0s
-     kafka.writer.retries.count.....: 0       0/s
-     kafka.writer.wait.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
-     kafka.writer.write.count.......: 2412800 40124.545147/s
-     kafka.writer.write.seconds.....: avg=1.18ms   min=94.91µs med=1.01ms   max=43.7ms   p(90)=1.46ms   p(95)=1.92ms
-     kafka.writer.write.timeout.....: 0s      min=0s         max=0s
-     vus............................: 50      min=50         max=50
-     vus_max........................: 50      min=50         max=50
-```
+        checks.........................: 100.00% ✓ 124002       ✗ 0
+        data_received..................: 0 B     0 B/s
+        data_sent......................: 0 B     0 B/s
+        iteration_duration.............: avg=217.98ms min=26.64ms med=216.88ms max=357.64ms p(90)=244.95ms p(95)=254.86ms
+        iterations.....................: 13778   229.051752/s
+        kafka.reader.dial.count........: 50      0.831223/s
+        kafka.reader.dial.seconds......: avg=4.76µs   min=0s      med=0s       max=2.22ms   p(90)=0s       p(95)=0s
+     ✓ kafka.reader.error.count.......: 0       0/s
+        kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
+        kafka.reader.fetch_bytes.min...: 1       min=1          max=1
+        kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
+        kafka.reader.fetch.bytes.......: 0 B     0 B/s
+        kafka.reader.fetch.size........: 0       0/s
+        kafka.reader.fetches.count.....: 50      0.831223/s
+        kafka.reader.lag...............: 7457    min=5736       max=14370
+        kafka.reader.message.bytes.....: 27 MB   450 kB/s
+        kafka.reader.message.count.....: 137830  2291.348744/s
+        kafka.reader.offset............: 2740    min=11         max=2810
+        kafka.reader.queue.capacity....: 1       min=1          max=1
+        kafka.reader.queue.length......: 1       min=0          max=1
+        kafka.reader.read.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
+        kafka.reader.rebalance.count...: 0       0/s
+        kafka.reader.timeouts.count....: 0       0/s
+        kafka.reader.wait.seconds......: avg=7.44µs   min=0s      med=0s       max=3.17ms   p(90)=0s       p(95)=0s
+        kafka.writer.acks.required.....: -1      min=-1         max=0
+        kafka.writer.async.............: 0.00%   ✓ 0            ✗ 1377800
+        kafka.writer.attempts.max......: 0       min=0          max=0
+        kafka.writer.batch.bytes.......: 302 MB  5.0 MB/s
+        kafka.writer.batch.max.........: 1       min=1          max=1
+        kafka.writer.batch.size........: 1377800 22905.17521/s
+        kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
+     ✓ kafka.writer.error.count.......: 0       0/s
+        kafka.writer.message.bytes.....: 603 MB  10 MB/s
+        kafka.writer.message.count.....: 2755600 45810.350421/s
+        kafka.writer.read.timeout......: 0s      min=0s         max=0s
+        kafka.writer.retries.count.....: 0       0/s
+        kafka.writer.wait.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
+        kafka.writer.write.count.......: 2755600 45810.350421/s
+        kafka.writer.write.seconds.....: avg=1.02ms   min=79.29µs med=893.09µs max=24.26ms  p(90)=1.22ms   p(95)=1.74ms
+        kafka.writer.write.timeout.....: 0s      min=0s         max=0s
+        vus............................: 50      min=50         max=50
+        vus_max........................: 50      min=50         max=50
+    ```
 
 ### Troubleshooting
 
