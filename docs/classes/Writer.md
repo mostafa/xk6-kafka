@@ -49,6 +49,10 @@ writer.close();
 | :------ | :------ | :------ |
 | `writerConfig` | [`WriterConfig`](../interfaces/WriterConfig.md) | Writer configuration. |
 
+#### Defined in
+
+[index.d.ts:282](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L282)
+
 ## Methods
 
 ### close
@@ -64,6 +68,10 @@ writer.close();
 `void`
 
 - Nothing.
+
+#### Defined in
+
+[index.d.ts:295](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L295)
 
 ___
 
@@ -85,3 +93,7 @@ Write messages to Kafka.
 `void`
 
 - Nothing.
+
+#### Defined in
+
+[index.d.ts:289](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L289)

@@ -15,11 +15,19 @@
 
 • **TLS\_1\_0**
 
+#### Defined in
+
+[index.d.ts:33](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L33)
+
 ___
 
 ### TLS\_1\_1
 
 • **TLS\_1\_1**
+
+#### Defined in
+
+[index.d.ts:34](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L34)
 
 ___
 
@@ -27,8 +35,16 @@ ___
 
 • **TLS\_1\_2**
 
+#### Defined in
+
+[index.d.ts:35](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L35)
+
 ___
 
 ### TLS\_1\_3
 
 • **TLS\_1\_3**
+
+#### Defined in
+
+[index.d.ts:36](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L36)

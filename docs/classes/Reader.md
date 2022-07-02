@@ -41,6 +41,10 @@ reader.close();
 | :------ | :------ | :------ |
 | `readerConfig` | [`ReaderConfig`](../interfaces/ReaderConfig.md) | Reader configuration. |
 
+#### Defined in
+
+[index.d.ts:324](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L324)
+
 ## Methods
 
 ### close
@@ -56,6 +60,10 @@ reader.close();
 `void`
 
 - Nothing.
+
+#### Defined in
+
+[index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L337)
 
 ___
 
@@ -77,3 +85,7 @@ Read messages from Kafka.
 [`Message`](../interfaces/Message.md)[]
 
 - Messages.
+
+#### Defined in
+
+[index.d.ts:331](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L331)

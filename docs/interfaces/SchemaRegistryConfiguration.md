@@ -15,11 +15,19 @@
 
 • **basicAuth**: [`BasicAuth`](BasicAuth.md)
 
+#### Defined in
+
+[index.d.ts:160](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L160)
+
 ___
 
 ### tlsConfig
 
 • **tlsConfig**: [`TLSConfig`](TLSConfig.md)
+
+#### Defined in
+
+[index.d.ts:162](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L162)
 
 ___
 
@@ -27,8 +35,16 @@ ___
 
 • **url**: `string`
 
+#### Defined in
+
+[index.d.ts:159](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L159)
+
 ___
 
 ### useLatest
 
 • **useLatest**: `boolean`
+
+#### Defined in
+
+[index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L161)

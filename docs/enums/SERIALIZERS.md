@@ -16,11 +16,19 @@
 
 • **AVRO\_SERIALIZER**
 
+#### Defined in
+
+[index.d.ts:44](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L44)
+
 ___
 
 ### BYTE\_ARRAY\_SERIALIZER
 
 • **BYTE\_ARRAY\_SERIALIZER**
+
+#### Defined in
+
+[index.d.ts:42](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L42)
 
 ___
 
@@ -28,14 +36,26 @@ ___
 
 • **JSON\_SCHEMA\_SERIALIZER**
 
+#### Defined in
+
+[index.d.ts:43](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L43)
+
 ___
 
 ### PROTOBUF\_SERIALIZER
 
 • **PROTOBUF\_SERIALIZER**
 
+#### Defined in
+
+[index.d.ts:45](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L45)
+
 ___
 
 ### STRING\_SERIALIZER
 
 • **STRING\_SERIALIZER**
+
+#### Defined in
+
+[index.d.ts:41](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L41)

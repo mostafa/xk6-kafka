@@ -14,14 +14,26 @@
 
 • **GROUP\_BALANCER\_RACK\_AFFINITY**
 
+#### Defined in
+
+[index.d.ts:83](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L83)
+
 ___
 
 ### GROUP\_BALANCER\_RANGE
 
 • **GROUP\_BALANCER\_RANGE**
 
+#### Defined in
+
+[index.d.ts:81](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L81)
+
 ___
 
 ### GROUP\_BALANCER\_ROUND\_ROBIN
 
 • **GROUP\_BALANCER\_ROUND\_ROBIN**
+
+#### Defined in
+
+[index.d.ts:82](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L82)
