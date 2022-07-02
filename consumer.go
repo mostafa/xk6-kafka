@@ -315,7 +315,10 @@ func (k *Kafka) consumeInternal(
 		message["offset"] = msg.Offset
 		message["time"] = time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339)
 		message["highWaterMark"] = msg.HighWaterMark
-		message["headers"] = msg.Headers
+		message["headers"] = map[string]interface{}{}
+		for _, header := range msg.Headers {
+			message["headers"].(map[string]interface{})[header.Key] = header.Value
+		}
 
 		messages = append(messages, message)
 	}
