@@ -15,11 +15,19 @@
 
 • **config**: [`Configuration`](Configuration.md)
 
+#### Defined in
+
+[index.d.ts:175](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L175)
+
 ___
 
 ### keySchema
 
 • **keySchema**: `string`
+
+#### Defined in
+
+[index.d.ts:176](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L176)
 
 ___
 
@@ -27,8 +35,16 @@ ___
 
 • **messages**: [`Message`](Message.md)[]
 
+#### Defined in
+
+[index.d.ts:174](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L174)
+
 ___
 
 ### valueSchema
 
 • **valueSchema**: `string`
+
+#### Defined in
+
+[index.d.ts:177](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L177)

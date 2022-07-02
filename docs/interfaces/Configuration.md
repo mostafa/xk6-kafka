@@ -14,14 +14,26 @@
 
 • **consumer**: [`ConsumerConfiguration`](ConsumerConfiguration.md)
 
+#### Defined in
+
+[index.d.ts:167](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L167)
+
 ___
 
 ### producer
 
 • **producer**: [`ProducerConfiguration`](ProducerConfiguration.md)
 
+#### Defined in
+
+[index.d.ts:168](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L168)
+
 ___
 
 ### schemaRegistry
 
 • **schemaRegistry**: [`SchemaRegistryConfiguration`](SchemaRegistryConfiguration.md)
+
+#### Defined in
+
+[index.d.ts:169](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L169)

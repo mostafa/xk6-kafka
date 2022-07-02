@@ -42,6 +42,10 @@ connection.close();
 | :------ | :------ | :------ |
 | `connectionConfig` | [`ConnectionConfig`](../interfaces/ConnectionConfig.md) | Connection configuration. |
 
+#### Defined in
+
+[index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L365)
+
 ## Methods
 
 ### close
@@ -57,6 +61,10 @@ connection.close();
 `void`
 
 - Nothing.
+
+#### Defined in
+
+[index.d.ts:391](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L391)
 
 ___
 
@@ -79,6 +87,10 @@ Create a new topic.
 
 - Nothing.
 
+#### Defined in
+
+[index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L372)
+
 ___
 
 ### deleteTopic
@@ -100,6 +112,10 @@ Delete a topic.
 
 - Nothing.
 
+#### Defined in
+
+[index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L379)
+
 ___
 
 ### listTopics
@@ -114,3 +130,7 @@ List topics.
 `string`[]
 
 - Topics.
+
+#### Defined in
+
+[index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L385)

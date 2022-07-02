@@ -13,8 +13,16 @@
 
 • **password**: `string`
 
+#### Defined in
+
+[index.d.ts:154](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L154)
+
 ___
 
 ### username
 
 • **username**: `string`
+
+#### Defined in
+
+[index.d.ts:153](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L153)

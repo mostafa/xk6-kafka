@@ -17,11 +17,19 @@ Compression codecs for compressing messages when producing to a topic or reading
 
 • **CODEC\_GZIP**
 
+#### Defined in
+
+[index.d.ts:16](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L16)
+
 ___
 
 ### CODEC\_LZ4
 
 • **CODEC\_LZ4**
+
+#### Defined in
+
+[index.d.ts:18](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L18)
 
 ___
 
@@ -29,8 +37,16 @@ ___
 
 • **CODEC\_SNAPPY**
 
+#### Defined in
+
+[index.d.ts:17](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L17)
+
 ___
 
 ### CODEC\_ZSTD
 
 • **CODEC\_ZSTD**
+
+#### Defined in
+
+[index.d.ts:19](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L19)

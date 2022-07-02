@@ -17,11 +17,19 @@
 
 • **clientCertPem**: `string`
 
+#### Defined in
+
+[index.d.ts:98](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L98)
+
 ___
 
 ### clientKeyPem
 
 • **clientKeyPem**: `string`
+
+#### Defined in
+
+[index.d.ts:99](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L99)
 
 ___
 
@@ -29,11 +37,19 @@ ___
 
 • **enableTLS**: `boolean`
 
+#### Defined in
+
+[index.d.ts:95](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L95)
+
 ___
 
 ### insecureSkipVerify
 
 • **insecureSkipVerify**: `boolean`
+
+#### Defined in
+
+[index.d.ts:96](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L96)
 
 ___
 
@@ -41,8 +57,16 @@ ___
 
 • **minVersion**: [`TLS_VERSIONS`](../enums/TLS_VERSIONS.md)
 
+#### Defined in
+
+[index.d.ts:97](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L97)
+
 ___
 
 ### serverCertPem
 
 • **serverCertPem**: `string`
+
+#### Defined in
+
+[index.d.ts:100](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L100)
