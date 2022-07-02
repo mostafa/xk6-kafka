@@ -62,7 +62,10 @@ func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk
 	// Create a TLS dialer, either with or without SASL authentication
 	tlsObject, err := GetTLSConfig(tlsConfig)
 	if err != nil {
-		logger.WithField("error", err).Info("Cannot process TLS config")
+		// Ignore the error if we're not using TLS
+		if err.Code != noTLSConfig {
+			logger.WithField("error", err).Error("Cannot process TLS config")
+		}
 	}
 	if tlsObject == nil && saslConfig.Algorithm == SASL_SSL {
 		return nil, NewXk6KafkaError(
@@ -139,7 +142,6 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		}
 	} else {
 		// TLS is disabled, and we continue with a unauthenticated dialer
-		// FIXME: This is not an actual error, and we should return nil instead
 		return nil, NewXk6KafkaError(
 			noTLSConfig, "No TLS config provided. Continuing with TLS disabled.", nil)
 	}

@@ -66,7 +66,10 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 
 	tlsConfig, err := GetTLSConfig(configuration.TLS)
 	if err != nil {
-		logger.WithField("error", err).Warn("Failed to get TLS config. Continuing without TLS.")
+		// Ignore the error if we're not using TLS
+		if err.Code != noTLSConfig {
+			logger.WithField("error", err).Error("Cannot process TLS config")
+		}
 		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)
 	}
 
