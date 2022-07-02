@@ -135,14 +135,6 @@ func TestTlsConfigFails(t *testing.T) {
 	saslConfig := []*SimpleTLSConfig{
 		{
 			saslConfig: SASLConfig{},
-			tlsConfig:  TLSConfig{},
-			err: &Xk6KafkaError{
-				Code:    noTLSConfig,
-				Message: "No TLS config provided. Continuing with TLS disabled.",
-			},
-		},
-		{
-			saslConfig: SASLConfig{},
 			tlsConfig:  TLSConfig{EnableTLS: true, ClientCertPem: "test.cer"},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
