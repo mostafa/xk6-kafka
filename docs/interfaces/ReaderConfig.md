@@ -41,7 +41,7 @@
 
 #### Defined in
 
-[index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L182)
+[index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L182)
 
 ___
 
@@ -51,7 +51,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:194](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L194)
+[index.d.ts:194](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L194)
 
 ___
 
@@ -61,7 +61,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:204](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L204)
+[index.d.ts:204](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L204)
 
 ___
 
@@ -71,7 +71,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:192](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L192)
+[index.d.ts:192](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L192)
 
 ___
 
@@ -81,7 +81,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:183](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L183)
+[index.d.ts:183](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L183)
 
 ___
 
@@ -91,7 +91,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:184](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L184)
+[index.d.ts:184](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L184)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:193](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L193)
+[index.d.ts:193](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L193)
 
 ___
 
@@ -111,7 +111,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L206)
+[index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L206)
 
 ___
 
@@ -121,7 +121,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:199](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L199)
+[index.d.ts:199](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L199)
 
 ___
 
@@ -131,7 +131,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:205](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L205)
+[index.d.ts:205](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L205)
 
 ___
 
@@ -141,7 +141,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:189](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L189)
+[index.d.ts:189](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L189)
 
 ___
 
@@ -151,7 +151,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:190](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L190)
+[index.d.ts:190](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L190)
 
 ___
 
@@ -161,7 +161,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:188](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L188)
+[index.d.ts:188](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L188)
 
 ___
 
@@ -171,7 +171,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:207](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L207)
+[index.d.ts:207](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L207)
 
 ___
 
@@ -181,7 +181,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:186](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L186)
+[index.d.ts:186](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L186)
 
 ___
 
@@ -191,7 +191,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:195](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L195)
+[index.d.ts:195](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L195)
 
 ___
 
@@ -201,7 +201,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:187](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L187)
+[index.d.ts:187](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L187)
 
 ___
 
@@ -211,7 +211,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:203](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L203)
+[index.d.ts:203](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L203)
 
 ___
 
@@ -221,7 +221,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:202](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L202)
+[index.d.ts:202](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L202)
 
 ___
 
@@ -231,7 +231,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:191](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L191)
+[index.d.ts:191](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L191)
 
 ___
 
@@ -241,7 +241,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:198](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L198)
+[index.d.ts:198](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L198)
 
 ___
 
@@ -251,7 +251,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:200](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L200)
+[index.d.ts:200](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L200)
 
 ___
 
@@ -261,7 +261,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L208)
+[index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L208)
 
 ___
 
@@ -271,7 +271,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:197](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L197)
+[index.d.ts:197](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L197)
 
 ___
 
@@ -281,7 +281,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:201](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L201)
+[index.d.ts:201](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L201)
 
 ___
 
@@ -291,7 +291,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:209](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L209)
+[index.d.ts:209](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L209)
 
 ___
 
@@ -301,7 +301,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:185](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L185)
+[index.d.ts:185](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L185)
 
 ___
 
@@ -311,4 +311,4 @@ ___
 
 #### Defined in
 
-[index.d.ts:196](https://github.com/mostafa/xk6-kafka/blob/6551819/index.d.ts#L196)
+[index.d.ts:196](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L196)
