@@ -170,37 +170,37 @@ func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
 		writerConfig.BatchSize = 1
 	}
 
-	balancerType := Balancers[BALANCER_LEAST_BYTES]
-	if b, ok := Balancers[writerConfig.Balancer]; ok {
-		balancerType = b
-	}
-
-	consolidatedConfig := kafkago.WriterConfig{
-		Brokers:      writerConfig.Brokers,
+	writer := &kafkago.Writer{
+		Addr:         kafkago.TCP(writerConfig.Brokers...),
 		Topic:        writerConfig.Topic,
-		Balancer:     balancerType,
+		Balancer:     Balancers[BALANCER_LEAST_BYTES],
 		MaxAttempts:  writerConfig.MaxAttempts,
 		BatchSize:    writerConfig.BatchSize,
-		BatchBytes:   writerConfig.BatchBytes,
+		BatchBytes:   int64(writerConfig.BatchBytes),
 		BatchTimeout: writerConfig.BatchTimeout,
 		ReadTimeout:  writerConfig.ReadTimeout,
 		WriteTimeout: writerConfig.WriteTimeout,
-		RequiredAcks: writerConfig.RequiredAcks,
-		Dialer:       dialer,
+		RequiredAcks: kafkago.RequiredAcks(writerConfig.RequiredAcks),
 		Async:        false,
+		Transport: &kafkago.Transport{
+			TLS:      dialer.TLS,
+			SASL:     dialer.SASLMechanism,
+			ClientID: dialer.ClientID,
+		},
+		AllowAutoTopicCreation: writerConfig.AutoCreateTopic,
 	}
 
-	if writerConfig.ConnectLogger {
-		consolidatedConfig.Logger = logger
+	if balancer, ok := Balancers[writerConfig.Balancer]; ok {
+		writer.Balancer = balancer
 	}
 
 	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
-		consolidatedConfig.CompressionCodec = compress.Codecs[codec]
+		writer.Compression = codec
 	}
 
-	// TODO: instantiate Writer directly
-	writer := kafkago.NewWriter(consolidatedConfig)
-	writer.AllowAutoTopicCreation = writerConfig.AutoCreateTopic
+	if writerConfig.ConnectLogger {
+		writer.Logger = logger
+	}
 
 	return writer
 }
