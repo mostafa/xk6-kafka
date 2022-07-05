@@ -3,14 +3,14 @@ module github.com/mostafa/xk6-kafka
 go 1.18
 
 require (
-	github.com/dop251/goja v0.0.0-20220516123900-4418d4575a41
+	github.com/dop251/goja v0.0.0-20220705101429-189bfeb9f530
 	github.com/linkedin/goavro/v2 v2.11.1
 	github.com/riferrei/srclient v0.5.4
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
 	github.com/segmentio/kafka-go v0.4.32
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
-	go.k6.io/k6 v0.38.3
+	go.k6.io/k6 v0.39.0
 	gopkg.in/guregu/null.v3 v3.5.0
 )
 
@@ -34,9 +34,9 @@ require (
 	github.com/xdg/stringprep v1.0.3 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
-	golang.org/x/sys v0.0.0-20220702020025-31831981b65f // indirect
+	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
