@@ -25,9 +25,9 @@ type UseSerializerDeserializerTest struct {
 	result  bool
 }
 
-// TestUseSerializerFails tests whether a serializer should be used based on the configuration
-// and fails if the configuration is invalid.
-func TestUseSerializerFails(t *testing.T) {
+// TestUseSerializerDeserializerFails tests whether a serializer or deserializer should be used
+//  based on the configuration and fails if the configuration is invalid.
+func TestUseSerializerDeserializerFails(t *testing.T) {
 	params := []UseSerializerDeserializerTest{
 		{config: Configuration{}, element: Key, result: false},
 		{config: Configuration{}, element: Value, result: false},
