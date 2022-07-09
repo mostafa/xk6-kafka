@@ -19,16 +19,16 @@ func TestUseSerializer(t *testing.T) {
 	assert.True(t, useSerializer(config, Value))
 }
 
-type UseSerializerTest struct {
+type UseSerializerDeserializerTest struct {
 	config  Configuration
 	element Element
 	result  bool
 }
 
-// TestUseSerializerFails tests whether a serializer should be used based on the configuration
-// and fails if the configuration is invalid.
-func TestUseSerializerFails(t *testing.T) {
-	params := []UseSerializerTest{
+// TestUseSerializerDeserializerFails tests whether a serializer or deserializer should be used
+//  based on the configuration and fails if the configuration is invalid.
+func TestUseSerializerDeserializerFails(t *testing.T) {
+	params := []UseSerializerDeserializerTest{
 		{config: Configuration{}, element: Key, result: false},
 		{config: Configuration{}, element: Value, result: false},
 		{config: Configuration{Producer: ProducerConfiguration{}}, element: Key, result: false},
@@ -43,6 +43,7 @@ func TestUseSerializerFails(t *testing.T) {
 
 	for _, param := range params {
 		assert.Equal(t, param.result, useSerializer(param.config, param.element))
+		assert.Equal(t, param.result, useDeserializer(param.config, param.element))
 	}
 }
 
@@ -57,31 +58,4 @@ func TestUseDeserializer(t *testing.T) {
 
 	assert.True(t, useDeserializer(config, Key))
 	assert.True(t, useDeserializer(config, Value))
-}
-
-type UseDeserializerTest struct {
-	config  Configuration
-	element Element
-	result  bool
-}
-
-// TestUseDeserializerFails tests whether a deserializer should be used based on the configuration
-// and fails if the configuration is invalid.
-func TestUseDeserializerFails(t *testing.T) {
-	params := []UseDeserializerTest{
-		{config: Configuration{}, element: Key, result: false},
-		{config: Configuration{}, element: Value, result: false},
-		{config: Configuration{Producer: ProducerConfiguration{}}, element: Key, result: false},
-		{config: Configuration{Producer: ProducerConfiguration{}}, element: Value, result: false},
-		{config: Configuration{Consumer: ConsumerConfiguration{}}, element: Key, result: false},
-		{config: Configuration{Consumer: ConsumerConfiguration{}}, element: Value, result: false},
-		{config: Configuration{SchemaRegistry: SchemaRegistryConfiguration{}}, element: Key, result: false},
-		{config: Configuration{SchemaRegistry: SchemaRegistryConfiguration{}}, element: Value, result: false},
-		{config: Configuration{Consumer: ConsumerConfiguration{ValueDeserializer: "unknown codec"}}, element: Key, result: false},
-		{config: Configuration{Consumer: ConsumerConfiguration{KeyDeserializer: "unknown codec"}}, element: Value, result: false},
-	}
-
-	for _, param := range params {
-		assert.Equal(t, param.result, useDeserializer(param.config, param.element))
-	}
 }
