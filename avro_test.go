@@ -19,8 +19,8 @@ var (
 			KeyDeserializer:   AvroDeserializer,
 		},
 	}
-	avroSchema string = `{"type":"record","name":"Schema","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
-	data       string = `{"field":"value"}`
+	avroSchemaForAvroTests string = `{"type":"record","name":"Schema","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	data                   string = `{"field":"value"}`
 )
 
 // TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages
@@ -28,14 +28,14 @@ func TestSerializeDeserializeAvro(t *testing.T) {
 	// Test with a schema registry, which fails and manually (de)serializes the data
 	for _, element := range []Element{Key, Value} {
 		// Serialize the key or value
-		serialized, err := SerializeAvro(avroConfig, "topic", `{"field":"value"}`, element, avroSchema, 0)
+		serialized, err := SerializeAvro(avroConfig, "topic", `{"field":"value"}`, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
 		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
 		assert.GreaterOrEqual(t, len(serialized), 10)
 
 		// Deserialize the key or value (removes the magic bytes)
-		deserialized, err := DeserializeAvro(avroConfig, "", serialized, element, avroSchema, 0)
+		deserialized, err := DeserializeAvro(avroConfig, "", serialized, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, err)
 		assert.Equal(t, map[string]interface{}{"field": "value"}, deserialized)
 	}
@@ -89,13 +89,13 @@ func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 	data := `{"nonExistingField":"value"}`
 
 	for _, element := range []Element{Key, Value} {
-		serialized, err := SerializeAvro(avroConfig, "topic", data, element, avroSchema, 0)
+		serialized, err := SerializeAvro(avroConfig, "topic", data, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, serialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to encode data into Avro", err.Message)
 		assert.Equal(t, failedEncodeToAvro, err.Code)
 
-		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3, 5}, element, avroSchema, 0)
+		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3, 5}, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to decode data from Avro", err.Message)
@@ -195,7 +195,7 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 
 	expectedSubject := "io.confluent.kafka.avro.TestAvroSerializeRecordNameStrategy"
 	srClient := SchemaRegistryClientWithConfiguration(config.SchemaRegistry)
-	resultSchema, err := GetSchema(srClient, expectedSubject, avroSchema, srclient.Avro, 0)
+	resultSchema, err := GetSchema(srClient, expectedSubject, avroSchemaForAvroTests, srclient.Avro, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, resultSchema)
 }

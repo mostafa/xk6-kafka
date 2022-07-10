@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	avroSchemaForSRTests string = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+)
+
 // TestDecodeWireFormat tests the decoding of a wire-formatted message.
 func TestDecodeWireFormat(t *testing.T) {
 	encoded := []byte{0, 1, 2, 3, 4, 5}
@@ -133,26 +137,22 @@ func TestGetSubjectNameFailsIfInvalidSchema(t *testing.T) {
 }
 
 func TestGetSubjectNameFailsIfSubjectNameStrategyUnknown(t *testing.T) {
-	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
-	_, err := GetSubjectName(avroSchema, "test-topic", Value, "Unknown")
+	_, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, "Unknown")
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Message, "Unknown subject name strategy")
 }
 
 func TestGetSubjectNameCanUseDefaultSubjectNameStrategy(t *testing.T) {
-	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
 	for _, element := range []Element{Key, Value} {
-		subject, err := GetSubjectName(avroSchema, "test-topic", element, "")
+		subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", element, "")
 		assert.Nil(t, err)
 		assert.Equal(t, "test-topic-"+string(element), subject)
 	}
 }
 
 func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
-	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
-
 	for _, element := range []Element{Key, Value} {
-		subject, err := GetSubjectName(avroSchema, "test-topic", element, TopicNameStrategy)
+		subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", element, TopicNameStrategy)
 		assert.Nil(t, err)
 		assert.Equal(t, "test-topic-"+string(element), subject)
 	}
@@ -166,15 +166,13 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) 
 }
 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.T) {
-	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
-	subject, err := GetSubjectName(avroSchema, "test-topic", Value, TopicRecordNameStrategy)
+	subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, TopicRecordNameStrategy)
 	assert.Nil(t, err)
 	assert.Equal(t, "test-topic-Schema", subject)
 }
 
 func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
-	avroSchema := `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
-	subject, err := GetSubjectName(avroSchema, "test-topic", Value, RecordNameStrategy)
+	subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, RecordNameStrategy)
 	assert.Nil(t, err)
 	assert.Equal(t, "Schema", subject)
 }
