@@ -95,13 +95,12 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	var writerConfig *WriterConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
+			if b, err := json.Marshal(params); err != nil {
 				common.Throw(rt, err)
-			}
-			err = json.Unmarshal(b, &writerConfig)
-			if err != nil {
-				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &writerConfig); err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 	}
@@ -110,12 +109,11 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
-	err := writerObject.Set("This", writer)
-	if err != nil {
+	if err := writerObject.Set("This", writer); err != nil {
 		common.Throw(rt, err)
 	}
 
-	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
+	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) > 0 {
 			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -139,8 +137,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	// This is unnecessary, but it's here for reference purposes
 	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
-		err := writer.Close()
-		if err != nil {
+		if err := writer.Close(); err != nil {
 			common.Throw(rt, err)
 		}
 
