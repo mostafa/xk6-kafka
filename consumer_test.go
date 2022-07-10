@@ -24,7 +24,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 		Topic: "test-topic",
 	})
 
-	// Create a writer to produce messages
+	// Create a writer to produce messages.
 	writer := test.module.Kafka.writer(&WriterConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   "test-topic",
@@ -34,12 +34,12 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	return test, writer
 }
 
-// TestConsume tests the consume function
+// TestConsume tests the consume function.
 func TestConsume(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
 
-	// Create a reader to consume messages
+	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
@@ -48,10 +48,10 @@ func TestConsume(t *testing.T) {
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
-		// Switch to VU code
+		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
-		// Produce a message in the VU function
+		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -63,7 +63,7 @@ func TestConsume(t *testing.T) {
 				}})
 		})
 
-		// Consume a message in the VU function
+		// Consume a message in the VU function.
 		assert.NotPanics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
@@ -72,7 +72,7 @@ func TestConsume(t *testing.T) {
 		})
 	})
 
-	// Check if one message was consumed
+	// Check if one message was consumed.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.ReaderFetches.Name])
@@ -97,12 +97,12 @@ func TestConsume(t *testing.T) {
 	// _ = test.module.Kafka.DeleteTopic("localhost:9092", "test-topic", "")
 }
 
-// TestConsumeWithoutKey tests the consume function without a key
+// TestConsumeWithoutKey tests the consume function without a key.
 func TestConsumeWithoutKey(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
 
-	// Create a reader to consume messages
+	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
@@ -112,10 +112,10 @@ func TestConsumeWithoutKey(t *testing.T) {
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
-		// Switch to VU code
+		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
-		// Produce a message in the VU function
+		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -126,7 +126,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 				}})
 		})
 
-		// Consume a message in the VU function
+		// Consume a message in the VU function.
 		assert.NotPanics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
@@ -135,7 +135,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 		})
 	})
 
-	// Check if one message was consumed
+	// Check if one message was consumed.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
@@ -144,12 +144,12 @@ func TestConsumeWithoutKey(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 }
 
-// TestConsumerContextCancelled tests the consume function and fails on a cancelled context
+// TestConsumerContextCancelled tests the consume function and fails on a cancelled context.
 func TestConsumerContextCancelled(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
 
-	// Create a reader to consume messages
+	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
@@ -158,10 +158,10 @@ func TestConsumerContextCancelled(t *testing.T) {
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
-		// Switch to VU code
+		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
-		// Produce a message in the VU function
+		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -174,14 +174,14 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		test.cancelContext()
 
-		// Consume a message in the VU function
+		// Consume a message in the VU function.
 		assert.NotPanics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Empty(t, messages)
 		})
 	})
 
-	// Check if one message was consumed
+	// Check if one message was consumed.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
@@ -190,12 +190,12 @@ func TestConsumerContextCancelled(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 }
 
-// TestConsumeJSON tests the consume function with a JSON value
+// TestConsumeJSON tests the consume function with a JSON value.
 func TestConsumeJSON(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()
 
-	// Create a reader to consume messages
+	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
@@ -205,13 +205,13 @@ func TestConsumeJSON(t *testing.T) {
 		assert.NotNil(t, reader)
 		defer reader.Close()
 
-		// Switch to VU code
+		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)
 
-		// Produce a message in the VU function
+		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -222,7 +222,7 @@ func TestConsumeJSON(t *testing.T) {
 				}})
 		})
 
-		// Consume the message
+		// Consume the message.
 		assert.NotPanics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))

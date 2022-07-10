@@ -89,13 +89,13 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 	return srClient
 }
 
-// GetSchema returns the schema for the given subject and schema ID and version
+// GetSchema returns the schema for the given subject and schema ID and version.
 func GetSchema(
 	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, *Xk6KafkaError) {
-	// The client always caches the schema
+	// The client always caches the schema.
 	var schemaInfo *srclient.Schema
 	var err error
-	// Default version of the schema is the latest version
+	// Default version of the schema is the latest version.
 	if version == 0 {
 		schemaInfo, err = client.GetLatestSchema(subject)
 	} else {
@@ -109,7 +109,7 @@ func GetSchema(
 	return schemaInfo, nil
 }
 
-// CreateSchema creates a new schema in the schema registry
+// CreateSchema creates a new schema in the schema registry.
 func CreateSchema(
 	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType) (*srclient.Schema, *Xk6KafkaError) {
 	schemaInfo, err := client.CreateSchema(subject, schema, schemaType)
@@ -119,6 +119,7 @@ func CreateSchema(
 	return schemaInfo, nil
 }
 
+// GetSubjectName return the subject name strategy for the given schema and topic.
 func GetSubjectName(schema string, topic string, element Element, subjectNameStrategy string) (string, *Xk6KafkaError) {
 	if subjectNameStrategy == "" || subjectNameStrategy == TopicNameStrategy {
 		return topic + "-" + string(element), nil

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// getFuncName returns the name of the function as string
+// getFuncName returns the name of the function as string.
 func getFuncName(function interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
 }

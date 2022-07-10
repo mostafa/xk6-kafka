@@ -21,18 +21,18 @@ var (
 )
 
 // TestSerializeDeserializeJson tests serialization and deserialization (and validation) of
-// JSON data
+// JSON data.
 func TestSerializeDeserializeJson(t *testing.T) {
-	// Test with a schema registry, which fails and manually (de)serializes the data
+	// Test with a schema registry, which fails and manually (de)serializes the data.
 	for _, element := range []Element{Key, Value} {
-		// Serialize the key or value
+		// Serialize the key or value.
 		serialized, err := SerializeJson(jsonConfig, "topic", `{"field":"value"}`, element, jsonSchema, 0)
 		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
-		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
+		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data.
 		assert.GreaterOrEqual(t, len(serialized), 10)
 
-		// Deserialize the key or value (removes the magic bytes)
+		// Deserialize the key or value (removes the magic bytes).
 		deserialized, err := DeserializeJson(jsonConfig, "topic", serialized, element, jsonSchema, 0)
 		assert.Nil(t, err)
 		assert.Equal(t, map[string]interface{}{"field": "value"}, deserialized)
@@ -40,19 +40,19 @@ func TestSerializeDeserializeJson(t *testing.T) {
 }
 
 // TestSerializeDeserializeJsonFailsOnSchemaError tests serialization and deserialization (and
-// validation) of JSON data and fails on schema error
+// validation) of JSON data and fails on schema error.
 func TestSerializeDeserializeJsonFailsOnSchemaError(t *testing.T) {
 	schema := `{`
 
 	for _, element := range []Element{Key, Value} {
-		// Serialize the key or value
+		// Serialize the key or value.
 		serialized, err := SerializeJson(jsonConfig, "topic", `{"field":"value"}`, element, schema, 0)
 		assert.Nil(t, serialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to create codec for encoding JSON", err.Message)
 		assert.Equal(t, failedCreateJsonSchemaCodec, err.Code)
 
-		// Deserialize the key or value
+		// Deserialize the key or value.
 		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{0, 2, 3, 4, 5, 6}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
@@ -62,20 +62,20 @@ func TestSerializeDeserializeJsonFailsOnSchemaError(t *testing.T) {
 }
 
 // TestSerializeDeserializeJsonFailsOnWireFormatError tests serialization and deserialization (and
-// validation) of JSON data and fails on wire format error
+// validation) of JSON data and fails on wire format error.
 func TestSerializeDeserializeJsonFailsOnWireFormatError(t *testing.T) {
 	schema := `{}`
 
 	for _, element := range []Element{Key, Value} {
-		// Deserialize an empty key or value
+		// Deserialize an empty key or value.
 		deserialized, err := DeserializeJson(jsonConfig, "topic", []byte{}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to remove wire format from the binary data", err.Message)
 		assert.Equal(t, failedDecodeFromWireFormat, err.Code)
 
-		// Deserialize a broken key or value
-		// Proper wire-formatted message has 5 bytes (the wire format) plus data
+		// Deserialize a broken key or value.
+		// Proper wire-formatted message has 5 bytes (the wire format) plus data.
 		deserialized, err = DeserializeJson(jsonConfig, "topic", []byte{1, 2, 3, 4}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
@@ -85,7 +85,7 @@ func TestSerializeDeserializeJsonFailsOnWireFormatError(t *testing.T) {
 }
 
 // TestSerializeDeserializeJsonFailsOnMarshalError tests serialization and deserialization (and
-// validation) of JSON data and fails on JSON marshal error
+// validation) of JSON data and fails on JSON marshal error.
 func TestSerializeDeserializeJsonFailsOnMarshalError(t *testing.T) {
 	data := `{"nonExistingField":"`
 
@@ -105,16 +105,16 @@ func TestSerializeDeserializeJsonFailsOnMarshalError(t *testing.T) {
 }
 
 // TestSerializeDeserializeJsonFailsOnValidationError tests serialization and deserialization (and
-// validation) of JSON data and fails on JSON validation error
+// validation) of JSON data and fails on JSON validation error.
 func TestSerializeDeserializeJsonFailsOnValidationError(t *testing.T) {
-	// JSON schema validation fails, but the data is still returned
+	// JSON schema validation fails, but the data is still returned.
 	data := `{"nonExistingField":"value"}`
 
 	for _, element := range []Element{Key, Value} {
 		serialized, err := SerializeJson(jsonConfig, "topic", data, element, jsonSchema, 0)
 		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
-		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
+		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data.
 		assert.GreaterOrEqual(t, len(serialized), 28)
 	}
 }

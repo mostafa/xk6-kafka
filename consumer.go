@@ -13,14 +13,14 @@ import (
 )
 
 var (
-	// Group balancers
+	// Group balancers.
 	GROUP_BALANCER_RANGE         = "group_balancer_range"
 	GROUP_BALANCER_ROUND_ROBIN   = "group_balancer_round_robin"
 	GROUP_BALANCER_RACK_AFFINITY = "group_balancer_rack_affinity"
 
 	GroupBalancers map[string]kafkago.GroupBalancer
 
-	// Isolation levels
+	// Isolation levels.
 	ISOLATION_LEVEL_READ_UNCOMMITTED = "isolation_level_read_uncommitted"
 	ISOLATION_LEVEL_READ_COMMITTED   = "isolation_level_read_committed"
 
@@ -226,7 +226,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	return reader
 }
 
-// GetDeserializer returns the deserializer for the given schema
+// GetDeserializer returns the deserializer for the given schema.
 func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
 		return de.GetDeserializer()
@@ -234,7 +234,7 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	return DeserializeString
 }
 
-// consume consumes messages from the given reader
+// consume consumes messages from the given reader.
 // nolint: funlen
 func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
