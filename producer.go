@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -212,21 +213,20 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 
 // produce sends messages to Kafka with the given configuration
 func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
-	state := k.vu.State()
-	if state == nil {
+	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
 	}
 
-	ctx := k.vu.Context()
-	if ctx == nil {
+	var ctx context.Context
+	if ctx = k.vu.Context(); ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	err := ValidateConfiguration(produceConfig.Config)
-	if err != nil {
+	var err error
+	if err = ValidateConfiguration(produceConfig.Config); err != nil {
 		produceConfig.Config.Producer.KeySerializer = DefaultSerializer
 		produceConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
@@ -237,15 +237,15 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
 	for i, message := range produceConfig.Messages {
-		kafkaMessages[i] = kafkago.Message{}
+		kafkaMessages[i] = kafkago.Message{
+			Offset: message.Offset,
+		}
 
 		// Topic can be explicitly set on each individual message
 		// Setting topic on the writer and the messages are mutually exclusive
 		if message.Topic != "" {
 			kafkaMessages[i].Topic = message.Topic
 		}
-
-		kafkaMessages[i].Offset = message.Offset
 
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
@@ -265,7 +265,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 			kafkaMessages[i].Key = keyData
 		}
 
-		// Then add the message
+		// Then add the value to the message.
 		valueData, err := valueSerializer(
 			produceConfig.Config, writer.Stats().Topic,
 			message.Value, Value, produceConfig.ValueSchema, 0)
