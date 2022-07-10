@@ -25,7 +25,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	})
 
 	// Create a writer to produce messages
-	writer := test.module.Kafka.Writer(&WriterConfig{
+	writer := test.module.Kafka.writer(&WriterConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   "test-topic",
 	})
@@ -41,7 +41,7 @@ func TestConsume(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 		})
@@ -53,7 +53,7 @@ func TestConsume(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key:    "key1",
@@ -65,7 +65,7 @@ func TestConsume(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.Equal(t, "key1", messages[0]["key"].(string))
 			assert.Equal(t, "value1", messages[0]["value"].(string))
@@ -104,7 +104,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 			Offset:  1,
@@ -117,7 +117,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  "value1",
@@ -128,7 +128,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.NotContains(t, messages[0], "key")
 			assert.Equal(t, "value1", messages[0]["value"].(string))
@@ -151,7 +151,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 		})
@@ -163,7 +163,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  "value1",
@@ -176,7 +176,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Consume a message in the VU function
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Empty(t, messages)
 		})
 	})
@@ -197,7 +197,7 @@ func TestConsumeJSON(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 			Offset:  3,
@@ -213,7 +213,7 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  string(serialized),
@@ -224,7 +224,7 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Consume the message
 		assert.NotPanics(t, func() {
-			messages := test.module.Kafka.consumeInternal(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 
 			type F struct {

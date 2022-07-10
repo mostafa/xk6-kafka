@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -95,27 +96,25 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	var writerConfig *WriterConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
+			if b, err := json.Marshal(params); err != nil {
 				common.Throw(rt, err)
-			}
-			err = json.Unmarshal(b, &writerConfig)
-			if err != nil {
-				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &writerConfig); err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 	}
 
-	writer := k.Writer(writerConfig)
+	writer := k.writer(writerConfig)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
-	err := writerObject.Set("This", writer)
-	if err != nil {
+	if err := writerObject.Set("This", writer); err != nil {
 		common.Throw(rt, err)
 	}
 
-	err = writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
+	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) > 0 {
 			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -130,7 +129,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 			}
 		}
 
-		k.produceInternal(writer, producerConfig)
+		k.produce(writer, producerConfig)
 		return goja.Undefined()
 	})
 	if err != nil {
@@ -139,8 +138,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	// This is unnecessary, but it's here for reference purposes
 	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
-		err := writer.Close()
-		if err != nil {
+		if err := writer.Close(); err != nil {
 			common.Throw(rt, err)
 		}
 
@@ -155,8 +153,8 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	return rt.ToValue(writerObject).ToObject(rt)
 }
 
-// Writer creates a new Kafka writer
-func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
+// writer creates a new Kafka writer
+func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
@@ -213,24 +211,23 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 	return SerializeString
 }
 
-// produceInternal sends messages to Kafka with the given configuration
-func (k *Kafka) produceInternal(
-	writer *kafkago.Writer, produceConfig *ProduceConfig) {
-	state := k.vu.State()
-	if state == nil {
+// produce sends messages to Kafka with the given configuration
+// nolint: funlen
+func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
+	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
 	}
 
-	ctx := k.vu.Context()
-	if ctx == nil {
+	var ctx context.Context
+	if ctx = k.vu.Context(); ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	err := ValidateConfiguration(produceConfig.Config)
-	if err != nil {
+	var err error
+	if err := ValidateConfiguration(produceConfig.Config); err != nil {
 		produceConfig.Config.Producer.KeySerializer = DefaultSerializer
 		produceConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
@@ -241,15 +238,15 @@ func (k *Kafka) produceInternal(
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
 	for i, message := range produceConfig.Messages {
-		kafkaMessages[i] = kafkago.Message{}
+		kafkaMessages[i] = kafkago.Message{
+			Offset: message.Offset,
+		}
 
 		// Topic can be explicitly set on each individual message
 		// Setting topic on the writer and the messages are mutually exclusive
 		if message.Topic != "" {
 			kafkaMessages[i].Topic = message.Topic
 		}
-
-		kafkaMessages[i].Offset = message.Offset
 
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
@@ -269,7 +266,7 @@ func (k *Kafka) produceInternal(
 			kafkaMessages[i].Key = keyData
 		}
 
-		// Then add the message
+		// Then add the value to the message.
 		valueData, err := valueSerializer(
 			produceConfig.Config, writer.Stats().Topic,
 			message.Value, Value, produceConfig.ValueSchema, 0)
@@ -311,6 +308,7 @@ func (k *Kafka) produceInternal(
 }
 
 // reportWriterStats reports the writer stats to the state
+// nolint: funlen
 func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 	state := k.vu.State()
 	if state == nil {
@@ -325,120 +323,112 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	tags := make(map[string]string)
-	tags["topic"] = currentStats.Topic
+	sampleTags := metrics.IntoSampleTags(&map[string]string{
+		"topic": currentStats.Topic,
+	})
 
 	now := time.Now()
 
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWrites,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Writes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMessages,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Messages),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Bytes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterErrors,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Errors),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWriteTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.WriteTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWaitTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.WaitTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterRetries,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Retries.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchSize,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchSize.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchBytes.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMaxAttempts,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MaxAttempts),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMaxBatchSize,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MaxBatchSize),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterReadTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.ReadTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWriteTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.WriteTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterRequiredAcks,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.RequiredAcks),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterAsync,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.B(currentStats.Async),
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
+		Samples: []metrics.Sample{
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWrites,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Writes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMessages,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Messages),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Bytes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterErrors,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Errors),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWriteTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.WriteTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWaitTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.WaitTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterRetries,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Retries.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchSize,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchSize.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchBytes.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMaxAttempts,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MaxAttempts),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMaxBatchSize,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MaxBatchSize),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterReadTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.ReadTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWriteTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.WriteTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterRequiredAcks,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.RequiredAcks),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterAsync,
+				Tags:   sampleTags,
+				Value:  metrics.B(currentStats.Async),
+			},
+		},
+		Tags: sampleTags,
+		Time: now,
 	})
 }
