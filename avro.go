@@ -111,11 +111,13 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 		return nil, subjectNameError
 	}
 
+	// nolint: gocritic
 	if schema != "" {
 		// Schema is provided, so we need to create it and get the schema ID
 		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
 	} else if configuration.Consumer.UseMagicPrefix {
-		// Schema not provided and no valid version flag, so we use te schemaID in the magic prefix
+		// Schema is not provided and no valid version flag,
+		// so we use te schemaID in the magic prefix
 		schemaInfo, getSchemaError = client.GetSchema(schemaID)
 		if getSchemaError != nil {
 			xk6KafkaError = NewXk6KafkaError(failedCreateAvroCodec,
