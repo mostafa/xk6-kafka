@@ -17,6 +17,7 @@ const (
 // Schema Registry, otherwise it uses the given schema to manually create the codec and
 // encode the data. The configuration is used to configure the Schema Registry client.
 // The element is used to define the subject. The data should be a string.
+// nolint: funlen
 func SerializeJson(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
