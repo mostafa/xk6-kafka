@@ -13,7 +13,6 @@ const (
 	fileNotFound                errCode = 1004
 	dialerError                 errCode = 1005
 	noTLSConfig                 errCode = 1006
-	invalidTLSVersion           errCode = 1007
 
 	// serdes errors
 	invalidDataType             errCode = 2000

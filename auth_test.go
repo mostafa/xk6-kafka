@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"errors"
+	"os"
 	"testing"
 	"time"
 
@@ -107,8 +108,8 @@ func TestGetDialerUnauthenticatedNoTLS(t *testing.T) {
 
 // TestFileExists tests the file exists function
 func TestFileExists(t *testing.T) {
-	assert.True(t, FileExists("auth_test.go"))
-	assert.False(t, FileExists("test.go.not"))
+	assert.Nil(t, fileExists("auth_test.go"))
+	assert.NotNil(t, fileExists("test.go.not"))
 }
 
 type SimpleTLSConfig struct {
@@ -138,7 +139,7 @@ func TestTlsConfigFails(t *testing.T) {
 			tlsConfig:  TLSConfig{EnableTLS: true, ClientCertPem: "test.cer"},
 			err: &Xk6KafkaError{
 				Code:    fileNotFound,
-				Message: "Client certificate file not found.",
+				Message: "File not found: test.cer",
 			},
 		},
 		{
@@ -148,8 +149,9 @@ func TestTlsConfigFails(t *testing.T) {
 				ClientCertPem: "fixtures/client.cer",
 			},
 			err: &Xk6KafkaError{
-				Code:    fileNotFound,
-				Message: "Client key file not found.",
+				Code:          fileNotFound,
+				Message:       "File not found: ",
+				OriginalError: &os.PathError{},
 			},
 		},
 		{
@@ -160,8 +162,9 @@ func TestTlsConfigFails(t *testing.T) {
 				ClientKeyPem:  "fixtures/client.pem",
 			},
 			err: &Xk6KafkaError{
-				Code:    fileNotFound,
-				Message: "CA certificate file not found.",
+				Code:          fileNotFound,
+				Message:       "File not found: ",
+				OriginalError: &os.PathError{},
 			},
 		},
 		{
@@ -195,7 +198,8 @@ func TestTlsConfigFails(t *testing.T) {
 	for _, c := range saslConfig {
 		tlsObject, err := GetTLSConfig(c.tlsConfig)
 		assert.NotNil(t, err)
-		assert.Equal(t, c.err, err)
+		assert.Equal(t, c.err.Code, err.Code)
+		assert.Equal(t, c.err.Message, err.Message)
 		assert.Nil(t, tlsObject)
 	}
 }

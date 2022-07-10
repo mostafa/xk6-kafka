@@ -115,26 +115,9 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 
 // GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors
 func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
-	var tlsObject *tls.Config
+	tlsObject := newTLSObject(tlsConfig)
 
 	if tlsConfig.EnableTLS {
-		// Create a TLS config with default settings
-		tlsObject = &tls.Config{
-			InsecureSkipVerify: tlsConfig.InsecureSkipTLSVerify,
-			MinVersion:         tls.VersionTLS12,
-		}
-
-		// Set the minimum TLS version
-		if tlsConfig.MinVersion != "" {
-			if minVersion, ok := TLSVersions[tlsConfig.MinVersion]; ok {
-				tlsObject.MinVersion = minVersion
-			} else {
-				return nil, NewXk6KafkaError(
-					invalidTLSVersion,
-					"Unable to create TLS config, because the TLS version is invalid", nil)
-			}
-		}
-
 		if tlsConfig.ClientCertPem == "" &&
 			tlsConfig.ClientKeyPem == "" &&
 			tlsConfig.ServerCaPem == "" {
@@ -147,44 +130,36 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	}
 
 	// Load the client cert and key if they are provided
-	var clientCertFile = &tlsConfig.ClientCertPem
-	if !FileExists(*clientCertFile) {
-		return nil, NewXk6KafkaError(
-			fileNotFound,
-			"Client certificate file not found.", nil)
+	if err := fileExists(tlsConfig.ClientCertPem); err != nil {
+		return nil, err
 	}
 
-	var clientKeyFile = &tlsConfig.ClientKeyPem
-	if !FileExists(*clientKeyFile) {
-		return nil, NewXk6KafkaError(
-			fileNotFound,
-			"Client key file not found.", nil)
+	if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
+		return nil, err
 	}
 
-	var cert, err = tls.LoadX509KeyPair(*clientCertFile, *clientKeyFile)
+	var cert tls.Certificate
+	cert, err := tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
 	if err != nil {
 		return nil, NewXk6KafkaError(
 			failedLoadX509KeyPair,
-			fmt.Sprintf("Error creating x509 key pair from client cert file \"%s\" and client key file \"%s\".", *clientCertFile, *clientKeyFile),
+			fmt.Sprintf("Error creating x509 key pair from client cert file \"%s\" and client key file \"%s\".", tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem),
 			err)
 	}
 
 	// Load the CA cert if it is provided
-	var caCertFile = &tlsConfig.ServerCaPem
-	if !FileExists(*caCertFile) {
-		return nil, NewXk6KafkaError(
-			fileNotFound,
-			"CA certificate file not found.", nil)
+	if err := fileExists(tlsConfig.ServerCaPem); err != nil {
+		return nil, err
 	}
 
-	caCert, err := os.ReadFile(*caCertFile)
+	caCert, err := os.ReadFile(tlsConfig.ServerCaPem)
 	if err != nil {
 		// This might happen on permissions issues or if the file is unreadable somehow
 		return nil, NewXk6KafkaError(
 			failedReadCaCertFile,
 			fmt.Sprintf(
 				"Error reading CA certificate file \"%s\".",
-				*caCertFile),
+				tlsConfig.ServerCaPem),
 			err)
 	}
 	caCertPool := x509.NewCertPool()
@@ -193,7 +168,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 			failedAppendCaCertFile,
 			fmt.Sprintf(
 				"Error appending CA certificate file \"%s\".",
-				*caCertFile),
+				tlsConfig.ServerCaPem),
 			nil)
 	}
 
@@ -202,8 +177,28 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	return tlsObject, nil
 }
 
-// FileExists returns true if the given file exists
-func FileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
+// newTLSConfig returns a tls.Config object from the given TLS config
+func newTLSObject(tlsConfig TLSConfig) *tls.Config {
+	// Create a TLS config with default settings
+	tlsObject := &tls.Config{
+		InsecureSkipVerify: tlsConfig.InsecureSkipTLSVerify,
+		MinVersion:         tls.VersionTLS12,
+	}
+
+	// Set the minimum TLS version
+	if tlsConfig.MinVersion != "" {
+		if minVersion, ok := TLSVersions[tlsConfig.MinVersion]; ok {
+			tlsObject.MinVersion = minVersion
+		}
+	}
+
+	return tlsObject
+}
+
+// fileExists returns true if the given file exists
+func fileExists(filename string) *Xk6KafkaError {
+	if _, err := os.Stat(filename); err != nil {
+		return NewXk6KafkaError(fileNotFound, fmt.Sprintf("File not found: %s", filename), err)
+	}
+	return nil
 }
