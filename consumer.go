@@ -73,13 +73,12 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
+			if b, err := json.Marshal(params); err != nil {
 				common.Throw(rt, err)
-			}
-			err = json.Unmarshal(b, &readerConfig)
-			if err != nil {
-				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &readerConfig); err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 	}
@@ -88,22 +87,20 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	readerObject := rt.NewObject()
 	// This is the reader object itself
-	err := readerObject.Set("This", reader)
-	if err != nil {
+	if err := readerObject.Set("This", reader); err != nil {
 		common.Throw(rt, err)
 	}
 
-	err = readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
+	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) > 0 {
 			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-				b, err := json.Marshal(params)
-				if err != nil {
+				if b, err := json.Marshal(params); err != nil {
 					common.Throw(rt, err)
-				}
-				err = json.Unmarshal(b, &consumeConfig)
-				if err != nil {
-					common.Throw(rt, err)
+				} else {
+					if err = json.Unmarshal(b, &consumeConfig); err != nil {
+						common.Throw(rt, err)
+					}
 				}
 			}
 		}
@@ -116,8 +113,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	// This is unnecessary, but it's here for reference purposes
 	err = readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
-		err := reader.Close()
-		if err != nil {
+		if err := reader.Close(); err != nil {
 			common.Throw(rt, err)
 		}
 
