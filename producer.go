@@ -49,21 +49,21 @@ func freeze(o *goja.Object) {
 }
 
 type WriterConfig struct {
-	Brokers         []string      `json:"brokers"`
-	Topic           string        `json:"topic"`
 	AutoCreateTopic bool          `json:"autoCreateTopic"`
-	Balancer        string        `json:"balancer"`
+	ConnectLogger   bool          `json:"connectLogger"`
 	MaxAttempts     int           `json:"maxAttempts"`
 	BatchSize       int           `json:"batchSize"`
 	BatchBytes      int           `json:"batchBytes"`
+	RequiredAcks    int           `json:"requiredAcks"`
+	Topic           string        `json:"topic"`
+	Balancer        string        `json:"balancer"`
+	Compression     string        `json:"compression"`
+	Brokers         []string      `json:"brokers"`
 	BatchTimeout    time.Duration `json:"batchTimeout"`
 	ReadTimeout     time.Duration `json:"readTimeout"`
 	WriteTimeout    time.Duration `json:"writeTimeout"`
-	RequiredAcks    int           `json:"requiredAcks"`
-	Compression     string        `json:"compression"`
 	SASL            SASLConfig    `json:"sasl"`
 	TLS             TLSConfig     `json:"tls"`
-	ConnectLogger   bool          `json:"connectLogger"`
 }
 
 type Message struct {
