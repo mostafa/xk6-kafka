@@ -16,7 +16,7 @@ func TestGetDialerWithSASLPlainAndFullTLSConfig(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_PLAIN,
+		Algorithm: saslPlain,
 	}
 	tlsConfig := TLSConfig{
 		EnableTLS:             true,
@@ -41,7 +41,7 @@ func TestGetDialerWithSASLPlainWithDefaultTLSConfig(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_PLAIN,
+		Algorithm: saslPlain,
 	}
 	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
 	assert.Nil(t, err)
@@ -59,7 +59,7 @@ func TestGetDialerWithSASLScram(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_SCRAM_SHA256, // Same applies with SASL_SCRAM_SHA512.
+		Algorithm: saslScramSha256, // Same applies with SASL_SCRAM_SHA512.
 	}
 	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
 	assert.Nil(t, err)
@@ -75,7 +75,7 @@ func TestGetDialerWithSASLSSLWithNoTLSConfigFails(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "test",
 		Password:  "test",
-		Algorithm: SASL_SSL,
+		Algorithm: saslSsl,
 	}
 	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: false})
 	assert.NotNil(t, err)
@@ -87,7 +87,7 @@ func TestGetDialerFails(t *testing.T) {
 	saslConfig := SASLConfig{
 		Username:  "https://www.exa\t\r\n",
 		Password:  "test",
-		Algorithm: SASL_SCRAM_SHA256,
+		Algorithm: saslScramSha256,
 	}
 	dialer, wrappedError := GetDialer(saslConfig, TLSConfig{})
 	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")

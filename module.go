@@ -30,32 +30,32 @@ func init() {
 
 	// Initialize the compression types map.
 	CompressionCodecs = map[string]compress.Compression{
-		CODEC_GZIP:   compress.Gzip,
-		CODEC_SNAPPY: compress.Snappy,
-		CODEC_LZ4:    compress.Lz4,
-		CODEC_ZSTD:   compress.Zstd,
+		codecGzip:   compress.Gzip,
+		codecSnappy: compress.Snappy,
+		codecLz4:    compress.Lz4,
+		codecZstd:   compress.Zstd,
 	}
 
 	// Initialize the balancer types map.
 	Balancers = map[string]kafkago.Balancer{
-		BALANCER_ROUND_ROBIN: &kafkago.RoundRobin{},
-		BALANCER_LEAST_BYTES: &kafkago.LeastBytes{},
-		BALANCER_HASH:        &kafkago.Hash{},
-		BALANCER_CRC32:       &kafkago.CRC32Balancer{},
-		BALANCER_MURMUR2:     &kafkago.Murmur2Balancer{},
+		balancerRoundRobin: &kafkago.RoundRobin{},
+		balancerLeastBytes: &kafkago.LeastBytes{},
+		balancerHash:       &kafkago.Hash{},
+		balancerCrc32:      &kafkago.CRC32Balancer{},
+		balancerMurmur2:    &kafkago.Murmur2Balancer{},
 	}
 
 	// Initialize the group balancer types map.
 	GroupBalancers = map[string]kafkago.GroupBalancer{
-		GROUP_BALANCER_RANGE:         &kafkago.RangeGroupBalancer{},
-		GROUP_BALANCER_ROUND_ROBIN:   &kafkago.RoundRobinGroupBalancer{},
-		GROUP_BALANCER_RACK_AFFINITY: &kafkago.RackAffinityGroupBalancer{},
+		groupBalancerRange:        &kafkago.RangeGroupBalancer{},
+		groupBalancerRoundRobin:   &kafkago.RoundRobinGroupBalancer{},
+		groupBalancerRackAffinity: &kafkago.RackAffinityGroupBalancer{},
 	}
 
 	// Initialize the isolation levels map.
 	IsolationLevels = map[string]kafkago.IsolationLevel{
-		ISOLATION_LEVEL_READ_UNCOMMITTED: kafkago.ReadUncommitted,
-		ISOLATION_LEVEL_READ_COMMITTED:   kafkago.ReadCommitted,
+		isolationLevelReadUncommitted: kafkago.ReadUncommitted,
+		isolationLevelReadCommitted:   kafkago.ReadCommitted,
 	}
 
 	// Register the module namespace (aka. JS import path).
@@ -157,33 +157,33 @@ func (c *KafkaModule) defineConstants() {
 	mustAddProp("TLS_1_3", netext.TLS_1_3)
 
 	// SASL mechanisms
-	mustAddProp("NONE", NONE)
-	mustAddProp("SASL_PLAIN", SASL_PLAIN)
-	mustAddProp("SASL_SCRAM_SHA256", SASL_SCRAM_SHA256)
-	mustAddProp("SASL_SCRAM_SHA512", SASL_SCRAM_SHA512)
-	mustAddProp("SASL_SSL", SASL_SSL)
+	mustAddProp("NONE", none)
+	mustAddProp("SASL_PLAIN", saslPlain)
+	mustAddProp("SASL_SCRAM_SHA256", saslScramSha256)
+	mustAddProp("SASL_SCRAM_SHA512", saslScramSha512)
+	mustAddProp("SASL_SSL", saslSsl)
 
 	// Compression codecs
-	mustAddProp("CODEC_GZIP", CODEC_GZIP)
-	mustAddProp("CODEC_SNAPPY", CODEC_SNAPPY)
-	mustAddProp("CODEC_LZ4", CODEC_LZ4)
-	mustAddProp("CODEC_ZSTD", CODEC_ZSTD)
+	mustAddProp("CODEC_GZIP", codecGzip)
+	mustAddProp("CODEC_SNAPPY", codecSnappy)
+	mustAddProp("CODEC_LZ4", codecLz4)
+	mustAddProp("CODEC_ZSTD", codecZstd)
 
 	// Balancer types
-	mustAddProp("BALANCER_ROUND_ROBIN", BALANCER_ROUND_ROBIN)
-	mustAddProp("BALANCER_LEAST_BYTES", BALANCER_LEAST_BYTES)
-	mustAddProp("BALANCER_HASH", BALANCER_HASH)
-	mustAddProp("BALANCER_CRC32", BALANCER_CRC32)
-	mustAddProp("BALANCER_MURMUR2", BALANCER_MURMUR2)
+	mustAddProp("BALANCER_ROUND_ROBIN", balancerRoundRobin)
+	mustAddProp("BALANCER_LEAST_BYTES", balancerLeastBytes)
+	mustAddProp("BALANCER_HASH", balancerHash)
+	mustAddProp("BALANCER_CRC32", balancerCrc32)
+	mustAddProp("BALANCER_MURMUR2", balancerMurmur2)
 
 	// Group balancer types
-	mustAddProp("GROUP_BALANCER_RANGE", GROUP_BALANCER_RANGE)
-	mustAddProp("GROUP_BALANCER_ROUND_ROBIN", GROUP_BALANCER_ROUND_ROBIN)
-	mustAddProp("GROUP_BALANCER_RACK_AFFINITY", GROUP_BALANCER_RACK_AFFINITY)
+	mustAddProp("GROUP_BALANCER_RANGE", groupBalancerRange)
+	mustAddProp("GROUP_BALANCER_ROUND_ROBIN", groupBalancerRoundRobin)
+	mustAddProp("GROUP_BALANCER_RACK_AFFINITY", groupBalancerRackAffinity)
 
 	// Isolation levels
-	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", ISOLATION_LEVEL_READ_UNCOMMITTED)
-	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", ISOLATION_LEVEL_READ_COMMITTED)
+	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", isolationLevelReadUncommitted)
+	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", isolationLevelReadCommitted)
 
 	// Serde types
 	mustAddProp("STRING_SERIALIZER", StringSerializer)
