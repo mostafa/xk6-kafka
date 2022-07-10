@@ -49,6 +49,7 @@ type kafkaMetrics struct {
 }
 
 // registerMetrics registers the metrics for the kafka module in the metrics registry
+// nolint: funlen
 func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 	var err error
 	registry := vu.InitEnv().Registry
