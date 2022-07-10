@@ -139,6 +139,8 @@ func (c *KafkaModule) Exports() modules.Exports {
 	}
 }
 
+// defineConstants defines the constants that can be used in the JS code.
+// nolint: funlen
 func (c *KafkaModule) defineConstants() {
 	rt := c.vu.Runtime()
 	mustAddProp := func(name, val string) {
