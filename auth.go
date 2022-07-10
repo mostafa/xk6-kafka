@@ -178,6 +178,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 // newTLSConfig returns a tls.Config object from the given TLS config.
 func newTLSObject(tlsConfig TLSConfig) *tls.Config {
 	// Create a TLS config with default settings
+	// #nosec G402
 	tlsObject := &tls.Config{
 		InsecureSkipVerify: tlsConfig.InsecureSkipTLSVerify,
 		MinVersion:         tls.VersionTLS12,
