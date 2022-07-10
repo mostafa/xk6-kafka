@@ -80,7 +80,6 @@ func SerializeJson(configuration Configuration, topic string, data interface{}, 
 	}
 
 	return EncodeWireFormat(bytesData, schemaID), nil
-
 }
 
 // DeserializeJson deserializes the data from JSON and returns the decoded data. It

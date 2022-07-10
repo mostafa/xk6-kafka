@@ -12,10 +12,8 @@ import (
 	"go.k6.io/k6/lib/netext"
 )
 
-var (
-	// logger is globally used by the Kafka module.
-	logger *logrus.Logger
-)
+// logger is globally used by the Kafka module.
+var logger *logrus.Logger
 
 // init registers the xk6-kafka module as 'k6/x/kafka'.
 func init() {
