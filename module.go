@@ -70,14 +70,14 @@ type (
 		deserializerRegistry *Serde[Deserializer]
 		exports              *goja.Object
 	}
-	RootModule  struct{}
-	KafkaModule struct {
+	RootModule struct{}
+	Module     struct {
 		*Kafka
 	}
 )
 
 var (
-	_ modules.Instance = &KafkaModule{}
+	_ modules.Instance = &Module{}
 	_ modules.Module   = &RootModule{}
 )
 
@@ -96,7 +96,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	}
 
 	// Create a new Kafka module.
-	kafkaModuleInstance := &KafkaModule{
+	moduleInstance := &Module{
 		Kafka: &Kafka{
 			vu:                   vu,
 			metrics:              m,
@@ -107,42 +107,42 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	}
 
 	// Export constants to the JS code.
-	kafkaModuleInstance.defineConstants()
+	moduleInstance.defineConstants()
 
 	mustExport := func(name string, value interface{}) {
-		if err := kafkaModuleInstance.exports.Set(name, value); err != nil {
+		if err := moduleInstance.exports.Set(name, value); err != nil {
 			common.Throw(rt, err)
 		}
 	}
 
 	// Export the functions from the Kafka module to the JS code.
 	// The Writer is a constructor and must be called with new, e.g. new Writer(...).
-	mustExport("Writer", kafkaModuleInstance.XWriter)
+	mustExport("Writer", moduleInstance.XWriter)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...).
-	mustExport("Reader", kafkaModuleInstance.XReader)
+	mustExport("Reader", moduleInstance.XReader)
 	// The Connection is a constructor and must be called with new, e.g. new Connection(...).
-	mustExport("Connection", kafkaModuleInstance.XConnection)
+	mustExport("Connection", moduleInstance.XConnection)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.
 	vu.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
-	return kafkaModuleInstance
+	return moduleInstance
 }
 
 // Exports returns the exports of the Kafka module, which are the functions
 // that can be called from the JS code.
-func (c *KafkaModule) Exports() modules.Exports {
+func (m *Module) Exports() modules.Exports {
 	return modules.Exports{
-		Default: c.Kafka.exports,
+		Default: m.Kafka.exports,
 	}
 }
 
 // defineConstants defines the constants that can be used in the JS code.
 // nolint: funlen
-func (c *KafkaModule) defineConstants() {
-	rt := c.vu.Runtime()
+func (m *Module) defineConstants() {
+	rt := m.vu.Runtime()
 	mustAddProp := func(name, val string) {
-		err := c.exports.DefineDataProperty(
+		err := m.exports.DefineDataProperty(
 			name, rt.ToValue(val), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE,
 		)
 		if err != nil {
