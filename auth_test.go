@@ -132,6 +132,7 @@ func TestTlsConfig(t *testing.T) {
 }
 
 // TestTlsConfigFails tests the creation of a TLS config and fails on invalid files and configs
+// nolint: funlen
 func TestTlsConfigFails(t *testing.T) {
 	saslConfig := []*SimpleTLSConfig{
 		{
