@@ -21,13 +21,12 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) > 0 {
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
+			if b, err := json.Marshal(params); err != nil {
 				common.Throw(rt, err)
-			}
-			err = json.Unmarshal(b, &connectionConfig)
-			if err != nil {
-				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &connectionConfig); err != nil {
+					common.Throw(rt, err)
+				}
 			}
 		}
 	}
@@ -36,22 +35,20 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 
 	connectionObject := rt.NewObject()
 	// This is the connection object itself
-	err := connectionObject.Set("This", connection)
-	if err != nil {
+	if err := connectionObject.Set("This", connection); err != nil {
 		common.Throw(rt, err)
 	}
 
-	err = connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
+	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
 		if len(call.Arguments) > 0 {
 			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-				b, err := json.Marshal(params)
-				if err != nil {
+				if b, err := json.Marshal(params); err != nil {
 					common.Throw(rt, err)
-				}
-				err = json.Unmarshal(b, &topicConfig)
-				if err != nil {
-					common.Throw(rt, err)
+				} else {
+					if err = json.Unmarshal(b, &topicConfig); err != nil {
+						common.Throw(rt, err)
+					}
 				}
 			}
 		}
@@ -85,8 +82,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = connectionObject.Set("close", func(call goja.FunctionCall) goja.Value {
-		err := connection.Close()
-		if err != nil {
+		if err := connection.Close(); err != nil {
 			common.Throw(rt, err)
 		}
 
