@@ -342,150 +342,137 @@ func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	tags := make(map[string]string)
-	tags["clientid"] = currentStats.ClientID
-	tags["topic"] = currentStats.Topic
-	tags["partition"] = currentStats.Partition
+	sampleTags := metrics.IntoSampleTags(&map[string]string{
+		"clientid":  currentStats.ClientID,
+		"topic":     currentStats.Topic,
+		"partition": currentStats.Partition,
+	})
 
 	now := time.Now()
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderDials,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Dials),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderFetches,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Fetches),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderMessages,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Messages),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Bytes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderRebalances,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Rebalances),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderTimeouts,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Timeouts),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderErrors,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Errors),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderDialTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.DialTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderReadTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.ReadTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderWaitTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.WaitTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderFetchSize,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.FetchSize.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderFetchBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.FetchBytes.Min),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderFetchBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.FetchBytes.Max),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderOffset,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Offset),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderLag,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Lag),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderMinBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MinBytes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderMaxBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MaxBytes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderMaxWait,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.MaxWait),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderQueueLength,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.QueueLength),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.ReaderQueueCapacity,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.QueueCapacity),
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
+		Samples: []metrics.Sample{
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderDials,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Dials),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderFetches,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Fetches),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderMessages,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Messages),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Bytes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderRebalances,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Rebalances),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderTimeouts,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Timeouts),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderErrors,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Errors),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderDialTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.DialTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderReadTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.ReadTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderWaitTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.WaitTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderFetchSize,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.FetchSize.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderFetchBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.FetchBytes.Min),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderFetchBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.FetchBytes.Max),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderOffset,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Offset),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderLag,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Lag),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderMinBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MinBytes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderMaxBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MaxBytes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderMaxWait,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.MaxWait),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderQueueLength,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.QueueLength),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.ReaderQueueCapacity,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.QueueCapacity),
+			},
+		},
+		Tags: sampleTags,
+		Time: now,
 	})
 }
