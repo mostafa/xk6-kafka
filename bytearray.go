@@ -17,11 +17,10 @@ const (
 // If the data is not a byte array, an error is returned. The configuration, topic, element,
 // schema and version are just used to conform with the interface.
 func SerializeByteArray(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
-	switch data.(type) {
+	switch data := data.(type) {
 	case []interface{}:
-		bArray := data.([]interface{})
-		arr := make([]byte, len(bArray))
-		for i, u := range bArray {
+		arr := make([]byte, len(data))
+		for i, u := range data {
 			arr[i] = byte(u.(int64))
 		}
 		return arr, nil
