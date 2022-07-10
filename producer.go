@@ -128,7 +128,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 			}
 		}
 
-		k.produceInternal(writer, producerConfig)
+		k.produce(writer, producerConfig)
 		return goja.Undefined()
 	})
 	if err != nil {
@@ -210,9 +210,8 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 	return SerializeString
 }
 
-// produceInternal sends messages to Kafka with the given configuration
-func (k *Kafka) produceInternal(
-	writer *kafkago.Writer, produceConfig *ProduceConfig) {
+// produce sends messages to Kafka with the given configuration
+func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)

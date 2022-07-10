@@ -53,7 +53,7 @@ func TestConsume(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key:    "key1",
@@ -117,7 +117,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  "value1",
@@ -163,7 +163,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  "value1",
@@ -213,7 +213,7 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  string(serialized),

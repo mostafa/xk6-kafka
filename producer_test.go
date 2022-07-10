@@ -25,7 +25,7 @@ func TestProduce(t *testing.T) {
 
 		// Produce a message in the init context
 		assert.Panics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key:   "key1",
@@ -42,7 +42,7 @@ func TestProduce(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key:   "key1",
@@ -104,7 +104,7 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value:  "value1",
@@ -149,7 +149,7 @@ func TestProducerContextCancelled(t *testing.T) {
 
 		// Produce two messages in the VU function
 		assert.Panics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key:   "key1",
@@ -194,7 +194,7 @@ func TestProduceJSON(t *testing.T) {
 
 		// Produce a message in the VU function
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produceInternal(writer, &ProduceConfig{
+			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: string(serialized),
