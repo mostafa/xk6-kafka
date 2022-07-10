@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"time"
@@ -236,14 +237,13 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 // consume consumes messages from the given reader
 func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
-	state := k.vu.State()
-	if state == nil {
+	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
 	}
 
-	ctx := k.vu.Context()
-	if ctx == nil {
+	var ctx context.Context
+	if ctx = k.vu.Context(); ctx == nil {
 		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
 		common.Throw(k.vu.Runtime(), err)
@@ -253,8 +253,7 @@ func (k *Kafka) consume(
 		consumeConfig.Limit = 1
 	}
 
-	err := ValidateConfiguration(consumeConfig.Config)
-	if err != nil {
+	if err := ValidateConfiguration(consumeConfig.Config); err != nil {
 		consumeConfig.Config.Consumer.KeyDeserializer = DefaultDeserializer
 		consumeConfig.Config.Consumer.ValueDeserializer = DefaultDeserializer
 		logger.WithField("error", err).Warn("Using default string serializers")
@@ -284,7 +283,20 @@ func (k *Kafka) consume(
 			return messages
 		}
 
-		message := make(map[string]interface{})
+		// Rest of the fields of a given message
+		message := map[string]interface{}{
+			"topic":         msg.Topic,
+			"partition":     msg.Partition,
+			"offset":        msg.Offset,
+			"time":          time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339),
+			"highWaterMark": msg.HighWaterMark,
+			"headers":       make(map[string]interface{}),
+		}
+
+		for _, header := range msg.Headers {
+			message["headers"].(map[string]interface{})[header.Key] = header.Value
+		}
+
 		if len(msg.Key) > 0 {
 			var wrappedError *Xk6KafkaError
 			message["key"], wrappedError = keyDeserializer(
@@ -303,17 +315,6 @@ func (k *Kafka) consume(
 			if wrappedError != nil && wrappedError.Unwrap() != nil {
 				logger.WithField("error", wrappedError).Error(wrappedError)
 			}
-		}
-
-		// Rest of the fields of a given message
-		message["topic"] = msg.Topic
-		message["partition"] = msg.Partition
-		message["offset"] = msg.Offset
-		message["time"] = time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339)
-		message["highWaterMark"] = msg.HighWaterMark
-		message["headers"] = map[string]interface{}{}
-		for _, header := range msg.Headers {
-			message["headers"].(map[string]interface{})[header.Key] = header.Value
 		}
 
 		messages = append(messages, message)
