@@ -83,7 +83,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 		}
 	}
 
-	reader := k.Reader(readerConfig)
+	reader := k.reader(readerConfig)
 
 	readerObject := rt.NewObject()
 	// This is the reader object itself
@@ -128,8 +128,9 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	return rt.ToValue(readerObject).ToObject(rt)
 }
 
-// Reader creates a Kafka reader with the given configuration
-func (k *Kafka) Reader(readerConfig *ReaderConfig) *kafkago.Reader {
+// reader creates a Kafka reader with the given configuration
+// nolint: funlen
+func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	if readerConfig.GroupID != "" {
 		readerConfig.Partition = 0
 	}
@@ -207,8 +208,7 @@ func (k *Kafka) Reader(readerConfig *ReaderConfig) *kafkago.Reader {
 
 	if readerConfig.Offset > 0 {
 		if readerConfig.GroupID == "" {
-			err := reader.SetOffset(readerConfig.Offset)
-			if err != nil {
+			if err := reader.SetOffset(readerConfig.Offset); err != nil {
 				wrappedError := NewXk6KafkaError(
 					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
 				logger.WithField("error", wrappedError).Warn(wrappedError)

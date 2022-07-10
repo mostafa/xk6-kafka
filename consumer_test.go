@@ -41,7 +41,7 @@ func TestConsume(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 		})
@@ -104,7 +104,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 			Offset:  1,
@@ -151,7 +151,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 		})
@@ -197,7 +197,7 @@ func TestConsumeJSON(t *testing.T) {
 
 	// Create a reader to consume messages
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.Reader(&ReaderConfig{
+		reader := test.module.Kafka.reader(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   "test-topic",
 			Offset:  3,
