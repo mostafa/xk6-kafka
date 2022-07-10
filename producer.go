@@ -212,6 +212,7 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 }
 
 // produce sends messages to Kafka with the given configuration
+// nolint: funlen
 func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
