@@ -11,6 +11,7 @@ import (
 )
 
 // TestProduce tests the produce function
+// nolint: funlen
 func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
