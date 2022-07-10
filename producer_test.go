@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestProduce tests the produce function
+// TestProduce tests the produce function.
 // nolint: funlen
 func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
@@ -24,7 +24,7 @@ func TestProduce(t *testing.T) {
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
-		// Produce a message in the init context
+		// Produce a message in the init context.
 		assert.Panics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -41,7 +41,7 @@ func TestProduce(t *testing.T) {
 
 		require.NoError(t, test.moveToVUCode())
 
-		// Produce two messages in the VU function
+		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -57,7 +57,7 @@ func TestProduce(t *testing.T) {
 		})
 	})
 
-	// Check if two message were produced
+	// Check if two message were produced.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
@@ -77,7 +77,7 @@ func TestProduce(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterAsync.Name])
 }
 
-// TestProduceWithoutKey tests the produce function without a key
+// TestProduceWithoutKey tests the produce function without a key.
 func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -103,7 +103,7 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		require.NoError(t, test.moveToVUCode())
 
-		// Produce two messages in the VU function
+		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -121,16 +121,16 @@ func TestProduceWithoutKey(t *testing.T) {
 		})
 	})
 
-	// Check if two message were produced
+	// Check if two message were produced.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
-	// Notice the smaller size because the key is not present (64 -> 56)
+	// Notice the smaller size because the key is not present (64 -> 56).
 	assert.Equal(t, 56.0, metricsValues[test.module.metrics.WriterBytes.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterMessages.Name])
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
-// TestProducerContextCancelled tests the produce function with a cancelled context
+// TestProducerContextCancelled tests the produce function with a cancelled context.
 func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
@@ -145,10 +145,10 @@ func TestProducerContextCancelled(t *testing.T) {
 
 		require.NoError(t, test.moveToVUCode())
 
-		// This will cancel the context, so the produce will fail
+		// This will cancel the context, so the produce will fail.
 		test.cancelContext()
 
-		// Produce two messages in the VU function
+		// Produce two messages in the VU function.
 		assert.Panics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -173,7 +173,7 @@ func TestProducerContextCancelled(t *testing.T) {
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
-// TestProduceJSON tests the produce function with a JSON value
+// TestProduceJSON tests the produce function with a JSON value.
 func TestProduceJSON(t *testing.T) {
 	// TODO: change this once the interfaces accept JSON
 
@@ -193,7 +193,7 @@ func TestProduceJSON(t *testing.T) {
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)
 
-		// Produce a message in the VU function
+		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
 			test.module.Kafka.produce(writer, &ProduceConfig{
 				Messages: []Message{
@@ -204,7 +204,7 @@ func TestProduceJSON(t *testing.T) {
 		})
 	})
 
-	// Check if one message was produced
+	// Check if one message was produced.
 	metricsValues := test.GetCounterMetricsValues()
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
 	assert.Equal(t, 39, int(metricsValues[test.module.metrics.WriterBytes.Name]))

@@ -17,12 +17,12 @@ var (
 	logger *logrus.Logger
 )
 
-// init registers the xk6-kafka module as 'k6/x/kafka'
+// init registers the xk6-kafka module as 'k6/x/kafka'.
 func init() {
-	// Initialize the global logger
+	// Initialize the global logger.
 	logger = logrus.New()
 
-	// Initialize the TLS versions map
+	// Initialize the TLS versions map.
 	TLSVersions = map[string]uint16{
 		netext.TLS_1_0: tls.VersionTLS10,
 		netext.TLS_1_1: tls.VersionTLS11,
@@ -30,7 +30,7 @@ func init() {
 		netext.TLS_1_3: tls.VersionTLS13,
 	}
 
-	// Initialize the compression types map
+	// Initialize the compression types map.
 	CompressionCodecs = map[string]compress.Compression{
 		CODEC_GZIP:   compress.Gzip,
 		CODEC_SNAPPY: compress.Snappy,
@@ -38,7 +38,7 @@ func init() {
 		CODEC_ZSTD:   compress.Zstd,
 	}
 
-	// Initialize the balancer types map
+	// Initialize the balancer types map.
 	Balancers = map[string]kafkago.Balancer{
 		BALANCER_ROUND_ROBIN: &kafkago.RoundRobin{},
 		BALANCER_LEAST_BYTES: &kafkago.LeastBytes{},
@@ -47,20 +47,20 @@ func init() {
 		BALANCER_MURMUR2:     &kafkago.Murmur2Balancer{},
 	}
 
-	// Initialize the group balancer types map
+	// Initialize the group balancer types map.
 	GroupBalancers = map[string]kafkago.GroupBalancer{
 		GROUP_BALANCER_RANGE:         &kafkago.RangeGroupBalancer{},
 		GROUP_BALANCER_ROUND_ROBIN:   &kafkago.RoundRobinGroupBalancer{},
 		GROUP_BALANCER_RACK_AFFINITY: &kafkago.RackAffinityGroupBalancer{},
 	}
 
-	// Initialize the isolation levels map
+	// Initialize the isolation levels map.
 	IsolationLevels = map[string]kafkago.IsolationLevel{
 		ISOLATION_LEVEL_READ_UNCOMMITTED: kafkago.ReadUncommitted,
 		ISOLATION_LEVEL_READ_COMMITTED:   kafkago.ReadCommitted,
 	}
 
-	// Register the module namespace (aka. JS import path)
+	// Register the module namespace (aka. JS import path).
 	modules.Register("k6/x/kafka", New())
 }
 
@@ -83,12 +83,12 @@ var (
 	_ modules.Module   = &RootModule{}
 )
 
-// New creates a new instance of the root module
+// New creates a new instance of the root module.
 func New() *RootModule {
 	return &RootModule{}
 }
 
-// NewModuleInstance creates a new instance of the Kafka module
+// NewModuleInstance creates a new instance of the Kafka module.
 func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	rt := vu.Runtime()
 
@@ -97,7 +97,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 		common.Throw(vu.Runtime(), err)
 	}
 
-	// Create a new Kafka module
+	// Create a new Kafka module.
 	kafkaModuleInstance := &KafkaModule{
 		Kafka: &Kafka{
 			vu:                   vu,
@@ -108,7 +108,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 		},
 	}
 
-	// Export constants to the JS code
+	// Export constants to the JS code.
 	kafkaModuleInstance.defineConstants()
 
 	mustExport := func(name string, value interface{}) {
@@ -117,12 +117,12 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 		}
 	}
 
-	// Export the functions from the Kafka module to the JS code
-	// The Writer is a constructor and must be called with new, e.g. new Writer(...)
+	// Export the functions from the Kafka module to the JS code.
+	// The Writer is a constructor and must be called with new, e.g. new Writer(...).
 	mustExport("Writer", kafkaModuleInstance.XWriter)
-	// The Reader is a constructor and must be called with new, e.g. new Reader(...)
+	// The Reader is a constructor and must be called with new, e.g. new Reader(...).
 	mustExport("Reader", kafkaModuleInstance.XReader)
-	// The Connection is a constructor and must be called with new, e.g. new Connection(...)
+	// The Connection is a constructor and must be called with new, e.g. new Connection(...).
 	mustExport("Connection", kafkaModuleInstance.XConnection)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.

@@ -5,7 +5,7 @@ import "fmt"
 type errCode uint32
 
 const (
-	// non specific
+	// non specific.
 	kafkaForbiddenInInitContext errCode = 1000
 	noContextError              errCode = 1001
 	contextCancelled            errCode = 1002
@@ -14,7 +14,7 @@ const (
 	dialerError                 errCode = 1005
 	noTLSConfig                 errCode = 1006
 
-	// serdes errors
+	// serdes errors.
 	invalidDataType             errCode = 2000
 	failedDecodeFromWireFormat  errCode = 2001
 	failedCreateAvroCodec       errCode = 2002
@@ -29,34 +29,34 @@ const (
 	failedDecodeJsonFromBinary  errCode = 2011
 	failedToUnmarshalSchema     errCode = 2012
 
-	// producer
+	// producer.
 	failedWriteMessage errCode = 3000
 
-	// consumer
+	// consumer.
 	failedSetOffset   errCode = 4000
 	failedReadMessage errCode = 4001
 	noMoreMessages    errCode = 4002
 
-	// authentication
+	// authentication.
 	failedCreateDialerWithScram   errCode = 5000
 	failedCreateDialerWithSaslSSL errCode = 5001
 	failedLoadX509KeyPair         errCode = 5002
 	failedReadCaCertFile          errCode = 5003
 	failedAppendCaCertFile        errCode = 5004
 
-	// schema registry
+	// schema registry.
 	messageTooShort      errCode = 6000
 	schemaNotFound       errCode = 6001
 	schemaCreationFailed errCode = 6002
 
-	// topics
+	// topics.
 	failedGetController  errCode = 7000
 	failedCreateTopic    errCode = 7001
 	failedDeleteTopic    errCode = 7002
 	failedReadPartitions errCode = 7003
 )
 
-// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context
+// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context.
 var ErrorForbiddenInInitContext = NewXk6KafkaError(
 	kafkaForbiddenInInitContext,
 	"Producing Kafka messages in the init context is not supported",
@@ -68,7 +68,7 @@ type Xk6KafkaError struct {
 	OriginalError error
 }
 
-// NewXk6KafkaError is the constructor for Xk6KafkaError
+// NewXk6KafkaError is the constructor for Xk6KafkaError.
 func NewXk6KafkaError(code errCode, msg string, originalErr error) *Xk6KafkaError {
 	return &Xk6KafkaError{Code: code, Message: msg, OriginalError: originalErr}
 }

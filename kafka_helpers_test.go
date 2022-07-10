@@ -13,7 +13,7 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-// struct to keep all the things test need in one place
+// struct to keep all the things test need in one place.
 type kafkaTest struct {
 	rt            *goja.Runtime
 	module        *KafkaModule
@@ -22,7 +22,7 @@ type kafkaTest struct {
 	cancelContext context.CancelFunc
 }
 
-// GetTestModuleInstance returns a new instance of the Kafka module for testing
+// GetTestModuleInstance returns a new instance of the Kafka module for testing.
 func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	rt := goja.New()
 	rt.SetFieldNameMapper(common.FieldNameMapper{})
@@ -51,7 +51,7 @@ func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	}
 }
 
-// moveToVUCode moves to the VU code from the init code (to test certain functions)
+// moveToVUCode moves to the VU code from the init code (to test certain functions).
 func (k *kafkaTest) moveToVUCode() error {
 	rootGroup, err := lib.NewGroup("", nil)
 	if err != nil {
@@ -74,7 +74,7 @@ func (k *kafkaTest) moveToVUCode() error {
 	return nil
 }
 
-// GetCounterMetricsValues returns the samples of the collected metrics in the VU
+// GetCounterMetricsValues returns the samples of the collected metrics in the VU.
 func (k *kafkaTest) GetCounterMetricsValues() map[string]float64 {
 	metricsValues := make(map[string]float64)
 

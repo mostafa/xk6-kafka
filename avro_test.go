@@ -23,37 +23,37 @@ var (
 	data                   string = `{"field":"value"}`
 )
 
-// TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages
+// TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages.
 func TestSerializeDeserializeAvro(t *testing.T) {
-	// Test with a schema registry, which fails and manually (de)serializes the data
+	// Test with a schema registry, which fails and manually (de)serializes the data.
 	for _, element := range []Element{Key, Value} {
 		// Serialize the key or value
 		serialized, err := SerializeAvro(avroConfig, "topic", `{"field":"value"}`, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, err)
 		assert.NotNil(t, serialized)
-		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data
+		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data.
 		assert.GreaterOrEqual(t, len(serialized), 10)
 
-		// Deserialize the key or value (removes the magic bytes)
+		// Deserialize the key or value (removes the magic bytes).
 		deserialized, err := DeserializeAvro(avroConfig, "", serialized, element, avroSchemaForAvroTests, 0)
 		assert.Nil(t, err)
 		assert.Equal(t, map[string]interface{}{"field": "value"}, deserialized)
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnSchemaError tests serialization and deserialization of Avro messages and fails on schema error
+// TestSerializeDeserializeAvroFailsOnSchemaError tests serialization and deserialization of Avro messages and fails on schema error.
 func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	jsonSchema = `{}`
 
 	for _, element := range []Element{Key, Value} {
-		// Serialize the key or value
+		// Serialize the key or value.
 		serialized, err := SerializeAvro(avroConfig, "topic", `{"field":"value"}`, element, jsonSchema, 0)
 		assert.Nil(t, serialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to create codec for encoding Avro", err.Message)
 		assert.Equal(t, failedCreateAvroCodec, err.Code)
 
-		// Deserialize the key or value
+		// Deserialize the key or value.
 		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3, 4, 5}, element, jsonSchema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
@@ -62,20 +62,20 @@ func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnWireFormatError tests serialization and deserialization of Avro messages and fails on wire format error
+// TestSerializeDeserializeAvroFailsOnWireFormatError tests serialization and deserialization of Avro messages and fails on wire format error.
 func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	schema := `{}`
 
 	for _, element := range []Element{Key, Value} {
-		// Deserialize an empty key or value
+		// Deserialize an empty key or value.
 		deserialized, err := DeserializeAvro(avroConfig, "topic", []byte{}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
 		assert.Equal(t, "Failed to remove wire format from the binary data", err.Message)
 		assert.Equal(t, failedDecodeFromWireFormat, err.Code)
 
-		// Deserialize a broken key or value
-		// Proper wire-formatted message has 5 bytes (the wire format) plus data
+		// Deserialize a broken key or value.
+		// Proper wire-formatted message has 5 bytes (the wire format) plus data.
 		deserialized, err = DeserializeAvro(avroConfig, "topic", []byte{0, 1, 2, 3}, element, schema, 0)
 		assert.Nil(t, deserialized)
 		assert.Error(t, err.Unwrap())
@@ -84,7 +84,7 @@ func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnEncodeDecodeError tests serialization and deserialization of Avro messages and fails on encode/decode error
+// TestSerializeDeserializeAvroFailsOnEncodeDecodeError tests serialization and deserialization of Avro messages and fails on encode/decode error.
 func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 	data := `{"nonExistingField":"value"}`
 
@@ -103,6 +103,7 @@ func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 	}
 }
 
+// TestAvroSerializeTopicNameStrategy tests serialization of Avro messages with the given topic name strategy.
 func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 	topic := "TestAvroSerializeTopicNameStrategy-topic"
 	config := Configuration{
@@ -128,6 +129,7 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
+// TestAvroSerializeTopicNameStrategyIsDefaultStrategy tests serialization of Avro messages with the default topic name strategy.
 func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 	topic := "TestAvroSerializeTopicNameStrategyIsDefaultStrategy-topic"
 	config := Configuration{
@@ -152,6 +154,7 @@ func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
+// TestAvroSerializeTopicRecordNameStrategy tests serialization of Avro messages with the given topic record name strategy.
 func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 	topic := "TestAvroSerializeTopicRecordNameStrategy-topic"
 	config := Configuration{
@@ -176,6 +179,7 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
+// TestAvroSerializeRecordNameStrategy tests serialization of Avro messages with the given record name strategy.
 func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 	topic := "TestAvroSerializeRecordNameStrategy-topic"
 	config := Configuration{
@@ -200,6 +204,7 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 	assert.NotNil(t, resultSchema)
 }
 
+// TestAvroDeserializeUsingMagicPrefix tests deserialization of Avro messages with the given magic prefix.
 func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 	topic := "TestAvroDeserializeUsingMagicPrefix-topic"
 	config := Configuration{
@@ -224,6 +229,7 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
+// TestAvroDeserializeUsingDefaultSubjectNameStrategy tests deserialization of Avro messages with the default topic name strategy.
 func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 	topic := "TestAvroDeserializeUsingDefaultSubjectNameStrategy-topic"
 	config := Configuration{
@@ -247,6 +253,7 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
+// TestAvroDeserializeUsingSubjectNameStrategyRecordName tests deserialization of Avro messages with the given topic record name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyRecordName-topic"
 	config := Configuration{
@@ -272,6 +279,7 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
+// TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName tests deserialization of Avro messages with the given topic record name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName-topic"
 	config := Configuration{
@@ -297,6 +305,7 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
+// TestAvroDeserializeUsingSubjectNameStrategyTopicName tests deserialization of Avro messages with the given topic name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicName-topic"
 	config := Configuration{

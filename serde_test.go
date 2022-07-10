@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestUseSerializer tests whether a serializer should be used based on the configuration
+// TestUseSerializer tests whether a serializer should be used based on the configuration.
 func TestUseSerializer(t *testing.T) {
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -47,7 +47,7 @@ func TestUseSerializerDeserializerFails(t *testing.T) {
 	}
 }
 
-// TestUseDeserializer tests whether a deserializer should be used based on the configuration
+// TestUseDeserializer tests whether a deserializer should be used based on the configuration.
 func TestUseDeserializer(t *testing.T) {
 	config := Configuration{
 		Consumer: ConsumerConfiguration{

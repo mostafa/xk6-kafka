@@ -10,7 +10,7 @@ const (
 	originalData string = "test"
 )
 
-// TestSerializeByteArray tests the serialization of a byte array into binary
+// TestSerializeByteArray tests the serialization of a byte array into binary.
 func TestSerializeByteArray(t *testing.T) {
 	var data int64 = 98
 	originalData := []interface{}{data}
@@ -20,7 +20,7 @@ func TestSerializeByteArray(t *testing.T) {
 }
 
 // TestSerializeByteArrayFails tests the serialization of a byte array into binary and fails
-// on invalid data type
+// on invalid data type.
 func TestSerializeByteArrayFails(t *testing.T) {
 	_, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
 	assert.NotNil(t, err)
@@ -28,7 +28,7 @@ func TestSerializeByteArrayFails(t *testing.T) {
 	assert.Equal(t, err.Code, invalidDataType)
 }
 
-// TestDeserializeByteArray tests the deserialization of a byte array into binary
+// TestDeserializeByteArray tests the deserialization of a byte array into binary.
 func TestDeserializeByteArray(t *testing.T) {
 	originalData := []byte{1, 2, 3}
 	result, err := DeserializeByteArray(Configuration{}, "", originalData, "", "", 0)

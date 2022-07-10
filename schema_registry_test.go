@@ -36,7 +36,7 @@ func TestDecodeWireFormatFails(t *testing.T) {
 	assert.Nil(t, err.Unwrap())
 }
 
-// TestEncodeWireFormat tests the encoding of a message and adding wire-format to it
+// TestEncodeWireFormat tests the encoding of a message and adding wire-format to it.
 func TestEncodeWireFormat(t *testing.T) {
 	data := []byte{6}
 	schemaID := 5

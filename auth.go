@@ -41,7 +41,7 @@ type TLSConfig struct {
 	ServerCaPem           string `json:"serverCaPem"`
 }
 
-// GetDialer creates a kafka dialer from the given auth string or an unauthenticated dialer if the auth string is empty
+// GetDialer creates a kafka dialer from the given auth string or an unauthenticated dialer if the auth string is empty.
 func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk6KafkaError) {
 	// Create a unauthenticated dialer with no TLS
 	dialer := &kafkago.Dialer{
@@ -77,7 +77,7 @@ func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk
 	return dialer, nil
 }
 
-// GetSASLMechanism returns a kafka SASL config from the given credentials
+// GetSASLMechanism returns a kafka SASL config from the given credentials.
 func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 	if saslConfig.Algorithm == "" {
 		saslConfig.Algorithm = NONE
@@ -113,7 +113,7 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 	}
 }
 
-// GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors
+// GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors.
 func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	tlsObject := newTLSObject(tlsConfig)
 
@@ -177,7 +177,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	return tlsObject, nil
 }
 
-// newTLSConfig returns a tls.Config object from the given TLS config
+// newTLSConfig returns a tls.Config object from the given TLS config.
 func newTLSObject(tlsConfig TLSConfig) *tls.Config {
 	// Create a TLS config with default settings
 	tlsObject := &tls.Config{
@@ -195,7 +195,7 @@ func newTLSObject(tlsConfig TLSConfig) *tls.Config {
 	return tlsObject
 }
 
-// fileExists returns true if the given file exists
+// fileExists returns nil if the given file exists and error otherwise.
 func fileExists(filename string) *Xk6KafkaError {
 	if _, err := os.Stat(filename); err != nil {
 		return NewXk6KafkaError(fileNotFound, fmt.Sprintf("File not found: %s", filename), err)

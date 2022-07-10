@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	// Compression codecs
+	// Compression codecs.
 	CODEC_GZIP   = "gzip"
 	CODEC_SNAPPY = "snappy"
 	CODEC_LZ4    = "lz4"
@@ -23,7 +23,7 @@ var (
 	// CompressionCodecs is a map of compression codec names to their respective codecs.
 	CompressionCodecs map[string]compress.Compression
 
-	// Balancers
+	// Balancers.
 	BALANCER_ROUND_ROBIN = "balancer_roundrobin"
 	BALANCER_LEAST_BYTES = "balancer_leastbytes"
 	BALANCER_HASH        = "balancer_hash"
@@ -33,11 +33,11 @@ var (
 	// Balancers is a map of balancer names to their respective balancers.
 	Balancers map[string]kafkago.Balancer
 
-	// DefaultSerializer is string serializer
+	// DefaultSerializer is string serializer.
 	DefaultSerializer = StringSerializer
 )
 
-// freeze disallows resetting or changing the properties of the object
+// freeze disallows resetting or changing the properties of the object.
 func freeze(o *goja.Object) {
 	for _, key := range o.Keys() {
 		err := o.DefineDataProperty(
@@ -69,7 +69,7 @@ type WriterConfig struct {
 type Message struct {
 	Topic string `json:"topic"`
 
-	// Setting Partition has no effect when writing messages
+	// Setting Partition has no effect when writing messages.
 	Partition     int                    `json:"partition"`
 	Offset        int64                  `json:"offset"`
 	HighWaterMark int64                  `json:"highWaterMark"`
@@ -109,7 +109,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	writer := k.writer(writerConfig)
 
 	writerObject := rt.NewObject()
-	// This is the writer object itself
+	// This is the writer object itself.
 	if err := writerObject.Set("This", writer); err != nil {
 		common.Throw(rt, err)
 	}
@@ -136,7 +136,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		common.Throw(rt, err)
 	}
 
-	// This is unnecessary, but it's here for reference purposes
+	// This is unnecessary, but it's here for reference purposes.
 	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		if err := writer.Close(); err != nil {
 			common.Throw(rt, err)
@@ -153,7 +153,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	return rt.ToValue(writerObject).ToObject(rt)
 }
 
-// writer creates a new Kafka writer
+// writer creates a new Kafka writer.
 func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
@@ -203,7 +203,7 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	return writer
 }
 
-// GetSerializer returns the serializer for the given schema
+// GetSerializer returns the serializer for the given schema.
 func (k *Kafka) GetSerializer(schema string) Serializer {
 	if ser, ok := k.serializerRegistry.Registry[schema]; ok {
 		return ser.GetSerializer()
@@ -211,7 +211,7 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 	return SerializeString
 }
 
-// produce sends messages to Kafka with the given configuration
+// produce sends messages to Kafka with the given configuration.
 // nolint: funlen
 func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	if state := k.vu.State(); state == nil {
@@ -242,8 +242,8 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 			Offset: message.Offset,
 		}
 
-		// Topic can be explicitly set on each individual message
-		// Setting topic on the writer and the messages are mutually exclusive
+		// Topic can be explicitly set on each individual message.
+		// Setting topic on the writer and the messages are mutually exclusive.
 		if message.Topic != "" {
 			kafkaMessages[i].Topic = message.Topic
 		}
@@ -307,7 +307,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	}
 }
 
-// reportWriterStats reports the writer stats to the state
+// reportWriterStats reports the writer stats to the state.
 // nolint: funlen
 func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 	state := k.vu.State()
