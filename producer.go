@@ -227,7 +227,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	}
 
 	var err error
-	if err = ValidateConfiguration(produceConfig.Config); err != nil {
+	if err := ValidateConfiguration(produceConfig.Config); err != nil {
 		produceConfig.Config.Producer.KeySerializer = DefaultSerializer
 		produceConfig.Config.Producer.ValueSerializer = DefaultSerializer
 		logger.WithField("error", err).Warn("Using default string serializers")
