@@ -235,6 +235,7 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 }
 
 // consume consumes messages from the given reader
+// nolint: funlen
 func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
 	if state := k.vu.State(); state == nil {
