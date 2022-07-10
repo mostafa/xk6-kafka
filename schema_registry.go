@@ -91,7 +91,8 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 
 // GetSchema returns the schema for the given subject and schema ID and version.
 func GetSchema(
-	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType, version int) (*srclient.Schema, *Xk6KafkaError) {
+	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType, version int,
+) (*srclient.Schema, *Xk6KafkaError) {
 	// The client always caches the schema.
 	var schemaInfo *srclient.Schema
 	var err error
@@ -111,7 +112,8 @@ func GetSchema(
 
 // CreateSchema creates a new schema in the schema registry.
 func CreateSchema(
-	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType) (*srclient.Schema, *Xk6KafkaError) {
+	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType,
+) (*srclient.Schema, *Xk6KafkaError) {
 	schemaInfo, err := client.CreateSchema(subject, schema, schemaType)
 	if err != nil {
 		return nil, NewXk6KafkaError(schemaCreationFailed, "Failed to create schema.", err)
@@ -130,7 +132,7 @@ func GetSubjectName(schema string, topic string, element Element, subjectNameStr
 	if err != nil {
 		return "", NewXk6KafkaError(failedToUnmarshalSchema, "Failed to unmarshal schema", nil)
 	}
-	var recordName = ""
+	recordName := ""
 	if namespace, ok := schemaMap["namespace"]; ok {
 		recordName = namespace.(string) + "."
 	}

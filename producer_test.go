@@ -36,7 +36,8 @@ func TestProduce(t *testing.T) {
 						Key:   "key2",
 						Value: "value2",
 					},
-				}})
+				},
+			})
 		})
 
 		require.NoError(t, test.moveToVUCode())
@@ -53,7 +54,8 @@ func TestProduce(t *testing.T) {
 						Key:   "key2",
 						Value: "value2",
 					},
-				}})
+				},
+			})
 		})
 	})
 
@@ -117,7 +119,8 @@ func TestProduceWithoutKey(t *testing.T) {
 						Value: "value2",
 						Topic: "test-topic",
 					},
-				}})
+				},
+			})
 		})
 	})
 
@@ -160,7 +163,8 @@ func TestProducerContextCancelled(t *testing.T) {
 						Key:   "key2",
 						Value: "value2",
 					},
-				}})
+				},
+			})
 		})
 	})
 
@@ -200,7 +204,8 @@ func TestProduceJSON(t *testing.T) {
 					{
 						Value: string(serialized),
 					},
-				}})
+				},
+			})
 		})
 	})
 

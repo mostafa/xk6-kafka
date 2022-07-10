@@ -13,10 +13,8 @@ import (
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
-var (
-	// TLSVersions is a map of TLS versions to their numeric values.
-	TLSVersions map[string]uint16
-)
+// TLSVersions is a map of TLS versions to their numeric values.
+var TLSVersions map[string]uint16
 
 const (
 	NONE              = "none"

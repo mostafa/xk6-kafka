@@ -21,7 +21,7 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 
-	var subject, subjectNameError = GetSubjectName(schema, topic, element, configuration.Producer.SubjectNameStrategy)
+	subject, subjectNameError := GetSubjectName(schema, topic, element, configuration.Producer.SubjectNameStrategy)
 	if subjectNameError != nil {
 		return nil, subjectNameError
 	}
@@ -106,7 +106,7 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 
-	var subject, subjectNameError = GetSubjectName(schema, topic, element, configuration.Consumer.SubjectNameStrategy)
+	subject, subjectNameError := GetSubjectName(schema, topic, element, configuration.Consumer.SubjectNameStrategy)
 	if subjectNameError != nil {
 		return nil, subjectNameError
 	}

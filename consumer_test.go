@@ -60,7 +60,8 @@ func TestConsume(t *testing.T) {
 						Value:  "value1",
 						Offset: 0,
 					},
-				}})
+				},
+			})
 		})
 
 		// Consume a message in the VU function.
@@ -123,7 +124,8 @@ func TestConsumeWithoutKey(t *testing.T) {
 						Value:  "value1",
 						Offset: 1,
 					},
-				}})
+				},
+			})
 		})
 
 		// Consume a message in the VU function.
@@ -169,7 +171,8 @@ func TestConsumerContextCancelled(t *testing.T) {
 						Value:  "value1",
 						Offset: 2,
 					},
-				}})
+				},
+			})
 		})
 
 		test.cancelContext()
@@ -219,7 +222,8 @@ func TestConsumeJSON(t *testing.T) {
 						Value:  string(serialized),
 						Offset: 3,
 					},
-				}})
+				},
+			})
 		})
 
 		// Consume the message.

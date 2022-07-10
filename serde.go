@@ -6,8 +6,10 @@ import (
 	"github.com/riferrei/srclient"
 )
 
-type Serializer func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
-type Deserializer func(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
+type (
+	Serializer   func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
+	Deserializer func(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
+)
 
 const (
 	// TODO: move these to their own package.
