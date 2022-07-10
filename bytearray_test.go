@@ -6,6 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	originalData string = "test"
+)
+
 // TestSerializeByteArray tests the serialization of a byte array into binary
 func TestSerializeByteArray(t *testing.T) {
 	var data int64 = 98
@@ -18,7 +22,6 @@ func TestSerializeByteArray(t *testing.T) {
 // TestSerializeByteArrayFails tests the serialization of a byte array into binary and fails
 // on invalid data type
 func TestSerializeByteArrayFails(t *testing.T) {
-	originalData := "test"
 	_, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
 	assert.NotNil(t, err)
 	assert.Equal(t, err.Message, "Invalid data type provided for byte array serializer (requires []byte)")

@@ -8,7 +8,6 @@ import (
 
 // TestSerializeString tests the serialization of a string
 func TestSerializeString(t *testing.T) {
-	originalData := "test"
 	result, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(originalData), result)
@@ -26,7 +25,6 @@ func TestSerializeStringFails(t *testing.T) {
 
 // TestDeserializeString tests the deserialization of a string
 func TestDeserializeString(t *testing.T) {
-	originalData := "test"
 	result, err := DeserializeString(Configuration{}, "", []byte(originalData), "", "", 0)
 	assert.Equal(t, originalData, result)
 	assert.Nil(t, err)
