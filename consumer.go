@@ -30,32 +30,32 @@ var (
 )
 
 type ReaderConfig struct {
-	Brokers                []string      `json:"brokers"`
-	GroupID                string        `json:"groupID"`
-	GroupTopics            []string      `json:"groupTopics"`
-	Topic                  string        `json:"topic"`
+	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
+	ConnectLogger          bool          `json:"connectLogger"`
 	Partition              int           `json:"partition"`
 	QueueCapacity          int           `json:"queueCapacity"`
 	MinBytes               int           `json:"minBytes"`
 	MaxBytes               int           `json:"maxBytes"`
+	MaxAttempts            int           `json:"maxAttempts"`
+	GroupID                string        `json:"groupID"`
+	Topic                  string        `json:"topic"`
+	IsolationLevel         string        `json:"isolationLevel"`
+	StartOffset            int64         `json:"startOffset"`
+	Offset                 int64         `json:"offset"`
+	Brokers                []string      `json:"brokers"`
+	GroupTopics            []string      `json:"groupTopics"`
+	GroupBalancers         []string      `json:"groupBalancers"`
 	MaxWait                time.Duration `json:"maxWait"`
 	ReadLagInterval        time.Duration `json:"readLagInterval"`
-	GroupBalancers         []string      `json:"groupBalancers"`
 	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
 	CommitInterval         time.Duration `json:"commitInterval"`
 	PartitionWatchInterval time.Duration `json:"partitionWatchInterval"`
-	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
 	SessionTimeout         time.Duration `json:"sessionTimeout"`
 	RebalanceTimeout       time.Duration `json:"rebalanceTimeout"`
 	JoinGroupBackoff       time.Duration `json:"joinGroupBackoff"`
 	RetentionTime          time.Duration `json:"retentionTime"`
-	StartOffset            int64         `json:"startOffset"`
 	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
 	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
-	ConnectLogger          bool          `json:"connectLogger"`
-	MaxAttempts            int           `json:"maxAttempts"`
-	IsolationLevel         string        `json:"isolationLevel"`
-	Offset                 int64         `json:"offset"`
 	SASL                   SASLConfig    `json:"sasl"`
 	TLS                    TLSConfig     `json:"tls"`
 }
