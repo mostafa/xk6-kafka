@@ -328,6 +328,7 @@ func (k *Kafka) consumeInternal(
 }
 
 // reportReaderStats reports the reader stats
+// nolint:funlen
 func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 	state := k.vu.State()
 	if state == nil {
