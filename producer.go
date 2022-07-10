@@ -322,120 +322,112 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	tags := make(map[string]string)
-	tags["topic"] = currentStats.Topic
+	sampleTags := metrics.IntoSampleTags(&map[string]string{
+		"topic": currentStats.Topic,
+	})
 
 	now := time.Now()
 
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWrites,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Writes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMessages,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Messages),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Bytes),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterErrors,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Errors),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWriteTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.WriteTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWaitTime,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.D(currentStats.WaitTime.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterRetries,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.Retries.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchSize,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchSize.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchBytes,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchBytes.Avg),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMaxAttempts,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MaxAttempts),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterMaxBatchSize,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.MaxBatchSize),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterBatchTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.BatchTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterReadTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.ReadTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterWriteTimeout,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.WriteTimeout),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterRequiredAcks,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  float64(currentStats.RequiredAcks),
-	})
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.Sample{
-		Time:   now,
-		Metric: k.metrics.WriterAsync,
-		Tags:   metrics.IntoSampleTags(&tags),
-		Value:  metrics.B(currentStats.Async),
+	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
+		Samples: []metrics.Sample{
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWrites,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Writes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMessages,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Messages),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Bytes),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterErrors,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Errors),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWriteTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.WriteTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWaitTime,
+				Tags:   sampleTags,
+				Value:  metrics.D(currentStats.WaitTime.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterRetries,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.Retries.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchSize,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchSize.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchBytes,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchBytes.Avg),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMaxAttempts,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MaxAttempts),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterMaxBatchSize,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.MaxBatchSize),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterBatchTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.BatchTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterReadTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.ReadTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterWriteTimeout,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.WriteTimeout),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterRequiredAcks,
+				Tags:   sampleTags,
+				Value:  float64(currentStats.RequiredAcks),
+			},
+			{
+				Time:   now,
+				Metric: k.metrics.WriterAsync,
+				Tags:   sampleTags,
+				Value:  metrics.B(currentStats.Async),
+			},
+		},
+		Tags: sampleTags,
+		Time: now,
 	})
 }
