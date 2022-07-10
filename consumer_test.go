@@ -25,7 +25,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	})
 
 	// Create a writer to produce messages
-	writer := test.module.Kafka.Writer(&WriterConfig{
+	writer := test.module.Kafka.writer(&WriterConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   "test-topic",
 	})

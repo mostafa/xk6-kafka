@@ -15,7 +15,7 @@ func TestProduce(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(&WriterConfig{
+		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers:         []string{"localhost:9092"},
 			Topic:           "test-topic",
 			AutoCreateTopic: true,
@@ -81,7 +81,7 @@ func TestProduceWithoutKey(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(&WriterConfig{
+		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 		})
 		assert.NotNil(t, writer)
@@ -134,7 +134,7 @@ func TestProducerContextCancelled(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(&WriterConfig{
+		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers:         []string{"localhost:9092"},
 			Topic:           "test-topic",
 			AutoCreateTopic: true,
@@ -179,7 +179,7 @@ func TestProduceJSON(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.Writer(&WriterConfig{
+		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers:         []string{"localhost:9092"},
 			Topic:           "test-topic",
 			AutoCreateTopic: true,

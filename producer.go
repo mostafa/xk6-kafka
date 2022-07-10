@@ -105,7 +105,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		}
 	}
 
-	writer := k.Writer(writerConfig)
+	writer := k.writer(writerConfig)
 
 	writerObject := rt.NewObject()
 	// This is the writer object itself
@@ -152,8 +152,8 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	return rt.ToValue(writerObject).ToObject(rt)
 }
 
-// Writer creates a new Kafka writer
-func (k *Kafka) Writer(writerConfig *WriterConfig) *kafkago.Writer {
+// writer creates a new Kafka writer
+func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
