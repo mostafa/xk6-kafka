@@ -17,11 +17,11 @@ import (
 var TLSVersions map[string]uint16
 
 const (
-	NONE              = "none"
-	SASL_PLAIN        = "sasl_plain"
-	SASL_SCRAM_SHA256 = "sasl_scram_sha256"
-	SASL_SCRAM_SHA512 = "sasl_scram_sha512"
-	SASL_SSL          = "sasl_ssl"
+	none            = "none"
+	saslPlain       = "sasl_plain"
+	saslScramSha256 = "sasl_scram_sha256"
+	saslScramSha512 = "sasl_scram_sha512"
+	saslSsl         = "sasl_ssl"
 )
 
 type SASLConfig struct {
@@ -65,7 +65,7 @@ func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk
 			logger.WithField("error", err).Error("Cannot process TLS config")
 		}
 	}
-	if tlsObject == nil && saslConfig.Algorithm == SASL_SSL {
+	if tlsObject == nil && saslConfig.Algorithm == saslSsl {
 		return nil, NewXk6KafkaError(
 			failedCreateDialerWithSaslSSL, "You must enable TLS to use SASL_SSL", nil)
 	}
@@ -78,22 +78,22 @@ func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk
 // GetSASLMechanism returns a kafka SASL config from the given credentials.
 func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 	if saslConfig.Algorithm == "" {
-		saslConfig.Algorithm = NONE
+		saslConfig.Algorithm = none
 	}
 
 	switch saslConfig.Algorithm {
-	case NONE:
+	case none:
 		return nil, nil
-	case SASL_PLAIN, SASL_SSL:
+	case saslPlain, saslSsl:
 		mechanism := plain.Mechanism{
 			Username: saslConfig.Username,
 			Password: saslConfig.Password,
 		}
 		return mechanism, nil
-	case SASL_SCRAM_SHA256, SASL_SCRAM_SHA512:
+	case saslScramSha256, saslScramSha512:
 		hashes := make(map[string]scram.Algorithm)
-		hashes[SASL_SCRAM_SHA256] = scram.SHA256
-		hashes[SASL_SCRAM_SHA512] = scram.SHA512
+		hashes[saslScramSha256] = scram.SHA256
+		hashes[saslScramSha512] = scram.SHA512
 
 		mechanism, err := scram.Mechanism(
 			hashes[saslConfig.Algorithm],

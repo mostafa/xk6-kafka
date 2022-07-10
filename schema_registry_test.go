@@ -48,7 +48,7 @@ func TestEncodeWireFormat(t *testing.T) {
 // with the given configuration.
 func TestSchemaRegistryClient(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",
@@ -62,7 +62,7 @@ func TestSchemaRegistryClient(t *testing.T) {
 // with the given configuration along with TLS configuration.
 func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",
@@ -81,7 +81,7 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 // the configuration is invalid.
 func TestGetLatestSchemaFails(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",
@@ -98,7 +98,7 @@ func TestGetLatestSchemaFails(t *testing.T) {
 // the configuration is invalid.
 func TestGetSchemaFails(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",
@@ -115,7 +115,7 @@ func TestGetSchemaFails(t *testing.T) {
 // configuration is invalid.
 func TestCreateSchemaFails(t *testing.T) {
 	srConfig := SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",

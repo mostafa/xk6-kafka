@@ -15,20 +15,20 @@ import (
 
 var (
 	// Compression codecs.
-	CODEC_GZIP   = "gzip"
-	CODEC_SNAPPY = "snappy"
-	CODEC_LZ4    = "lz4"
-	CODEC_ZSTD   = "zstd"
+	codecGzip   = "gzip"
+	codecSnappy = "snappy"
+	codecLz4    = "lz4"
+	codecZstd   = "zstd"
 
 	// CompressionCodecs is a map of compression codec names to their respective codecs.
 	CompressionCodecs map[string]compress.Compression
 
 	// Balancers.
-	BALANCER_ROUND_ROBIN = "balancer_roundrobin"
-	BALANCER_LEAST_BYTES = "balancer_leastbytes"
-	BALANCER_HASH        = "balancer_hash"
-	BALANCER_CRC32       = "balancer_crc32"
-	BALANCER_MURMUR2     = "balancer_murmur2"
+	balancerRoundRobin = "balancer_roundrobin"
+	balancerLeastBytes = "balancer_leastbytes"
+	balancerHash       = "balancer_hash"
+	balancerCrc32      = "balancer_crc32"
+	balancerMurmur2    = "balancer_murmur2"
 
 	// Balancers is a map of balancer names to their respective balancers.
 	Balancers map[string]kafkago.Balancer
@@ -171,7 +171,7 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	writer := &kafkago.Writer{
 		Addr:         kafkago.TCP(writerConfig.Brokers...),
 		Topic:        writerConfig.Topic,
-		Balancer:     Balancers[BALANCER_LEAST_BYTES],
+		Balancer:     Balancers[balancerLeastBytes],
 		MaxAttempts:  writerConfig.MaxAttempts,
 		BatchSize:    writerConfig.BatchSize,
 		BatchBytes:   int64(writerConfig.BatchBytes),

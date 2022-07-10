@@ -14,15 +14,15 @@ import (
 
 var (
 	// Group balancers.
-	GROUP_BALANCER_RANGE         = "group_balancer_range"
-	GROUP_BALANCER_ROUND_ROBIN   = "group_balancer_round_robin"
-	GROUP_BALANCER_RACK_AFFINITY = "group_balancer_rack_affinity"
+	groupBalancerRange        = "group_balancer_range"
+	groupBalancerRoundRobin   = "group_balancer_round_robin"
+	groupBalancerRackAffinity = "group_balancer_rack_affinity"
 
 	GroupBalancers map[string]kafkago.GroupBalancer
 
 	// Isolation levels.
-	ISOLATION_LEVEL_READ_UNCOMMITTED = "isolation_level_read_uncommitted"
-	ISOLATION_LEVEL_READ_COMMITTED   = "isolation_level_read_committed"
+	isolationLevelReadUncommitted = "isolation_level_read_uncommitted"
+	isolationLevelReadCommitted   = "isolation_level_read_committed"
 
 	IsolationLevels map[string]kafkago.IsolationLevel
 
@@ -164,11 +164,11 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	}
 	if len(groupBalancers) == 0 {
 		// Default to [Range, RoundRobin] if no balancer is specified
-		groupBalancers = append(groupBalancers, GroupBalancers[GROUP_BALANCER_RANGE])
-		groupBalancers = append(groupBalancers, GroupBalancers[GROUP_BALANCER_ROUND_ROBIN])
+		groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRange])
+		groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRoundRobin])
 	}
 
-	isolationLevel := IsolationLevels[ISOLATION_LEVEL_READ_UNCOMMITTED]
+	isolationLevel := IsolationLevels[isolationLevelReadUncommitted]
 	if readerConfig.IsolationLevel == "" {
 		isolationLevel = IsolationLevels[readerConfig.IsolationLevel]
 	}

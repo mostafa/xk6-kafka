@@ -16,13 +16,14 @@ import (
 // struct to keep all the things test need in one place.
 type kafkaTest struct {
 	rt            *goja.Runtime
-	module        *KafkaModule
+	module        *Module
 	vu            *modulestest.VU
 	samples       chan metrics.SampleContainer
 	cancelContext context.CancelFunc
 }
 
 // GetTestModuleInstance returns a new instance of the Kafka module for testing.
+// nolint: golint
 func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	rt := goja.New()
 	rt.SetFieldNameMapper(common.FieldNameMapper{})
@@ -38,7 +39,7 @@ func GetTestModuleInstance(t testing.TB) *kafkaTest {
 		},
 		CtxField: ctx,
 	}
-	mi, ok := root.NewModuleInstance(mockVU).(*KafkaModule)
+	mi, ok := root.NewModuleInstance(mockVU).(*Module)
 	require.True(t, ok)
 
 	require.NoError(t, rt.Set("kafka", mi.Exports().Default))

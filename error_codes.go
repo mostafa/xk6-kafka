@@ -21,12 +21,12 @@ const (
 	failedEncodeToAvro          errCode = 2003
 	failedEncodeAvroToBinary    errCode = 2004
 	failedDecodeAvroFromBinary  errCode = 2005
-	failedCreateJsonSchemaCodec errCode = 2006
-	failedUnmarshalJson         errCode = 2007
-	failedValidateJson          errCode = 2008
-	failedEncodeToJson          errCode = 2009
-	failedEncodeJsonToBinary    errCode = 2010
-	failedDecodeJsonFromBinary  errCode = 2011
+	failedCreateJSONSchemaCodec errCode = 2006
+	failedUnmarshalJSON         errCode = 2007
+	failedValidateJSON          errCode = 2008
+	failedEncodeToJSON          errCode = 2009
+	failedEncodeJSONToBinary    errCode = 2010
+	failedDecodeJSONFromBinary  errCode = 2011
 	failedToUnmarshalSchema     errCode = 2012
 
 	// producer.

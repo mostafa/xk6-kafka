@@ -16,7 +16,7 @@ var configuration Configuration = Configuration{
 		ValueSerializer: StringSerializer,
 	},
 	SchemaRegistry: SchemaRegistryConfiguration{
-		Url: "http://localhost:8081",
+		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
 			Password: "password",
@@ -44,7 +44,7 @@ func TestValidateConfigurationFallbackToDefaults(t *testing.T) {
 func TestGivenCredentials(t *testing.T) {
 	configuration := Configuration{
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 			BasicAuth: BasicAuth{
 				Username: "username",
 				Password: "password",
@@ -62,7 +62,7 @@ func TestGivenCredentials(t *testing.T) {
 func TestGivenCredentialsFails(t *testing.T) {
 	configuration := Configuration{
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url:       "http://localhost:8081",
+			URL:       "http://localhost:8081",
 			UseLatest: true,
 		},
 	}

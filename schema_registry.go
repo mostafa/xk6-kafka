@@ -22,7 +22,7 @@ type BasicAuth struct {
 }
 
 type SchemaRegistryConfiguration struct {
-	Url       string    `json:"url"`
+	URL       string    `json:"url"`
 	BasicAuth BasicAuth `json:"basicAuth"`
 	UseLatest bool      `json:"useLatest"`
 	TLS       TLSConfig `json:"tls"`
@@ -70,7 +70,7 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 		if err.Code != noTLSConfig {
 			logger.WithField("error", err).Error("Cannot process TLS config")
 		}
-		srClient = srclient.CreateSchemaRegistryClient(configuration.Url)
+		srClient = srclient.CreateSchemaRegistryClient(configuration.URL)
 	}
 
 	if tlsConfig != nil {
@@ -79,7 +79,7 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 				TLSClientConfig: tlsConfig,
 			},
 		}
-		srClient = srclient.CreateSchemaRegistryClientWithOptions(configuration.Url, httpClient, 16)
+		srClient = srclient.CreateSchemaRegistryClientWithOptions(configuration.URL, httpClient, 16)
 	}
 
 	if configuration.BasicAuth.Username != "" && configuration.BasicAuth.Password != "" {

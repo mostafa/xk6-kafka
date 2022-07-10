@@ -14,7 +14,7 @@ func NewSerializersRegistry() *Serde[Serializer] {
 			ByteArraySerializer:  NewSerdes[Serializer](SerializeByteArray, ByteArraySerializer, ByteArray, false),
 			AvroSerializer:       NewSerdes[Serializer](SerializeAvro, AvroSerializer, srclient.Avro, true),
 			ProtobufSerializer:   NewSerdes[Serializer](nil, ProtobufSerializer, srclient.Protobuf, true),
-			JsonSchemaSerializer: NewSerdes[Serializer](SerializeJson, JsonSchemaSerializer, srclient.Json, true),
+			JSONSchemaSerializer: NewSerdes[Serializer](SerializeJSON, JSONSchemaSerializer, srclient.Json, true),
 		},
 	}
 }
@@ -27,7 +27,7 @@ func NewDeserializersRegistry() *Serde[Deserializer] {
 			ByteArrayDeserializer:  NewSerdes[Deserializer](DeserializeByteArray, ByteArrayDeserializer, ByteArray, false),
 			AvroDeserializer:       NewSerdes[Deserializer](DeserializeAvro, AvroDeserializer, srclient.Avro, true),
 			ProtobufDeserializer:   NewSerdes[Deserializer](nil, ProtobufDeserializer, srclient.Protobuf, true),
-			JsonSchemaDeserializer: NewSerdes[Deserializer](DeserializeJson, JsonSchemaDeserializer, srclient.Json, true),
+			JSONSchemaDeserializer: NewSerdes[Deserializer](DeserializeJSON, JSONSchemaDeserializer, srclient.Json, true),
 		},
 	}
 }

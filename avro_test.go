@@ -112,7 +112,7 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 			SubjectNameStrategy: TopicNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 
@@ -137,7 +137,7 @@ func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 			ValueSerializer: AvroSerializer,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 
@@ -163,7 +163,7 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 			SubjectNameStrategy: TopicRecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroSerializeTopicRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -188,7 +188,7 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroSerializeRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -216,7 +216,7 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroDeserializeUsingMagicPrefix","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -240,7 +240,7 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 			ValueDeserializer: AvroSerializer,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroDeserializeUsingDefaultSubjectNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -266,7 +266,7 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 			SubjectNameStrategy: RecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -292,7 +292,7 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 			SubjectNameStrategy: TopicRecordNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
@@ -318,7 +318,7 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 			SubjectNameStrategy: TopicNameStrategy,
 		},
 		SchemaRegistry: SchemaRegistryConfiguration{
-			Url: "http://localhost:8081",
+			URL: "http://localhost:8081",
 		},
 	}
 	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
