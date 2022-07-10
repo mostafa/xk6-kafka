@@ -105,7 +105,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 			}
 		}
 
-		return rt.ToValue(k.consumeInternal(reader, consumeConfig))
+		return rt.ToValue(k.consume(reader, consumeConfig))
 	})
 	if err != nil {
 		common.Throw(rt, err)
@@ -233,8 +233,8 @@ func (k *Kafka) GetDeserializer(schema string) Deserializer {
 	return DeserializeString
 }
 
-// consumeInternal consumes messages from the given reader
-func (k *Kafka) consumeInternal(
+// consume consumes messages from the given reader
+func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig) []map[string]interface{} {
 	state := k.vu.State()
 	if state == nil {
