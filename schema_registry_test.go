@@ -157,7 +157,11 @@ func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
 }
 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) {
-	avroSchema := `{"type":"record","namespace":"com.example.person","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	avroSchema := `{
+		"type":"record",
+		"namespace":"com.example.person",
+		"name":"Schema",
+		"fields":[{"name":"field","type":"string"}]}`
 	subject, err := GetSubjectName(avroSchema, "test-topic", Value, TopicRecordNameStrategy)
 	assert.Nil(t, err)
 	assert.Equal(t, "test-topic-com.example.person.Schema", subject)
@@ -176,7 +180,11 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
 }
 
 func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
-	avroSchema := `{"type":"record","namespace":"com.example.person","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+	avroSchema := `{
+		"type":"record",
+		"namespace":"com.example.person",
+		"name":"Schema",
+		"fields":[{"name":"field","type":"string"}]}`
 	subject, err := GetSubjectName(avroSchema, "test-topic", Value, RecordNameStrategy)
 	assert.Nil(t, err)
 	assert.Equal(t, "com.example.person.Schema", subject)

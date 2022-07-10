@@ -16,7 +16,9 @@ const (
 // is used to configure the Schema Registry client. The element is used to define the subject.
 // The data should be a string.
 // nolint: funlen
-func SerializeAvro(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+func SerializeAvro(
+	configuration Configuration, topic string, data interface{},
+	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
@@ -92,7 +94,9 @@ func SerializeAvro(configuration Configuration, topic string, data interface{}, 
 // is used to configure the Schema Registry client. The element is used to define the subject.
 // The data should be a byte array.
 // nolint: funlen
-func DeserializeAvro(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeAvro(
+	configuration Configuration, topic string, data []byte,
+	element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	schemaID, bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,

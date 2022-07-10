@@ -14,7 +14,9 @@ const (
 )
 
 // SerializeString serializes a string to bytes.
-func SerializeString(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+func SerializeString(
+	configuration Configuration, topic string, data interface{},
+	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	switch data := data.(type) {
 	case string:
 		return []byte(data), nil
@@ -27,6 +29,8 @@ func SerializeString(configuration Configuration, topic string, data interface{}
 }
 
 // DeserializeString deserializes a string from bytes.
-func DeserializeString(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeString(
+	configuration Configuration, topic string, data []byte,
+	element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	return string(data), nil
 }

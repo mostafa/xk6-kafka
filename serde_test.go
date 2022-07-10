@@ -36,9 +36,12 @@ func TestUseSerializerDeserializerFails(t *testing.T) {
 		{config: Configuration{Consumer: ConsumerConfiguration{}}, element: Key, result: false},
 		{config: Configuration{Consumer: ConsumerConfiguration{}}, element: Value, result: false},
 		{config: Configuration{SchemaRegistry: SchemaRegistryConfiguration{}}, element: Key, result: false},
-		{config: Configuration{SchemaRegistry: SchemaRegistryConfiguration{}}, element: Value, result: false},
-		{config: Configuration{Producer: ProducerConfiguration{ValueSerializer: "unknown codec"}}, element: Key, result: false},
-		{config: Configuration{Producer: ProducerConfiguration{KeySerializer: "unknown codec"}}, element: Value, result: false},
+		{config: Configuration{SchemaRegistry: SchemaRegistryConfiguration{}}, element: Value,
+			result: false},
+		{config: Configuration{Producer: ProducerConfiguration{ValueSerializer: "unknown codec"}},
+			element: Key, result: false},
+		{config: Configuration{Producer: ProducerConfiguration{KeySerializer: "unknown codec"}},
+			element: Value, result: false},
 	}
 
 	for _, param := range params {

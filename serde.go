@@ -7,8 +7,11 @@ import (
 )
 
 type (
-	Serializer   func(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError)
-	Deserializer func(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError)
+	Serializer func(
+		configuration Configuration, topic string, data interface{},
+		element Element, schema string, version int) ([]byte, *Xk6KafkaError)
+	Deserializer func(configuration Configuration, topic string, data []byte,
+		element Element, schema string, version int) (interface{}, *Xk6KafkaError)
 )
 
 const (
@@ -23,7 +26,8 @@ func useSerializer(configuration Configuration, element Element) bool {
 		return false
 	}
 
-	if (element == Key && configuration.Producer.KeySerializer != "") || (element == Value && configuration.Producer.ValueSerializer != "") {
+	if (element == Key && configuration.Producer.KeySerializer != "") ||
+		(element == Value && configuration.Producer.ValueSerializer != "") {
 		return true
 	}
 
@@ -36,7 +40,8 @@ func useDeserializer(configuration Configuration, element Element) bool {
 		return false
 	}
 
-	if (element == Key && configuration.Consumer.KeyDeserializer != "") || (element == Value && configuration.Consumer.ValueDeserializer != "") {
+	if (element == Key && configuration.Consumer.KeyDeserializer != "") ||
+		(element == Value && configuration.Consumer.ValueDeserializer != "") {
 		return true
 	}
 
@@ -51,7 +56,8 @@ type SerdeType[T Serializer | Deserializer] struct {
 }
 
 // NewSerdes constructs a new SerdeType.
-func NewSerdes[T Serializer | Deserializer](function T, class string, schemaType srclient.SchemaType, wireFormatted bool) *SerdeType[T] {
+func NewSerdes[T Serializer | Deserializer](
+	function T, class string, schemaType srclient.SchemaType, wireFormatted bool) *SerdeType[T] {
 	return &SerdeType[T]{function, class, schemaType, wireFormatted}
 }
 
