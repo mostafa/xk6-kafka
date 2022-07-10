@@ -111,6 +111,7 @@ func DeserializeAvro(configuration Configuration, topic string, data []byte, ele
 		return nil, subjectNameError
 	}
 
+	// nolint: gocritic
 	if schema != "" {
 		// Schema is provided, so we need to create it and get the schema ID
 		schemaInfo, xk6KafkaError = CreateSchema(client, subject, schema, srclient.Avro)
