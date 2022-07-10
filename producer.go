@@ -308,6 +308,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 }
 
 // reportWriterStats reports the writer stats to the state
+// nolint: funlen
 func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 	state := k.vu.State()
 	if state == nil {
