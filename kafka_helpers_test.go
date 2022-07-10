@@ -23,6 +23,7 @@ type kafkaTest struct {
 }
 
 // GetTestModuleInstance returns a new instance of the Kafka module for testing.
+// nolint: golint
 func GetTestModuleInstance(t testing.TB) *kafkaTest {
 	rt := goja.New()
 	rt.SetFieldNameMapper(common.FieldNameMapper{})
