@@ -19,8 +19,12 @@ var (
 			KeyDeserializer:   AvroDeserializer,
 		},
 	}
-	avroSchemaForAvroTests string = `{"type":"record","name":"Schema","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
-	data                   string = `{"field":"value"}`
+	avroSchemaForAvroTests string = `{
+		"type":"record",
+		"name":"Schema",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
+	data string = `{"field":"value"}`
 )
 
 // TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages.
@@ -41,7 +45,8 @@ func TestSerializeDeserializeAvro(t *testing.T) {
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnSchemaError tests serialization and deserialization of Avro messages and fails on schema error.
+// TestSerializeDeserializeAvroFailsOnSchemaError tests serialization and
+// deserialization of Avro messages and fails on schema error.
 func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	jsonSchema = `{}`
 
@@ -62,7 +67,8 @@ func TestSerializeDeserializeAvroFailsOnSchemaError(t *testing.T) {
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnWireFormatError tests serialization and deserialization of Avro messages and fails on wire format error.
+// TestSerializeDeserializeAvroFailsOnWireFormatError tests serialization and
+// deserialization of Avro messages and fails on wire format error.
 func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	schema := `{}`
 
@@ -84,7 +90,8 @@ func TestSerializeDeserializeAvroFailsOnWireFormatError(t *testing.T) {
 	}
 }
 
-// TestSerializeDeserializeAvroFailsOnEncodeDecodeError tests serialization and deserialization of Avro messages and fails on encode/decode error.
+// TestSerializeDeserializeAvroFailsOnEncodeDecodeError tests serialization and
+// deserialization of Avro messages and fails on encode/decode error.
 func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 	data := `{"nonExistingField":"value"}`
 
@@ -116,7 +123,11 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 		},
 	}
 
-	schema := `{"type":"record","name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -129,7 +140,8 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
-// TestAvroSerializeTopicNameStrategyIsDefaultStrategy tests serialization of Avro messages with the default topic name strategy.
+// TestAvroSerializeTopicNameStrategyIsDefaultStrategy tests serialization of
+// Avro messages with the default topic name strategy.
 func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 	topic := "TestAvroSerializeTopicNameStrategyIsDefaultStrategy-topic"
 	config := Configuration{
@@ -141,7 +153,11 @@ func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 		},
 	}
 
-	schema := `{"type":"record","name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroSerializeTopicNameStrategyIsDefaultStrategy",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -154,7 +170,8 @@ func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
-// TestAvroSerializeTopicRecordNameStrategy tests serialization of Avro messages with the given topic record name strategy.
+// TestAvroSerializeTopicRecordNameStrategy tests serialization of Avro messages
+// with the given topic record name strategy.
 func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 	topic := "TestAvroSerializeTopicRecordNameStrategy-topic"
 	config := Configuration{
@@ -166,7 +183,11 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroSerializeTopicRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroSerializeTopicRecordNameStrategy",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -179,7 +200,8 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 	assert.NotNil(t, schemaResult)
 }
 
-// TestAvroSerializeRecordNameStrategy tests serialization of Avro messages with the given record name strategy.
+// TestAvroSerializeRecordNameStrategy tests serialization of Avro messages
+// with the given record name strategy.
 func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 	topic := "TestAvroSerializeRecordNameStrategy-topic"
 	config := Configuration{
@@ -191,7 +213,11 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroSerializeRecordNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroSerializeRecordNameStrategy",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -204,7 +230,8 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 	assert.NotNil(t, resultSchema)
 }
 
-// TestAvroDeserializeUsingMagicPrefix tests deserialization of Avro messages with the given magic prefix.
+// TestAvroDeserializeUsingMagicPrefix tests deserialization of Avro messages
+// with the given magic prefix.
 func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 	topic := "TestAvroDeserializeUsingMagicPrefix-topic"
 	config := Configuration{
@@ -219,7 +246,11 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroDeserializeUsingMagicPrefix","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroDeserializeUsingMagicPrefix",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -229,7 +260,8 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
-// TestAvroDeserializeUsingDefaultSubjectNameStrategy tests deserialization of Avro messages with the default topic name strategy.
+// TestAvroDeserializeUsingDefaultSubjectNameStrategy tests deserialization of
+// Avro messages with the default topic name strategy.
 func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 	topic := "TestAvroDeserializeUsingDefaultSubjectNameStrategy-topic"
 	config := Configuration{
@@ -243,7 +275,11 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroDeserializeUsingDefaultSubjectNameStrategy","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroDeserializeUsingDefaultSubjectNameStrategy",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -253,7 +289,8 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
-// TestAvroDeserializeUsingSubjectNameStrategyRecordName tests deserialization of Avro messages with the given topic record name strategy.
+// TestAvroDeserializeUsingSubjectNameStrategyRecordName tests deserialization of
+// Avro messages with the given topic record name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyRecordName-topic"
 	config := Configuration{
@@ -269,7 +306,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroDeserializeUsingSubjectNameStrategyRecordName",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -279,7 +320,8 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
-// TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName tests deserialization of Avro messages with the given topic record name strategy.
+// TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName tests deserialization of
+// Avro messages with the given topic record name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName-topic"
 	config := Configuration{
@@ -295,7 +337,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)
@@ -305,7 +351,8 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	assert.Nil(t, dErr)
 }
 
-// TestAvroDeserializeUsingSubjectNameStrategyTopicName tests deserialization of Avro messages with the given topic name strategy.
+// TestAvroDeserializeUsingSubjectNameStrategyTopicName tests deserialization of Avro
+// messages with the given topic name strategy.
 func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicName-topic"
 	config := Configuration{
@@ -321,7 +368,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 			URL: "http://localhost:8081",
 		},
 	}
-	schema := `{"type":"record","name":"TestAvroDeserializeUsingSubjectNameStrategyTopicName","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	schema := `{
+		"type":"record",
+		"name":"TestAvroDeserializeUsingSubjectNameStrategyTopicName",
+		"namespace":"io.confluent.kafka.avro",
+		"fields":[{"name":"field","type":"string"}]}`
 
 	serialized, err := SerializeAvro(config, topic, data, Value, schema, 0)
 	assert.Nil(t, err)

@@ -95,11 +95,13 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 		return m, err
 	}
 
-	if m.ReaderFetchSize, err = registry.NewMetric("kafka.reader.fetch.size", metrics.Counter); err != nil {
+	if m.ReaderFetchSize, err = registry.NewMetric(
+		"kafka.reader.fetch.size", metrics.Counter); err != nil {
 		return m, err
 	}
 
-	if m.ReaderFetchBytes, err = registry.NewMetric("kafka.reader.fetch.bytes", metrics.Counter, metrics.Data); err != nil {
+	if m.ReaderFetchBytes, err = registry.NewMetric(
+		"kafka.reader.fetch.bytes", metrics.Counter, metrics.Data); err != nil {
 		return m, err
 	}
 
@@ -159,35 +161,43 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 		return m, err
 	}
 
-	if m.WriterBatchSize, err = registry.NewMetric("kafka.writer.batch.size", metrics.Counter); err != nil {
+	if m.WriterBatchSize, err = registry.NewMetric(
+		"kafka.writer.batch.size", metrics.Counter); err != nil {
 		return m, err
 	}
 
-	if m.WriterBatchBytes, err = registry.NewMetric("kafka.writer.batch.bytes", metrics.Counter, metrics.Data); err != nil {
+	if m.WriterBatchBytes, err = registry.NewMetric(
+		"kafka.writer.batch.bytes", metrics.Counter, metrics.Data); err != nil {
 		return m, err
 	}
 
-	if m.WriterMaxAttempts, err = registry.NewMetric("kafka.writer.attempts.max", metrics.Gauge); err != nil {
+	if m.WriterMaxAttempts, err = registry.NewMetric(
+		"kafka.writer.attempts.max", metrics.Gauge); err != nil {
 		return m, err
 	}
 
-	if m.WriterMaxBatchSize, err = registry.NewMetric("kafka.writer.batch.max", metrics.Gauge); err != nil {
+	if m.WriterMaxBatchSize, err = registry.NewMetric(
+		"kafka.writer.batch.max", metrics.Gauge); err != nil {
 		return m, err
 	}
 
-	if m.WriterBatchTimeout, err = registry.NewMetric("kafka.writer.batch.timeout", metrics.Gauge, metrics.Time); err != nil {
+	if m.WriterBatchTimeout, err = registry.NewMetric(
+		"kafka.writer.batch.timeout", metrics.Gauge, metrics.Time); err != nil {
 		return m, err
 	}
 
-	if m.WriterReadTimeout, err = registry.NewMetric("kafka.writer.read.timeout", metrics.Gauge, metrics.Time); err != nil {
+	if m.WriterReadTimeout, err = registry.NewMetric(
+		"kafka.writer.read.timeout", metrics.Gauge, metrics.Time); err != nil {
 		return m, err
 	}
 
-	if m.WriterWriteTimeout, err = registry.NewMetric("kafka.writer.write.timeout", metrics.Gauge, metrics.Time); err != nil {
+	if m.WriterWriteTimeout, err = registry.NewMetric(
+		"kafka.writer.write.timeout", metrics.Gauge, metrics.Time); err != nil {
 		return m, err
 	}
 
-	if m.WriterRequiredAcks, err = registry.NewMetric("kafka.writer.acks.required", metrics.Gauge); err != nil {
+	if m.WriterRequiredAcks, err = registry.NewMetric(
+		"kafka.writer.acks.required", metrics.Gauge); err != nil {
 		return m, err
 	}
 

@@ -92,7 +92,9 @@ func TestGetDialerFails(t *testing.T) {
 	dialer, wrappedError := GetDialer(saslConfig, TLSConfig{})
 	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")
 	// This is a stringprep (RFC3454) error wrapped inside the Xk6KafkaError.
-	assert.Equal(t, wrappedError.Unwrap().Error(), "Error SASLprepping username 'https://www.exa\t\r\n': prohibited character (rune: '\\u0009')")
+	assert.Equal(t, wrappedError.Unwrap().Error(),
+		"Error SASLprepping username 'https://www.exa\t\r\n': "+
+			"prohibited character (rune: '\\u0009')")
 	assert.Nil(t, dialer)
 }
 
@@ -176,8 +178,9 @@ func TestTlsConfigFails(t *testing.T) {
 				ClientKeyPem:  "fixtures/invalid-client.pem",
 			},
 			err: &Xk6KafkaError{
-				Code:          failedLoadX509KeyPair,
-				Message:       "Error creating x509 key pair from client cert file \"fixtures/invalid-client.cer\" and client key file \"fixtures/invalid-client.pem\".",
+				Code: failedLoadX509KeyPair,
+				Message: "Error creating x509 key pair from \"fixtures/invalid-client.cer\" " +
+					"and \"fixtures/invalid-client.pem\".",
 				OriginalError: errors.New("tls: failed to find any PEM data in certificate input"),
 			},
 		},

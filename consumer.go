@@ -217,7 +217,8 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 			}
 		} else {
 			err := NewXk6KafkaError(
-				failedSetOffset, "Offset and groupID are mutually exclusive options, so offset is not set, yet returning the reader.", nil)
+				failedSetOffset, "Offset and groupID are mutually exclusive options, "+
+					"so offset is not set, yet returning the reader.", nil)
 			logger.WithField("error", err).Warn(err)
 			return reader
 		}

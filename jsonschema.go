@@ -18,7 +18,9 @@ const (
 // encode the data. The configuration is used to configure the Schema Registry client.
 // The element is used to define the subject. The data should be a string.
 // nolint: funlen
-func SerializeJSON(configuration Configuration, topic string, data interface{}, element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+func SerializeJSON(
+	configuration Configuration, topic string, data interface{},
+	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
 	bytesData := []byte(data.(string))
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
@@ -87,7 +89,9 @@ func SerializeJSON(configuration Configuration, topic string, data interface{}, 
 // uses the given schema to manually create the codec and decode the data. The
 // configuration is used to configure the Schema Registry client. The element is
 // used to define the subject. The data should be a byte array.
-func DeserializeJSON(configuration Configuration, topic string, data []byte, element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+func DeserializeJSON(
+	configuration Configuration, topic string, data []byte,
+	element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
 	_, bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,

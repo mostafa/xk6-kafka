@@ -20,7 +20,8 @@ func TestGetKafkaControllerConnection(t *testing.T) {
 	})
 }
 
-// TestGetKafkaControllerConnectionFails tests whether a connection can be established to a kafka broker and fails if the given broker is not reachable.
+// TestGetKafkaControllerConnectionFails tests whether a connection can be established
+// to a kafka broker and fails if the given broker is not reachable.
 func TestGetKafkaControllerConnectionFails(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
