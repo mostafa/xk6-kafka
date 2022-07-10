@@ -1,8 +1,9 @@
 package kafka
 
 import (
-	"github.com/riferrei/srclient"
 	"testing"
+
+	"github.com/riferrei/srclient"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,6 +20,7 @@ var (
 		},
 	}
 	avroSchema string = `{"type":"record","name":"Schema","namespace":"io.confluent.kafka.avro","fields":[{"name":"field","type":"string"}]}`
+	data       string = `{"field":"value"}`
 )
 
 // TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages
@@ -102,7 +104,6 @@ func TestSerializeDeserializeAvroFailsOnEncodeDecodeError(t *testing.T) {
 }
 
 func TestAvroSerializeTopicNameStrategy(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroSerializeTopicNameStrategy-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -128,7 +129,6 @@ func TestAvroSerializeTopicNameStrategy(t *testing.T) {
 }
 
 func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroSerializeTopicNameStrategyIsDefaultStrategy-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -153,7 +153,6 @@ func TestAvroSerializeTopicNameStrategyIsDefaultStrategy(t *testing.T) {
 }
 
 func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroSerializeTopicRecordNameStrategy-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -178,7 +177,6 @@ func TestAvroSerializeTopicRecordNameStrategy(t *testing.T) {
 }
 
 func TestAvroSerializeRecordNameStrategy(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroSerializeRecordNameStrategy-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -203,7 +201,6 @@ func TestAvroSerializeRecordNameStrategy(t *testing.T) {
 }
 
 func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroDeserializeUsingMagicPrefix-topic"
 	config := Configuration{
 		Consumer: ConsumerConfiguration{
@@ -228,7 +225,6 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 }
 
 func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroDeserializeUsingDefaultSubjectNameStrategy-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -252,7 +248,6 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 }
 
 func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyRecordName-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -278,7 +273,6 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 }
 
 func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
@@ -304,7 +298,6 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 }
 
 func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
-	data := `{"field":"value"}`
 	topic := "TestAvroDeserializeUsingSubjectNameStrategyTopicName-topic"
 	config := Configuration{
 		Producer: ProducerConfiguration{
