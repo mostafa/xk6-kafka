@@ -58,7 +58,7 @@ const valueSchema = JSON.stringify({
     },
 });
 
-var config = JSON.stringify({
+var config = {
     consumer: {
         keyDeserializer: JSON_SCHEMA_DESERIALIZER,
         valueDeserializer: JSON_SCHEMA_DESERIALIZER,
@@ -70,7 +70,7 @@ var config = JSON.stringify({
     schemaRegistry: {
         url: "http://localhost:8081",
     },
-});
+};
 
 export default function () {
     for (let index = 0; index < 100; index++) {

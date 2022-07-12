@@ -34,7 +34,7 @@ if (__VU == 0) {
     connection.createTopic({ topic: topic });
 }
 
-let config = JSON.stringify({
+let config = {
     consumer: {
         valueDeserializer: AVRO_DESERIALIZER,
         userMagicPrefix: true,
@@ -46,7 +46,7 @@ let config = JSON.stringify({
     schemaRegistry: {
         url: "http://localhost:8081",
     },
-});
+};
 
 export default function () {
     let message = {
