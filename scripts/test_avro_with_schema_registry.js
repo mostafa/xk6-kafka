@@ -54,7 +54,7 @@ const valueSchema = `{
   ]
 }`;
 
-var config = JSON.stringify({
+var config = {
     consumer: {
         keyDeserializer: AVRO_DESERIALIZER,
         valueDeserializer: AVRO_DESERIALIZER,
@@ -66,7 +66,7 @@ var config = JSON.stringify({
     schemaRegistry: {
         url: "http://localhost:8081",
     },
-});
+};
 
 export default function () {
     for (let index = 0; index < 100; index++) {

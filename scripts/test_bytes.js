@@ -36,7 +36,7 @@ if (__VU == 0) {
     connection.createTopic({ topic: topic });
 }
 
-var config = JSON.stringify({
+var config = {
     producer: {
         keySerializer: STRING_SERIALIZER,
         valueSerializer: BYTE_ARRAY_SERIALIZER,
@@ -45,7 +45,7 @@ var config = JSON.stringify({
         keyDeserializer: STRING_DESERIALIZER,
         valueDeserializer: BYTE_ARRAY_DESERIALIZER,
     },
-});
+};
 
 const payload = "byte array payload";
 
