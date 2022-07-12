@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -95,13 +96,15 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) > 0 {
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			if b, err := json.Marshal(params); err != nil {
+		common.Throw(rt, errors.New("new Writer() requires at least one argument"))
+	}
+
+	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if b, err := json.Marshal(params); err != nil {
+			common.Throw(rt, err)
+		} else {
+			if err = json.Unmarshal(b, &writerConfig); err != nil {
 				common.Throw(rt, err)
-			} else {
-				if err = json.Unmarshal(b, &writerConfig); err != nil {
-					common.Throw(rt, err)
-				}
 			}
 		}
 	}
@@ -117,15 +120,17 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) > 0 {
-			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-				b, err := json.Marshal(params)
-				if err != nil {
-					common.Throw(rt, err)
-				}
-				err = json.Unmarshal(b, &producerConfig)
-				if err != nil {
-					common.Throw(rt, err)
-				}
+			common.Throw(rt, errors.New("produce() requires at least one argument"))
+		}
+
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+			b, err := json.Marshal(params)
+			if err != nil {
+				common.Throw(rt, err)
+			}
+			err = json.Unmarshal(b, &producerConfig)
+			if err != nil {
+				common.Throw(rt, err)
 			}
 		}
 
