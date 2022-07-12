@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
 
@@ -72,14 +73,16 @@ type ConsumeConfig struct {
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var readerConfig *ReaderConfig
-	if len(call.Arguments) > 0 {
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			if b, err := json.Marshal(params); err != nil {
+	if len(call.Arguments) <= 0 {
+		common.Throw(rt, errors.New("new Reader() requires at least one argument"))
+	}
+
+	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if b, err := json.Marshal(params); err != nil {
+			common.Throw(rt, err)
+		} else {
+			if err = json.Unmarshal(b, &readerConfig); err != nil {
 				common.Throw(rt, err)
-			} else {
-				if err = json.Unmarshal(b, &readerConfig); err != nil {
-					common.Throw(rt, err)
-				}
 			}
 		}
 	}
@@ -94,14 +97,16 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
-		if len(call.Arguments) > 0 {
-			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-				if b, err := json.Marshal(params); err != nil {
+		if len(call.Arguments) <= 0 {
+			common.Throw(rt, errors.New("consume() requires at least one argument"))
+		}
+
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+			if b, err := json.Marshal(params); err != nil {
+				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &consumeConfig); err != nil {
 					common.Throw(rt, err)
-				} else {
-					if err = json.Unmarshal(b, &consumeConfig); err != nil {
-						common.Throw(rt, err)
-					}
 				}
 			}
 		}

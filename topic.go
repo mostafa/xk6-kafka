@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"encoding/json"
+	"errors"
 	"net"
 	"strconv"
 
@@ -23,14 +24,16 @@ type ConnectionConfig struct {
 func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
-	if len(call.Arguments) > 0 {
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-			if b, err := json.Marshal(params); err != nil {
+	if len(call.Arguments) <= 0 {
+		common.Throw(rt, errors.New("new Connection() requires at least one argument"))
+	}
+
+	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if b, err := json.Marshal(params); err != nil {
+			common.Throw(rt, err)
+		} else {
+			if err = json.Unmarshal(b, &connectionConfig); err != nil {
 				common.Throw(rt, err)
-			} else {
-				if err = json.Unmarshal(b, &connectionConfig); err != nil {
-					common.Throw(rt, err)
-				}
 			}
 		}
 	}
@@ -45,14 +48,16 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 
 	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
-		if len(call.Arguments) > 0 {
-			if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-				if b, err := json.Marshal(params); err != nil {
+		if len(call.Arguments) <= 0 {
+			common.Throw(rt, errors.New("createTopic() requires at least one argument"))
+		}
+
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+			if b, err := json.Marshal(params); err != nil {
+				common.Throw(rt, err)
+			} else {
+				if err = json.Unmarshal(b, &topicConfig); err != nil {
 					common.Throw(rt, err)
-				} else {
-					if err = json.Unmarshal(b, &topicConfig); err != nil {
-						common.Throw(rt, err)
-					}
 				}
 			}
 		}
