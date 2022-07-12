@@ -24,7 +24,7 @@ type ConnectionConfig struct {
 func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
-	if len(call.Arguments) > 0 {
+	if len(call.Arguments) <= 0 {
 		common.Throw(rt, errors.New("new Connection() requires at least one argument"))
 	}
 
@@ -48,7 +48,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 
 	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
-		if len(call.Arguments) > 0 {
+		if len(call.Arguments) <= 0 {
 			common.Throw(rt, errors.New("createTopic() requires at least one argument"))
 		}
 

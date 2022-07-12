@@ -95,7 +95,7 @@ type ProduceConfig struct {
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var writerConfig *WriterConfig
-	if len(call.Arguments) > 0 {
+	if len(call.Arguments) <= 0 {
 		common.Throw(rt, errors.New("new Writer() requires at least one argument"))
 	}
 
@@ -119,7 +119,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
-		if len(call.Arguments) > 0 {
+		if len(call.Arguments) <= 0 {
 			common.Throw(rt, errors.New("produce() requires at least one argument"))
 		}
 
