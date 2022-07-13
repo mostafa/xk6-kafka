@@ -28,10 +28,7 @@ var (
 
 	DefaultDeserializer = StringDeserializer
 
-	// Max wait time.
-	MaxWait = time.Millisecond * 200
-
-	// Rebalance timeout.
+	MaxWait          = time.Millisecond * 200
 	RebalanceTimeout = time.Second * 5
 )
 

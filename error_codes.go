@@ -74,7 +74,7 @@ var (
 		nil)
 
 	// ErrorNotEnoughArguments is used when a function is called with too few arguments.
-	ErrorNotEnoughArguments = errors.New("Not enough arguments. It requires at least one argument.")
+	ErrorNotEnoughArguments = errors.New("not enough arguments")
 
 	ErrorInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
 )
