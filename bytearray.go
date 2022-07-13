@@ -23,7 +23,7 @@ func SerializeByteArray(
 	case []interface{}:
 		arr := make([]byte, len(data))
 		for i, u := range data {
-			arr[i] = byte(u.(int64))
+			arr[i] = byte(u.(float64))
 		}
 		return arr, nil
 	default:

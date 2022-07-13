@@ -128,7 +128,7 @@ export interface Message {
     offset: number;
     highwaterMark: number;
     key: string;
-    value: string;
+    value: any;
     headers: Map<string, any>;
     time: Date;
 }

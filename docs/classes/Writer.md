@@ -45,13 +45,13 @@ writer.close();
 
 #### Parameters
 
-| Name           | Type                                            | Description           |
-| :------------- | :---------------------------------------------- | :-------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `writerConfig` | [`WriterConfig`](../interfaces/WriterConfig.md) | Writer configuration. |
 
 #### Defined in
 
-[index.d.ts:282](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L282)
+[index.d.ts:282](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L282)
 
 ## Methods
 
@@ -71,7 +71,7 @@ writer.close();
 
 #### Defined in
 
-[index.d.ts:295](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L295)
+[index.d.ts:295](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L295)
 
 ___
 
@@ -84,8 +84,8 @@ Write messages to Kafka.
 
 #### Parameters
 
-| Name            | Type                                              | Description            |
-| :-------------- | :------------------------------------------------ | :--------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `produceConfig` | [`ProduceConfig`](../interfaces/ProduceConfig.md) | Produce configuration. |
 
 #### Returns
@@ -96,4 +96,4 @@ Write messages to Kafka.
 
 #### Defined in
 
-[index.d.ts:289](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L289)
+[index.d.ts:289](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L289)
