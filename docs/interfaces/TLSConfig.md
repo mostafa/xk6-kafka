@@ -6,8 +6,8 @@
 
 - [clientCertPem](TLSConfig.md#clientcertpem)
 - [clientKeyPem](TLSConfig.md#clientkeypem)
-- [enableTLS](TLSConfig.md#enabletls)
-- [insecureSkipVerify](TLSConfig.md#insecureskipverify)
+- [enableTls](TLSConfig.md#enabletls)
+- [insecureSkipTlsVerify](TLSConfig.md#insecureskiptlsverify)
 - [minVersion](TLSConfig.md#minversion)
 - [serverCertPem](TLSConfig.md#servercertpem)
 
@@ -33,9 +33,9 @@ ___
 
 ___
 
-### enableTLS
+### enableTls
 
-• **enableTLS**: `boolean`
+• **enableTls**: `boolean`
 
 #### Defined in
 
@@ -43,9 +43,9 @@ ___
 
 ___
 
-### insecureSkipVerify
+### insecureSkipTlsVerify
 
-• **insecureSkipVerify**: `boolean`
+• **insecureSkipTlsVerify**: `boolean`
 
 #### Defined in
 

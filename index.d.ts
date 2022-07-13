@@ -92,8 +92,8 @@ export interface SASLConfig {
 
 /* TLS configurations for creating a secure communication channel with Kafka. */
 export interface TLSConfig {
-    enableTLS: boolean;
-    insecureSkipVerify: boolean;
+    enableTls: boolean;
+    insecureSkipTlsVerify: boolean;
     minVersion: TLS_VERSIONS;
     clientCertPem: string;
     clientKeyPem: string;

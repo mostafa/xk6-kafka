@@ -33,8 +33,8 @@ type SASLConfig struct {
 }
 
 type TLSConfig struct {
-	EnableTLS             bool   `json:"enableTLS"`
-	InsecureSkipTLSVerify bool   `json:"insecureSkipTLSVerify"`
+	EnableTLS             bool   `json:"enableTls"`
+	InsecureSkipTLSVerify bool   `json:"insecureSkipTlsVerify"`
 	MinVersion            string `json:"minVersion"`
 	ClientCertPem         string `json:"clientCertPem"`
 	ClientKeyPem          string `json:"clientKeyPem"`
