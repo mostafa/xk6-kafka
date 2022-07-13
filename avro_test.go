@@ -256,7 +256,11 @@ func TestAvroDeserializeUsingMagicPrefix(t *testing.T) {
 	assert.Nil(t, err)
 
 	dData, dErr := DeserializeAvro(config, topic, serialized, Value, "", 0)
-	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	if dData, ok := dData.(map[string]interface{}); ok {
+		assert.Equal(t, "value", dData["field"])
+	} else {
+		assert.Fail(t, "Deserialized data is not a map")
+	}
 	assert.Nil(t, dErr)
 }
 
@@ -285,7 +289,11 @@ func TestAvroDeserializeUsingDefaultSubjectNameStrategy(t *testing.T) {
 	assert.Nil(t, err)
 
 	dData, dErr := DeserializeAvro(config, topic, serialized, Value, "", 0)
-	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	if dData, ok := dData.(map[string]interface{}); ok {
+		assert.Equal(t, "value", dData["field"])
+	} else {
+		assert.Fail(t, "Deserialized data is not a map")
+	}
 	assert.Nil(t, dErr)
 }
 
@@ -316,7 +324,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyRecordName(t *testing.T) {
 	assert.Nil(t, err)
 
 	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
-	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	if dData, ok := dData.(map[string]interface{}); ok {
+		assert.Equal(t, "value", dData["field"])
+	} else {
+		assert.Fail(t, "Deserialized data is not a map")
+	}
 	assert.Nil(t, dErr)
 }
 
@@ -347,7 +359,11 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicRecordName(t *testing.T) {
 	assert.Nil(t, err)
 
 	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
-	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	if dData, ok := dData.(map[string]interface{}); ok {
+		assert.Equal(t, "value", dData["field"])
+	} else {
+		assert.Fail(t, "Deserialized data is not a map")
+	}
 	assert.Nil(t, dErr)
 }
 
@@ -378,6 +394,10 @@ func TestAvroDeserializeUsingSubjectNameStrategyTopicName(t *testing.T) {
 	assert.Nil(t, err)
 
 	dData, dErr := DeserializeAvro(config, topic, serialized, Value, schema, 0)
-	assert.Equal(t, "value", dData.(map[string]interface{})["field"])
+	if dData, ok := dData.(map[string]interface{}); ok {
+		assert.Equal(t, "value", dData["field"])
+	} else {
+		assert.Fail(t, "Deserialized data is not a map")
+	}
 	assert.Nil(t, dErr)
 }

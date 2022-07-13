@@ -70,12 +70,14 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = connectionObject.Set("deleteTopic", func(call goja.FunctionCall) goja.Value {
-		var topic string
 		if len(call.Arguments) > 0 {
-			topic = call.Argument(0).Export().(string)
+			if topic, ok := call.Argument(0).Export().(string); !ok {
+				common.Throw(rt, errors.New("deleteTopic() requires a string argument"))
+			} else {
+				k.DeleteTopic(connection, topic)
+			}
 		}
 
-		k.DeleteTopic(connection, topic)
 		return goja.Undefined()
 	})
 	if err != nil {
