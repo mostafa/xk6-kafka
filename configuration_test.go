@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var configuration Configuration = Configuration{
+var configuration = Configuration{
 	Consumer: ConsumerConfiguration{
 		KeyDeserializer:   StringDeserializer,
 		ValueDeserializer: StringDeserializer,

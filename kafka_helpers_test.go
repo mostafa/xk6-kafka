@@ -24,7 +24,7 @@ type kafkaTest struct {
 }
 
 // GetTestModuleInstance returns a new instance of the Kafka module for testing.
-// nolint: golint
+// nolint: golint,revive
 func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Helper()
 	runtime := goja.New()

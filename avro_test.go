@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	avroConfig Configuration = Configuration{
+	avroConfig = Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer: AvroSerializer,
 			KeySerializer:   AvroSerializer,
@@ -18,12 +18,12 @@ var (
 			KeyDeserializer:   AvroDeserializer,
 		},
 	}
-	avroSchemaForAvroTests string = `{
+	avroSchemaForAvroTests = `{
 		"type":"record",
 		"name":"Schema",
 		"namespace":"io.confluent.kafka.avro",
 		"fields":[{"name":"field","type":"string"}]}`
-	data string = `{"field":"value"}`
+	data = `{"field":"value"}`
 )
 
 // TestSerializeDeserializeAvro tests serialization and deserialization of Avro messages.

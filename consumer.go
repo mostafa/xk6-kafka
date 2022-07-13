@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
 
@@ -76,7 +77,7 @@ type ConsumeConfig struct {
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
-	if len(call.Arguments) <= 0 {
+	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
@@ -100,7 +101,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
-		if len(call.Arguments) <= 0 {
+		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
@@ -278,7 +279,7 @@ func (k *Kafka) consume(
 	for i := int64(0); i < consumeConfig.Limit; i++ {
 		msg, err := reader.ReadMessage(ctx)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			k.reportReaderStats(reader.Stats())
 
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)

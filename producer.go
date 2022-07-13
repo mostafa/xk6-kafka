@@ -96,7 +96,7 @@ type ProduceConfig struct {
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
-	if len(call.Arguments) <= 0 {
+	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
@@ -120,7 +120,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
-		if len(call.Arguments) <= 0 {
+		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
