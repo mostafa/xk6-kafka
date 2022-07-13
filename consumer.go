@@ -27,6 +27,12 @@ var (
 	IsolationLevels map[string]kafkago.IsolationLevel
 
 	DefaultDeserializer = StringDeserializer
+
+	// Max wait time.
+	MaxWait = time.Millisecond * 200
+
+	// Rebalance timeout.
+	RebalanceTimeout = time.Second * 5
 )
 
 type ReaderConfig struct {
@@ -149,11 +155,11 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	}
 
 	if readerConfig.MaxWait == 0 {
-		readerConfig.MaxWait = time.Millisecond * 200
+		readerConfig.MaxWait = MaxWait
 	}
 
 	if readerConfig.RebalanceTimeout == 0 {
-		readerConfig.RebalanceTimeout = time.Second * 5
+		readerConfig.RebalanceTimeout = RebalanceTimeout
 	}
 
 	if readerConfig.QueueCapacity == 0 {
