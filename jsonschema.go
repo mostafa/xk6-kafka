@@ -95,6 +95,7 @@ func SerializeJSON(
 // uses the given schema to manually create the codec and decode the data. The
 // configuration is used to configure the Schema Registry client. The element is
 // used to define the subject. The data should be a byte array.
+// nolint: funlen
 func DeserializeJSON(
 	configuration Configuration, topic string, data []byte,
 	element Element, schema string, version int,

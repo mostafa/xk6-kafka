@@ -36,6 +36,7 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 }
 
 // TestConsume tests the consume function.
+// nolint: funlen
 func TestConsume(t *testing.T) {
 	test, writer := initializeConsumerTest(t)
 	defer writer.Close()

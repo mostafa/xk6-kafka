@@ -92,6 +92,7 @@ type ProduceConfig struct {
 
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
+// nolint: funlen
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
