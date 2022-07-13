@@ -24,9 +24,7 @@ jobs:
           go-version: '1.18'
 
       - name: Lint code issues 🚨
-        run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          golangci-lint run
+        uses: golangci/golangci-lint-action@v3
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
