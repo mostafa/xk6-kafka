@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"time"
 
@@ -74,7 +73,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, errors.New("new Reader() requires at least one argument"))
+		common.Throw(rt, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -98,7 +97,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, errors.New("consume() requires at least one argument"))
+			common.Throw(rt, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {

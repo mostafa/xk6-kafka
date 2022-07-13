@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"fmt"
-
 	"github.com/riferrei/srclient"
 )
 
@@ -21,10 +19,7 @@ func SerializeString(
 	case string:
 		return []byte(data), nil
 	default:
-		return nil, NewXk6KafkaError(
-			invalidDataType,
-			"Invalid data type provided for string serializer (requires string)",
-			fmt.Errorf("Expected: string, got: %T", data))
+		return nil, ErrorInvalidDataType
 	}
 }
 

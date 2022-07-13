@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"encoding/json"
-	"errors"
 	"net"
 	"strconv"
 
@@ -25,7 +24,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, errors.New("new Connection() requires at least one argument"))
+		common.Throw(rt, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -49,7 +48,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, errors.New("createTopic() requires at least one argument"))
+			common.Throw(rt, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -72,7 +71,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	err = connectionObject.Set("deleteTopic", func(call goja.FunctionCall) goja.Value {
 		if len(call.Arguments) > 0 {
 			if topic, ok := call.Argument(0).Export().(string); !ok {
-				common.Throw(rt, errors.New("deleteTopic() requires a string argument"))
+				common.Throw(rt, ErrorNotEnoughArguments)
 			} else {
 				k.DeleteTopic(connection, topic)
 			}

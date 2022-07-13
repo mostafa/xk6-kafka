@@ -1,6 +1,9 @@
 package kafka
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type errCode uint32
 
@@ -57,11 +60,24 @@ const (
 	failedReadPartitions errCode = 7003
 )
 
-// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context.
-var ErrorForbiddenInInitContext = NewXk6KafkaError(
-	kafkaForbiddenInInitContext,
-	"Producing Kafka messages in the init context is not supported",
-	nil)
+var (
+	// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context.
+	ErrorForbiddenInInitContext = NewXk6KafkaError(
+		kafkaForbiddenInInitContext,
+		"Producing Kafka messages in the init context is not supported",
+		nil)
+
+	// ErrorInvalidDataType is used when a data type is not supported.
+	ErrorInvalidDataType = NewXk6KafkaError(
+		invalidDataType,
+		"Invalid data type provided for serializer/deserializer",
+		nil)
+
+	// ErrorNotEnoughArguments is used when a function is called with too few arguments.
+	ErrorNotEnoughArguments = errors.New("Not enough arguments. It requires at least one argument.")
+
+	ErrorInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
+)
 
 type Xk6KafkaError struct {
 	Code          errCode
