@@ -209,8 +209,8 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	return writer
 }
 
-// GetSerializer returns the serializer for the given schema.
-func (k *Kafka) GetSerializer(schema string) Serializer {
+// getSerializer returns the serializer for the given schema.
+func (k *Kafka) getSerializer(schema string) Serializer {
 	if ser, ok := k.serializerRegistry.Registry[schema]; ok {
 		return ser.GetSerializer()
 	}
@@ -239,8 +239,8 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keySerializer := k.GetSerializer(produceConfig.Config.Producer.KeySerializer)
-	valueSerializer := k.GetSerializer(produceConfig.Config.Producer.ValueSerializer)
+	keySerializer := k.getSerializer(produceConfig.Config.Producer.KeySerializer)
+	valueSerializer := k.getSerializer(produceConfig.Config.Producer.ValueSerializer)
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
 	for index, message := range produceConfig.Messages {

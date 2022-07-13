@@ -92,10 +92,10 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		// Create a topic before producing messages, otherwise tests will fail.
 		assert.NotPanics(t, func() {
-			connection := test.module.GetKafkaControllerConnection(&ConnectionConfig{
+			connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
 				Address: "localhost:9092",
 			})
-			test.module.CreateTopic(connection, &kafkago.TopicConfig{
+			test.module.createTopic(connection, &kafkago.TopicConfig{
 				Topic:             "test-topic",
 				NumPartitions:     1,
 				ReplicationFactor: 1,
