@@ -188,7 +188,7 @@ func TestTlsConfigFails(t *testing.T) {
 				Code: failedLoadX509KeyPair,
 				Message: "Error creating x509 key pair from \"fixtures/invalid-client.cer\" " +
 					"and \"fixtures/invalid-client.pem\".",
-				OriginalError: ErrorInvalidPEMData,
+				OriginalError: ErrInvalidPEMData,
 			},
 		},
 		{

@@ -30,7 +30,7 @@ func SerializeByteArray(
 		}
 		return arr, nil
 	default:
-		return nil, ErrorInvalidDataType
+		return nil, ErrInvalidDataType
 	}
 }
 

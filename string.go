@@ -20,7 +20,7 @@ func SerializeString(
 	case string:
 		return []byte(data), nil
 	default:
-		return nil, ErrorInvalidDataType
+		return nil, ErrInvalidDataType
 	}
 }
 

@@ -61,22 +61,22 @@ const (
 )
 
 var (
-	// ErrorForbiddenInInitContext is used when a Kafka producer was used in the init context.
-	ErrorForbiddenInInitContext = NewXk6KafkaError(
+	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
+	ErrForbiddenInInitContext = NewXk6KafkaError(
 		kafkaForbiddenInInitContext,
 		"Producing Kafka messages in the init context is not supported",
 		nil)
 
-	// ErrorInvalidDataType is used when a data type is not supported.
-	ErrorInvalidDataType = NewXk6KafkaError(
+	// ErrInvalidDataType is used when a data type is not supported.
+	ErrInvalidDataType = NewXk6KafkaError(
 		invalidDataType,
 		"Invalid data type provided for serializer/deserializer",
 		nil)
 
-	// ErrorNotEnoughArguments is used when a function is called with too few arguments.
-	ErrorNotEnoughArguments = errors.New("not enough arguments")
+	// ErrNotEnoughArguments is used when a function is called with too few arguments.
+	ErrNotEnoughArguments = errors.New("not enough arguments")
 
-	ErrorInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
+	ErrInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
 )
 
 type Xk6KafkaError struct {
