@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/dop251/goja"
@@ -57,7 +58,7 @@ func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 func (k *kafkaTest) moveToVUCode() error {
 	rootGroup, err := lib.NewGroup("", nil)
 	if err != nil {
-		return err
+		return errors.Unwrap(err)
 	}
 	samples := make(chan metrics.SampleContainer, 1000)
 	// Save it, so we can reuse it in other tests
