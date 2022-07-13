@@ -1,0 +1,16 @@
+linters:
+  enable-all: true
+  disable:
+    - cyclop
+    - wsl
+    - godox
+    - gochecknoglobals
+    - ireturn
+    - nlreturn
+    - testpackage
+    - paralleltest
+    - exhaustivestruct
+    - exhaustruct
+    - gocognit
+    - gochecknoinits
+    - gocyclo
