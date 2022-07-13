@@ -96,7 +96,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	rt := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, errors.New("new Writer() requires at least one argument"))
+		common.Throw(rt, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -120,7 +120,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, errors.New("produce() requires at least one argument"))
+			common.Throw(rt, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -297,7 +297,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	k.reportWriterStats(writer.Stats())
 
 	if originalErr != nil {
-		if originalErr == k.vu.Context().Err() {
+		if errors.Is(originalErr, k.vu.Context().Err()) {
 			logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
 			common.Throw(k.vu.Runtime(),
 				NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr))

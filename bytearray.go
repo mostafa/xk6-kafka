@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"fmt"
-
 	"github.com/riferrei/srclient"
 )
 
@@ -31,10 +29,7 @@ func SerializeByteArray(
 		}
 		return arr, nil
 	default:
-		return nil, NewXk6KafkaError(
-			invalidDataType,
-			"Invalid data type provided for byte array serializer (requires []byte)",
-			fmt.Errorf("Expected: []byte, got: %T", data))
+		return nil, ErrorInvalidDataType
 	}
 }
 
