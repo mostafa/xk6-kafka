@@ -92,11 +92,12 @@ type ProduceConfig struct {
 
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
+// nolint: funlen
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(runtime, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -120,7 +121,7 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(runtime, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -220,8 +221,8 @@ func (k *Kafka) GetSerializer(schema string) Serializer {
 // nolint: funlen
 func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	if state := k.vu.State(); state == nil {
-		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
 
 	var ctx context.Context
@@ -317,8 +318,8 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 	state := k.vu.State()
 	if state == nil {
-		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
 
 	ctx := k.vu.Context()

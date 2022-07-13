@@ -24,7 +24,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(runtime, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -48,7 +48,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(runtime, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -71,7 +71,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	err = connectionObject.Set("deleteTopic", func(call goja.FunctionCall) goja.Value {
 		if len(call.Arguments) > 0 {
 			if topic, ok := call.Argument(0).Export().(string); !ok {
-				common.Throw(runtime, ErrorNotEnoughArguments)
+				common.Throw(runtime, ErrNotEnoughArguments)
 			} else {
 				k.DeleteTopic(connection, topic)
 			}

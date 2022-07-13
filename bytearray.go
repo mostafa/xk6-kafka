@@ -16,7 +16,8 @@ const (
 // schema and version are just used to conform with the interface.
 func SerializeByteArray(
 	configuration Configuration, topic string, data interface{},
-	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+	element Element, schema string, version int,
+) ([]byte, *Xk6KafkaError) {
 	switch data := data.(type) {
 	case []interface{}:
 		arr := make([]byte, len(data))
@@ -29,7 +30,7 @@ func SerializeByteArray(
 		}
 		return arr, nil
 	default:
-		return nil, ErrorInvalidDataType
+		return nil, ErrInvalidDataType
 	}
 }
 
@@ -38,6 +39,7 @@ func SerializeByteArray(
 // are just used to conform with the interface.
 func DeserializeByteArray(
 	configuration Configuration, topic string, data []byte,
-	element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+	element Element, schema string, version int,
+) (interface{}, *Xk6KafkaError) {
 	return data, nil
 }

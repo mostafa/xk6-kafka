@@ -28,10 +28,7 @@ var (
 
 	DefaultDeserializer = StringDeserializer
 
-	// Max wait time.
-	MaxWait = time.Millisecond * 200
-
-	// Rebalance timeout.
+	MaxWait          = time.Millisecond * 200
 	RebalanceTimeout = time.Second * 5
 )
 
@@ -75,11 +72,12 @@ type ConsumeConfig struct {
 
 // XReader is a wrapper around kafkago.Reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
+// nolint: funlen
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(runtime, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -103,7 +101,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(runtime, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
@@ -251,8 +249,8 @@ func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig,
 ) []map[string]interface{} {
 	if state := k.vu.State(); state == nil {
-		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
 
 	var ctx context.Context
@@ -347,8 +345,8 @@ func (k *Kafka) consume(
 func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 	state := k.vu.State()
 	if state == nil {
-		logger.WithField("error", ErrorForbiddenInInitContext).Error(ErrorForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrorForbiddenInInitContext)
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
 
 	ctx := k.vu.Context()

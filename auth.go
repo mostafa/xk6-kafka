@@ -114,6 +114,7 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 }
 
 // GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors.
+// nolint: funlen
 func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	tlsObject := newTLSObject(tlsConfig)
 
