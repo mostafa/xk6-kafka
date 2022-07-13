@@ -41,9 +41,9 @@ const saslConfig = {
 // TLS config is optional
 const tlsConfig = {
     // Enable/disable TLS (default: false)
-    enableTLS: false,
+    enableTls: false,
     // Skip TLS verification if the certificate is invalid or self-signed (default: false)
-    insecureSkipTLSVerify: false,
+    insecureSkipTlsVerify: false,
     // Possible values:
     // TLS_1_0
     // TLS_1_1

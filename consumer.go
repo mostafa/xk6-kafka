@@ -43,7 +43,7 @@ type ReaderConfig struct {
 	MinBytes               int           `json:"minBytes"`
 	MaxBytes               int           `json:"maxBytes"`
 	MaxAttempts            int           `json:"maxAttempts"`
-	GroupID                string        `json:"groupID"`
+	GroupID                string        `json:"groupId"`
 	Topic                  string        `json:"topic"`
 	IsolationLevel         string        `json:"isolationLevel"`
 	StartOffset            int64         `json:"startOffset"`
