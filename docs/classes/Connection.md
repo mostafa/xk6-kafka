@@ -44,7 +44,7 @@ connection.close();
 
 #### Defined in
 
-[index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L365)
+[index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L365)
 
 ## Methods
 
@@ -64,7 +64,7 @@ connection.close();
 
 #### Defined in
 
-[index.d.ts:391](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L391)
+[index.d.ts:391](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L391)
 
 ___
 
@@ -89,7 +89,7 @@ Create a new topic.
 
 #### Defined in
 
-[index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L372)
+[index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L372)
 
 ___
 
@@ -114,7 +114,7 @@ Delete a topic.
 
 #### Defined in
 
-[index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L379)
+[index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L379)
 
 ___
 
@@ -133,4 +133,4 @@ List topics.
 
 #### Defined in
 
-[index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L385)
+[index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L385)

@@ -19,7 +19,7 @@ Compression codecs for compressing messages when producing to a topic or reading
 
 #### Defined in
 
-[index.d.ts:16](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L16)
+[index.d.ts:16](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L16)
 
 ___
 
@@ -29,7 +29,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:18](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L18)
+[index.d.ts:18](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L18)
 
 ___
 
@@ -39,7 +39,7 @@ ___
 
 #### Defined in
 
-[index.d.ts:17](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L17)
+[index.d.ts:17](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L17)
 
 ___
 
@@ -49,4 +49,4 @@ ___
 
 #### Defined in
 
-[index.d.ts:19](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L19)
+[index.d.ts:19](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L19)

@@ -43,7 +43,7 @@ reader.close();
 
 #### Defined in
 
-[index.d.ts:324](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L324)
+[index.d.ts:324](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L324)
 
 ## Methods
 
@@ -63,7 +63,7 @@ reader.close();
 
 #### Defined in
 
-[index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L337)
+[index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L337)
 
 ___
 
@@ -88,4 +88,4 @@ Read messages from Kafka.
 
 #### Defined in
 
-[index.d.ts:331](https://github.com/mostafa/xk6-kafka/blob/1eb698c/index.d.ts#L331)
+[index.d.ts:331](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts#L331)
