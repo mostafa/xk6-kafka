@@ -90,10 +90,10 @@ type ProduceConfig struct {
 	ValueSchema string        `json:"valueSchema"`
 }
 
-// XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
+// writerClass is a wrapper around kafkago.writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 // nolint: funlen
-func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) writerClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) == 0 {

@@ -117,11 +117,11 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 
 	// Export the functions from the Kafka module to the JS code.
 	// The Writer is a constructor and must be called with new, e.g. new Writer(...).
-	mustExport("Writer", moduleInstance.XWriter)
+	mustExport("Writer", moduleInstance.writerClass)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...).
-	mustExport("Reader", moduleInstance.XReader)
+	mustExport("Reader", moduleInstance.readerClass)
 	// The Connection is a constructor and must be called with new, e.g. new Connection(...).
-	mustExport("Connection", moduleInstance.XConnection)
+	mustExport("Connection", moduleInstance.connectionClass)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.
 	virtualUser.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))

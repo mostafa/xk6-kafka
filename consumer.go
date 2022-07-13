@@ -71,10 +71,10 @@ type ConsumeConfig struct {
 	ValueSchema string        `json:"valueSchema"`
 }
 
-// XReader is a wrapper around kafkago.Reader and acts as a JS constructor
+// readerClass is a wrapper around kafkago.reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 // nolint: funlen
-func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) == 0 {

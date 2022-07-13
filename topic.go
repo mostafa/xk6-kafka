@@ -16,11 +16,11 @@ type ConnectionConfig struct {
 	TLS     TLSConfig  `json:"tls"`
 }
 
-// XConnection is a constructor for the Connection object in JS
+// connectionClass is a constructor for the Connection object in JS
 // that creates a new connection for creating, listing and deleting topics,
 // e.g. new Connection(...).
 // nolint: funlen
-func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) == 0 {
