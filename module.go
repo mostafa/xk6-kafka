@@ -87,22 +87,22 @@ func New() *RootModule {
 }
 
 // NewModuleInstance creates a new instance of the Kafka module.
-func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
-	rt := vu.Runtime()
+func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
+	runtime := virtualUser.Runtime()
 
-	m, err := registerMetrics(vu)
+	metrics, err := registerMetrics(virtualUser)
 	if err != nil {
-		common.Throw(vu.Runtime(), err)
+		common.Throw(virtualUser.Runtime(), err)
 	}
 
 	// Create a new Kafka module.
 	moduleInstance := &Module{
 		Kafka: &Kafka{
-			vu:                   vu,
-			metrics:              m,
+			vu:                   virtualUser,
+			metrics:              metrics,
 			serializerRegistry:   NewSerializersRegistry(),
 			deserializerRegistry: NewDeserializersRegistry(),
-			exports:              rt.NewObject(),
+			exports:              runtime.NewObject(),
 		},
 	}
 
@@ -111,7 +111,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 
 	mustExport := func(name string, value interface{}) {
 		if err := moduleInstance.exports.Set(name, value); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		}
 	}
 
@@ -124,7 +124,7 @@ func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
 	mustExport("Connection", moduleInstance.XConnection)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.
-	vu.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
+	virtualUser.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
 
 	return moduleInstance
 }
@@ -140,13 +140,13 @@ func (m *Module) Exports() modules.Exports {
 // defineConstants defines the constants that can be used in the JS code.
 // nolint: funlen
 func (m *Module) defineConstants() {
-	rt := m.vu.Runtime()
+	runtime := m.vu.Runtime()
 	mustAddProp := func(name, val string) {
 		err := m.exports.DefineDataProperty(
-			name, rt.ToValue(val), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE,
+			name, runtime.ToValue(val), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE,
 		)
 		if err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		}
 	}
 

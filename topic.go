@@ -21,42 +21,42 @@ type ConnectionConfig struct {
 // e.g. new Connection(...).
 // nolint: funlen
 func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
-	rt := k.vu.Runtime()
+	runtime := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 		if b, err := json.Marshal(params); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		} else {
 			if err = json.Unmarshal(b, &connectionConfig); err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			}
 		}
 	}
 
 	connection := k.GetKafkaControllerConnection(connectionConfig)
 
-	connectionObject := rt.NewObject()
+	connectionObject := runtime.NewObject()
 	// This is the connection object itself
 	if err := connectionObject.Set("This", connection); err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
 		var topicConfig *kafkago.TopicConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			if b, err := json.Marshal(params); err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			} else {
 				if err = json.Unmarshal(b, &topicConfig); err != nil {
-					common.Throw(rt, err)
+					common.Throw(runtime, err)
 				}
 			}
 		}
@@ -65,13 +65,13 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err = connectionObject.Set("deleteTopic", func(call goja.FunctionCall) goja.Value {
 		if len(call.Arguments) > 0 {
 			if topic, ok := call.Argument(0).Export().(string); !ok {
-				common.Throw(rt, ErrorNotEnoughArguments)
+				common.Throw(runtime, ErrorNotEnoughArguments)
 			} else {
 				k.DeleteTopic(connection, topic)
 			}
@@ -80,26 +80,26 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err = connectionObject.Set("listTopics", func(call goja.FunctionCall) goja.Value {
 		topics := k.ListTopics(connection)
-		return rt.ToValue(topics)
+		return runtime.ToValue(topics)
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err = connectionObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		if err := connection.Close(); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		}
 
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	return connectionObject

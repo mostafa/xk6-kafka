@@ -26,28 +26,28 @@ type kafkaTest struct {
 // nolint: golint
 func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Helper()
-	rt := goja.New()
-	rt.SetFieldNameMapper(common.FieldNameMapper{})
+	runtime := goja.New()
+	runtime.SetFieldNameMapper(common.FieldNameMapper{})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	tb.Cleanup(cancel)
 
 	root := New()
 	mockVU := &modulestest.VU{
-		RuntimeField: rt,
+		RuntimeField: runtime,
 		InitEnvField: &common.InitEnvironment{
 			Registry: metrics.NewRegistry(),
 		},
 		CtxField: ctx,
 	}
-	mi, ok := root.NewModuleInstance(mockVU).(*Module)
+	moduleInstance, ok := root.NewModuleInstance(mockVU).(*Module)
 	require.True(tb, ok)
 
-	require.NoError(tb, rt.Set("kafka", mi.Exports().Default))
+	require.NoError(tb, runtime.Set("kafka", moduleInstance.Exports().Default))
 
 	return &kafkaTest{
-		rt:            rt,
-		module:        mi,
+		rt:            runtime,
+		module:        moduleInstance,
 		vu:            mockVU,
 		cancelContext: cancel,
 	}

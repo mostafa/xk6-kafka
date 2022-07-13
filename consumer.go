@@ -76,67 +76,67 @@ type ConsumeConfig struct {
 // XReader is a wrapper around kafkago.Reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
-	rt := k.vu.Runtime()
+	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 		if b, err := json.Marshal(params); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		} else {
 			if err = json.Unmarshal(b, &readerConfig); err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			}
 		}
 	}
 
 	reader := k.reader(readerConfig)
 
-	readerObject := rt.NewObject()
+	readerObject := runtime.NewObject()
 	// This is the reader object itself
 	if err := readerObject.Set("This", reader); err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			if b, err := json.Marshal(params); err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			} else {
 				if err = json.Unmarshal(b, &consumeConfig); err != nil {
-					common.Throw(rt, err)
+					common.Throw(runtime, err)
 				}
 			}
 		}
 
-		return rt.ToValue(k.consume(reader, consumeConfig))
+		return runtime.ToValue(k.consume(reader, consumeConfig))
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	// This is unnecessary, but it's here for reference purposes
 	err = readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		if err := reader.Close(); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		}
 
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	freeze(readerObject)
 
-	return rt.ToValue(readerObject).ToObject(rt)
+	return runtime.ToValue(readerObject).ToObject(runtime)
 }
 
 // reader creates a Kafka reader with the given configuration
