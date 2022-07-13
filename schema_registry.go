@@ -12,8 +12,10 @@ import (
 type Element string
 
 const (
-	Key   Element = "key"
-	Value Element = "value"
+	Key                Element = "key"
+	Value              Element = "value"
+	MagicPrefixSize    int     = 5
+	ConcurrentRequests int     = 16
 )
 
 type BasicAuth struct {
@@ -38,7 +40,7 @@ const (
 // or JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func DecodeWireFormat(message []byte) (int, []byte, *Xk6KafkaError) {
-	if len(message) < 5 {
+	if len(message) < MagicPrefixSize {
 		return 0, nil, NewXk6KafkaError(messageTooShort,
 			"Invalid message: message too short to contain schema id.", nil)
 	}
@@ -46,15 +48,15 @@ func DecodeWireFormat(message []byte) (int, []byte, *Xk6KafkaError) {
 		return 0, nil, NewXk6KafkaError(messageTooShort,
 			"Invalid message: invalid start byte.", nil)
 	}
-	magicPrefix := int(binary.BigEndian.Uint32(message[1:5]))
-	return magicPrefix, message[5:], nil
+	magicPrefix := int(binary.BigEndian.Uint32(message[1:MagicPrefixSize]))
+	return magicPrefix, message[MagicPrefixSize:], nil
 }
 
 // EncodeWireFormat adds the proprietary 5-byte prefix to the Avro, ProtoBuf or
 // JSONSchema payload.
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func EncodeWireFormat(data []byte, schemaID int) []byte {
-	schemaIDBytes := make([]byte, 4)
+	schemaIDBytes := make([]byte, MagicPrefixSize-1)
 	binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaID))
 	return append(append([]byte{0}, schemaIDBytes...), data...)
 }
@@ -79,7 +81,8 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 				TLSClientConfig: tlsConfig,
 			},
 		}
-		srClient = srclient.CreateSchemaRegistryClientWithOptions(configuration.URL, httpClient, 16)
+		srClient = srclient.CreateSchemaRegistryClientWithOptions(
+			configuration.URL, httpClient, ConcurrentRequests)
 	}
 
 	if configuration.BasicAuth.Username != "" && configuration.BasicAuth.Password != "" {

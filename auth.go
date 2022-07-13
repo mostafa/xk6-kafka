@@ -22,6 +22,8 @@ const (
 	saslScramSha256 = "sasl_scram_sha256"
 	saslScramSha512 = "sasl_scram_sha512"
 	saslSsl         = "sasl_ssl"
+
+	Timeout = time.Second * 10
 )
 
 type SASLConfig struct {
@@ -43,7 +45,7 @@ type TLSConfig struct {
 func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk6KafkaError) {
 	// Create a unauthenticated dialer with no TLS
 	dialer := &kafkago.Dialer{
-		Timeout:   10 * time.Second,
+		Timeout:   Timeout,
 		DualStack: false,
 	}
 
