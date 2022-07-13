@@ -20,7 +20,8 @@ const (
 // nolint: funlen
 func SerializeJSON(
 	configuration Configuration, topic string, data interface{},
-	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
+	element Element, schema string, version int,
+) ([]byte, *Xk6KafkaError) {
 	var bytesData []byte
 	if stringData, ok := data.(string); ok {
 		bytesData = []byte(stringData)
@@ -96,7 +97,8 @@ func SerializeJSON(
 // used to define the subject. The data should be a byte array.
 func DeserializeJSON(
 	configuration Configuration, topic string, data []byte,
-	element Element, schema string, version int) (interface{}, *Xk6KafkaError) {
+	element Element, schema string, version int,
+) (interface{}, *Xk6KafkaError) {
 	_, bytesDecodedData, err := DecodeWireFormat(data)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedDecodeFromWireFormat,

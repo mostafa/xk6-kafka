@@ -57,7 +57,8 @@ type SerdeType[T Serializer | Deserializer] struct {
 
 // NewSerdes constructs a new SerdeType.
 func NewSerdes[T Serializer | Deserializer](
-	function T, class string, schemaType srclient.SchemaType, wireFormatted bool) *SerdeType[T] {
+	function T, class string, schemaType srclient.SchemaType, wireFormatted bool,
+) *SerdeType[T] {
 	return &SerdeType[T]{function, class, schemaType, wireFormatted}
 }
 
