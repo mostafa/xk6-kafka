@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	jsonConfig Configuration = Configuration{
+	jsonConfig = Configuration{
 		Producer: ProducerConfiguration{
 			ValueSerializer: JSONSchemaSerializer,
 			KeySerializer:   JSONSchemaSerializer,
@@ -17,7 +17,7 @@ var (
 			KeyDeserializer:   JSONSchemaDeserializer,
 		},
 	}
-	jsonSchema string = `{"type":"object","title":"Key","properties":{"field": {"type":"string"}},"required":["field"]}`
+	jsonSchema = `{"type":"object","title":"Key","properties":{"field": {"type":"string"}},"required":["field"]}`
 )
 
 // TestSerializeDeserializeJson tests serialization and deserialization (and validation) of

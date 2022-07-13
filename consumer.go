@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
 
@@ -278,7 +279,7 @@ func (k *Kafka) consume(
 	for i := int64(0); i < consumeConfig.Limit; i++ {
 		msg, err := reader.ReadMessage(ctx)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			k.reportReaderStats(reader.Stats())
 
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)

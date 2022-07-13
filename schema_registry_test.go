@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var avroSchemaForSRTests string = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
+var avroSchemaForSRTests = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
 
 // TestDecodeWireFormat tests the decoding of a wire-formatted message.
 func TestDecodeWireFormat(t *testing.T) {
