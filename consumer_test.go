@@ -12,6 +12,7 @@ import (
 // initializeConsumerTest creates a k6 instance with the xk6-kafka extension
 // and then it creates a Kafka topic and a Kafka writer.
 func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
+	t.Helper()
 	test := GetTestModuleInstance(t)
 
 	// Create a Kafka topic
