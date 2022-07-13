@@ -21,7 +21,12 @@ const (
 func SerializeJSON(
 	configuration Configuration, topic string, data interface{},
 	element Element, schema string, version int) ([]byte, *Xk6KafkaError) {
-	bytesData := []byte(data.(string))
+	var bytesData []byte
+	if stringData, ok := data.(string); ok {
+		bytesData = []byte(stringData)
+	} else {
+		return nil, NewXk6KafkaError(failedTypeCast, "Failed to cast to string", nil)
+	}
 
 	client := SchemaRegistryClientWithConfiguration(configuration.SchemaRegistry)
 	subject := topic + "-" + string(element)

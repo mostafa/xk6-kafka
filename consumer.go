@@ -301,8 +301,13 @@ func (k *Kafka) consume(
 			"headers":       make(map[string]interface{}),
 		}
 
-		for _, header := range msg.Headers {
-			message["headers"].(map[string]interface{})[header.Key] = header.Value
+		if headers, ok := message["headers"].(map[string]interface{}); ok {
+			for _, header := range msg.Headers {
+				headers[header.Key] = header.Value
+			}
+		} else {
+			err = NewXk6KafkaError(failedTypeCast, "Failed to cast to map.", nil)
+			logger.WithField("error", err).Error(err)
 		}
 
 		if len(msg.Key) > 0 {

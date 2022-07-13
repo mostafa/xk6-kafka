@@ -134,9 +134,19 @@ func GetSubjectName(schema string, topic string, element Element, subjectNameStr
 	}
 	recordName := ""
 	if namespace, ok := schemaMap["namespace"]; ok {
-		recordName = namespace.(string) + "."
+		if namespace, ok := namespace.(string); ok {
+			recordName = namespace + "."
+		} else {
+			return "", NewXk6KafkaError(failedTypeCast, "Failed to cast to string", nil)
+		}
 	}
-	recordName += schemaMap["name"].(string)
+	if name, ok := schemaMap["name"]; ok {
+		if name, ok := name.(string); ok {
+			recordName += name
+		} else {
+			return "", NewXk6KafkaError(failedTypeCast, "Failed to cast to string", nil)
+		}
+	}
 
 	if subjectNameStrategy == RecordNameStrategy {
 		return recordName, nil

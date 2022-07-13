@@ -23,7 +23,11 @@ func SerializeByteArray(
 	case []interface{}:
 		arr := make([]byte, len(data))
 		for i, u := range data {
-			arr[i] = byte(u.(float64))
+			if u, ok := u.(float64); ok {
+				arr[i] = byte(u)
+			} else {
+				return nil, NewXk6KafkaError(failedTypeCast, "Failed to cast to float64", nil)
+			}
 		}
 		return arr, nil
 	default:

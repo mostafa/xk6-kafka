@@ -68,8 +68,16 @@ func TestConsume(t *testing.T) {
 		assert.NotPanics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
-			assert.Equal(t, "key1", messages[0]["key"].(string))
-			assert.Equal(t, "value1", messages[0]["value"].(string))
+			if key, ok := messages[0]["key"].(string); ok {
+				assert.Equal(t, "key1", key)
+			} else {
+				assert.Fail(t, "key is not a string")
+			}
+			if value, ok := messages[0]["value"].(string); ok {
+				assert.Equal(t, "value1", value)
+			} else {
+				assert.Fail(t, "value is not a string")
+			}
 		})
 	})
 
@@ -133,7 +141,11 @@ func TestConsumeWithoutKey(t *testing.T) {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.NotContains(t, messages[0], "key")
-			assert.Equal(t, "value1", messages[0]["value"].(string))
+			if value, ok := messages[0]["value"].(string); ok {
+				assert.Equal(t, "value1", value)
+			} else {
+				assert.Fail(t, "value is not a string")
+			}
 		})
 	})
 
@@ -235,9 +247,13 @@ func TestConsumeJSON(t *testing.T) {
 				Field string `json:"field"`
 			}
 			var f *F
-			jsonErr = json.Unmarshal([]byte(messages[0]["value"].(string)), &f)
-			assert.Nil(t, jsonErr)
-			assert.Equal(t, "value", f.Field)
+			if data, ok := messages[0]["value"].(string); ok {
+				jsonErr = json.Unmarshal([]byte(data), &f)
+				assert.Nil(t, jsonErr)
+				assert.Equal(t, "value", f.Field)
+			} else {
+				assert.Fail(t, "value is not a string")
+			}
 		})
 	})
 }

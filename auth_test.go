@@ -32,8 +32,12 @@ func TestGetDialerWithSASLPlainAndFullTLSConfig(t *testing.T) {
 	assert.Equal(t, false, dialer.DualStack)
 	assert.Nil(t, dialer.TLS)
 	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Username)
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
+	if mechanism, ok := dialer.SASLMechanism.(plain.Mechanism); ok {
+		assert.Equal(t, "test", mechanism.Username)
+		assert.Equal(t, "test", mechanism.Password)
+	} else {
+		assert.Fail(t, "Expected SASL mechanism to be plain.Mechanism")
+	}
 }
 
 // TestGetDialerWithSASLPlainWithDefaultTLSConfig tests the creation of a dialer with SASL PLAIN.
@@ -50,8 +54,12 @@ func TestGetDialerWithSASLPlainWithDefaultTLSConfig(t *testing.T) {
 	assert.Equal(t, true, dialer.DualStack)
 	assert.NotNil(t, dialer.TLS)
 	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Username)
-	assert.Equal(t, "test", dialer.SASLMechanism.(plain.Mechanism).Password)
+	if mechanism, ok := dialer.SASLMechanism.(plain.Mechanism); ok {
+		assert.Equal(t, "test", mechanism.Username)
+		assert.Equal(t, "test", mechanism.Password)
+	} else {
+		assert.Fail(t, "Expected SASL mechanism to be plain.Mechanism")
+	}
 }
 
 // TestGetDialerWithSASLScramWithDefaultTLSConfig tests the creation of a dialer with SASL SCRAM.
