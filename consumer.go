@@ -76,7 +76,7 @@ type ConsumeConfig struct {
 func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
-	if len(call.Arguments) <= 0 {
+	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
@@ -100,7 +100,7 @@ func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
 
 	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
 		var consumeConfig *ConsumeConfig
-		if len(call.Arguments) <= 0 {
+		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
