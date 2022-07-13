@@ -37,8 +37,8 @@ reader.close();
 
 #### Parameters
 
-| Name           | Type                                            | Description           |
-| :------------- | :---------------------------------------------- | :-------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `readerConfig` | [`ReaderConfig`](../interfaces/ReaderConfig.md) | Reader configuration. |
 
 #### Defined in
@@ -76,8 +76,8 @@ Read messages from Kafka.
 
 #### Parameters
 
-| Name            | Type                                              | Description            |
-| :-------------- | :------------------------------------------------ | :--------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `consumeConfig` | [`ConsumeConfig`](../interfaces/ConsumeConfig.md) | Consume configuration. |
 
 #### Returns

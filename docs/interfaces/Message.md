@@ -87,7 +87,7 @@ ___
 
 ### value
 
-• **value**: `string`
+• **value**: `any`
 
 #### Defined in
 

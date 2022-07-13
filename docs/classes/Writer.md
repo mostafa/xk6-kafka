@@ -45,8 +45,8 @@ writer.close();
 
 #### Parameters
 
-| Name           | Type                                            | Description           |
-| :------------- | :---------------------------------------------- | :-------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `writerConfig` | [`WriterConfig`](../interfaces/WriterConfig.md) | Writer configuration. |
 
 #### Defined in
@@ -84,8 +84,8 @@ Write messages to Kafka.
 
 #### Parameters
 
-| Name            | Type                                              | Description            |
-| :-------------- | :------------------------------------------------ | :--------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `produceConfig` | [`ProduceConfig`](../interfaces/ProduceConfig.md) | Produce configuration. |
 
 #### Returns

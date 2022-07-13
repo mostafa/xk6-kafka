@@ -12,7 +12,7 @@ const (
 
 // TestSerializeByteArray tests the serialization of a byte array into binary.
 func TestSerializeByteArray(t *testing.T) {
-	var data int64 = 98
+	var data float64 = 98
 	originalData := []interface{}{data}
 	result, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
 	assert.Nil(t, err)

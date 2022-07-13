@@ -38,8 +38,8 @@ connection.close();
 
 #### Parameters
 
-| Name               | Type                                                    | Description               |
-| :----------------- | :------------------------------------------------------ | :------------------------ |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `connectionConfig` | [`ConnectionConfig`](../interfaces/ConnectionConfig.md) | Connection configuration. |
 
 #### Defined in
@@ -77,8 +77,8 @@ Create a new topic.
 
 #### Parameters
 
-| Name          | Type                                          | Description          |
-| :------------ | :-------------------------------------------- | :------------------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `topicConfig` | [`TopicConfig`](../interfaces/TopicConfig.md) | Topic configuration. |
 
 #### Returns
@@ -102,8 +102,8 @@ Delete a topic.
 
 #### Parameters
 
-| Name    | Type     | Description |
-| :------ | :------- | :---------- |
+| Name | Type | Description |
+| :------ | :------ | :------ |
 | `topic` | `string` | Topic name. |
 
 #### Returns

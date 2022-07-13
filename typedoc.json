@@ -4,5 +4,6 @@
     "disableSources": false,
     "entryPoints": ["index.d.ts"],
     "plugin": ["typedoc-plugin-markdown"],
-    "readme": "none"
+    "readme": "none",
+    "gitRevision": "main"
 }

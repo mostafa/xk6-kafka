@@ -75,7 +75,7 @@ type Message struct {
 	Offset        int64                  `json:"offset"`
 	HighWaterMark int64                  `json:"highWaterMark"`
 	Key           string                 `json:"key"`
-	Value         string                 `json:"value"`
+	Value         interface{}            `json:"value"`
 	Headers       map[string]interface{} `json:"headers"`
 
 	// If not set at the creation, Time will be automatically set when
