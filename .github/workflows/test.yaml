@@ -26,12 +26,7 @@ jobs:
       - name: Lint code issues 🚨
         run: |
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          golangci-lint run
-
-      - name: Lint security issues 🔒
-        run: |
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec -exclude=G402 .
+          golangci-lint run -c .golangci.yaml
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
