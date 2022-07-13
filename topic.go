@@ -16,11 +16,11 @@ type ConnectionConfig struct {
 	TLS     TLSConfig  `json:"tls"`
 }
 
-// XConnection is a constructor for the Connection object in JS
+// connectionClass is a constructor for the Connection object in JS
 // that creates a new connection for creating, listing and deleting topics,
 // e.g. new Connection(...).
 // nolint: funlen
-func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) == 0 {
@@ -37,7 +37,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 		}
 	}
 
-	connection := k.GetKafkaControllerConnection(connectionConfig)
+	connection := k.getKafkaControllerConnection(connectionConfig)
 
 	connectionObject := runtime.NewObject()
 	// This is the connection object itself
@@ -61,7 +61,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 			}
 		}
 
-		k.CreateTopic(connection, topicConfig)
+		k.createTopic(connection, topicConfig)
 		return goja.Undefined()
 	})
 	if err != nil {
@@ -73,7 +73,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 			if topic, ok := call.Argument(0).Export().(string); !ok {
 				common.Throw(runtime, ErrNotEnoughArguments)
 			} else {
-				k.DeleteTopic(connection, topic)
+				k.deleteTopic(connection, topic)
 			}
 		}
 
@@ -84,7 +84,7 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	}
 
 	err = connectionObject.Set("listTopics", func(call goja.FunctionCall) goja.Value {
-		topics := k.ListTopics(connection)
+		topics := k.listTopics(connection)
 		return runtime.ToValue(topics)
 	})
 	if err != nil {
@@ -105,10 +105,10 @@ func (k *Kafka) XConnection(call goja.ConstructorCall) *goja.Object {
 	return connectionObject
 }
 
-// GetKafkaControllerConnection returns a kafka controller connection with a given node address.
+// getKafkaControllerConnection returns a kafka controller connection with a given node address.
 // It will also try to use the auth and TLS settings to create a secure connection. The connection
 // should be closed after use.
-func (k *Kafka) GetKafkaControllerConnection(connectionConfig *ConnectionConfig) *kafkago.Conn {
+func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig) *kafkago.Conn {
 	dialer, wrappedError := GetDialer(connectionConfig.SASL, connectionConfig.TLS)
 	if wrappedError != nil {
 		logger.WithField("error", wrappedError).Error(wrappedError)
@@ -154,10 +154,10 @@ func (k *Kafka) GetKafkaControllerConnection(connectionConfig *ConnectionConfig)
 	return controllerConn
 }
 
-// CreateTopic creates a topic with the given name, partitions, replication factor and compression.
+// createTopic creates a topic with the given name, partitions, replication factor and compression.
 // It will also try to use the auth and TLS settings to create a secure connection. If the topic
 // already exists, it will do no-op.
-func (k *Kafka) CreateTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig) {
+func (k *Kafka) createTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig) {
 	if topicConfig.NumPartitions <= 0 {
 		topicConfig.NumPartitions = 1
 	}
@@ -174,10 +174,10 @@ func (k *Kafka) CreateTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig
 	}
 }
 
-// DeleteTopic deletes the given topic from the given address. It will also try to
+// deleteTopic deletes the given topic from the given address. It will also try to
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
-func (k *Kafka) DeleteTopic(conn *kafkago.Conn, topic string) {
+func (k *Kafka) deleteTopic(conn *kafkago.Conn, topic string) {
 	err := conn.DeleteTopics([]string{topic}...)
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedDeleteTopic, "Failed to delete topic.", err)
@@ -186,10 +186,10 @@ func (k *Kafka) DeleteTopic(conn *kafkago.Conn, topic string) {
 	}
 }
 
-// ListTopics lists the topics from the given address. It will also try to
+// listTopics lists the topics from the given address. It will also try to
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
-func (k *Kafka) ListTopics(conn *kafkago.Conn) []string {
+func (k *Kafka) listTopics(conn *kafkago.Conn) []string {
 	partitions, err := conn.ReadPartitions()
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedReadPartitions, "Failed to read partitions.", err)

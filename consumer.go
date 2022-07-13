@@ -71,10 +71,10 @@ type ConsumeConfig struct {
 	ValueSchema string        `json:"valueSchema"`
 }
 
-// XReader is a wrapper around kafkago.Reader and acts as a JS constructor
+// readerClass is a wrapper around kafkago.reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 // nolint: funlen
-func (k *Kafka) XReader(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) == 0 {
@@ -236,8 +236,8 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	return reader
 }
 
-// GetDeserializer returns the deserializer for the given schema.
-func (k *Kafka) GetDeserializer(schema string) Deserializer {
+// getDeserializer returns the deserializer for the given schema.
+func (k *Kafka) getDeserializer(schema string) Deserializer {
 	if de, ok := k.deserializerRegistry.Registry[schema]; ok {
 		return de.GetDeserializer()
 	}
@@ -271,8 +271,8 @@ func (k *Kafka) consume(
 		logger.WithField("error", err).Warn("Using default string serializers")
 	}
 
-	keyDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.KeyDeserializer)
-	valueDeserializer := k.GetDeserializer(consumeConfig.Config.Consumer.ValueDeserializer)
+	keyDeserializer := k.getDeserializer(consumeConfig.Config.Consumer.KeyDeserializer)
+	valueDeserializer := k.getDeserializer(consumeConfig.Config.Consumer.ValueDeserializer)
 
 	messages := make([]map[string]interface{}, 0)
 

@@ -12,7 +12,7 @@ import (
 func TestGetKafkaControllerConnection(t *testing.T) {
 	test := GetTestModuleInstance(t)
 	assert.NotPanics(t, func() {
-		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
 		assert.NotNil(t, connection)
@@ -26,7 +26,7 @@ func TestGetKafkaControllerConnectionFails(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9094",
 		})
 		assert.Nil(t, connection)
@@ -39,20 +39,20 @@ func TestTopics(t *testing.T) {
 
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
-		connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
 
-		test.module.Kafka.CreateTopic(connection, &kafkago.TopicConfig{
+		test.module.Kafka.createTopic(connection, &kafkago.TopicConfig{
 			Topic: "test-topic",
 		})
 
-		topics := test.module.Kafka.ListTopics(connection)
+		topics := test.module.Kafka.listTopics(connection)
 		assert.Contains(t, topics, "test-topic")
 
-		test.module.Kafka.DeleteTopic(connection, "test-topic")
+		test.module.Kafka.deleteTopic(connection, "test-topic")
 
-		topics = test.module.Kafka.ListTopics(connection)
+		topics = test.module.Kafka.listTopics(connection)
 		assert.NotContains(t, topics, "test-topic")
 
 		connection.Close()

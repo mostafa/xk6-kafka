@@ -16,12 +16,12 @@ func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	test := GetTestModuleInstance(t)
 
 	// Create a Kafka topic
-	connection := test.module.Kafka.GetKafkaControllerConnection(&ConnectionConfig{
+	connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
 		Address: "localhost:9092",
 	})
 	defer connection.Close()
 
-	test.module.Kafka.CreateTopic(connection, &kafkago.TopicConfig{
+	test.module.Kafka.createTopic(connection, &kafkago.TopicConfig{
 		Topic: "test-topic",
 	})
 
