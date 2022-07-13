@@ -93,44 +93,44 @@ type ProduceConfig struct {
 // XWriter is a wrapper around kafkago.Writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
-	rt := k.vu.Runtime()
+	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) <= 0 {
-		common.Throw(rt, ErrorNotEnoughArguments)
+		common.Throw(runtime, ErrorNotEnoughArguments)
 	}
 
 	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 		if b, err := json.Marshal(params); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		} else {
 			if err = json.Unmarshal(b, &writerConfig); err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			}
 		}
 	}
 
 	writer := k.writer(writerConfig)
 
-	writerObject := rt.NewObject()
+	writerObject := runtime.NewObject()
 	// This is the writer object itself.
 	if err := writerObject.Set("This", writer); err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) <= 0 {
-			common.Throw(rt, ErrorNotEnoughArguments)
+			common.Throw(runtime, ErrorNotEnoughArguments)
 		}
 
 		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			b, err := json.Marshal(params)
 			if err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			}
 			err = json.Unmarshal(b, &producerConfig)
 			if err != nil {
-				common.Throw(rt, err)
+				common.Throw(runtime, err)
 			}
 		}
 
@@ -138,24 +138,24 @@ func (k *Kafka) XWriter(call goja.ConstructorCall) *goja.Object {
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	// This is unnecessary, but it's here for reference purposes.
 	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
 		if err := writer.Close(); err != nil {
-			common.Throw(rt, err)
+			common.Throw(runtime, err)
 		}
 
 		return goja.Undefined()
 	})
 	if err != nil {
-		common.Throw(rt, err)
+		common.Throw(runtime, err)
 	}
 
 	freeze(writerObject)
 
-	return rt.ToValue(writerObject).ToObject(rt)
+	return runtime.ToValue(writerObject).ToObject(runtime)
 }
 
 // writer creates a new Kafka writer.
@@ -242,21 +242,21 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	valueSerializer := k.GetSerializer(produceConfig.Config.Producer.ValueSerializer)
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
-	for i, message := range produceConfig.Messages {
-		kafkaMessages[i] = kafkago.Message{
+	for index, message := range produceConfig.Messages {
+		kafkaMessages[index] = kafkago.Message{
 			Offset: message.Offset,
 		}
 
 		// Topic can be explicitly set on each individual message.
 		// Setting topic on the writer and the messages are mutually exclusive.
 		if message.Topic != "" {
-			kafkaMessages[i].Topic = message.Topic
+			kafkaMessages[index].Topic = message.Topic
 		}
 
 		// If time is set, use it to set the time on the message,
 		// otherwise use the current time.
 		if !message.Time.IsZero() {
-			kafkaMessages[i].Time = message.Time
+			kafkaMessages[index].Time = message.Time
 		}
 
 		// If a key was provided, add it to the message. Keys are optional.
@@ -268,7 +268,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 				logger.WithField("error", err).Error(err)
 			}
 
-			kafkaMessages[i].Key = keyData
+			kafkaMessages[index].Key = keyData
 		}
 
 		// Then add the value to the message.
@@ -279,12 +279,12 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 			logger.WithField("error", err).Error(err)
 		}
 
-		kafkaMessages[i].Value = valueData
+		kafkaMessages[index].Value = valueData
 
 		// If headers are provided, add them to the message.
 		if len(message.Headers) > 0 {
 			for key, value := range message.Headers {
-				kafkaMessages[i].Headers = append(kafkaMessages[i].Headers, kafkago.Header{
+				kafkaMessages[index].Headers = append(kafkaMessages[index].Headers, kafkago.Header{
 					Key:   key,
 					Value: []byte(fmt.Sprint(value)),
 				})
