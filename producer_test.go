@@ -7,7 +7,6 @@ import (
 
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestProduce tests the produce function.
@@ -40,7 +39,7 @@ func TestProduce(t *testing.T) {
 			})
 		})
 
-		require.NoError(t, test.moveToVUCode())
+		test.rt.MoveToVUContext(test.rt.VU.StateField)
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -103,7 +102,7 @@ func TestProduceWithoutKey(t *testing.T) {
 			connection.Close()
 		})
 
-		require.NoError(t, test.moveToVUCode())
+		test.rt.MoveToVUContext(test.rt.VU.StateField)
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -146,10 +145,10 @@ func TestProducerContextCancelled(t *testing.T) {
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
-		require.NoError(t, test.moveToVUCode())
+		test.rt.MoveToVUContext(test.rt.VU.StateField)
 
 		// This will cancel the context, so the produce will fail.
-		test.cancelContext()
+		test.rt.CancelContext()
 
 		// Produce two messages in the VU function.
 		assert.Panics(t, func() {
@@ -192,7 +191,7 @@ func TestProduceJSON(t *testing.T) {
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
-		require.NoError(t, test.moveToVUCode())
+		test.rt.MoveToVUContext(test.rt.VU.StateField)
 
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)

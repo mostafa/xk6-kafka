@@ -9,8 +9,9 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0
 	github.com/segmentio/kafka-go v0.4.32
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.1
-	go.k6.io/k6 v0.39.0
+	github.com/spf13/afero v1.8.2
+	github.com/stretchr/testify v1.8.0
+	go.k6.io/k6 v0.39.1-0.20220714155008-8a45227d0fd7
 	gopkg.in/guregu/null.v3 v3.5.0
 )
 
@@ -29,7 +30,6 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
-	github.com/spf13/afero v1.8.2 // indirect
 	github.com/xdg/scram v1.0.5 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect

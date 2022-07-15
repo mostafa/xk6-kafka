@@ -1,13 +1,9 @@
 package kafka
 
 import (
-	"context"
-	"errors"
 	"testing"
 
-	"github.com/dop251/goja"
 	"github.com/stretchr/testify/require"
-	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modulestest"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/metrics"
@@ -16,66 +12,67 @@ import (
 
 // struct to keep all the things test need in one place.
 type kafkaTest struct {
-	rt            *goja.Runtime
-	module        *Module
-	vu            *modulestest.VU
-	samples       chan metrics.SampleContainer
-	cancelContext context.CancelFunc
+	rt      *modulestest.Runtime
+	module  *Module
+	samples chan metrics.SampleContainer
 }
 
 // GetTestModuleInstance returns a new instance of the Kafka module for testing.
 // nolint: golint,revive
 func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Helper()
-	runtime := goja.New()
-	runtime.SetFieldNameMapper(common.FieldNameMapper{})
+	// runtime := goja.New()
+	// runtime.SetFieldNameMapper(common.FieldNameMapper{})
 
-	ctx, cancel := context.WithCancel(context.Background())
-	tb.Cleanup(cancel)
+	// ctx, cancel := context.WithCancel(context.Background())
+	// tb.Cleanup(cancel)
+
+	runtime := modulestest.NewRuntime(tb)
 
 	root := New()
-	mockVU := &modulestest.VU{
-		RuntimeField: runtime,
-		InitEnvField: &common.InitEnvironment{
-			Registry: metrics.NewRegistry(),
-		},
-		CtxField: ctx,
-	}
-	moduleInstance, ok := root.NewModuleInstance(mockVU).(*Module)
+	// mockVU := &modulestest.VU{
+	// 	RuntimeField: runtime,
+	// 	InitEnvField: &common.InitEnvironment{
+	// 		Registry: metrics.NewRegistry(),
+	// 	},
+	// 	CtxField: ctx,
+	// }
+	moduleInstance, ok := root.NewModuleInstance(runtime.VU).(*Module)
 	require.True(tb, ok)
 
-	require.NoError(tb, runtime.Set("kafka", moduleInstance.Exports().Default))
+	require.NoError(tb, runtime.VU.RuntimeField.Set("kafka", moduleInstance.Exports().Default))
 
-	return &kafkaTest{
-		rt:            runtime,
-		module:        moduleInstance,
-		vu:            mockVU,
-		cancelContext: cancel,
-	}
-}
-
-// moveToVUCode moves to the VU code from the init code (to test certain functions).
-func (k *kafkaTest) moveToVUCode() error {
 	rootGroup, err := lib.NewGroup("", nil)
 	if err != nil {
-		return errors.Unwrap(err)
+		return nil
 	}
 	samples := make(chan metrics.SampleContainer, 1000)
 	// Save it, so we can reuse it in other tests
-	k.samples = samples
 	state := &lib.State{
 		Group: rootGroup,
 		Options: lib.Options{
 			UserAgent: null.StringFrom("TestUserAgent"),
 			Paused:    null.BoolFrom(false),
 		},
-		Samples:        k.samples,
+		Samples:        samples,
 		BuiltinMetrics: metrics.RegisterBuiltinMetrics(metrics.NewRegistry()),
 	}
-	k.vu.StateField = state
-	k.vu.InitEnvField = nil
-	return nil
+	runtime.VU.StateField = state
+
+	return &kafkaTest{
+		rt:      runtime,
+		module:  moduleInstance,
+		samples: samples,
+	}
 }
+
+// moveToVUCode moves to the VU code from the init code (to test certain functions).
+// func (k *kafkaTest) moveToVUCode() error {
+
+// 	k.rt.VU.StateField = state
+// 	k.rt.VU.InitEnvField = nil
+// 	return nil
+// }
 
 // GetCounterMetricsValues returns the samples of the collected metrics in the VU.
 func (k *kafkaTest) GetCounterMetricsValues() map[string]float64 {

@@ -5,7 +5,6 @@ import (
 
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestGetKafkaControllerConnection tests whether a connection can be established to a kafka broker.
@@ -37,7 +36,7 @@ func TestGetKafkaControllerConnectionFails(t *testing.T) {
 func TestTopics(t *testing.T) {
 	test := GetTestModuleInstance(t)
 
-	require.NoError(t, test.moveToVUCode())
+	test.rt.MoveToVUContext(test.rt.VU.StateField)
 	assert.NotPanics(t, func() {
 		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
