@@ -6,6 +6,7 @@ import (
 
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // initializeConsumerTest creates a k6 instance with the xk6-kafka extension
@@ -51,7 +52,7 @@ func TestConsume(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.moveToVUCode()
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -124,7 +125,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.moveToVUCode()
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -175,7 +176,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.moveToVUCode()
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -223,7 +224,7 @@ func TestConsumeJSON(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.moveToVUCode()
+		require.NoError(t, test.moveToVUCode())
 
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)
