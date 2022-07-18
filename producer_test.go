@@ -39,7 +39,7 @@ func TestProduce(t *testing.T) {
 			})
 		})
 
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		test.moveToVUCode()
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -102,7 +102,7 @@ func TestProduceWithoutKey(t *testing.T) {
 			connection.Close()
 		})
 
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		test.moveToVUCode()
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -145,7 +145,7 @@ func TestProducerContextCancelled(t *testing.T) {
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		test.moveToVUCode()
 
 		// This will cancel the context, so the produce will fail.
 		test.rt.CancelContext()
@@ -191,7 +191,7 @@ func TestProduceJSON(t *testing.T) {
 		assert.NotNil(t, writer)
 		defer writer.Close()
 
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		test.moveToVUCode()
 
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)

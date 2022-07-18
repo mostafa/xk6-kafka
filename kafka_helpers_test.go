@@ -1,9 +1,14 @@
 package kafka
 
 import (
+	"net/url"
+	"os"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modulestest"
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/metrics"
@@ -28,6 +33,18 @@ func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 	// tb.Cleanup(cancel)
 
 	runtime := modulestest.NewRuntime(tb)
+	cwd, err := os.Getwd()
+	require.NoError(tb, err)
+	fs := afero.NewOsFs()
+	initEnv := &common.InitEnvironment{
+		Logger: logrus.New(),
+		CWD:    &url.URL{Path: cwd},
+		FileSystems: map[string]afero.Fs{
+			"file": fs,
+		},
+		Registry: metrics.NewRegistry(),
+	}
+	runtime.InitContext(initEnv)
 
 	root := New()
 	// mockVU := &modulestest.VU{
@@ -42,22 +59,7 @@ func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 
 	require.NoError(tb, runtime.VU.RuntimeField.Set("kafka", moduleInstance.Exports().Default))
 
-	rootGroup, err := lib.NewGroup("", nil)
-	if err != nil {
-		return nil
-	}
 	samples := make(chan metrics.SampleContainer, 1000)
-	// Save it, so we can reuse it in other tests
-	state := &lib.State{
-		Group: rootGroup,
-		Options: lib.Options{
-			UserAgent: null.StringFrom("TestUserAgent"),
-			Paused:    null.BoolFrom(false),
-		},
-		Samples:        samples,
-		BuiltinMetrics: metrics.RegisterBuiltinMetrics(metrics.NewRegistry()),
-	}
-	runtime.VU.StateField = state
 
 	return &kafkaTest{
 		rt:      runtime,
@@ -67,12 +69,24 @@ func GetTestModuleInstance(tb testing.TB) *kafkaTest {
 }
 
 // moveToVUCode moves to the VU code from the init code (to test certain functions).
-// func (k *kafkaTest) moveToVUCode() error {
-
-// 	k.rt.VU.StateField = state
-// 	k.rt.VU.InitEnvField = nil
-// 	return nil
-// }
+func (k *kafkaTest) moveToVUCode() error {
+	rootGroup, err := lib.NewGroup("", nil)
+	if err != nil {
+		return err
+	}
+	// Save it, so we can reuse it in other tests
+	state := &lib.State{
+		Group: rootGroup,
+		Options: lib.Options{
+			UserAgent: null.StringFrom("TestUserAgent"),
+			Paused:    null.BoolFrom(false),
+		},
+		Samples:        k.samples,
+		BuiltinMetrics: metrics.RegisterBuiltinMetrics(metrics.NewRegistry()),
+	}
+	k.rt.MoveToVUContext(state)
+	return nil
+}
 
 // GetCounterMetricsValues returns the samples of the collected metrics in the VU.
 func (k *kafkaTest) GetCounterMetricsValues() map[string]float64 {
