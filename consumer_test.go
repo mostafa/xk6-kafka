@@ -2,37 +2,19 @@ package kafka
 
 import (
 	"encoding/json"
-	"net/url"
-	"os"
 	"testing"
 
 	kafkago "github.com/segmentio/kafka-go"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.k6.io/k6/js/common"
-	"go.k6.io/k6/metrics"
 )
 
 // initializeConsumerTest creates a k6 instance with the xk6-kafka extension
 // and then it creates a Kafka topic and a Kafka writer.
 func initializeConsumerTest(t *testing.T) (*kafkaTest, *kafkago.Writer) {
 	t.Helper()
-	cwd, err := os.Getwd()
-	fs := afero.NewOsFs()
-	require.NoError(t, err)
 
-	initEnv := &common.InitEnvironment{
-		Logger: logrus.New(),
-		CWD:    &url.URL{Path: cwd},
-		FileSystems: map[string]afero.Fs{
-			"file": fs,
-		},
-		Registry: metrics.NewRegistry(),
-	}
 	test := GetTestModuleInstance(t)
-	test.rt.InitContext(initEnv)
 
 	// Create a Kafka topic
 	connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
@@ -70,7 +52,7 @@ func TestConsume(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -143,7 +125,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -194,7 +176,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -242,7 +224,7 @@ func TestConsumeJSON(t *testing.T) {
 		defer reader.Close()
 
 		// Switch to VU code.
-		test.rt.MoveToVUContext(test.rt.VU.StateField)
+		require.NoError(t, test.moveToVUCode())
 
 		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
 		assert.Nil(t, jsonErr)
