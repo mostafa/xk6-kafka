@@ -74,7 +74,7 @@ type Message struct {
 	Partition     int                    `json:"partition"`
 	Offset        int64                  `json:"offset"`
 	HighWaterMark int64                  `json:"highWaterMark"`
-	Key           string                 `json:"key"`
+	Key           interface{}            `json:"key"`
 	Value         interface{}            `json:"value"`
 	Headers       map[string]interface{} `json:"headers"`
 
