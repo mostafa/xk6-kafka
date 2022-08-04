@@ -29,9 +29,8 @@ const (
 	failedUnmarshalJSON         errCode = 2007
 	failedValidateJSON          errCode = 2008
 	failedEncodeToJSON          errCode = 2009
-	failedEncodeJSONToBinary    errCode = 2010
-	failedDecodeJSONFromBinary  errCode = 2011
-	failedToUnmarshalSchema     errCode = 2012
+	failedDecodeJSONFromBinary  errCode = 2010
+	failedToUnmarshalSchema     errCode = 2011
 
 	// producer.
 	failedWriteMessage errCode = 3000

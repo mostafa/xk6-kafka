@@ -71,18 +71,18 @@ func SerializeJSON(
 	if schemaInfo != nil {
 		schemaID = schemaInfo.ID()
 
-		// Encode the data into JSON and then the wire format
-		jsonEncodedData, _, err := schemaInfo.Codec().NativeFromTextual(bytesData)
-		if err != nil {
-			return nil, NewXk6KafkaError(failedEncodeToJSON,
-				"Failed to encode data into JSON",
+		var jsonBytes interface{}
+		if err := json.Unmarshal(bytesData, &jsonBytes); err != nil {
+			return nil, NewXk6KafkaError(failedUnmarshalJSON,
+				"Failed to unmarshal JSON data",
 				err)
 		}
 
-		bytesData, err = schemaInfo.Codec().BinaryFromNative(nil, jsonEncodedData)
+		// Encode the data into JSON and then the wire format
+		err := schemaInfo.JsonSchema().Validate(jsonBytes)
 		if err != nil {
-			return nil, NewXk6KafkaError(failedEncodeJSONToBinary,
-				"Failed to encode JSON data into binary",
+			return nil, NewXk6KafkaError(failedEncodeToJSON,
+				"Failed to encode data into JSON",
 				err)
 		}
 	}
@@ -148,14 +148,21 @@ func DeserializeJSON(
 	}
 
 	if schemaInfo != nil {
+		var jsonBytes interface{}
+		if err := json.Unmarshal(bytesDecodedData, &jsonBytes); err != nil {
+			return nil, NewXk6KafkaError(failedUnmarshalJSON,
+				"Failed to unmarshal JSON data",
+				err)
+		}
+
 		// Decode the data from Json
-		jsonDecodedData, _, err := schemaInfo.Codec().NativeFromBinary(bytesDecodedData)
+		err := schemaInfo.JsonSchema().Validate(jsonBytes)
 		if err != nil {
 			return nil, NewXk6KafkaError(failedDecodeJSONFromBinary,
 				"Failed to decode data from JSON",
 				err)
 		}
-		return jsonDecodedData, nil
+		return jsonBytes, nil
 	}
 
 	return bytesDecodedData, nil

@@ -108,7 +108,7 @@ export default function () {
         "Key is correct": (msg) => msg.key.key == "key0",
         "Value is correct": (msg) =>
             msg.value.firstName == "firstName-0" && msg.value.lastName == "lastName-0",
-        "Headers are correct": (msg) => msg.headers.length == 0,
+        "Headers are correct": (msg) => msg.headers.hasOwnProperty("mykey") == false,
         "Time is past": (msg) => new Date(msg["time"]) < new Date(),
         "Offset is correct": (msg) => msg.offset == 0,
         "Partition is correct": (msg) => msg.partition == 0,
