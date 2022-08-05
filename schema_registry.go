@@ -103,9 +103,7 @@ func GetSchema(
 	var err error
 	// Default version of the schema is the latest version.
 
-	value, isMapContainsKey := cache[subject]
-
-	if isMapContainsKey {
+	if value, exists := cache[subject]; exists {
 		return value, nil
 	}
 
