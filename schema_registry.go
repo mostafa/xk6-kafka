@@ -92,6 +92,8 @@ func SchemaRegistryClientWithConfiguration(configuration SchemaRegistryConfigura
 	return srClient
 }
 
+var cache = make(map[string]*srclient.Schema)
+
 // GetSchema returns the schema for the given subject and schema ID and version.
 func GetSchema(
 	client *srclient.SchemaRegistryClient, subject string, schema string, schemaType srclient.SchemaType, version int,
@@ -100,11 +102,23 @@ func GetSchema(
 	var schemaInfo *srclient.Schema
 	var err error
 	// Default version of the schema is the latest version.
+
+	value, isMapContainsKey := cache[subject]
+
+	if isMapContainsKey {
+		return value, nil
+	}
+
 	if version == 0 {
 		schemaInfo, err = client.GetLatestSchema(subject)
 	} else {
 		schemaInfo, err = client.GetSchemaByVersion(subject, version)
 	}
+
+	if err == nil {
+		cache[subject] = schemaInfo
+	}
+
 	if err != nil {
 		return nil, NewXk6KafkaError(schemaNotFound,
 			"Failed to get schema from schema registry", err)
