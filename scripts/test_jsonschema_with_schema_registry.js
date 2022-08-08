@@ -8,8 +8,11 @@ import {
     Writer,
     Reader,
     Connection,
-    JSON_SCHEMA_SERIALIZER,
-    JSON_SCHEMA_DESERIALIZER,
+    SchemaRegistry,
+    KEY,
+    VALUE,
+    SCHEMA_TYPE_JSON,
+    TOPIC_NAME_STRATEGY,
 } from "k6/x/kafka"; // import kafka extension
 
 const brokers = ["localhost:9092"];
@@ -26,6 +29,9 @@ const reader = new Reader({
 });
 const connection = new Connection({
     address: brokers[0],
+});
+const schemaRegistry = new SchemaRegistry({
+    url: "http://localhost:8081",
 });
 
 if (__VU == 0) {
@@ -58,61 +64,86 @@ const valueSchema = JSON.stringify({
     },
 });
 
-var config = {
-    consumer: {
-        keyDeserializer: JSON_SCHEMA_DESERIALIZER,
-        valueDeserializer: JSON_SCHEMA_DESERIALIZER,
-    },
-    producer: {
-        keySerializer: JSON_SCHEMA_SERIALIZER,
-        valueSerializer: JSON_SCHEMA_SERIALIZER,
-    },
-    schemaRegistry: {
-        url: "http://localhost:8081",
-    },
-};
+const keySubjectName = schemaRegistry.getSubjectName({
+    topic: topic,
+    element: KEY,
+    subjectNameStrategy: TOPIC_NAME_STRATEGY,
+    schema: keySchema,
+});
+
+const valueSubjectName = schemaRegistry.getSubjectName({
+    topic: topic,
+    element: VALUE,
+    subjectNameStrategy: TOPIC_NAME_STRATEGY,
+    schema: valueSchema,
+});
+
+const keySchemaObject = schemaRegistry.createSchema({
+    subject: keySubjectName,
+    schema: keySchema,
+    schemaType: SCHEMA_TYPE_JSON,
+});
+
+const valueSchemaObject = schemaRegistry.createSchema({
+    subject: valueSubjectName,
+    schema: valueSchema,
+    schemaType: SCHEMA_TYPE_JSON,
+});
 
 export default function () {
     for (let index = 0; index < 100; index++) {
         let messages = [
             {
-                key: JSON.stringify({
-                    key: "key" + index,
+                key: schemaRegistry.serialize({
+                    data: {
+                        key: "key-" + index,
+                    },
+                    schema: keySchemaObject,
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
-                value: JSON.stringify({
-                    firstName: "firstName-" + index,
-                    lastName: "lastName-" + index,
+                value: schemaRegistry.serialize({
+                    data: {
+                        firstName: "firstName-" + index,
+                        lastName: "lastName-" + index,
+                    },
+                    schema: valueSchemaObject,
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
             },
         ];
-        writer.produce({
-            messages: messages,
-            config: config,
-            keySchema: keySchema,
-            valueSchema: valueSchema,
-        });
+        writer.produce({ messages: messages });
     }
 
-    let messages = reader.consume({
-        limit: 20,
-        config: config,
-        keySchema: keySchema,
-        valueSchema: valueSchema,
-    });
+    let messages = reader.consume({ limit: 20 });
     check(messages, {
         "20 message returned": (msgs) => msgs.length == 20,
     });
 
-    check(messages[0], {
-        "Topic equals to xk6_jsonschema_test": (msg) => msg.topic == topic,
-        "Key is correct": (msg) => msg.key.key == "key0",
-        "Value is correct": (msg) =>
-            msg.value.firstName == "firstName-0" && msg.value.lastName == "lastName-0",
-        "Headers are correct": (msg) => msg.headers.hasOwnProperty("mykey") == false,
-        "Time is past": (msg) => new Date(msg["time"]) < new Date(),
-        "Offset is correct": (msg) => msg.offset == 0,
-        "Partition is correct": (msg) => msg.partition == 0,
-        "High watermark is gte zero": (msg) => msg["highWaterMark"] >= 0,
+    check(messages, {
+        "20 message returned": (msgs) => msgs.length == 20,
+        "key starts with 'key-' string": (msgs) =>
+            schemaRegistry
+                .deserialize({
+                    data: msgs[0].key,
+                    schema: keySchemaObject,
+                    schemaType: SCHEMA_TYPE_JSON,
+                })
+                .key.startsWith("key-"),
+        "value contains 'firstName-' and 'lastName-' strings": (msgs) =>
+            schemaRegistry
+                .deserialize({
+                    data: msgs[0].value,
+                    schema: valueSchemaObject,
+                    schemaType: SCHEMA_TYPE_JSON,
+                })
+                .firstName.startsWith("firstName-") &&
+            schemaRegistry
+                .deserialize({
+                    data: msgs[0].value,
+                    schema: valueSchemaObject,
+                    schemaType: SCHEMA_TYPE_JSON,
+                })
+                .lastName.startsWith("lastName-"),
     });
 }
 
