@@ -1,21 +1,17 @@
 package kafka
 
-import (
-	"github.com/riferrei/srclient"
-)
+import "github.com/riferrei/srclient"
+
+type StringSerde struct {
+	Serdes
+}
 
 const (
 	String srclient.SchemaType = "STRING"
-
-	StringSerializer   string = "org.apache.kafka.common.serialization.StringSerializer"
-	StringDeserializer string = "org.apache.kafka.common.serialization.StringDeserializer"
 )
 
-// SerializeString serializes a string to bytes.
-func SerializeString(
-	configuration Configuration, topic string, data interface{},
-	element Element, schema string, version int,
-) ([]byte, *Xk6KafkaError) {
+// Serialize serializes a string to bytes.
+func (*StringSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
 	switch data := data.(type) {
 	case string:
 		return []byte(data), nil
@@ -24,10 +20,7 @@ func SerializeString(
 	}
 }
 
-// DeserializeString deserializes a string from bytes.
-func DeserializeString(
-	configuration Configuration, topic string, data []byte,
-	element Element, schema string, version int,
-) (interface{}, *Xk6KafkaError) {
+// Deserialize deserializes a string from bytes.
+func (*StringSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
 	return string(data), nil
 }

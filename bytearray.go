@@ -1,31 +1,27 @@
 package kafka
 
-import (
-	"github.com/riferrei/srclient"
-)
+import "github.com/riferrei/srclient"
+
+type ByteArraySerde struct {
+	Serdes
+}
 
 const (
-	ByteArray srclient.SchemaType = "BYTEARRAY"
-
-	ByteArraySerializer   string = "org.apache.kafka.common.serialization.ByteArraySerializer"
-	ByteArrayDeserializer string = "org.apache.kafka.common.serialization.ByteArrayDeserializer"
+	Bytes srclient.SchemaType = "BYTES"
 )
 
-// SerializeByteArray serializes the given data into a byte array and returns it.
-// If the data is not a byte array, an error is returned. The configuration, topic, element,
-// schema and version are just used to conform with the interface.
-func SerializeByteArray(
-	configuration Configuration, topic string, data interface{},
-	element Element, schema string, version int,
-) ([]byte, *Xk6KafkaError) {
+// Serialize serializes the given data into a byte array.
+func (*ByteArraySerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
 	switch data := data.(type) {
+	case []byte:
+		return data, nil
 	case []interface{}:
 		arr := make([]byte, len(data))
 		for i, u := range data {
 			if u, ok := u.(float64); ok {
 				arr[i] = byte(u)
 			} else {
-				return nil, NewXk6KafkaError(failedTypeCast, "Failed to cast to float64", nil)
+				return nil, ErrFailedTypeCast
 			}
 		}
 		return arr, nil
@@ -34,12 +30,7 @@ func SerializeByteArray(
 	}
 }
 
-// DeserializeByteArray deserializes the given data from a byte array and returns it.
-// It just returns the data as is. The configuration, topic, element, schema and version
-// are just used to conform with the interface.
-func DeserializeByteArray(
-	configuration Configuration, topic string, data []byte,
-	element Element, schema string, version int,
-) (interface{}, *Xk6KafkaError) {
+// DeserializeByteArray returns the data as-is, because it is already a byte array.
+func (*ByteArraySerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
 	return data, nil
 }
