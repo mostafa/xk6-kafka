@@ -3,7 +3,7 @@ package kafka
 import (
 	"testing"
 
-	"github.com/riferrei/srclient"
+	"github.com/dop251/goja"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,42 +11,49 @@ var avroSchemaForSRTests = `{"type":"record","name":"Schema","fields":[{"name":"
 
 // TestDecodeWireFormat tests the decoding of a wire-formatted message.
 func TestDecodeWireFormat(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	encoded := []byte{0, 1, 2, 3, 4, 5}
 	decoded := []byte{5}
-	prefix := 16909060
 
-	magic, result, err := DecodeWireFormat(encoded)
-	assert.Nil(t, err)
+	result := test.module.Kafka.decodeWireFormat(encoded)
 	assert.Equal(t, decoded, result)
-	assert.Equal(t, magic, prefix)
 }
 
 // TestDecodeWireFormatFails tests the decoding of a wire-formatted message and
 // fails because the message is too short.
 func TestDecodeWireFormatFails(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	encoded := []byte{0, 1, 2, 3} // too short
 
-	_, result, err := DecodeWireFormat(encoded)
-	assert.Nil(t, result)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Invalid message: message too short to contain schema id.", err.Message)
-	assert.Equal(t, messageTooShort, err.Code)
-	assert.Nil(t, err.Unwrap())
+	defer func() {
+		err := recover()
+		assert.Equal(t,
+			err.(*goja.Object).ToString().String(),
+			"Invalid message: message too short to contain schema id.")
+	}()
+
+	test.module.Kafka.decodeWireFormat(encoded)
 }
 
 // TestEncodeWireFormat tests the encoding of a message and adding wire-format to it.
 func TestEncodeWireFormat(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	data := []byte{6}
 	schemaID := 5
 	encoded := []byte{0, 0, 0, 0, 5, 6}
 
-	result := EncodeWireFormat(data, schemaID)
+	result := test.module.Kafka.encodeWireFormat(data, schemaID)
 	assert.Equal(t, encoded, result)
 }
 
 // TestSchemaRegistryClient tests the creation of a SchemaRegistryClient instance
 // with the given configuration.
 func TestSchemaRegistryClient(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	srConfig := SchemaRegistryConfiguration{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
@@ -54,13 +61,15 @@ func TestSchemaRegistryClient(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
 // TestSchemaRegistryClientWithTLSConfig tests the creation of a SchemaRegistryClient instance
 // with the given configuration along with TLS configuration.
 func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	srConfig := SchemaRegistryConfiguration{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
@@ -73,13 +82,15 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 			ServerCaPem:   "fixtures/caroot.cer",
 		},
 	}
-	srClient := SchemaRegistryClientWithConfiguration(srConfig)
+	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
 // TestGetLatestSchemaFails tests getting the latest schema and fails because
 // the configuration is invalid.
 func TestGetLatestSchemaFails(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	srConfig := SchemaRegistryConfiguration{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
@@ -87,16 +98,21 @@ func TestGetLatestSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := SchemaRegistryClientWithConfiguration(srConfig)
-	schema, err := GetSchema(srClient, "test-subject", "test-schema", srclient.Avro, 0)
-	assert.Nil(t, schema)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Failed to get schema from schema registry", err.Message)
+	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	assert.Panics(t, func() {
+		schema := test.module.Kafka.getSchema(srClient, &Schema{
+			Subject: "test-subject",
+			Version: 0,
+		})
+		assert.Equal(t, schema, nil)
+	})
 }
 
 // TestGetSchemaFails tests getting the first version of the schema and fails because
 // the configuration is invalid.
 func TestGetSchemaFails(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	srConfig := SchemaRegistryConfiguration{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
@@ -104,16 +120,21 @@ func TestGetSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := SchemaRegistryClientWithConfiguration(srConfig)
-	schema, err := GetSchema(srClient, "test-subject", "test-schema", srclient.Avro, 1)
-	assert.Nil(t, schema)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Failed to get schema from schema registry", err.Message)
+	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	assert.Panics(t, func() {
+		schema := test.module.Kafka.getSchema(srClient, &Schema{
+			Subject: "test-subject",
+			Version: 0,
+		})
+		assert.Equal(t, schema, nil)
+	})
 }
 
 // TestCreateSchemaFails tests creating the schema and fails because the
 // configuration is invalid.
 func TestCreateSchemaFails(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	srConfig := SchemaRegistryConfiguration{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
@@ -121,82 +142,126 @@ func TestCreateSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := SchemaRegistryClientWithConfiguration(srConfig)
-	schema, err := CreateSchema(srClient, "test-subject", "test-schema", srclient.Avro)
-	assert.Nil(t, schema)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Failed to create schema.", err.Message)
+	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	assert.Panics(t, func() {
+		schema := test.module.Kafka.getSchema(srClient, &Schema{
+			Subject: "test-subject",
+			Version: 0,
+		})
+		assert.Equal(t, schema, nil)
+	})
 }
 
 func TestGetSubjectNameFailsIfInvalidSchema(t *testing.T) {
-	_, err := GetSubjectName(`Bad Schema`, "test-topic", Value, RecordNameStrategy)
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Message, "Failed to unmarshal schema")
+	test := getTestModuleInstance(t)
+
+	assert.Panics(t, func() {
+		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+			Schema:              `Bad Schema`,
+			Topic:               "test-topic",
+			SubjectNameStrategy: RecordNameStrategy,
+			Element:             Value,
+		})
+		assert.Equal(t, subjectName, "")
+	})
 }
 
 func TestGetSubjectNameFailsIfSubjectNameStrategyUnknown(t *testing.T) {
-	_, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, "Unknown")
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Message, "Unknown subject name strategy")
+	test := getTestModuleInstance(t)
+
+	assert.Panics(t, func() {
+		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+			Schema:              avroSchemaForSRTests,
+			Topic:               "test-topic",
+			SubjectNameStrategy: "Unknown",
+			Element:             Value,
+		})
+		assert.Equal(t, subjectName, "")
+	})
 }
 
 func TestGetSubjectNameCanUseDefaultSubjectNameStrategy(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	for _, element := range []Element{Key, Value} {
-		subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", element, "")
-		assert.Nil(t, err)
-		assert.Equal(t, "test-topic-"+string(element), subject)
+		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+			Schema:              avroSchemaForSRTests,
+			Topic:               "test-topic",
+			SubjectNameStrategy: "",
+			Element:             element,
+		})
+		assert.Equal(t, "test-topic-"+string(element), subjectName)
 	}
 }
 
 func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	for _, element := range []Element{Key, Value} {
-		subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", element, TopicNameStrategy)
-		assert.Nil(t, err)
-		assert.Equal(t, "test-topic-"+string(element), subject)
+		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+			Schema:              avroSchemaForSRTests,
+			Topic:               "test-topic",
+			SubjectNameStrategy: TopicNameStrategy,
+			Element:             element,
+		})
+		assert.Equal(t, "test-topic-"+string(element), subjectName)
 	}
 }
 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	avroSchema := `{
 		"type":"record",
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subject, err := GetSubjectName(avroSchema, "test-topic", Value, TopicRecordNameStrategy)
-	assert.Nil(t, err)
-	assert.Equal(t, "test-topic-com.example.person.Schema", subject)
+	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		Schema:              avroSchema,
+		Topic:               "test-topic",
+		SubjectNameStrategy: TopicRecordNameStrategy,
+		Element:             Value,
+	})
+	assert.Equal(t, "test-topic-com.example.person.Schema", subjectName)
 }
 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.T) {
-	subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, TopicRecordNameStrategy)
-	assert.Nil(t, err)
-	assert.Equal(t, "test-topic-Schema", subject)
+	test := getTestModuleInstance(t)
+
+	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		Schema:              avroSchemaForSRTests,
+		Topic:               "test-topic",
+		SubjectNameStrategy: TopicRecordNameStrategy,
+		Element:             Value,
+	})
+	assert.Equal(t, "test-topic-Schema", subjectName)
 }
 
 func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
-	subject, err := GetSubjectName(avroSchemaForSRTests, "test-topic", Value, RecordNameStrategy)
-	assert.Nil(t, err)
+	test := getTestModuleInstance(t)
+
+	subject := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		Schema:              avroSchemaForSRTests,
+		Topic:               "test-topic",
+		SubjectNameStrategy: RecordNameStrategy,
+		Element:             Value,
+	})
 	assert.Equal(t, "Schema", subject)
 }
 
 func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
+	test := getTestModuleInstance(t)
+
 	avroSchema := `{
 		"type":"record",
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subject, err := GetSubjectName(avroSchema, "test-topic", Value, RecordNameStrategy)
-	assert.Nil(t, err)
-	assert.Equal(t, "com.example.person.Schema", subject)
-}
-
-func TestDecodeWireRequiresMagicPrefixByte(t *testing.T) {
-	encoded := []byte{1, 1, 2, 3, 4} // too short
-
-	_, result, err := DecodeWireFormat(encoded)
-	assert.Nil(t, result)
-	assert.NotNil(t, err)
-	assert.Equal(t, "Invalid message: invalid start byte.", err.Message)
-	assert.Equal(t, messageTooShort, err.Code)
-	assert.Nil(t, err.Unwrap())
+	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		Schema:              avroSchema,
+		Topic:               "test-topic",
+		SubjectNameStrategy: RecordNameStrategy,
+		Element:             Value,
+	})
+	assert.Equal(t, "com.example.person.Schema", subjectName)
 }

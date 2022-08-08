@@ -122,6 +122,8 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	mustExport("Reader", moduleInstance.readerClass)
 	// The Connection is a constructor and must be called with new, e.g. new Connection(...).
 	mustExport("Connection", moduleInstance.connectionClass)
+	// The SchemaRegistry is a constructor and must be called with new, e.g. new SchemaRegistry(...).
+	mustExport("SchemaRegistry", moduleInstance.schemaRegistryClientClass)
 
 	// This causes the struct fields to be exported to the native (camelCases) JS code.
 	virtualUser.Runtime().SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
