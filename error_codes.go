@@ -17,20 +17,23 @@ const (
 	dialerError                 errCode = 1005
 	noTLSConfig                 errCode = 1006
 	failedTypeCast              errCode = 1007
+	unsupportedOperation        errCode = 1008
 
 	// serdes errors.
 	invalidDataType             errCode = 2000
 	failedDecodeFromWireFormat  errCode = 2001
 	failedCreateAvroCodec       errCode = 2002
-	failedEncodeToAvro          errCode = 2003
-	failedEncodeAvroToBinary    errCode = 2004
-	failedDecodeAvroFromBinary  errCode = 2005
+	failedToEncode              errCode = 2003
+	failedToEncodeToBinary      errCode = 2004
+	failedToDecodeFromBinary    errCode = 2005
 	failedCreateJSONSchemaCodec errCode = 2006
 	failedUnmarshalJSON         errCode = 2007
 	failedValidateJSON          errCode = 2008
 	failedEncodeToJSON          errCode = 2009
 	failedDecodeJSONFromBinary  errCode = 2010
-	failedToUnmarshalSchema     errCode = 2011
+	failedUnmarshalSchema       errCode = 2011
+	invalidSerdeType            errCode = 2012
+	failedDecodeBase64          errCode = 2013
 
 	// producer.
 	failedWriteMessage errCode = 3000
@@ -48,9 +51,11 @@ const (
 	failedAppendCaCertFile        errCode = 5004
 
 	// schema registry.
-	messageTooShort      errCode = 6000
-	schemaNotFound       errCode = 6001
-	schemaCreationFailed errCode = 6002
+	messageTooShort                     errCode = 6000
+	schemaNotFound                      errCode = 6001
+	schemaCreationFailed                errCode = 6002
+	failedGetSubjectName                errCode = 6003
+	failedConfigureSchemaRegistryClient errCode = 6004
 
 	// topics.
 	failedGetController  errCode = 7000
@@ -60,6 +65,9 @@ const (
 )
 
 var (
+	// ErrUnsupported is the error returned when the operation is not supported.
+	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
+
 	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
 	ErrForbiddenInInitContext = NewXk6KafkaError(
 		kafkaForbiddenInInitContext,
@@ -72,8 +80,23 @@ var (
 		"Invalid data type provided for serializer/deserializer",
 		nil)
 
+	// ErrInvalidSchema is used when a schema is not supported or is malformed.
+	ErrInvalidSchema = NewXk6KafkaError(failedUnmarshalSchema, "Failed to unmarshal schema", nil)
+
+	// ErrFailedTypeCast is used when a type cast failed.
+	ErrFailedTypeCast = NewXk6KafkaError(failedTypeCast, "Failed to cast type", nil)
+
+	// ErrUnknownSerdesType is used when a serdes type is not supported.
+	ErrUnknownSerdesType = NewXk6KafkaError(invalidSerdeType, "Unknown serdes type", nil)
+
 	// ErrNotEnoughArguments is used when a function is called with too few arguments.
 	ErrNotEnoughArguments = errors.New("not enough arguments")
+
+	// ErrNoSchemaRegistryClient is used when a schema registry client is not configured correctly.
+	ErrNoSchemaRegistryClient = NewXk6KafkaError(
+		failedConfigureSchemaRegistryClient,
+		"Failed to configure the schema registry client",
+		nil)
 
 	ErrInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
 )
