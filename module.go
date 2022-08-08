@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/dop251/goja"
+	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
@@ -64,11 +65,9 @@ func init() {
 
 type (
 	Kafka struct {
-		vu                   modules.VU
-		metrics              kafkaMetrics
-		serializerRegistry   *Serde[Serializer]
-		deserializerRegistry *Serde[Deserializer]
-		exports              *goja.Object
+		vu      modules.VU
+		metrics kafkaMetrics
+		exports *goja.Object
 	}
 	RootModule struct{}
 	Module     struct {
@@ -98,11 +97,9 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	// Create a new Kafka module.
 	moduleInstance := &Module{
 		Kafka: &Kafka{
-			vu:                   virtualUser,
-			metrics:              metrics,
-			serializerRegistry:   NewSerializersRegistry(),
-			deserializerRegistry: NewDeserializersRegistry(),
-			exports:              runtime.NewObject(),
+			vu:      virtualUser,
+			metrics: metrics,
+			exports: runtime.NewObject(),
 		},
 	}
 
@@ -187,20 +184,19 @@ func (m *Module) defineConstants() {
 	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", isolationLevelReadUncommitted)
 	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", isolationLevelReadCommitted)
 
-	// Serde types
-	mustAddProp("STRING_SERIALIZER", StringSerializer)
-	mustAddProp("STRING_DESERIALIZER", StringDeserializer)
-	mustAddProp("BYTE_ARRAY_SERIALIZER", ByteArraySerializer)
-	mustAddProp("BYTE_ARRAY_DESERIALIZER", ByteArrayDeserializer)
-	mustAddProp("JSON_SCHEMA_SERIALIZER", JSONSchemaSerializer)
-	mustAddProp("JSON_SCHEMA_DESERIALIZER", JSONSchemaDeserializer)
-	mustAddProp("AVRO_SERIALIZER", AvroSerializer)
-	mustAddProp("AVRO_DESERIALIZER", AvroDeserializer)
-	mustAddProp("PROTOBUF_SERIALIZER", ProtobufSerializer)
-	mustAddProp("PROTOBUF_DESERIALIZER", ProtobufDeserializer)
-
 	// TopicNameStrategy types
 	mustAddProp("TOPIC_NAME_STRATEGY", TopicNameStrategy)
 	mustAddProp("RECORD_NAME_STRATEGY", RecordNameStrategy)
 	mustAddProp("TOPIC_RECORD_NAME_STRATEGY", TopicRecordNameStrategy)
+
+	// Element types
+	mustAddProp("KEY", string(Key))
+	mustAddProp("VALUE", string(Value))
+
+	// Schema types
+	mustAddProp("SCHEMA_TYPE_STRING", String.String())
+	mustAddProp("SCHEMA_TYPE_BYTES", Bytes.String())
+	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro.String())
+	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json.String())
+	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf.String())
 }
