@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modulestest"
@@ -23,9 +24,9 @@ type kafkaTest struct {
 	cancelContext context.CancelFunc
 }
 
-// GetTestModuleInstance returns a new instance of the Kafka module for testing.
+// getTestModuleInstance returns a new instance of the Kafka module for testing.
 // nolint: golint,revive
-func GetTestModuleInstance(tb testing.TB) *kafkaTest {
+func getTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Helper()
 	runtime := goja.New()
 	runtime.SetFieldNameMapper(common.FieldNameMapper{})
@@ -77,8 +78,8 @@ func (k *kafkaTest) moveToVUCode() error {
 	return nil
 }
 
-// GetCounterMetricsValues returns the samples of the collected metrics in the VU.
-func (k *kafkaTest) GetCounterMetricsValues() map[string]float64 {
+// getCounterMetricsValues returns the samples of the collected metrics in the VU.
+func (k *kafkaTest) getCounterMetricsValues() map[string]float64 {
 	metricsValues := make(map[string]float64)
 
 	for _, sampleContainer := range metrics.GetBufferedSamples(k.samples) {
@@ -89,4 +90,53 @@ func (k *kafkaTest) GetCounterMetricsValues() map[string]float64 {
 		}
 	}
 	return metricsValues
+}
+
+// newWriter creates a Kafka writer for the reader tests.
+func (k *kafkaTest) newWriter(topicName string) *kafkago.Writer {
+	// Create a writer to produce messages.
+	return k.module.Kafka.writer(&WriterConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   topicName,
+	})
+}
+
+// newReader creates a Kafka reader for the reader tests.
+func (k *kafkaTest) newReader(topicName string) *kafkago.Reader {
+	// Create a reader to consume messages.
+	return k.module.Kafka.reader(&ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   topicName,
+	})
+}
+
+// createTopic creates a topic.
+func (k *kafkaTest) createTopic(topicName string) {
+	// Create a connection to Kafka.
+	connection := k.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
+		Address: "localhost:9092",
+	})
+	defer connection.Close()
+
+	// Create a topic.
+	k.module.Kafka.createTopic(connection, &kafkago.TopicConfig{Topic: topicName})
+}
+
+// topicExists checks if a topic exists.
+func (k *kafkaTest) topicExists(topicName string) bool {
+	// Create a connection to Kafka.
+	connection := k.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
+		Address: "localhost:9092",
+	})
+	defer connection.Close()
+
+	// Create a topic.
+	topics := k.module.Kafka.listTopics(connection)
+	for _, topic := range topics {
+		if topic == topicName {
+			return true
+		}
+	}
+
+	return false
 }
