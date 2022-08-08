@@ -195,7 +195,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -217,7 +217,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {

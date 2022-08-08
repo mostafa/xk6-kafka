@@ -109,7 +109,7 @@ func TestSerdes(t *testing.T) {
 		})
 		assert.Equal(t, 1, len(messages))
 
-		if value, ok := messages[0]["value"].(interface{}); ok {
+		if value, ok := messages[0]["value"].(map[string]interface{}); ok {
 			// Deserialize the key or value (removes the magic bytes).
 			deserialized := test.module.Kafka.deserialize(&Container{
 				Data:       value,

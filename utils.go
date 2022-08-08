@@ -3,7 +3,6 @@ package kafka
 import (
 	"encoding/base64"
 	"encoding/json"
-	"unicode/utf8"
 
 	"github.com/dop251/goja"
 )
@@ -60,8 +59,4 @@ func isJSON(data []byte) bool {
 		return true
 	}
 	return false
-}
-
-func isValidUTF8String(data []byte) bool {
-	return utf8.Valid(data)
 }
