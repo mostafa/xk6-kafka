@@ -27,7 +27,7 @@ type BasicAuth struct {
 	Password string `json:"password"`
 }
 
-type SchemaRegistryConfiguration struct {
+type SchemaRegistryConfig struct {
 	URL       string    `json:"url"`
 	BasicAuth BasicAuth `json:"basicAuth"`
 	TLS       TLSConfig `json:"tls"`
@@ -92,7 +92,7 @@ func (s *Schema) JsonSchema() *jsonschema.Schema {
 
 func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Object {
 	runtime := k.vu.Runtime()
-	var configuration *SchemaRegistryConfiguration
+	var configuration *SchemaRegistryConfig
 	var schemaRegistryClient *srclient.SchemaRegistryClient
 
 	if len(call.Arguments) == 1 {
@@ -239,7 +239,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 // schemaRegistryClient creates a schemaRegistryClient instance
 // with the given configuration. It will also configure auth and TLS credentials if exists.
 func (k *Kafka) schemaRegistryClient(
-	configuration *SchemaRegistryConfiguration) *srclient.SchemaRegistryClient {
+	configuration *SchemaRegistryConfig) *srclient.SchemaRegistryClient {
 	runtime := k.vu.Runtime()
 	var srClient *srclient.SchemaRegistryClient
 
@@ -322,7 +322,7 @@ func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Sche
 	}
 }
 
-// getSubjectName return the subject name strategy for the given schema and topic.
+// getSubjectName returns the subject name for the given schema and topic.
 func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 	if subjectNameConfig.SubjectNameStrategy == "" ||
 		subjectNameConfig.SubjectNameStrategy == TopicNameStrategy {

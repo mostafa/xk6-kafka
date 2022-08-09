@@ -54,7 +54,7 @@ func TestEncodeWireFormat(t *testing.T) {
 func TestSchemaRegistryClient(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	srConfig := SchemaRegistryConfiguration{
+	srConfig := SchemaRegistryConfig{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
@@ -70,7 +70,7 @@ func TestSchemaRegistryClient(t *testing.T) {
 func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	srConfig := SchemaRegistryConfiguration{
+	srConfig := SchemaRegistryConfig{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
@@ -91,7 +91,7 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 func TestGetLatestSchemaFails(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	srConfig := SchemaRegistryConfiguration{
+	srConfig := SchemaRegistryConfig{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
@@ -113,7 +113,7 @@ func TestGetLatestSchemaFails(t *testing.T) {
 func TestGetSchemaFails(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	srConfig := SchemaRegistryConfiguration{
+	srConfig := SchemaRegistryConfig{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
@@ -135,7 +135,7 @@ func TestGetSchemaFails(t *testing.T) {
 func TestCreateSchemaFails(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	srConfig := SchemaRegistryConfiguration{
+	srConfig := SchemaRegistryConfig{
 		URL: "http://localhost:8081",
 		BasicAuth: BasicAuth{
 			Username: "username",
