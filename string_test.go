@@ -1,0 +1,31 @@
+package kafka
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSerializeString(t *testing.T) {
+	stringSerde := &StringSerde{}
+	expected := []byte("test")
+	actual, err := stringSerde.Serialize("test", nil)
+	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestSerializeStringFails(t *testing.T) {
+	stringSerde := &StringSerde{}
+	actual, err := stringSerde.Serialize(1, nil)
+	assert.Nil(t, actual)
+	assert.NotNil(t, err)
+	assert.Equal(t, ErrInvalidDataType, err)
+}
+
+func TestDeserializeString(t *testing.T) {
+	stringSerde := &StringSerde{}
+	expected := "test"
+	actual, err := stringSerde.Deserialize([]byte("test"), nil)
+	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
+}
