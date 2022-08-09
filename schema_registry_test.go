@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
+	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var avroSchemaForSRTests = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
@@ -264,4 +266,103 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 		Element:             Value,
 	})
 	assert.Equal(t, "com.example.person.Schema", subjectName)
+}
+
+// TestSchemaRegistryClientClass tests the schema registry client class.
+func TestSchemaRegistryClientClass(t *testing.T) {
+	test := getTestModuleInstance(t)
+	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}]}`
+
+	require.NoError(t, test.moveToVUCode())
+	assert.NotPanics(t, func() {
+		// Create a schema registry client.
+		client := test.module.schemaRegistryClientClass(goja.ConstructorCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"url": "http://localhost:8081",
+					},
+				),
+			},
+		})
+		assert.NotNil(t, client)
+
+		// Create a schema and send it to the registry.
+		createSchema := client.Get("createSchema").Export().(func(goja.FunctionCall) goja.Value)
+		newSchema := createSchema(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"subject":    "test-subject",
+						"schema":     avroSchema,
+						"schemaType": srclient.Avro.String(),
+					},
+				),
+			},
+		}).Export().(*Schema)
+		assert.Equal(t, "test-subject", newSchema.Subject)
+		assert.Equal(t, 0, newSchema.Version)
+
+		// Get the latest version of the schema from the registry.
+		getSchema := client.Get("getSchema").Export().(func(goja.FunctionCall) goja.Value)
+		currentSchema := getSchema(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"subject": "test-subject",
+						"version": 0,
+					},
+				),
+			},
+		}).Export().(*Schema)
+		assert.Equal(t, "test-subject", currentSchema.Subject)
+		assert.Equal(t, 1, currentSchema.Version)
+		assert.Equal(t, avroSchema, currentSchema.Schema)
+
+		// Get the subject name based on the given subject name config.
+		getSubjectName := client.Get("getSubjectName").Export().(func(goja.FunctionCall) goja.Value)
+		subjectName := getSubjectName(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"schema":              avroSchema,
+						"topic":               "test-topic",
+						"subjectNameStrategy": TopicRecordNameStrategy,
+						"element":             Value,
+					},
+				),
+			},
+		}).Export().(string)
+		assert.Equal(t, "test-topic-com.example.person.Schema", subjectName)
+
+		// Serialize the given value to byte array.
+		serialize := client.Get("serialize").Export().(func(goja.FunctionCall) goja.Value)
+		serialized := serialize(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"data":       map[string]interface{}{"field": "value"},
+						"schema":     currentSchema,
+						"schemaType": srclient.Avro.String(),
+					},
+				),
+			},
+		}).Export().([]byte)
+		assert.NotNil(t, serialized)
+
+		// Deserialize the given byte array to the actual value.
+		deserialize := client.Get("deserialize").Export().(func(goja.FunctionCall) goja.Value)
+		deserialized := deserialize(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"data":       serialized,
+						"schema":     currentSchema,
+						"schemaType": srclient.Avro.String(),
+					},
+				),
+			},
+		}).Export().(map[string]interface{})
+		assert.Equal(t, "value", deserialized["field"])
+	})
 }
