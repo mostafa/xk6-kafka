@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestSerializeByteArray tests the serialization of a byte array.
 func TestSerializeByteArray(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	expected := []byte{1, 2, 3}
@@ -14,6 +15,7 @@ func TestSerializeByteArray(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+// TestSerializeInterfaceArray tests the serialization of an interface array.
 func TestSerializeInterfaceArray(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	expected := []byte{0x41, 0x42, 0x43}
@@ -22,6 +24,8 @@ func TestSerializeInterfaceArray(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+// TestSerializeInterfaceArrayFails tests the serialization of an interface array
+// and fails on mixed data type.
 func TestSerializeInterfaceArrayFails(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	actual, err := byteArraySerde.Serialize([]interface{}{65.0, 66.0, "a"}, nil)
@@ -30,6 +34,8 @@ func TestSerializeInterfaceArrayFails(t *testing.T) {
 	assert.Equal(t, ErrFailedTypeCast, err)
 }
 
+// TestSerializeByteArrayFails tests the serialization of a byte array
+// and fails on invalid data type.
 func TestSerializeByteArrayFails(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	actual, err := byteArraySerde.Serialize(1, nil)
@@ -38,6 +44,7 @@ func TestSerializeByteArrayFails(t *testing.T) {
 	assert.Equal(t, ErrInvalidDataType, err)
 }
 
+// TestDeserializeByteArray tests the deserialization of a byte array.
 func TestDeserializeByteArray(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	expected := []byte{1, 2, 3}
