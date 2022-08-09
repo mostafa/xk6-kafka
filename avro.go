@@ -4,6 +4,7 @@ type AvroSerde struct {
 	Serdes
 }
 
+// Serialize serializes a JSON object into Avro binary.
 func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
 	jsonBytes, err := toJSONBytes(data)
 	if err != nil {
@@ -25,6 +26,7 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 	return bytesData, nil
 }
 
+// Deserialize deserializes a Avro binary into a JSON object.
 func (*AvroSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
 	decodedData, _, err := schema.Codec().NativeFromBinary(data)
 	if err != nil {
