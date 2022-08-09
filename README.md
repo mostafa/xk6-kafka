@@ -127,7 +127,7 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/docs/README.md).
+All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
 
 > ⚠️ **Warning:**
 > The Javascript API is subject to change in future versions unless a new major version is released.
