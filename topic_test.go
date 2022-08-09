@@ -3,6 +3,7 @@ package kafka
 import (
 	"testing"
 
+	"github.com/dop251/goja"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,5 +58,63 @@ func TestTopics(t *testing.T) {
 		assert.NotContains(t, topics, topic)
 
 		connection.Close()
+	})
+}
+
+// TestConnectionClass tests the connection class that is exported to JS.
+func TestConnectionClass(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	require.NoError(t, test.moveToVUCode())
+	assert.NotPanics(t, func() {
+		// Create a connection
+		connection := test.module.Kafka.connectionClass(goja.ConstructorCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"url": "localhost:9092",
+					},
+				),
+			},
+		})
+		assert.NotNil(t, connection)
+
+		// Create a topic
+		createTopic := connection.Get("createTopic").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, createTopic)
+		result := createTopic(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"topic": "test-connection-class",
+					},
+				),
+			},
+		}).Export()
+		assert.Nil(t, result)
+
+		// List all topics
+		listTopics := connection.Get("listTopics").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, listTopics)
+		allTopics := listTopics(goja.FunctionCall{}).Export().([]string)
+		assert.Contains(t, allTopics, "test-connection-class")
+
+		// Delete the topic
+		deleteTopic := connection.Get("deleteTopic").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, deleteTopic)
+		result = deleteTopic(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue("test-connection-class"),
+			},
+		}).Export()
+		assert.Nil(t, result)
+		allTopics = listTopics(goja.FunctionCall{}).Export().([]string)
+		assert.NotContains(t, allTopics, "test-connection-class")
+
+		// Close the connection
+		close := connection.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, close)
+		result = close(goja.FunctionCall{}).Export()
+		assert.Nil(t, result)
 	})
 }
