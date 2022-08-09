@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestSerializeAvro serializes a JSON object into Avro binary.
 func TestSerializeAvro(t *testing.T) {
 	avroSerde := &AvroSerde{}
 	expected := []byte{0x0a, 0x76, 0x61, 0x6c, 0x75, 0x65}
@@ -24,6 +25,8 @@ func TestSerializeAvro(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+// TestSerializeAvroFailsOnInvalidDataType tests the serialization of a JSON object
+// into Avro binary and fails on invalid data type.
 func TestSerializeAvroFailsOnInvalidDataType(t *testing.T) {
 	avroSerde := &AvroSerde{}
 	schema := &Schema{
@@ -42,7 +45,9 @@ func TestSerializeAvroFailsOnInvalidDataType(t *testing.T) {
 	assert.Equal(t, ErrInvalidDataType, err)
 }
 
-func TestSerializeAvroFailsOnInvalidFormat(t *testing.T) {
+// TestSerializeAvroFailsOnValidation tests the serialization of a JSON object
+// into Avro binary and fails on schema validation error.
+func TestSerializeAvroFailsOnValidation(t *testing.T) {
 	avroSerde := &AvroSerde{}
 	schema := &Schema{
 		ID: 2,
@@ -61,7 +66,8 @@ func TestSerializeAvroFailsOnInvalidFormat(t *testing.T) {
 	assert.Equal(t, failedToEncode, err.Code)
 }
 
-func TestDeserialize(t *testing.T) {
+// TestDeserializeAvro tests the deserialization of a JSON object from Avro binary.
+func TestDeserializeAvro(t *testing.T) {
 	avroSerde := &AvroSerde{}
 	schema := &Schema{
 		ID: 2,
@@ -79,6 +85,8 @@ func TestDeserialize(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+// TestDeserializeFailsOnDecodingBinary tests the deserialization of a JSON object
+// from Avro binary and fails on decoding the received binary (invalid data).
 func TestDeserializeFailsOnDecodingBinary(t *testing.T) {
 	avroSerde := &AvroSerde{}
 	schema := &Schema{
