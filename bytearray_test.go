@@ -6,32 +6,49 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	originalData string = "test"
-)
-
-// TestSerializeByteArray tests the serialization of a byte array into binary.
+// TestSerializeByteArray tests the serialization of a byte array.
 func TestSerializeByteArray(t *testing.T) {
-	var data float64 = 98
-	originalData := []interface{}{data}
-	result, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
+	byteArraySerde := &ByteArraySerde{}
+	expected := []byte{1, 2, 3}
+	actual, err := byteArraySerde.Serialize([]byte{1, 2, 3}, nil)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte{0x62}, result)
+	assert.Equal(t, expected, actual)
 }
 
-// TestSerializeByteArrayFails tests the serialization of a byte array into binary and fails
-// on invalid data type.
-func TestSerializeByteArrayFails(t *testing.T) {
-	_, err := SerializeByteArray(Configuration{}, "", originalData, "", "", 0)
+// TestSerializeInterfaceArray tests the serialization of an interface array.
+func TestSerializeInterfaceArray(t *testing.T) {
+	byteArraySerde := &ByteArraySerde{}
+	expected := []byte{0x41, 0x42, 0x43}
+	actual, err := byteArraySerde.Serialize([]interface{}{65.0, 66.0, 67.0}, nil)
+	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+// TestSerializeInterfaceArrayFails tests the serialization of an interface array
+// and fails on mixed data type.
+func TestSerializeInterfaceArrayFails(t *testing.T) {
+	byteArraySerde := &ByteArraySerde{}
+	actual, err := byteArraySerde.Serialize([]interface{}{65.0, 66.0, "a"}, nil)
+	assert.Nil(t, actual)
 	assert.NotNil(t, err)
-	assert.Equal(t, err.Message, "Invalid data type provided for serializer/deserializer")
-	assert.Equal(t, err.Code, invalidDataType)
+	assert.Equal(t, ErrFailedTypeCast, err)
 }
 
-// TestDeserializeByteArray tests the deserialization of a byte array into binary.
+// TestSerializeByteArrayFails tests the serialization of a byte array
+// and fails on invalid data type.
+func TestSerializeByteArrayFails(t *testing.T) {
+	byteArraySerde := &ByteArraySerde{}
+	actual, err := byteArraySerde.Serialize(1, nil)
+	assert.Nil(t, actual)
+	assert.NotNil(t, err)
+	assert.Equal(t, ErrInvalidDataType, err)
+}
+
+// TestDeserializeByteArray tests the deserialization of a byte array.
 func TestDeserializeByteArray(t *testing.T) {
-	originalData := []byte{1, 2, 3}
-	result, err := DeserializeByteArray(Configuration{}, "", originalData, "", "", 0)
-	assert.Equal(t, []byte{1, 2, 3}, result)
+	byteArraySerde := &ByteArraySerde{}
+	expected := []byte{1, 2, 3}
+	actual, err := byteArraySerde.Deserialize([]byte{1, 2, 3}, nil)
 	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
 }

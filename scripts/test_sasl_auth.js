@@ -7,7 +7,15 @@ also uses SASL authentication.
 */
 
 import { check } from "k6";
-import { Writer, Reader, Connection, SASL_PLAIN, TLS_1_2 } from "k6/x/kafka"; // import kafka extension
+import {
+    Writer,
+    Reader,
+    Connection,
+    SchemaRegistry,
+    SCHEMA_TYPE_JSON,
+    SASL_PLAIN,
+    TLS_1_2,
+} from "k6/x/kafka"; // import kafka extension
 
 export const options = {
     // This is used for testing purposes. For real-world use, you should use your own options:
@@ -58,7 +66,7 @@ const tlsConfig = {
 };
 
 const offset = 0;
-// partition and groupID are mutually exclusive
+// partition and groupId are mutually exclusive
 const partition = 0;
 const numPartitions = 1;
 const replicationFactor = 1;
@@ -73,7 +81,6 @@ const reader = new Reader({
     brokers: brokers,
     topic: topic,
     partition: partition,
-    groupID: groupID,
     offset: offset,
     sasl: saslConfig,
     tls: tlsConfig,
@@ -83,6 +90,7 @@ const connection = new Connection({
     sasl: saslConfig,
     tls: tlsConfig,
 });
+const schemaRegistry = new SchemaRegistry();
 
 if (__VU == 0) {
     connection.createTopic({
@@ -97,29 +105,31 @@ export default function () {
     for (let index = 0; index < 100; index++) {
         let messages = [
             {
-                key: JSON.stringify({
-                    correlationId: "test-id-abc-" + index,
+                key: schemaRegistry.serialize({
+                    data: {
+                        correlationId: "test-id-abc-" + index,
+                    },
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
-                value: JSON.stringify({
-                    name: "xk6-kafka",
-                    version: "0.2.1",
-                    author: "Mostafa Moradian",
-                    description:
-                        "k6 extension to load test Apache Kafka with support for Avro messages",
-                    index: index,
+                value: schemaRegistry.serialize({
+                    data: {
+                        name: "xk6-kafka",
+                    },
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
             },
             {
-                key: JSON.stringify({
-                    correlationId: "test-id-def-" + index,
+                key: schemaRegistry.serialize({
+                    data: {
+                        correlationId: "test-id-def-" + index,
+                    },
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
-                value: JSON.stringify({
-                    name: "xk6-kafka",
-                    version: "0.2.1",
-                    author: "Mostafa Moradian",
-                    description:
-                        "k6 extension to load test Apache Kafka with support for Avro messages",
-                    index: index,
+                value: schemaRegistry.serialize({
+                    data: {
+                        name: "xk6-kafka",
+                    },
+                    schemaType: SCHEMA_TYPE_JSON,
                 }),
             },
         ];
@@ -131,6 +141,13 @@ export default function () {
     let messages = reader.consume({ limit: 10 });
     check(messages, {
         "10 messages returned": (msgs) => msgs.length == 10,
+        "key is correct": (msgs) =>
+            schemaRegistry
+                .deserialize({ data: msgs[0].key, schemaType: SCHEMA_TYPE_JSON })
+                .correlationId.startsWith("test-id-"),
+        "value is correct": (msgs) =>
+            schemaRegistry.deserialize({ data: msgs[0].value, schemaType: SCHEMA_TYPE_JSON })
+                .name == "xk6-kafka",
     });
 }
 

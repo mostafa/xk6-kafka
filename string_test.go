@@ -8,24 +8,28 @@ import (
 
 // TestSerializeString tests the serialization of a string.
 func TestSerializeString(t *testing.T) {
-	result, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
+	stringSerde := &StringSerde{}
+	expected := []byte("test")
+	actual, err := stringSerde.Serialize("test", nil)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(originalData), result)
+	assert.Equal(t, expected, actual)
 }
 
-// TestSerializeStringFails tests the serialization of a string and
-// fails if the given type is not string.
+// TestSerializeStringFails tests the serialization of a string
+// and fails on invalid data type.
 func TestSerializeStringFails(t *testing.T) {
-	originalData := 123
-	_, err := SerializeString(Configuration{}, "", originalData, "", "", 0)
-	assert.EqualErrorf(
-		t, err, "Invalid data type provided for serializer/deserializer",
-		"Expected error message is correct")
+	stringSerde := &StringSerde{}
+	actual, err := stringSerde.Serialize(1, nil)
+	assert.Nil(t, actual)
+	assert.NotNil(t, err)
+	assert.Equal(t, ErrInvalidDataType, err)
 }
 
 // TestDeserializeString tests the deserialization of a string.
 func TestDeserializeString(t *testing.T) {
-	result, err := DeserializeString(Configuration{}, "", []byte(originalData), "", "", 0)
-	assert.Equal(t, originalData, result)
+	stringSerde := &StringSerde{}
+	expected := "test"
+	actual, err := stringSerde.Deserialize([]byte("test"), nil)
 	assert.Nil(t, err)
+	assert.Equal(t, expected, actual)
 }

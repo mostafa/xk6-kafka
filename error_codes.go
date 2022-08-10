@@ -17,49 +17,49 @@ const (
 	dialerError                 errCode = 1005
 	noTLSConfig                 errCode = 1006
 	failedTypeCast              errCode = 1007
+	unsupportedOperation        errCode = 1008
 
 	// serdes errors.
-	invalidDataType             errCode = 2000
-	failedDecodeFromWireFormat  errCode = 2001
-	failedCreateAvroCodec       errCode = 2002
-	failedEncodeToAvro          errCode = 2003
-	failedEncodeAvroToBinary    errCode = 2004
-	failedDecodeAvroFromBinary  errCode = 2005
-	failedCreateJSONSchemaCodec errCode = 2006
-	failedUnmarshalJSON         errCode = 2007
-	failedValidateJSON          errCode = 2008
-	failedEncodeToJSON          errCode = 2009
-	failedDecodeJSONFromBinary  errCode = 2010
-	failedToUnmarshalSchema     errCode = 2011
-
-	// producer.
-	failedWriteMessage errCode = 3000
+	invalidDataType            errCode = 2000
+	failedToEncode             errCode = 2001
+	failedToEncodeToBinary     errCode = 2002
+	failedToDecodeFromBinary   errCode = 2003
+	failedUnmarshalJSON        errCode = 2004
+	failedValidateJSON         errCode = 2005
+	failedDecodeJSONFromBinary errCode = 2006
+	failedUnmarshalSchema      errCode = 2007
+	invalidSerdeType           errCode = 2008
+	failedDecodeBase64         errCode = 2009
 
 	// consumer.
-	failedSetOffset   errCode = 4000
-	failedReadMessage errCode = 4001
-	noMoreMessages    errCode = 4002
+	failedSetOffset   errCode = 3000
+	failedReadMessage errCode = 3001
+	noMoreMessages    errCode = 3002
 
 	// authentication.
-	failedCreateDialerWithScram   errCode = 5000
-	failedCreateDialerWithSaslSSL errCode = 5001
-	failedLoadX509KeyPair         errCode = 5002
-	failedReadCaCertFile          errCode = 5003
-	failedAppendCaCertFile        errCode = 5004
+	failedCreateDialerWithScram   errCode = 4000
+	failedCreateDialerWithSaslSSL errCode = 4001
+	failedLoadX509KeyPair         errCode = 4002
+	failedReadCaCertFile          errCode = 4003
+	failedAppendCaCertFile        errCode = 4004
 
 	// schema registry.
-	messageTooShort      errCode = 6000
-	schemaNotFound       errCode = 6001
-	schemaCreationFailed errCode = 6002
+	messageTooShort                     errCode = 5000
+	schemaNotFound                      errCode = 5001
+	schemaCreationFailed                errCode = 5002
+	failedConfigureSchemaRegistryClient errCode = 5003
 
 	// topics.
-	failedGetController  errCode = 7000
-	failedCreateTopic    errCode = 7001
-	failedDeleteTopic    errCode = 7002
-	failedReadPartitions errCode = 7003
+	failedGetController  errCode = 6000
+	failedCreateTopic    errCode = 6001
+	failedDeleteTopic    errCode = 6002
+	failedReadPartitions errCode = 6003
 )
 
 var (
+	// ErrUnsupported is the error returned when the operation is not supported.
+	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
+
 	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
 	ErrForbiddenInInitContext = NewXk6KafkaError(
 		kafkaForbiddenInInitContext,
@@ -72,8 +72,23 @@ var (
 		"Invalid data type provided for serializer/deserializer",
 		nil)
 
+	// ErrInvalidSchema is used when a schema is not supported or is malformed.
+	ErrInvalidSchema = NewXk6KafkaError(failedUnmarshalSchema, "Failed to unmarshal schema", nil)
+
+	// ErrFailedTypeCast is used when a type cast failed.
+	ErrFailedTypeCast = NewXk6KafkaError(failedTypeCast, "Failed to cast type", nil)
+
+	// ErrUnknownSerdesType is used when a serdes type is not supported.
+	ErrUnknownSerdesType = NewXk6KafkaError(invalidSerdeType, "Unknown serdes type", nil)
+
 	// ErrNotEnoughArguments is used when a function is called with too few arguments.
 	ErrNotEnoughArguments = errors.New("not enough arguments")
+
+	// ErrNoSchemaRegistryClient is used when a schema registry client is not configured correctly.
+	ErrNoSchemaRegistryClient = NewXk6KafkaError(
+		failedConfigureSchemaRegistryClient,
+		"Failed to configure the schema registry client",
+		nil)
 
 	ErrInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
 )
