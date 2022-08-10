@@ -14,9 +14,9 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 
 ## Supported Features
 
-- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [stringified JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) format
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) key and value schemas in the script
-- Authentication with [SASL PLAIN and SCRAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
+- Authentication with [SASL PLAIN, SCRAM and SSL](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
 - Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
@@ -143,7 +143,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
     import * as kafka from "k6/x/kafka";
 
     // Or individual classes and constants
-    import { Writer, Reader, Connection, SOME_CONSTANT } from "k6/x/kafka";
+    import { Writer, Reader, Connection, SchemaRegistry, SCHEMA_TYPE_STRING } from "k6/x/kafka";
     ```
 
 2. You need to instantiate the classes in the `init` context. All the [k6 options](https://k6.io/docs/using-k6/k6-options/) are also configured here:
@@ -166,6 +166,10 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         // ConnectionConfig object
         address: "localhost:9092",
     });
+
+    const schemaRegistry = new SchemaRegistry(
+        // Can accept a SchemaRegistryConfig object
+    )
 
     if (__VU == 0) {
         // Create a topic on initialization (before producing messages)
@@ -190,8 +194,14 @@ The example scripts are available as `test_<format/feature>.js` with more code a
             messages: [
                 // Message object(s)
                 {
-                    key: "my-key",
-                    value: "my-value",
+                    key: schemaRegistry.serialize({
+                        data: "my-key",
+                        schemaType: SCHEMA_TYPE_STRING,
+                    }),
+                    value: schemaRegistry.serialize({
+                        data: "my-value",
+                        schemaType: SCHEMA_TYPE_STRING,
+                    }),
                 },
             ],
         });
@@ -203,10 +213,18 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         });
 
         // your messages
-        console.log(message);
+        console.log(messages);
 
         // You can use checks to verify the contents,
         // length and other properties of the message(s)
+
+        // To serialize the data back into a string, you should use
+        // the deserialize method of the Schema Registry client. You
+        // can use it inside a check, as shown in the example scripts.
+        let deserializedValue = schemaRegistry.deserialize({
+            data: messages[0].value,
+            schemaType: SCHEMA_TYPE_STRING,
+        })
     }
     ```
 
@@ -234,11 +252,11 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
     ```bash
 
-              /\      |‾‾| /‾‾/   /‾‾/
-         /\  /  \     |  |/  /   /  /
-        /  \/    \    |     (   /   ‾‾\
-       /          \   |  |\  \ |  (‾)  |
-      / __________ \  |__| \__\ \_____/ .io
+            /\      |‾‾| /‾‾/   /‾‾/
+       /\  /  \     |  |/  /   /  /
+      /  \/    \    |     (   /   ‾‾\
+     /          \   |  |\  \ |  (‾)  |
+    / __________ \  |__| \__\ \_____/ .io
 
     execution: local
         script: scripts/test_json.js
@@ -248,13 +266,13 @@ The example scripts are available as `test_<format/feature>.js` with more code a
             * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
 
 
-    running (1m00.2s), 00/50 VUs, 13778 complete and 0 interrupted iterations
+    running (1m04.4s), 00/50 VUs, 20170 complete and 0 interrupted iterations
     default ✓ [======================================] 50 VUs  1m0s
 
         ✓ 10 messages are received
         ✓ Topic equals to xk6_kafka_json_topic
-        ✓ Key is correct
-        ✓ Value is correct
+        ✓ Key contains key/value and is JSON
+        ✓ Value contains key/value and is JSON
         ✓ Header equals {'mykey': 'myvalue'}
         ✓ Time is past
         ✓ Partition is zero
@@ -263,47 +281,47 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
         █ teardown
 
-        checks.........................: 100.00% ✓ 124002       ✗ 0
+        checks.........................: 100.00% ✓ 181530       ✗ 0
         data_received..................: 0 B     0 B/s
         data_sent......................: 0 B     0 B/s
-        iteration_duration.............: avg=217.98ms min=26.64ms med=216.88ms max=357.64ms p(90)=244.95ms p(95)=254.86ms
-        iterations.....................: 13778   229.051752/s
-        kafka.reader.dial.count........: 50      0.831223/s
-        kafka.reader.dial.seconds......: avg=4.76µs   min=0s      med=0s       max=2.22ms   p(90)=0s       p(95)=0s
+        iteration_duration.............: avg=153.45ms min=6.01ms med=26.8ms  max=8.14s   p(90)=156.3ms p(95)=206.4ms
+        iterations.....................: 20170   313.068545/s
+        kafka.reader.dial.count........: 50      0.776075/s
+        kafka.reader.dial.seconds......: avg=171.22µs min=0s     med=0s      max=1.09s   p(90)=0s      p(95)=0s
      ✓ kafka.reader.error.count.......: 0       0/s
         kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
         kafka.reader.fetch_bytes.min...: 1       min=1          max=1
         kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
-        kafka.reader.fetch.bytes.......: 0 B     0 B/s
-        kafka.reader.fetch.size........: 0       0/s
-        kafka.reader.fetches.count.....: 50      0.831223/s
-        kafka.reader.lag...............: 7457    min=5736       max=14370
-        kafka.reader.message.bytes.....: 27 MB   450 kB/s
-        kafka.reader.message.count.....: 137830  2291.348744/s
-        kafka.reader.offset............: 2740    min=11         max=2810
+        kafka.reader.fetch.bytes.......: 58 MB   897 kB/s
+        kafka.reader.fetch.size........: 147167  2284.25179/s
+        kafka.reader.fetches.count.....: 107     1.6608/s
+        kafka.reader.lag...............: 1519055 min=0          max=2436190
+        kafka.reader.message.bytes.....: 40 MB   615 kB/s
+        kafka.reader.message.count.....: 201749  3131.446006/s
+        kafka.reader.offset............: 4130    min=11         max=5130
         kafka.reader.queue.capacity....: 1       min=1          max=1
         kafka.reader.queue.length......: 1       min=0          max=1
-        kafka.reader.read.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
+        kafka.reader.read.seconds......: avg=96.5ms   min=0s     med=0s      max=59.37s  p(90)=0s      p(95)=0s
         kafka.reader.rebalance.count...: 0       0/s
-        kafka.reader.timeouts.count....: 0       0/s
-        kafka.reader.wait.seconds......: avg=7.44µs   min=0s      med=0s       max=3.17ms   p(90)=0s       p(95)=0s
-        kafka.writer.acks.required.....: -1      min=-1         max=0
-        kafka.writer.async.............: 0.00%   ✓ 0            ✗ 1377800
+        kafka.reader.timeouts.count....: 57      0.884725/s
+        kafka.reader.wait.seconds......: avg=102.71µs min=0s     med=0s      max=85.71ms p(90)=0s      p(95)=0s
+        kafka.writer.acks.required.....: 0       min=0          max=0
+        kafka.writer.async.............: 0.00%   ✓ 0            ✗ 2017000
         kafka.writer.attempts.max......: 0       min=0          max=0
-        kafka.writer.batch.bytes.......: 302 MB  5.0 MB/s
+        kafka.writer.batch.bytes.......: 441 MB  6.8 MB/s
         kafka.writer.batch.max.........: 1       min=1          max=1
-        kafka.writer.batch.size........: 1377800 22905.17521/s
+        kafka.writer.batch.size........: 2017000 31306.854525/s
         kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
-     ✓ kafka.writer.error.count.......: 0       0/s
-        kafka.writer.message.bytes.....: 603 MB  10 MB/s
-        kafka.writer.message.count.....: 2755600 45810.350421/s
+      ✓ kafka.writer.error.count.......: 0       0/s
+        kafka.writer.message.bytes.....: 883 MB  14 MB/s
+        kafka.writer.message.count.....: 4034000 62613.709051/s
         kafka.writer.read.timeout......: 0s      min=0s         max=0s
         kafka.writer.retries.count.....: 0       0/s
-        kafka.writer.wait.seconds......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s
-        kafka.writer.write.count.......: 2755600 45810.350421/s
-        kafka.writer.write.seconds.....: avg=1.02ms   min=79.29µs med=893.09µs max=24.26ms  p(90)=1.22ms   p(95)=1.74ms
+        kafka.writer.wait.seconds......: avg=0s       min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+        kafka.writer.write.count.......: 4034000 62613.709051/s
+        kafka.writer.write.seconds.....: avg=523.21µs min=4.84µs med=14.48µs max=4.05s   p(90)=33.85µs p(95)=42.68µs
         kafka.writer.write.timeout.....: 0s      min=0s         max=0s
-        vus............................: 50      min=50         max=50
+        vus............................: 7       min=7          max=50
         vus_max........................: 50      min=50         max=50
     ```
 
@@ -325,6 +343,8 @@ $ docker exec -it lensesio bash
 
 > **Note:**
 > If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
+
+Also, if the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
 ## Contributions, Issues and Feedback
 
