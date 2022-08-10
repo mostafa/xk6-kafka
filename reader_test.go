@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/dop251/goja"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -198,7 +199,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 		})
 	})
 
-	// Check if one message was consumed.
+	// Check if no message was consumed.
 	metricsValues := test.getCounterMetricsValues()
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderDials.Name])
 	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
@@ -254,5 +255,88 @@ func TestConsumeJSON(t *testing.T) {
 				assert.Equal(t, "value", data["field"])
 			}
 		})
+
+		// Check if one message was consumed.
+		metricsValues := test.getCounterMetricsValues()
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
+		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
+		assert.Equal(t, 17.0, metricsValues[test.module.metrics.ReaderBytes.Name])
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderMessages.Name])
+		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
+	})
+}
+
+func TestReaderClass(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	require.NoError(t, test.moveToVUCode())
+	test.createTopic("test-reader-class")
+	writer := test.newWriter("test-reader-class")
+	defer writer.Close()
+
+	test.module.Kafka.produce(writer, &ProduceConfig{
+		Messages: []Message{
+			{
+				Key: test.module.Kafka.serialize(&Container{
+					Data:       "key",
+					SchemaType: String.String(),
+				}),
+				Value: test.module.Kafka.serialize(&Container{
+					Data:       "value",
+					SchemaType: String.String(),
+				}),
+			},
+		},
+	})
+
+	assert.NotPanics(t, func() {
+		reader := test.module.readerClass(goja.ConstructorCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"brokers": []string{"localhost:9092"},
+						"topic":   "test-writer-class",
+					},
+				),
+			},
+		})
+		assert.NotNil(t, reader)
+
+		consume := reader.Get("consume").Export().(func(goja.FunctionCall) goja.Value)
+		messages := consume(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"limit": 1,
+					},
+				),
+			},
+		}).Export().([]map[string]interface{})
+		assert.Equal(t, 1, len(messages))
+		deserializedKey := test.module.Kafka.deserialize(&Container{
+			Data:       messages[0]["key"],
+			SchemaType: String.String(),
+		})
+		assert.Equal(t, "key", deserializedKey)
+		deserializedValue := test.module.Kafka.deserialize(&Container{
+			Data:       messages[0]["value"],
+			SchemaType: String.String(),
+		})
+		assert.Equal(t, "value", deserializedValue)
+
+		// Close the reader.
+		close := reader.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, close)
+		result := close(goja.FunctionCall{}).Export()
+		assert.Nil(t, result)
+
+		// Check if one message was consumed.
+		metricsValues := test.getCounterMetricsValues()
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
+		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
+		assert.Equal(t, 16.0, metricsValues[test.module.metrics.ReaderBytes.Name])
+		// TODO: This is a bug in the reader. The reader should not consume more than one message.
+		assert.Equal(t, 2.0, metricsValues[test.module.metrics.ReaderMessages.Name])
+		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 	})
 }
