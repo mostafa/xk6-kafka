@@ -28,10 +28,10 @@ type BasicAuth struct {
 }
 
 type SchemaRegistryConfig struct {
-	CachingEnabled bool      `json:"cachingEnabled"`
-	URL            string    `json:"url"`
-	BasicAuth      BasicAuth `json:"basicAuth"`
-	TLS            TLSConfig `json:"tls"`
+	EnableCaching bool      `json:"enableCaching"`
+	URL           string    `json:"url"`
+	BasicAuth     BasicAuth `json:"basicAuth"`
+	TLS           TLSConfig `json:"tls"`
 }
 
 const (
@@ -43,15 +43,15 @@ const (
 // Schema is a wrapper around the schema registry schema.
 // The Codec() and JsonSchema() methods will return the respective codecs (duck-typing).
 type Schema struct {
-	CachingEnabled bool                 `json:"cachingEnabled"`
-	ID             int                  `json:"id"`
-	Schema         string               `json:"schema"`
-	SchemaType     *srclient.SchemaType `json:"schemaType"`
-	Version        int                  `json:"version"`
-	References     []srclient.Reference `json:"references"`
-	Subject        string               `json:"subject"`
-	codec          *goavro.Codec
-	jsonSchema     *jsonschema.Schema
+	EnableCaching bool                 `json:"enableCaching"`
+	ID            int                  `json:"id"`
+	Schema        string               `json:"schema"`
+	SchemaType    *srclient.SchemaType `json:"schemaType"`
+	Version       int                  `json:"version"`
+	References    []srclient.Reference `json:"references"`
+	Subject       string               `json:"subject"`
+	codec         *goavro.Codec
+	jsonSchema    *jsonschema.Schema
 }
 
 type SubjectNameConfig struct {
@@ -269,7 +269,7 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 
 	// The default value for a boolean is false, so the caching
 	// feature of the srclient package will be disabled.
-	srClient.CachingEnabled(config.CachingEnabled)
+	srClient.CachingEnabled(config.EnableCaching)
 
 	return srClient
 }
@@ -277,7 +277,7 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 // getSchema returns the schema for the given subject and schema ID and version.
 func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
 	// If EnableCache is set, check if the schema is in the cache.
-	if schema.CachingEnabled {
+	if schema.EnableCaching {
 		if schema, ok := k.schemaCache[schema.Subject]; ok {
 			return schema
 		}
@@ -297,16 +297,16 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 
 	if err == nil {
 		wrappedSchema := &Schema{
-			CachingEnabled: schema.CachingEnabled,
-			ID:             schemaInfo.ID(),
-			Version:        schemaInfo.Version(),
-			Schema:         schemaInfo.Schema(),
-			SchemaType:     schemaInfo.SchemaType(),
-			References:     schemaInfo.References(),
-			Subject:        schema.Subject,
+			EnableCaching: schema.EnableCaching,
+			ID:            schemaInfo.ID(),
+			Version:       schemaInfo.Version(),
+			Schema:        schemaInfo.Schema(),
+			SchemaType:    schemaInfo.SchemaType(),
+			References:    schemaInfo.References(),
+			Subject:       schema.Subject,
 		}
 		// If the Cache is set, cache the schema.
-		if wrappedSchema.CachingEnabled {
+		if wrappedSchema.EnableCaching {
 			k.schemaCache[wrappedSchema.Subject] = wrappedSchema
 		}
 		return wrappedSchema
@@ -332,15 +332,15 @@ func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Sche
 	}
 
 	wrappedSchema := &Schema{
-		CachingEnabled: schema.CachingEnabled,
-		ID:             schemaInfo.ID(),
-		Version:        schemaInfo.Version(),
-		Schema:         schemaInfo.Schema(),
-		SchemaType:     schemaInfo.SchemaType(),
-		References:     schemaInfo.References(),
-		Subject:        schema.Subject,
+		EnableCaching: schema.EnableCaching,
+		ID:            schemaInfo.ID(),
+		Version:       schemaInfo.Version(),
+		Schema:        schemaInfo.Schema(),
+		SchemaType:    schemaInfo.SchemaType(),
+		References:    schemaInfo.References(),
+		Subject:       schema.Subject,
 	}
-	if schema.CachingEnabled {
+	if schema.EnableCaching {
 		k.schemaCache[schema.Subject] = wrappedSchema
 	}
 	return wrappedSchema
