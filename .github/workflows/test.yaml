@@ -44,8 +44,15 @@ jobs:
         with:
           path-to-profile: profile.cov
 
-      - name: Run xk6-kafka tests 🧪
-        run: ./k6 run --quiet -d 5s ./scripts/test_json.js
+      - name: Run all xk6-kafka test scripts 🧪
+        run: |
+          for f in $(ls scripts/); do
+            # Until after we have a setup for SASL Authentication,
+            # we need to skip this test.
+            if [ "$f" != "test_sasl_auth.js" ]; then
+              ./k6 run --quiet -d 2s scripts/$f;
+            fi
+          done
 
       - name: Stop containers 🛑
         if: always()
