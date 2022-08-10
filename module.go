@@ -65,9 +65,10 @@ func init() {
 
 type (
 	Kafka struct {
-		vu      modules.VU
-		metrics kafkaMetrics
-		exports *goja.Object
+		vu          modules.VU
+		metrics     kafkaMetrics
+		exports     *goja.Object
+		schemaCache map[string]*Schema
 	}
 	RootModule struct{}
 	Module     struct {
@@ -97,9 +98,10 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	// Create a new Kafka module.
 	moduleInstance := &Module{
 		Kafka: &Kafka{
-			vu:      virtualUser,
-			metrics: metrics,
-			exports: runtime.NewObject(),
+			vu:          virtualUser,
+			metrics:     metrics,
+			exports:     runtime.NewObject(),
+			schemaCache: make(map[string]*Schema),
 		},
 	}
 
