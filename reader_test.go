@@ -295,7 +295,7 @@ func TestReaderClass(t *testing.T) {
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
-						"topic":   "test-writer-class",
+						"topic":   "test-reader-class",
 					},
 				),
 			},
