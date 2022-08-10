@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dop251/goja"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -239,4 +240,63 @@ func TestProduceJSON(t *testing.T) {
 	assert.Equal(t, 39, int(metricsValues[test.module.metrics.WriterBytes.Name]))
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
 	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
+}
+
+// TestWriterClass tests the writer class.
+func TestWriterClass(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	require.NoError(t, test.moveToVUCode())
+	test.createTopic("test-writer-class")
+
+	assert.NotPanics(t, func() {
+		writer := test.module.writerClass(goja.ConstructorCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"brokers": []string{"localhost:9092"},
+						"topic":   "test-writer-class",
+					},
+				),
+			},
+		})
+		assert.NotNil(t, writer)
+
+		// Produce a message.
+		produce := writer.Get("produce").Export().(func(goja.FunctionCall) goja.Value)
+		result := produce(goja.FunctionCall{
+			Arguments: []goja.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"messages": []map[string]interface{}{
+							{
+								"key": test.module.Kafka.serialize(&Container{
+									Data:       "key",
+									SchemaType: String.String(),
+								}),
+								"value": test.module.Kafka.serialize(&Container{
+									Data:       "value",
+									SchemaType: String.String(),
+								}),
+							},
+						},
+					},
+				),
+			},
+		}).Export()
+		assert.Nil(t, result)
+
+		// Close the writer.
+		close := writer.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		assert.NotNil(t, close)
+		result = close(goja.FunctionCall{}).Export()
+		assert.Nil(t, result)
+
+		// Check if one message was produced.
+		metricsValues := test.getCounterMetricsValues()
+		assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
+		assert.Equal(t, 30, int(metricsValues[test.module.metrics.WriterBytes.Name]))
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
+	})
 }
