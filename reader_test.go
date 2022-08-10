@@ -334,9 +334,8 @@ func TestReaderClass(t *testing.T) {
 		metricsValues := test.getCounterMetricsValues()
 		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
 		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
-		assert.Equal(t, 16.0, metricsValues[test.module.metrics.ReaderBytes.Name])
-		// TODO: This is a bug in the reader. The reader should not consume more than one message.
-		assert.Equal(t, 2.0, metricsValues[test.module.metrics.ReaderMessages.Name])
+		assert.Equal(t, 8.0, metricsValues[test.module.metrics.ReaderBytes.Name])
+		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderMessages.Name])
 		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 	})
 }
