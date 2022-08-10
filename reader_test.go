@@ -266,6 +266,7 @@ func TestConsumeJSON(t *testing.T) {
 	})
 }
 
+// TestReaderClass tests the reader class.
 func TestReaderClass(t *testing.T) {
 	test := getTestModuleInstance(t)
 
