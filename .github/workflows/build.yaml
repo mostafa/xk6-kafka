@@ -62,6 +62,29 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Copy the cosign keys 📋
+        run: |
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          echo "$COSIGN_PUBLIC_KEY" > cosign.pub
+        shell: bash
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+
+      - name: Sign the Docker image ✍️
+        uses: sigstore/cosign-installer@main
+        run: cosign sign --key cosign.key mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      - name: Verify the Docker image signature ✅
+        uses: sigstore/cosign-installer@main
+        run: cosign verify --key cosign.pub mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
+
+      - name: Remove the cosign keys 🧹
+        run: rm -rf cosign.key cosign.pub
+        shell: bash
+
       - name: Scan code with Trivy vulnerability scanner 🔍
         if: startsWith(github.ref, 'refs/tags/')
         uses: aquasecurity/trivy-action@master
