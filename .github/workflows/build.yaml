@@ -36,14 +36,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: |
           go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
-          cyclonedx-gomod mod -json -licenses -output cyclonedx-xk6-kafka-${{ github.ref_name }}.json
-
-      - name: Create Release 📦 and add binaries and SBOM files 💾
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist/*.tar.gz
-            cyclonedx-xk6-kafka-${{ github.ref_name }}.json
+          cyclonedx-gomod mod -json -licenses -output code-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
 
       - name: Docker meta 📝
         id: meta
@@ -85,3 +78,19 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Scan Docker image with Syft and generate SBOM 🦉
+        uses: anchore/sbom-action@v0
+        with:
+          image: mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
+          artifact-name: docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
+          format: cyclonedx-json
+          dependency-snapshot: true
+
+      - name: Create Release 📦 and add binaries and SBOM files 💾
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.tar.gz
+            code-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
+            docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
