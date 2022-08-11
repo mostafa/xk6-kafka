@@ -318,7 +318,7 @@ func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(contextCancelled, "No context.", nil)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
