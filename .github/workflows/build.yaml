@@ -38,18 +38,12 @@ jobs:
           go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
           cyclonedx-gomod mod -json -licenses -output cyclonedx-xk6-kafka-${{ github.ref_name }}.json
 
-      - name: Upload CycloneDX SBOM artifact for go.mod 💾
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        uses: actions/upload-artifact@v3
-        with:
-          name: cyclonedx-xk6-kafka-${{ github.ref_name }}.json
-          path:
-            cyclonedx-xk6-kafka-${{ github.ref_name }}.json
-
-      - name: Create Release 📦
+      - name: Create Release 📦 and add binaries and SBOM files 💾
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/*.tar.gz
+          files: |
+            dist/*.tar.gz
+            cyclonedx-xk6-kafka-${{ github.ref_name }}.json
 
       - name: Docker meta 📝
         id: meta
