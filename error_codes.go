@@ -11,13 +11,13 @@ const (
 	// non specific.
 	kafkaForbiddenInInitContext errCode = 1000
 	noContextError              errCode = 1001
-	contextCancelled            errCode = 1002
-	cannotReportStats           errCode = 1003
-	fileNotFound                errCode = 1004
-	dialerError                 errCode = 1005
-	noTLSConfig                 errCode = 1006
-	failedTypeCast              errCode = 1007
-	unsupportedOperation        errCode = 1008
+	cannotReportStats           errCode = 1002
+	fileNotFound                errCode = 1003
+	dialerError                 errCode = 1004
+	noTLSConfig                 errCode = 1005
+	failedTypeCast              errCode = 1006
+	unsupportedOperation        errCode = 1007
+	writerError                 errCode = 1008
 
 	// serdes errors.
 	invalidDataType            errCode = 2000

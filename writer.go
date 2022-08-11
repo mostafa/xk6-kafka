@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -250,10 +249,10 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 
 	k.reportWriterStats(writer.Stats())
 
-	if originalErr != nil && errors.Is(originalErr, k.vu.Context().Err()) {
-		logger.WithField("error", k.vu.Context().Err()).Error(k.vu.Context().Err())
-		common.Throw(k.vu.Runtime(),
-			NewXk6KafkaError(contextCancelled, "Context cancelled.", originalErr))
+	if originalErr != nil {
+		err := NewXk6KafkaError(writerError, "Error writing messages.", originalErr)
+		logger.WithField("error", err).Error(err)
+		common.Throw(k.vu.Runtime(), err)
 	}
 }
 
