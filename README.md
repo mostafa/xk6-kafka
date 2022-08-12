@@ -325,26 +325,29 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         vus_max........................: 50      min=50         max=50
     ```
 
-### Troubleshooting
+### FAQ
 
-To avoid getting the following error while running the test:
+1. Why do I receive `Error writing messages`?
 
-```bash
-Failed to write message: [5] Leader Not Available: the cluster is in the middle of a leadership election and there is currently no leader for this partition and hence it is unavailable for writes
-```
+    There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic. You can use `Connection.createTopic` method to create the topic in Kafka, as shown in `scripts/test_topics.js`. You can also set the `autoCreateTopic` on the `WriterConfig`. You can also create a topic using the `kafka-topics` command:
 
-You can now use `createTopic` method to create the topic in Kafka. The `scripts/test_topics.js` script shows how to list topics on all Kafka partitions, create a topic or delete one. You always have the option to create it using `kafka-topics` command:
+    ```bash
+    $ docker exec -it lensesio bash
+    (inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+    (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
+    ```
 
-```bash
-$ docker exec -it lensesio bash
-(inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
-(inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
-```
+2. Why does the `reader.consume` keeps hanging?
 
-> **Note:**
-> If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), where I describe how to run a test environment.
+    If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
-Also, if the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
+3. I want to test SASL authentication. How should I do that?
+
+    If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
+
+4. Why doesn't the consumer group consuming messages from the topic?
+
+    As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 causes multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
 ## Contributions, Issues and Feedback
 
@@ -360,9 +363,9 @@ I make no guarantee to keep the API stable, as this project is in *active develo
 
 The `main` branch is the *development* branch, and the pull requests will be *squashed and merged* into the `main` branch. When a commit is tagged with a version, for example, `v0.10.0`, the build pipeline will build the `main` branch on that commit. The build process creates the binaries and the Docker image. If you want to test the latest unreleased features, you can clone the `main` branch and instruct the `xk6` to use the locally cloned repository instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
 
-## CycloneDX SBOM
+## The CycloneDX SBOM
 
-Since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), CycloneDX SBOMs are generated for [go.mod](go.mod) and it can be accessed from the latest build of GitHub Actions for [a tagged release](https://github.com/mostafa/xk6-kafka/actions/runs/2275475853) or on the release [assets](https://github.com/mostafa/xk6-kafka/releases/tag/v0.11.0). The artifacts are only kept for 90 days, so I'll also add the SBOM to the release assets.
+CycloneDX SBOMs in JSON format are generated for [go.mod](go.mod) (as of [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0)) and the Docker image (as of [v0.14.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.14.0)) and they can be accessed from the the release [assets](https://github.com/mostafa/xk6-kafka/releases/tag/v0.11.0).
 
 ## Disclaimer
 
