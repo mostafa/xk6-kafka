@@ -22,6 +22,7 @@ jobs:
           go-version: '1.18'
 
       - name: Install xk6 and build xk6-kafka for different platforms 🏗️
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: |
           mkdir dist
           go install go.k6.io/xk6/cmd/xk6@latest
@@ -40,6 +41,7 @@ jobs:
 
       - name: Docker meta 📝
         id: meta
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: docker/metadata-action@v4
         with:
           images: mostafamoradian/xk6-kafka
@@ -47,13 +49,14 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Login to DockerHub 🔒
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image 🛳️
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -63,6 +66,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Copy the cosign keys 📋
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: |
           echo "$COSIGN_PRIVATE_KEY" > cosign.key
           echo "$COSIGN_PUBLIC_KEY" > cosign.pub
@@ -72,21 +76,24 @@ jobs:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
       - name: Sign the Docker image ✍️
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: sigstore/cosign-installer@main
         run: cosign sign --key cosign.key mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Verify the Docker image signature ✅
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: sigstore/cosign-installer@main
         run: cosign verify --key cosign.pub mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
 
       - name: Remove the cosign keys 🧹
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: rm -rf cosign.key cosign.pub
         shell: bash
 
       - name: Scan code with Trivy vulnerability scanner 🔍
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
@@ -98,11 +105,13 @@ jobs:
           skip-dirs: "fixtures"
 
       - name: Upload Trivy scan results to GitHub Security tab ⬆️
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: 'trivy-results.sarif'
 
       - name: Scan Docker image with Syft and generate SBOM 🦉
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: anchore/sbom-action@v0
         with:
           image: mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
@@ -111,6 +120,7 @@ jobs:
           dependency-snapshot: true
 
       - name: Create Release 📦 and add binaries and SBOM files 💾
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: softprops/action-gh-release@v1
         with:
           files: |
