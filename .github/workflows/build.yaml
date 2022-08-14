@@ -71,14 +71,14 @@ jobs:
 
       - name: Sign the Docker image ✍️
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        run: cosign sign --key env://COSIGN_PRIVATE_KEY mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
+        run: cosign sign --key env://COSIGN_PRIVATE_KEY docker.io/mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
 
       - name: Verify the Docker image signature ✅
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        run: cosign verify --key env://COSIGN_PUBLIC_KEY mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
+        run: cosign verify --key env://COSIGN_PUBLIC_KEY docker.io/mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
         env:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
