@@ -104,7 +104,6 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: anchore/sbom-action@v0
         with:
-          image: mostafamoradian/xk6-kafka:${{ steps.meta.outputs.tags }}
           artifact-name: docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
           format: cyclonedx-json
           dependency-snapshot: true
