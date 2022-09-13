@@ -14,8 +14,8 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 
 ## Supported Features
 
-- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
-- Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) key and value schemas in the script
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
+- Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM and SSL](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
@@ -25,7 +25,7 @@ If you want to learn more about the extension, see the [article](https://k6.io/b
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on custom Kafka metrics
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
-- Lots of exported metrics, as shown in the result output of the [k6 test script](https://github.com/mostafa/xk6-kafka/blob/main/README.md#k6-test-script)
+- Lots of exported metrics, as shown in the result output of the [k6 test script](https://github.com/mostafa/xk6-kafka/blob/main/README.md#k6-test-scripts)
 
 ## Download Binaries
 
@@ -127,7 +127,7 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
+All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
 
 > ⚠️ **Warning:**
 > The Javascript API is subject to change in future versions unless a new major version is released.
