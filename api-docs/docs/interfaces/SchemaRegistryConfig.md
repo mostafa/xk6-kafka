@@ -5,7 +5,7 @@
 ### Properties
 
 - [basicAuth](SchemaRegistryConfig.md#basicauth)
-- [tlsConfig](SchemaRegistryConfig.md#tlsconfig)
+- [tls](SchemaRegistryConfig.md#tls)
 - [url](SchemaRegistryConfig.md#url)
 
 ## Properties
@@ -16,17 +16,17 @@
 
 #### Defined in
 
-index.d.ts:142
+[index.d.ts:142](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L142)
 
 ___
 
-### tlsConfig
+### tls
 
-• **tlsConfig**: [`TLSConfig`](TLSConfig.md)
+• **tls**: [`TLSConfig`](TLSConfig.md)
 
 #### Defined in
 
-index.d.ts:143
+[index.d.ts:143](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L143)
 
 ___
 
@@ -36,4 +36,4 @@ ___
 
 #### Defined in
 
-index.d.ts:141
+[index.d.ts:141](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L141)

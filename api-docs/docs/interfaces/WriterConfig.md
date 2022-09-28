@@ -27,7 +27,7 @@
 
 #### Defined in
 
-index.d.ts:104
+[index.d.ts:104](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L104)
 
 ___
 
@@ -37,7 +37,7 @@ ___
 
 #### Defined in
 
-index.d.ts:105
+[index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L105)
 
 ___
 
@@ -47,7 +47,7 @@ ___
 
 #### Defined in
 
-index.d.ts:108
+[index.d.ts:108](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L108)
 
 ___
 
@@ -57,7 +57,7 @@ ___
 
 #### Defined in
 
-index.d.ts:107
+[index.d.ts:107](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L107)
 
 ___
 
@@ -67,7 +67,7 @@ ___
 
 #### Defined in
 
-index.d.ts:109
+[index.d.ts:109](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L109)
 
 ___
 
@@ -77,7 +77,7 @@ ___
 
 #### Defined in
 
-index.d.ts:102
+[index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L102)
 
 ___
 
@@ -87,7 +87,7 @@ ___
 
 #### Defined in
 
-index.d.ts:112
+[index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L112)
 
 ___
 
@@ -97,7 +97,7 @@ ___
 
 #### Defined in
 
-index.d.ts:115
+[index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
 
 ___
 
@@ -107,7 +107,7 @@ ___
 
 #### Defined in
 
-index.d.ts:106
+[index.d.ts:106](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L106)
 
 ___
 
@@ -117,7 +117,7 @@ ___
 
 #### Defined in
 
-index.d.ts:110
+[index.d.ts:110](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L110)
 
 ___
 
@@ -127,7 +127,7 @@ ___
 
 #### Defined in
 
-index.d.ts:113
+[index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
 
 ___
 
@@ -137,7 +137,7 @@ ___
 
 #### Defined in
 
-index.d.ts:114
+[index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
 
 ___
 
@@ -147,7 +147,7 @@ ___
 
 #### Defined in
 
-index.d.ts:103
+[index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L103)
 
 ___
 
@@ -157,4 +157,4 @@ ___
 
 #### Defined in
 
-index.d.ts:111
+[index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L111)

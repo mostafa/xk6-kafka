@@ -140,7 +140,7 @@ export interface BasicAuth {
 export interface SchemaRegistryConfig {
     url: string;
     basicAuth: BasicAuth;
-    tlsConfig: TLSConfig;
+    tls: TLSConfig;
 }
 
 /* Configuration for producing messages to a topic. */

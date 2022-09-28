@@ -79,7 +79,7 @@ writer.produce({
 
 #### Defined in
 
-index.d.ts:442
+[index.d.ts:442](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L442)
 
 ## Methods
 
@@ -104,7 +104,7 @@ Create or update a schema on Schema Registry.
 
 #### Defined in
 
-index.d.ts:456
+[index.d.ts:456](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L456)
 
 ___
 
@@ -129,7 +129,7 @@ Deserializes the given data and schema into its original form.
 
 #### Defined in
 
-index.d.ts:477
+[index.d.ts:477](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L477)
 
 ___
 
@@ -154,7 +154,7 @@ Get a schema from Schema Registry by version and subject.
 
 #### Defined in
 
-index.d.ts:449
+[index.d.ts:449](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L449)
 
 ___
 
@@ -179,7 +179,7 @@ Returns the subject name for the given SubjectNameConfig.
 
 #### Defined in
 
-index.d.ts:463
+[index.d.ts:463](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L463)
 
 ___
 
@@ -204,4 +204,4 @@ Serializes the given data and schema into a byte array.
 
 #### Defined in
 
-index.d.ts:470
+[index.d.ts:470](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L470)
