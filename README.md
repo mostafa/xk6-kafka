@@ -10,7 +10,7 @@ You can send many messages with each connection to Kafka. These messages are arr
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
-If you want to learn more about the extension, see the [article](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) explaining how to load test your Kafka producers and consumers using k6 on the k6 blog.
+If you want to learn more about the extension, read the [article](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/)  (outdated) explaining how to load test your Kafka producers and consumers using k6 on the k6 blog. You can also watch [this recording](https://www.youtube.com/watch?v=NQ0fyhq1mxo) of the k6 Office Hours about this extension.
 
 ## Supported Features
 
