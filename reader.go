@@ -48,6 +48,7 @@ type ReaderConfig struct {
 	GroupTopics            []string      `json:"groupTopics"`
 	GroupBalancers         []string      `json:"groupBalancers"`
 	MaxWait                time.Duration `json:"maxWait"`
+	ReadBatchTimeout       time.Duration `json:"readBatchTimeout"`
 	ReadLagInterval        time.Duration `json:"readLagInterval"`
 	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
 	CommitInterval         time.Duration `json:"commitInterval"`
@@ -187,6 +188,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		MinBytes:               readerConfig.MinBytes,
 		MaxBytes:               readerConfig.MaxBytes,
 		MaxWait:                readerConfig.MaxWait,
+		ReadBatchTimeout:       readerConfig.ReadBatchTimeout,
 		ReadLagInterval:        readerConfig.ReadLagInterval,
 		GroupBalancers:         groupBalancers,
 		HeartbeatInterval:      readerConfig.HeartbeatInterval,
