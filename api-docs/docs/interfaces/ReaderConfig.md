@@ -23,6 +23,7 @@
 - [queueCapacity](ReaderConfig.md#queuecapacity)
 - [readBackoffMax](ReaderConfig.md#readbackoffmax)
 - [readBackoffMin](ReaderConfig.md#readbackoffmin)
+- [readBatchTimeout](ReaderConfig.md#readbatchtimeout)
 - [readLagInterval](ReaderConfig.md#readlaginterval)
 - [rebalanceTimeout](ReaderConfig.md#rebalancetimeout)
 - [retentionTime](ReaderConfig.md#retentiontime)
@@ -222,6 +223,16 @@
 #### Defined in
 
 [index.d.ts:174](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L174)
+
+___
+
+### readBatchTimeout
+
+• **readBatchTimeout**: `number`
+
+#### Defined in
+
+[index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L161)
 
 ---
 
