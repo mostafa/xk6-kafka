@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -146,41 +145,60 @@ func TestTlsConfigFails(t *testing.T) {
 	saslConfig := []*SimpleTLSConfig{
 		{
 			saslConfig: SASLConfig{},
-			tlsConfig:  TLSConfig{EnableTLS: true, ClientCertPem: "test.cer"},
+			tlsConfig:  TLSConfig{},
 			err: &Xk6KafkaError{
-				Code:    fileNotFound,
-				Message: "File not found: test.cer",
+				Code:          noTLSConfig,
+				Message:       "No TLS config provided. Continuing with TLS disabled.",
+				OriginalError: nil,
 			},
 		},
 		{
 			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
-				ClientCertPem: "fixtures/client.cer",
+				ServerCaPem:   "server.cer",
+				ClientCertPem: "client.cer",
+				ClientKeyPem:  "client.pem",
 			},
 			err: &Xk6KafkaError{
 				Code:          fileNotFound,
-				Message:       "File not found: ",
-				OriginalError: &os.PathError{},
+				Message:       "File not found: client.cer",
+				OriginalError: nil,
 			},
 		},
 		{
 			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
+				ServerCaPem:   "server.cer",
+				ClientCertPem: "fixtures/client.cer",
+				ClientKeyPem:  "test.pem",
+			},
+			err: &Xk6KafkaError{
+				Code:          fileNotFound,
+				Message:       "File not found: test.pem",
+				OriginalError: nil,
+			},
+		},
+		{
+			saslConfig: SASLConfig{},
+			tlsConfig: TLSConfig{
+				EnableTLS:     true,
+				ServerCaPem:   "server.cer",
 				ClientCertPem: "fixtures/client.cer",
 				ClientKeyPem:  "fixtures/client.pem",
 			},
 			err: &Xk6KafkaError{
 				Code:          fileNotFound,
-				Message:       "File not found: ",
-				OriginalError: &os.PathError{},
+				Message:       "File not found: server.cer",
+				OriginalError: nil,
 			},
 		},
 		{
 			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
+				ServerCaPem:   "fixtures/caroot.cer",
 				ClientCertPem: "fixtures/invalid-client.cer",
 				ClientKeyPem:  "fixtures/invalid-client.pem",
 			},

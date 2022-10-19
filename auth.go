@@ -119,9 +119,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	tlsObject := newTLSObject(tlsConfig)
 
 	if tlsConfig.EnableTLS {
-		if tlsConfig.ClientCertPem == "" &&
-			tlsConfig.ClientKeyPem == "" &&
-			tlsConfig.ServerCaPem == "" {
+		if tlsConfig.ServerCaPem == "" {
 			return tlsObject, nil
 		}
 	} else {
@@ -130,28 +128,31 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 			noTLSConfig, "No TLS config provided. Continuing with TLS disabled.", nil)
 	}
 
-	// Load the client cert and key if they are provided
-	if err := fileExists(tlsConfig.ClientCertPem); err != nil {
-		return nil, err
+	if tlsConfig.ClientCertPem != "" && tlsConfig.ClientKeyPem != "" {
+		// Load the client certificate and key if provided
+		if err := fileExists(tlsConfig.ClientCertPem); err != nil {
+			return nil, err
+		}
+
+		if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
+			return nil, err
+		}
+
+		cert, err := tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
+		if err != nil {
+			return nil, NewXk6KafkaError(
+				failedLoadX509KeyPair,
+				fmt.Sprintf(
+					"Error creating x509 key pair from \"%s\" and \"%s\".",
+					tlsConfig.ClientCertPem,
+					tlsConfig.ClientKeyPem),
+				err)
+		}
+
+		tlsObject.Certificates = []tls.Certificate{cert}
 	}
 
-	if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
-		return nil, err
-	}
-
-	var cert tls.Certificate
-	cert, err := tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
-	if err != nil {
-		return nil, NewXk6KafkaError(
-			failedLoadX509KeyPair,
-			fmt.Sprintf(
-				"Error creating x509 key pair from \"%s\" and \"%s\".",
-				tlsConfig.ClientCertPem,
-				tlsConfig.ClientKeyPem),
-			err)
-	}
-
-	// Load the CA cert if it is provided
+	// Load the CA certificate if provided
 	if err := fileExists(tlsConfig.ServerCaPem); err != nil {
 		return nil, err
 	}
@@ -166,6 +167,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 				tlsConfig.ServerCaPem),
 			err)
 	}
+
 	caCertPool := x509.NewCertPool()
 	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
 		return nil, NewXk6KafkaError(
@@ -176,7 +178,6 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 			nil)
 	}
 
-	tlsObject.Certificates = []tls.Certificate{cert}
 	tlsObject.RootCAs = caCertPool
 	return tlsObject, nil
 }
