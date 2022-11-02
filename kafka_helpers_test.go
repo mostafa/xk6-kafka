@@ -16,6 +16,10 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
+const (
+	GoErrorPrefix = "GoError: "
+)
+
 // struct to keep all the things test need in one place.
 type kafkaTest struct {
 	rt            *goja.Runtime
