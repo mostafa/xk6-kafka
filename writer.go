@@ -272,109 +272,140 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	sampleTags := metrics.IntoSampleTags(&map[string]string{
-		"topic": currentStats.Topic,
-	})
+	ctm := k.vu.State().Tags.GetCurrentValues()
+	sampleTags := ctm.Tags.With("topic", currentStats.Topic)
 
 	now := time.Now()
 
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
 		Samples: []metrics.Sample{
 			{
-				Time:   now,
-				Metric: k.metrics.WriterWrites,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.Writes),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterWrites,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.Writes),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterMessages,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.Messages),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterMessages,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.Messages),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterBytes,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.Bytes),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBytes,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.Bytes),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterErrors,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.Errors),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterErrors,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.Errors),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterWriteTime,
-				Tags:   sampleTags,
-				Value:  metrics.D(currentStats.WriteTime.Avg),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterWriteTime,
+					Tags:   sampleTags,
+				},
+				Value: metrics.D(currentStats.WriteTime.Avg),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterWaitTime,
-				Tags:   sampleTags,
-				Value:  metrics.D(currentStats.WaitTime.Avg),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterWaitTime,
+					Tags:   sampleTags,
+				},
+				Value: metrics.D(currentStats.WaitTime.Avg),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterRetries,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.Retries.Avg),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterRetries,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.Retries.Avg),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterBatchSize,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.BatchSize.Avg),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBatchSize,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.BatchSize.Avg),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterBatchBytes,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.BatchBytes.Avg),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBatchBytes,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.BatchBytes.Avg),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterMaxAttempts,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.MaxAttempts),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterMaxAttempts,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.MaxAttempts),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterMaxBatchSize,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.MaxBatchSize),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterMaxBatchSize,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.MaxBatchSize),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterBatchTimeout,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.BatchTimeout),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBatchTimeout,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.BatchTimeout),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterReadTimeout,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.ReadTimeout),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterReadTimeout,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.ReadTimeout),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterWriteTimeout,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.WriteTimeout),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterWriteTimeout,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.WriteTimeout),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterRequiredAcks,
-				Tags:   sampleTags,
-				Value:  float64(currentStats.RequiredAcks),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterRequiredAcks,
+					Tags:   sampleTags,
+				},
+				Value: float64(currentStats.RequiredAcks),
 			},
 			{
-				Time:   now,
-				Metric: k.metrics.WriterAsync,
-				Tags:   sampleTags,
-				Value:  metrics.B(currentStats.Async),
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterAsync,
+					Tags:   sampleTags,
+				},
+				Value: metrics.B(currentStats.Async),
 			},
 		},
 		Tags: sampleTags,
