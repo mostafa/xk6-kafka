@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/dop251/goja v0.0.0-20221019153710-09250e0eba20
 	github.com/linkedin/goavro/v2 v2.12.0
+	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/riferrei/srclient v0.5.4
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 	github.com/segmentio/kafka-go v0.4.35
@@ -28,7 +29,6 @@ require (
 	github.com/mstoykov/atlas v0.0.0-20220808085829-90340e9998bd // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.20.2 // indirect
-	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
