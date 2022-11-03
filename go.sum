@@ -57,6 +57,8 @@ github.com/dlclark/regexp2 v1.7.0/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnm
 github.com/dop251/goja v0.0.0-20211022113120-dc8c55024d06/go.mod h1:R9ET47fwRVRPZnOGvHxxhuZcbrMCuiqOz3Rlrh4KSnk=
 github.com/dop251/goja v0.0.0-20221019153710-09250e0eba20 h1:AxWn8phZA9tjgDGKyDRbHtI6nCBkDu8UH17FCpSHRPA=
 github.com/dop251/goja v0.0.0-20221019153710-09250e0eba20/go.mod h1:yRkwfj0CBpOGre+TwBsqPV0IH0Pk73e4PXJOeNDboGs=
+github.com/dop251/goja v0.0.0-20221025165401-cb5011b539fe h1:eJUWWwcoq0m/pD0HdB2TwMixgnoWiey69IfYIpIb3YA=
+github.com/dop251/goja v0.0.0-20221025165401-cb5011b539fe/go.mod h1:yRkwfj0CBpOGre+TwBsqPV0IH0Pk73e4PXJOeNDboGs=
 github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7/go.mod h1:hn7BA7c8pLvoGndExHudxTDKZ84Pyvv+90pbBjbTz0Y=
 github.com/dop251/goja_nodejs v0.0.0-20211022123610-8dd9abb0616d/go.mod h1:DngW8aVqWbuLRMHItjPUyqdj+HWPvnQe8V8y1nDpIbM=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -148,8 +150,11 @@ github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.15.7/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
+github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
 github.com/klauspost/compress v1.15.11 h1:Lcadnb3RKGin4FYM/orgq0qde+nc15E5Cbqg4B9Sx9c=
 github.com/klauspost/compress v1.15.11/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
+github.com/klauspost/compress v1.15.12 h1:YClS/PImqYbn+UILDnqxQCZ3RehC9N318SU3kElDUEM=
+github.com/klauspost/compress v1.15.12/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
@@ -174,6 +179,8 @@ github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/
 github.com/mccutchen/go-httpbin v1.1.2-0.20190116014521-c5cb2f4802fa h1:lx8ZnNPwjkXSzOROz0cg69RlErRXs+L3eDkggASWKLo=
 github.com/mstoykov/atlas v0.0.0-20220808085829-90340e9998bd h1:x/wQ8/umYu2x0icx5wNNTSK1NlkYVmsgzQ+U6v4ijv0=
 github.com/mstoykov/atlas v0.0.0-20220808085829-90340e9998bd/go.mod h1:9vRHVuLCjoFfE3GT06X0spdOAO+Zzo4AMjdIwUHBvAk=
+github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd h1:AC3N94irbx2kWGA8f/2Ks7EQl2LxKIRQYuT9IJDwgiI=
+github.com/mstoykov/atlas v0.0.0-20220811071828-388f114305dd/go.mod h1:9vRHVuLCjoFfE3GT06X0spdOAO+Zzo4AMjdIwUHBvAk=
 github.com/mstoykov/envconfig v1.4.1-0.20220114105314-765c6d8c76f1 h1:94EkGmhXrVUEal+uLwFUf4fMXPhZpM5tYxuIsxrCCbI=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
@@ -204,8 +211,12 @@ github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTE
 github.com/santhosh-tekuri/jsonschema/v5 v5.0.0/go.mod h1:FKdcjfQW6rpZSnxxUvEA5H/cDPdvJ/SZJQLWWXWGrZ0=
 github.com/santhosh-tekuri/jsonschema/v5 v5.0.1 h1:HNLA3HtUIROrQwG1cuu5EYuqk3UEoJ61Dr/9xkd6sok=
 github.com/santhosh-tekuri/jsonschema/v5 v5.0.1/go.mod h1:FKdcjfQW6rpZSnxxUvEA5H/cDPdvJ/SZJQLWWXWGrZ0=
+github.com/santhosh-tekuri/jsonschema/v5 v5.0.2 h1:zOYFITq/5SO7YOv39/Taw8s1skb0Py39K5V2XvCEP48=
+github.com/santhosh-tekuri/jsonschema/v5 v5.0.2/go.mod h1:FKdcjfQW6rpZSnxxUvEA5H/cDPdvJ/SZJQLWWXWGrZ0=
 github.com/segmentio/kafka-go v0.4.35 h1:TAsQ7q1SjS39PcFvU0zDJhCuVAxHomy7xOAfbdSuhzs=
 github.com/segmentio/kafka-go v0.4.35/go.mod h1:GAjxBQJdQMB5zfNA21AhpaqOB2Mu+w3De4ni3Gbm8y0=
+github.com/segmentio/kafka-go v0.4.36 h1:D6RxVLRjSOV2WUqouxYyywIEdr2spmvoAxioUOC3T3U=
+github.com/segmentio/kafka-go v0.4.36/go.mod h1:ikyuGon/60MN/vXFgykf7Zm8P5Be49gJU6vezwjnnhU=
 github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e h1:zWKUYT07mGmVBH+9UgnHXd/ekCK99C8EbDSAt5qsjXE=
 github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e/go.mod h1:Yow6lPLSAXx2ifx470yD/nUe22Dv5vBvxK/UK9UUTVs=
 github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0=
