@@ -339,7 +339,7 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 					Metric: k.metrics.WriterRetries,
 					Tags:   sampleTags,
 				},
-				Value:    float64(currentStats.Retries.Avg),
+				Value:    float64(currentStats.Retries),
 				Metadata: ctm.Metadata,
 			},
 			{
