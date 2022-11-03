@@ -33,7 +33,7 @@ func TestDecodeWireFormatFails(t *testing.T) {
 		err := recover()
 		assert.Equal(t,
 			err.(*goja.Object).ToString().String(),
-			"Invalid message: message too short to contain schema id.")
+			GoErrorPrefix+"Invalid message: message too short to contain schema id.")
 	}()
 
 	test.module.Kafka.decodeWireFormat(encoded)

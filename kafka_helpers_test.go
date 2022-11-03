@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
+	"github.com/oxtoacart/bpool"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/js/common"
@@ -13,6 +14,10 @@ import (
 	"go.k6.io/k6/lib"
 	"go.k6.io/k6/metrics"
 	"gopkg.in/guregu/null.v3"
+)
+
+const (
+	GoErrorPrefix = "GoError: "
 )
 
 // struct to keep all the things test need in one place.
@@ -64,14 +69,21 @@ func (k *kafkaTest) moveToVUCode() error {
 	samples := make(chan metrics.SampleContainer, 1000)
 	// Save it, so we can reuse it in other tests
 	k.samples = samples
+
+	registry := metrics.NewRegistry()
+
 	state := &lib.State{
 		Group: rootGroup,
 		Options: lib.Options{
 			UserAgent: null.StringFrom("TestUserAgent"),
 			Paused:    null.BoolFrom(false),
 		},
-		Samples:        k.samples,
-		BuiltinMetrics: metrics.RegisterBuiltinMetrics(metrics.NewRegistry()),
+		BPool:   bpool.NewBufferPool(1),
+		Samples: k.samples,
+		Tags: lib.NewVUStateTags(registry.RootTagSet().WithTagsFromMap(map[string]string{
+			"group": rootGroup.Path,
+		})),
+		BuiltinMetrics: metrics.RegisterBuiltinMetrics(registry),
 	}
 	k.vu.StateField = state
 	k.vu.InitEnvField = nil

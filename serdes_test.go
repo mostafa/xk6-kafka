@@ -232,7 +232,9 @@ func TestSerializeFails(t *testing.T) {
 		t.Run("serialize fails", func(t *testing.T) {
 			defer func(t *testing.T) {
 				err := recover()
-				assert.Equal(t, err.(*goja.Object).ToString().String(), testData.err.Error())
+				assert.Equal(t,
+					err.(*goja.Object).ToString().String(),
+					GoErrorPrefix+testData.err.Error())
 			}(t)
 
 			err := test.module.Kafka.serialize(testData.container)
