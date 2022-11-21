@@ -1,4 +1,4 @@
-# Enumeration: COMPRESSION\_CODECS
+# Enumeration: COMPRESSION_CODECS
 
 Compression codecs for compressing messages when producing to a topic or reading from it.
 
@@ -6,46 +6,46 @@ Compression codecs for compressing messages when producing to a topic or reading
 
 ### Enumeration Members
 
-- [CODEC\_GZIP](COMPRESSION_CODECS.md#codec_gzip)
-- [CODEC\_LZ4](COMPRESSION_CODECS.md#codec_lz4)
-- [CODEC\_SNAPPY](COMPRESSION_CODECS.md#codec_snappy)
-- [CODEC\_ZSTD](COMPRESSION_CODECS.md#codec_zstd)
+- [CODEC_GZIP](COMPRESSION_CODECS.md#codec_gzip)
+- [CODEC_LZ4](COMPRESSION_CODECS.md#codec_lz4)
+- [CODEC_SNAPPY](COMPRESSION_CODECS.md#codec_snappy)
+- [CODEC_ZSTD](COMPRESSION_CODECS.md#codec_zstd)
 
 ## Enumeration Members
 
-### CODEC\_GZIP
+### CODEC_GZIP
 
-• **CODEC\_GZIP**
+• **CODEC_GZIP**
 
 #### Defined in
 
 [index.d.ts:16](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L16)
 
-___
+---
 
-### CODEC\_LZ4
+### CODEC_LZ4
 
-• **CODEC\_LZ4**
+• **CODEC_LZ4**
 
 #### Defined in
 
 [index.d.ts:18](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L18)
 
-___
+---
 
-### CODEC\_SNAPPY
+### CODEC_SNAPPY
 
-• **CODEC\_SNAPPY**
+• **CODEC_SNAPPY**
 
 #### Defined in
 
 [index.d.ts:17](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L17)
 
-___
+---
 
-### CODEC\_ZSTD
+### CODEC_ZSTD
 
-• **CODEC\_ZSTD**
+• **CODEC_ZSTD**
 
 #### Defined in
 

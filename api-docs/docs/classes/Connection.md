@@ -38,8 +38,8 @@ connection.close();
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name               | Type                                                    | Description               |
+| :----------------- | :------------------------------------------------------ | :------------------------ |
 | `connectionConfig` | [`ConnectionConfig`](../interfaces/ConnectionConfig.md) | Connection configuration. |
 
 #### Defined in
@@ -66,7 +66,7 @@ connection.close();
 
 [index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L379)
 
-___
+---
 
 ### createTopic
 
@@ -77,8 +77,8 @@ Create a new topic.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name          | Type                                          | Description          |
+| :------------ | :-------------------------------------------- | :------------------- |
 | `topicConfig` | [`TopicConfig`](../interfaces/TopicConfig.md) | Topic configuration. |
 
 #### Returns
@@ -91,7 +91,7 @@ Create a new topic.
 
 [index.d.ts:360](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L360)
 
-___
+---
 
 ### deleteTopic
 
@@ -102,8 +102,8 @@ Delete a topic.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name    | Type     | Description |
+| :------ | :------- | :---------- |
 | `topic` | `string` | Topic name. |
 
 #### Returns
@@ -116,7 +116,7 @@ Delete a topic.
 
 [index.d.ts:367](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L367)
 
-___
+---
 
 ### listTopics
 

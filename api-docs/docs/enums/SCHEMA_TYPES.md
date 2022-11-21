@@ -1,60 +1,60 @@
-# Enumeration: SCHEMA\_TYPES
+# Enumeration: SCHEMA_TYPES
 
 ## Table of contents
 
 ### Enumeration Members
 
-- [SCHEMA\_TYPE\_AVRO](SCHEMA_TYPES.md#schema_type_avro)
-- [SCHEMA\_TYPE\_BYTES](SCHEMA_TYPES.md#schema_type_bytes)
-- [SCHEMA\_TYPE\_JSON](SCHEMA_TYPES.md#schema_type_json)
-- [SCHEMA\_TYPE\_PROTOBUF](SCHEMA_TYPES.md#schema_type_protobuf)
-- [SCHEMA\_TYPE\_STRING](SCHEMA_TYPES.md#schema_type_string)
+- [SCHEMA_TYPE_AVRO](SCHEMA_TYPES.md#schema_type_avro)
+- [SCHEMA_TYPE_BYTES](SCHEMA_TYPES.md#schema_type_bytes)
+- [SCHEMA_TYPE_JSON](SCHEMA_TYPES.md#schema_type_json)
+- [SCHEMA_TYPE_PROTOBUF](SCHEMA_TYPES.md#schema_type_protobuf)
+- [SCHEMA_TYPE_STRING](SCHEMA_TYPES.md#schema_type_string)
 
 ## Enumeration Members
 
-### SCHEMA\_TYPE\_AVRO
+### SCHEMA_TYPE_AVRO
 
-• **SCHEMA\_TYPE\_AVRO**
+• **SCHEMA_TYPE_AVRO**
 
 #### Defined in
 
 [index.d.ts:78](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L78)
 
-___
+---
 
-### SCHEMA\_TYPE\_BYTES
+### SCHEMA_TYPE_BYTES
 
-• **SCHEMA\_TYPE\_BYTES**
+• **SCHEMA_TYPE_BYTES**
 
 #### Defined in
 
 [index.d.ts:77](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L77)
 
-___
+---
 
-### SCHEMA\_TYPE\_JSON
+### SCHEMA_TYPE_JSON
 
-• **SCHEMA\_TYPE\_JSON**
+• **SCHEMA_TYPE_JSON**
 
 #### Defined in
 
 [index.d.ts:79](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L79)
 
-___
+---
 
-### SCHEMA\_TYPE\_PROTOBUF
+### SCHEMA_TYPE_PROTOBUF
 
-• **SCHEMA\_TYPE\_PROTOBUF**
+• **SCHEMA_TYPE_PROTOBUF**
 
 #### Defined in
 
 [index.d.ts:80](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L80)
 
-___
+---
 
-### SCHEMA\_TYPE\_STRING
+### SCHEMA_TYPE_STRING
 
-• **SCHEMA\_TYPE\_STRING**
+• **SCHEMA_TYPE_STRING**
 
 #### Defined in
 

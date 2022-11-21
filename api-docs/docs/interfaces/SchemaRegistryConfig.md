@@ -18,7 +18,7 @@
 
 [index.d.ts:142](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L142)
 
-___
+---
 
 ### tls
 
@@ -28,7 +28,7 @@ ___
 
 [index.d.ts:143](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L143)
 
-___
+---
 
 ### url
 

@@ -18,8 +18,8 @@ writer.produce({
     {
       key: "key",
       value: "value",
-    }
-  ]
+    },
+  ],
 });
 
 // In teardown function
@@ -45,8 +45,8 @@ writer.close();
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name           | Type                                            | Description           |
+| :------------- | :---------------------------------------------- | :-------------------- |
 | `writerConfig` | [`WriterConfig`](../interfaces/WriterConfig.md) | Writer configuration. |
 
 #### Defined in
@@ -73,7 +73,7 @@ writer.close();
 
 [index.d.ts:283](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L283)
 
-___
+---
 
 ### produce
 
@@ -84,8 +84,8 @@ Write messages to Kafka.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name            | Type                                              | Description            |
+| :-------------- | :------------------------------------------------ | :--------------------- |
 | `produceConfig` | [`ProduceConfig`](../interfaces/ProduceConfig.md) | Produce configuration. |
 
 #### Returns

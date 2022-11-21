@@ -43,7 +43,7 @@
 
 [index.d.ts:153](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L153)
 
-___
+---
 
 ### commitInterval
 
@@ -53,7 +53,7 @@ ___
 
 [index.d.ts:165](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L165)
 
-___
+---
 
 ### connectLogger
 
@@ -63,7 +63,7 @@ ___
 
 [index.d.ts:175](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L175)
 
-___
+---
 
 ### groupBalancers
 
@@ -73,7 +73,7 @@ ___
 
 [index.d.ts:163](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L163)
 
-___
+---
 
 ### groupID
 
@@ -83,7 +83,7 @@ ___
 
 [index.d.ts:154](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L154)
 
-___
+---
 
 ### groupTopics
 
@@ -93,7 +93,7 @@ ___
 
 [index.d.ts:155](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L155)
 
-___
+---
 
 ### heartbeatInterval
 
@@ -103,7 +103,7 @@ ___
 
 [index.d.ts:164](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L164)
 
-___
+---
 
 ### isolationLevel
 
@@ -113,7 +113,7 @@ ___
 
 [index.d.ts:177](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L177)
 
-___
+---
 
 ### joinGroupBackoff
 
@@ -123,7 +123,7 @@ ___
 
 [index.d.ts:170](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L170)
 
-___
+---
 
 ### maxAttempts
 
@@ -133,7 +133,7 @@ ___
 
 [index.d.ts:176](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L176)
 
-___
+---
 
 ### maxBytes
 
@@ -143,7 +143,7 @@ ___
 
 [index.d.ts:160](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L160)
 
-___
+---
 
 ### maxWait
 
@@ -153,7 +153,7 @@ ___
 
 [index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L161)
 
-___
+---
 
 ### minBytes
 
@@ -163,7 +163,7 @@ ___
 
 [index.d.ts:159](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L159)
 
-___
+---
 
 ### offset
 
@@ -173,7 +173,7 @@ ___
 
 [index.d.ts:178](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L178)
 
-___
+---
 
 ### partition
 
@@ -183,7 +183,7 @@ ___
 
 [index.d.ts:157](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L157)
 
-___
+---
 
 ### partitionWatchInterval
 
@@ -193,7 +193,7 @@ ___
 
 [index.d.ts:166](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L166)
 
-___
+---
 
 ### queueCapacity
 
@@ -203,7 +203,7 @@ ___
 
 [index.d.ts:158](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L158)
 
-___
+---
 
 ### readBackoffMax
 
@@ -213,7 +213,7 @@ ___
 
 [index.d.ts:174](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L174)
 
-___
+---
 
 ### readBackoffMin
 
@@ -223,7 +223,7 @@ ___
 
 [index.d.ts:173](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L173)
 
-___
+---
 
 ### readLagInterval
 
@@ -233,7 +233,7 @@ ___
 
 [index.d.ts:162](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L162)
 
-___
+---
 
 ### rebalanceTimeout
 
@@ -243,7 +243,7 @@ ___
 
 [index.d.ts:169](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L169)
 
-___
+---
 
 ### retentionTime
 
@@ -253,7 +253,7 @@ ___
 
 [index.d.ts:171](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L171)
 
-___
+---
 
 ### sasl
 
@@ -263,7 +263,7 @@ ___
 
 [index.d.ts:179](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L179)
 
-___
+---
 
 ### sessionTimeout
 
@@ -273,7 +273,7 @@ ___
 
 [index.d.ts:168](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L168)
 
-___
+---
 
 ### startOffset
 
@@ -283,7 +283,7 @@ ___
 
 [index.d.ts:172](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L172)
 
-___
+---
 
 ### tls
 
@@ -293,7 +293,7 @@ ___
 
 [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L180)
 
-___
+---
 
 ### topic
 
@@ -303,7 +303,7 @@ ___
 
 [index.d.ts:156](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L156)
 
-___
+---
 
 ### watchPartitionChanges
 

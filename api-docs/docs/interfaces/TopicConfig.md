@@ -20,7 +20,7 @@
 
 [index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
 
-___
+---
 
 ### numPartitions
 
@@ -30,7 +30,7 @@ ___
 
 [index.d.ts:210](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L210)
 
-___
+---
 
 ### replicaAssignments
 
@@ -40,7 +40,7 @@ ___
 
 [index.d.ts:212](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L212)
 
-___
+---
 
 ### replicationFactor
 
@@ -50,7 +50,7 @@ ___
 
 [index.d.ts:211](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L211)
 
-___
+---
 
 ### topic
 

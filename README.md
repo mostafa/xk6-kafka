@@ -10,7 +10,7 @@ You can send many messages with each connection to Kafka. These messages are arr
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
-If you want to learn more about the extension, read the [article](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/)  (outdated) explaining how to load test your Kafka producers and consumers using k6 on the k6 blog. You can also watch [this recording](https://www.youtube.com/watch?v=NQ0fyhq1mxo) of the k6 Office Hours about this extension.
+If you want to learn more about the extension, read the [article](https://k6.io/blog/load-test-your-kafka-producers-and-consumers-using-k6/) (outdated) explaining how to load test your Kafka producers and consumers using k6 on the k6 blog. You can also watch [this recording](https://www.youtube.com/watch?v=NQ0fyhq1mxo) of the k6 Office Hours about this extension.
 
 ## Supported Features
 
@@ -64,15 +64,15 @@ Feel free to skip the first two steps if you already have Go installed.
 2. Install the latest version of Go using gvm. You need Go 1.4 installed for bootstrapping into higher Go versions, as explained [here](https://github.com/moovweb/gvm#a-note-on-compiling-go-15).
 3. Install `xk6`:
 
-    ```shell
-    go install go.k6.io/xk6/cmd/xk6@latest
-    ```
+   ```shell
+   go install go.k6.io/xk6/cmd/xk6@latest
+   ```
 
 4. Build the binary:
 
-    ```shell
-    xk6 build --with github.com/mostafa/xk6-kafka@latest
-    ```
+   ```shell
+   xk6 build --with github.com/mostafa/xk6-kafka@latest
+   ```
 
 > **Note**
 > You can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
@@ -100,34 +100,34 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 1. Run the Kafka environment and expose the ports:
 
-    ```bash
-    sudo docker run \
-        --detach --rm \
-        --name lensesio \
-        -p 2181:2181 \
-        -p 3030:3030 \
-        -p 8081-8083:8081-8083 \
-        -p 9581-9585:9581-9585 \
-        -p 9092:9092 \
-        -e ADV_HOST=127.0.0.1 \
-        -e RUN_TESTS=0 \
-        lensesio/fast-data-dev:latest
-    ```
+   ```bash
+   sudo docker run \
+       --detach --rm \
+       --name lensesio \
+       -p 2181:2181 \
+       -p 3030:3030 \
+       -p 8081-8083:8081-8083 \
+       -p 9581-9585:9581-9585 \
+       -p 9092:9092 \
+       -e ADV_HOST=127.0.0.1 \
+       -e RUN_TESTS=0 \
+       lensesio/fast-data-dev:latest
+   ```
 
 2. After running the command, visit [localhost:3030](http://localhost:3030) to get into the fast-data-dev environment.
 
 3. You can run the command to see the container logs:
 
-    ```bash
-    sudo docker logs -f -t lensesio
-    ```
+   ```bash
+   sudo docker logs -f -t lensesio
+   ```
 
 > **Note:**
 > If you have errors running the Kafka development environment, refer to the [fast-data-dev documentation](https://github.com/lensesio/fast-data-dev).
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) file, and they always reflect the *latest* changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
+All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) file, and they always reflect the _latest_ changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
 
 > ⚠️ **Warning:**
 > The Javascript API is subject to change in future versions unless a new major version is released.
@@ -138,216 +138,221 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 1. To use the extension, you need to import it in your script, like any other JS module:
 
-    ```javascript
-    // Either import the module object
-    import * as kafka from "k6/x/kafka";
+   ```javascript
+   // Either import the module object
+   import * as kafka from "k6/x/kafka";
 
-    // Or individual classes and constants
-    import { Writer, Reader, Connection, SchemaRegistry, SCHEMA_TYPE_STRING } from "k6/x/kafka";
-    ```
+   // Or individual classes and constants
+   import {
+     Writer,
+     Reader,
+     Connection,
+     SchemaRegistry,
+     SCHEMA_TYPE_STRING,
+   } from "k6/x/kafka";
+   ```
 
 2. You need to instantiate the classes in the `init` context. All the [k6 options](https://k6.io/docs/using-k6/k6-options/) are also configured here:
 
-    ```javascript
-    // Creates a new Writer object to produce messages to Kafka
-    const writer = new Writer({
-        // WriterConfig object
-        brokers: ["localhost:9092"],
-        topic: "my-topic",
-    });
+   ```javascript
+   // Creates a new Writer object to produce messages to Kafka
+   const writer = new Writer({
+     // WriterConfig object
+     brokers: ["localhost:9092"],
+     topic: "my-topic",
+   });
 
-    const reader = new Reader({
-        // ReaderConfig object
-        brokers: ["localhost:9092"],
-        topic: "my-topic",
-    });
+   const reader = new Reader({
+     // ReaderConfig object
+     brokers: ["localhost:9092"],
+     topic: "my-topic",
+   });
 
-    const connection = new Connection({
-        // ConnectionConfig object
-        address: "localhost:9092",
-    });
+   const connection = new Connection({
+     // ConnectionConfig object
+     address: "localhost:9092",
+   });
 
-    const schemaRegistry = new SchemaRegistry(
-        // Can accept a SchemaRegistryConfig object
-    )
+   const schemaRegistry = new SchemaRegistry();
+   // Can accept a SchemaRegistryConfig object
 
-    if (__VU == 0) {
-        // Create a topic on initialization (before producing messages)
-        connection.createTopic({
-            // TopicConfig object
-            topic: "my-topic",
-        });
-    }
-    ```
+   if (__VU == 0) {
+     // Create a topic on initialization (before producing messages)
+     connection.createTopic({
+       // TopicConfig object
+       topic: "my-topic",
+     });
+   }
+   ```
 
 3. In the VU code, you can produce messages to Kafka or consume messages from it:
 
-    ```javascript
-    export default function() {
-        // Fetch the list of all topics
-        const topics = connection.listTopics();
-        console.log(topics); // list of topics
+   ```javascript
+   export default function () {
+     // Fetch the list of all topics
+     const topics = connection.listTopics();
+     console.log(topics); // list of topics
 
-        // Produces message to Kafka
-        writer.produce({
-            // ProduceConfig object
-            messages: [
-                // Message object(s)
-                {
-                    key: schemaRegistry.serialize({
-                        data: "my-key",
-                        schemaType: SCHEMA_TYPE_STRING,
-                    }),
-                    value: schemaRegistry.serialize({
-                        data: "my-value",
-                        schemaType: SCHEMA_TYPE_STRING,
-                    }),
-                },
-            ],
-        });
+     // Produces message to Kafka
+     writer.produce({
+       // ProduceConfig object
+       messages: [
+         // Message object(s)
+         {
+           key: schemaRegistry.serialize({
+             data: "my-key",
+             schemaType: SCHEMA_TYPE_STRING,
+           }),
+           value: schemaRegistry.serialize({
+             data: "my-value",
+             schemaType: SCHEMA_TYPE_STRING,
+           }),
+         },
+       ],
+     });
 
-        // Consume messages from Kafka
-        let messages = reader.consume({
-            // ConsumeConfig object
-            limit: 10
-        });
+     // Consume messages from Kafka
+     let messages = reader.consume({
+       // ConsumeConfig object
+       limit: 10,
+     });
 
-        // your messages
-        console.log(messages);
+     // your messages
+     console.log(messages);
 
-        // You can use checks to verify the contents,
-        // length and other properties of the message(s)
+     // You can use checks to verify the contents,
+     // length and other properties of the message(s)
 
-        // To serialize the data back into a string, you should use
-        // the deserialize method of the Schema Registry client. You
-        // can use it inside a check, as shown in the example scripts.
-        let deserializedValue = schemaRegistry.deserialize({
-            data: messages[0].value,
-            schemaType: SCHEMA_TYPE_STRING,
-        })
-    }
-    ```
+     // To serialize the data back into a string, you should use
+     // the deserialize method of the Schema Registry client. You
+     // can use it inside a check, as shown in the example scripts.
+     let deserializedValue = schemaRegistry.deserialize({
+       data: messages[0].value,
+       schemaType: SCHEMA_TYPE_STRING,
+     });
+   }
+   ```
 
 4. In the `teardown` function, close all the connections and possibly delete the topic:
 
-    ```javascript
-    export function teardown(data) {
-        // Delete the topic
-        connection.deleteTopic("my-topic");
+   ```javascript
+   export function teardown(data) {
+     // Delete the topic
+     connection.deleteTopic("my-topic");
 
-        // Close all connections
-        writer.close();
-        reader.close();
-        connection.close();
-    }
-    ```
+     // Close all connections
+     writer.close();
+     reader.close();
+     connection.close();
+   }
+   ```
 
 5. You can now run k6 with the extension using the following command:
 
-    ```bash
-    ./k6 run --vus 50 --duration 60s scripts/test_json.js
-    ```
+   ```bash
+   ./k6 run --vus 50 --duration 60s scripts/test_json.js
+   ```
 
 6. And here's the test result output:
 
-    ```bash
+   ```bash
 
-            /\      |‾‾| /‾‾/   /‾‾/
-       /\  /  \     |  |/  /   /  /
-      /  \/    \    |     (   /   ‾‾\
-     /          \   |  |\  \ |  (‾)  |
-    / __________ \  |__| \__\ \_____/ .io
+           /\      |‾‾| /‾‾/   /‾‾/
+      /\  /  \     |  |/  /   /  /
+     /  \/    \    |     (   /   ‾‾\
+    /          \   |  |\  \ |  (‾)  |
+   / __________ \  |__| \__\ \_____/ .io
 
-    execution: local
-        script: scripts/test_json.js
-        output: -
+   execution: local
+       script: scripts/test_json.js
+       output: -
 
-    scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
-            * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
+   scenarios: (100.00%) 1 scenario, 50 max VUs, 1m30s max duration (incl. graceful stop):
+           * default: 50 looping VUs for 1m0s (gracefulStop: 30s)
 
 
-    running (1m04.4s), 00/50 VUs, 20170 complete and 0 interrupted iterations
-    default ✓ [======================================] 50 VUs  1m0s
+   running (1m04.4s), 00/50 VUs, 20170 complete and 0 interrupted iterations
+   default ✓ [======================================] 50 VUs  1m0s
 
-        ✓ 10 messages are received
-        ✓ Topic equals to xk6_kafka_json_topic
-        ✓ Key contains key/value and is JSON
-        ✓ Value contains key/value and is JSON
-        ✓ Header equals {'mykey': 'myvalue'}
-        ✓ Time is past
-        ✓ Partition is zero
-        ✓ Offset is gte zero
-        ✓ High watermark is gte zero
+       ✓ 10 messages are received
+       ✓ Topic equals to xk6_kafka_json_topic
+       ✓ Key contains key/value and is JSON
+       ✓ Value contains key/value and is JSON
+       ✓ Header equals {'mykey': 'myvalue'}
+       ✓ Time is past
+       ✓ Partition is zero
+       ✓ Offset is gte zero
+       ✓ High watermark is gte zero
 
-        █ teardown
+       █ teardown
 
-        checks.........................: 100.00% ✓ 181530       ✗ 0
-        data_received..................: 0 B     0 B/s
-        data_sent......................: 0 B     0 B/s
-        iteration_duration.............: avg=153.45ms min=6.01ms med=26.8ms  max=8.14s   p(90)=156.3ms p(95)=206.4ms
-        iterations.....................: 20170   313.068545/s
-        kafka.reader.dial.count........: 50      0.776075/s
-        kafka.reader.dial.seconds......: avg=171.22µs min=0s     med=0s      max=1.09s   p(90)=0s      p(95)=0s
-     ✓ kafka.reader.error.count.......: 0       0/s
-        kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
-        kafka.reader.fetch_bytes.min...: 1       min=1          max=1
-        kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
-        kafka.reader.fetch.bytes.......: 58 MB   897 kB/s
-        kafka.reader.fetch.size........: 147167  2284.25179/s
-        kafka.reader.fetches.count.....: 107     1.6608/s
-        kafka.reader.lag...............: 1519055 min=0          max=2436190
-        kafka.reader.message.bytes.....: 40 MB   615 kB/s
-        kafka.reader.message.count.....: 201749  3131.446006/s
-        kafka.reader.offset............: 4130    min=11         max=5130
-        kafka.reader.queue.capacity....: 1       min=1          max=1
-        kafka.reader.queue.length......: 1       min=0          max=1
-        kafka.reader.read.seconds......: avg=96.5ms   min=0s     med=0s      max=59.37s  p(90)=0s      p(95)=0s
-        kafka.reader.rebalance.count...: 0       0/s
-        kafka.reader.timeouts.count....: 57      0.884725/s
-        kafka.reader.wait.seconds......: avg=102.71µs min=0s     med=0s      max=85.71ms p(90)=0s      p(95)=0s
-        kafka.writer.acks.required.....: 0       min=0          max=0
-        kafka.writer.async.............: 0.00%   ✓ 0            ✗ 2017000
-        kafka.writer.attempts.max......: 0       min=0          max=0
-        kafka.writer.batch.bytes.......: 441 MB  6.8 MB/s
-        kafka.writer.batch.max.........: 1       min=1          max=1
-        kafka.writer.batch.size........: 2017000 31306.854525/s
-        kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
-      ✓ kafka.writer.error.count.......: 0       0/s
-        kafka.writer.message.bytes.....: 883 MB  14 MB/s
-        kafka.writer.message.count.....: 4034000 62613.709051/s
-        kafka.writer.read.timeout......: 0s      min=0s         max=0s
-        kafka.writer.retries.count.....: 0       0/s
-        kafka.writer.wait.seconds......: avg=0s       min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
-        kafka.writer.write.count.......: 4034000 62613.709051/s
-        kafka.writer.write.seconds.....: avg=523.21µs min=4.84µs med=14.48µs max=4.05s   p(90)=33.85µs p(95)=42.68µs
-        kafka.writer.write.timeout.....: 0s      min=0s         max=0s
-        vus............................: 7       min=7          max=50
-        vus_max........................: 50      min=50         max=50
-    ```
+       checks.........................: 100.00% ✓ 181530       ✗ 0
+       data_received..................: 0 B     0 B/s
+       data_sent......................: 0 B     0 B/s
+       iteration_duration.............: avg=153.45ms min=6.01ms med=26.8ms  max=8.14s   p(90)=156.3ms p(95)=206.4ms
+       iterations.....................: 20170   313.068545/s
+       kafka.reader.dial.count........: 50      0.776075/s
+       kafka.reader.dial.seconds......: avg=171.22µs min=0s     med=0s      max=1.09s   p(90)=0s      p(95)=0s
+    ✓ kafka.reader.error.count.......: 0       0/s
+       kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
+       kafka.reader.fetch_bytes.min...: 1       min=1          max=1
+       kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
+       kafka.reader.fetch.bytes.......: 58 MB   897 kB/s
+       kafka.reader.fetch.size........: 147167  2284.25179/s
+       kafka.reader.fetches.count.....: 107     1.6608/s
+       kafka.reader.lag...............: 1519055 min=0          max=2436190
+       kafka.reader.message.bytes.....: 40 MB   615 kB/s
+       kafka.reader.message.count.....: 201749  3131.446006/s
+       kafka.reader.offset............: 4130    min=11         max=5130
+       kafka.reader.queue.capacity....: 1       min=1          max=1
+       kafka.reader.queue.length......: 1       min=0          max=1
+       kafka.reader.read.seconds......: avg=96.5ms   min=0s     med=0s      max=59.37s  p(90)=0s      p(95)=0s
+       kafka.reader.rebalance.count...: 0       0/s
+       kafka.reader.timeouts.count....: 57      0.884725/s
+       kafka.reader.wait.seconds......: avg=102.71µs min=0s     med=0s      max=85.71ms p(90)=0s      p(95)=0s
+       kafka.writer.acks.required.....: 0       min=0          max=0
+       kafka.writer.async.............: 0.00%   ✓ 0            ✗ 2017000
+       kafka.writer.attempts.max......: 0       min=0          max=0
+       kafka.writer.batch.bytes.......: 441 MB  6.8 MB/s
+       kafka.writer.batch.max.........: 1       min=1          max=1
+       kafka.writer.batch.size........: 2017000 31306.854525/s
+       kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
+     ✓ kafka.writer.error.count.......: 0       0/s
+       kafka.writer.message.bytes.....: 883 MB  14 MB/s
+       kafka.writer.message.count.....: 4034000 62613.709051/s
+       kafka.writer.read.timeout......: 0s      min=0s         max=0s
+       kafka.writer.retries.count.....: 0       0/s
+       kafka.writer.wait.seconds......: avg=0s       min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka.writer.write.count.......: 4034000 62613.709051/s
+       kafka.writer.write.seconds.....: avg=523.21µs min=4.84µs med=14.48µs max=4.05s   p(90)=33.85µs p(95)=42.68µs
+       kafka.writer.write.timeout.....: 0s      min=0s         max=0s
+       vus............................: 7       min=7          max=50
+       vus_max........................: 50      min=50         max=50
+   ```
 
 ### FAQ
 
 1. Why do I receive `Error writing messages`?
 
-    There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic. You can use `Connection.createTopic` method to create the topic in Kafka, as shown in `scripts/test_topics.js`. You can also set the `autoCreateTopic` on the `WriterConfig`. You can also create a topic using the `kafka-topics` command:
+   There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic. You can use `Connection.createTopic` method to create the topic in Kafka, as shown in `scripts/test_topics.js`. You can also set the `autoCreateTopic` on the `WriterConfig`. You can also create a topic using the `kafka-topics` command:
 
-    ```bash
-    $ docker exec -it lensesio bash
-    (inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
-    (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
-    ```
+   ```bash
+   $ docker exec -it lensesio bash
+   (inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+   (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
+   ```
 
 2. Why does the `reader.consume` keeps hanging?
 
-    If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
+   If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
 3. I want to test SASL authentication. How should I do that?
 
-    If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
+   If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
 
 4. Why doesn't the consumer group consuming messages from the topic?
 
-    As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 causes multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
+   As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 causes multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
 ## Contributions, Issues and Feedback
 
@@ -355,13 +360,13 @@ I'd be thrilled to receive contributions and feedback on this project. You're al
 
 ## Backward Compatibility Notice
 
-If you want to keep up to date with the latest changes, please follow the [project board](https://github.com/users/mostafa/projects/1). Also, since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), the `main` branch is the *development* branch and usually has the latest changes and might be unstable. If you want to use the latest features, you might need to build your binary by following the [build from source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) instructions. In turn, the tagged releases and the Docker images are more stable.
+If you want to keep up to date with the latest changes, please follow the [project board](https://github.com/users/mostafa/projects/1). Also, since [v0.9.0](https://github.com/mostafa/xk6-kafka/releases/tag/v0.9.0), the `main` branch is the _development_ branch and usually has the latest changes and might be unstable. If you want to use the latest features, you might need to build your binary by following the [build from source](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-from-source) instructions. In turn, the tagged releases and the Docker images are more stable.
 
-I make no guarantee to keep the API stable, as this project is in *active development* unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](https://github.com/mostafa/xk6-kafka/blob/main/README.md#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
+I make no guarantee to keep the API stable, as this project is in _active development_ unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](https://github.com/mostafa/xk6-kafka/blob/main/README.md#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
 
 ## The Release Process
 
-The `main` branch is the *development* branch, and the pull requests will be *squashed and merged* into the `main` branch. When a commit is tagged with a version, for example, `v0.10.0`, the build pipeline will build the `main` branch on that commit. The build process creates the binaries and the Docker image. If you want to test the latest unreleased features, you can clone the `main` branch and instruct the `xk6` to use the locally cloned repository instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
+The `main` branch is the _development_ branch, and the pull requests will be _squashed and merged_ into the `main` branch. When a commit is tagged with a version, for example, `v0.10.0`, the build pipeline will build the `main` branch on that commit. The build process creates the binaries and the Docker image. If you want to test the latest unreleased features, you can clone the `main` branch and instruct the `xk6` to use the locally cloned repository instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
 
 ## The CycloneDX SBOM
 
@@ -369,6 +374,6 @@ CycloneDX SBOMs in JSON format are generated for [go.mod](go.mod) (as of [v0.9.0
 
 ## Disclaimer
 
-This project *was* a proof of concept but seems to be used by some companies nowadays. However, it isn't supported by the k6 team, but rather by [me](https://github.com/mostafa) personally, and the APIs may change in the future. USE AT YOUR OWN RISK!
+This project _was_ a proof of concept but seems to be used by some companies nowadays. However, it isn't supported by the k6 team, but rather by [me](https://github.com/mostafa) personally, and the APIs may change in the future. USE AT YOUR OWN RISK!
 
 This project was AGPL3-licensed up until 7 October 2021, and then we [relicensed](https://github.com/mostafa/xk6-kafka/pull/25) it under the [Apache License 2.0](https://github.com/mostafa/xk6-kafka/blob/master/LICENSE).

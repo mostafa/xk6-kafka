@@ -12,7 +12,7 @@ const reader = new Reader({
 });
 
 // In VU code (default function)
-const messages = reader.consume({limit: 10});
+const messages = reader.consume({ limit: 10 });
 
 // In teardown function
 reader.close();
@@ -37,8 +37,8 @@ reader.close();
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name           | Type                                            | Description           |
+| :------------- | :---------------------------------------------- | :-------------------- |
 | `readerConfig` | [`ReaderConfig`](../interfaces/ReaderConfig.md) | Reader configuration. |
 
 #### Defined in
@@ -65,7 +65,7 @@ reader.close();
 
 [index.d.ts:325](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L325)
 
-___
+---
 
 ### consume
 
@@ -76,8 +76,8 @@ Read messages from Kafka.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name            | Type                                              | Description            |
+| :-------------- | :------------------------------------------------ | :--------------------- |
 | `consumeConfig` | [`ConsumeConfig`](../interfaces/ConsumeConfig.md) | Consume configuration. |
 
 #### Returns

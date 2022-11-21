@@ -1,4 +1,4 @@
-# Enumeration: ELEMENT\_TYPES
+# Enumeration: ELEMENT_TYPES
 
 ## Table of contents
 
@@ -17,7 +17,7 @@
 
 [index.d.ts:41](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L41)
 
-___
+---
 
 ### VALUE
 
