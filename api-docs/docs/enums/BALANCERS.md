@@ -4,57 +4,57 @@
 
 ### Enumeration Members
 
-- [BALANCER\_CRC32](BALANCERS.md#balancer_crc32)
-- [BALANCER\_HASH](BALANCERS.md#balancer_hash)
-- [BALANCER\_LEAST\_BYTES](BALANCERS.md#balancer_least_bytes)
-- [BALANCER\_MURMUR2](BALANCERS.md#balancer_murmur2)
-- [BALANCER\_ROUND\_ROBIN](BALANCERS.md#balancer_round_robin)
+- [BALANCER_CRC32](BALANCERS.md#balancer_crc32)
+- [BALANCER_HASH](BALANCERS.md#balancer_hash)
+- [BALANCER_LEAST_BYTES](BALANCERS.md#balancer_least_bytes)
+- [BALANCER_MURMUR2](BALANCERS.md#balancer_murmur2)
+- [BALANCER_ROUND_ROBIN](BALANCERS.md#balancer_round_robin)
 
 ## Enumeration Members
 
-### BALANCER\_CRC32
+### BALANCER_CRC32
 
-• **BALANCER\_CRC32**
+• **BALANCER_CRC32**
 
 #### Defined in
 
 [index.d.ts:63](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L63)
 
-___
+---
 
-### BALANCER\_HASH
+### BALANCER_HASH
 
-• **BALANCER\_HASH**
+• **BALANCER_HASH**
 
 #### Defined in
 
 [index.d.ts:62](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L62)
 
-___
+---
 
-### BALANCER\_LEAST\_BYTES
+### BALANCER_LEAST_BYTES
 
-• **BALANCER\_LEAST\_BYTES**
+• **BALANCER_LEAST_BYTES**
 
 #### Defined in
 
 [index.d.ts:61](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L61)
 
-___
+---
 
-### BALANCER\_MURMUR2
+### BALANCER_MURMUR2
 
-• **BALANCER\_MURMUR2**
+• **BALANCER_MURMUR2**
 
 #### Defined in
 
 [index.d.ts:64](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L64)
 
-___
+---
 
-### BALANCER\_ROUND\_ROBIN
+### BALANCER_ROUND_ROBIN
 
-• **BALANCER\_ROUND\_ROBIN**
+• **BALANCER_ROUND_ROBIN**
 
 #### Defined in
 

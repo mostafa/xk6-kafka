@@ -29,7 +29,7 @@
 
 [index.d.ts:104](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L104)
 
-___
+---
 
 ### balancer
 
@@ -39,7 +39,7 @@ ___
 
 [index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L105)
 
-___
+---
 
 ### batchBytes
 
@@ -49,7 +49,7 @@ ___
 
 [index.d.ts:108](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L108)
 
-___
+---
 
 ### batchSize
 
@@ -59,7 +59,7 @@ ___
 
 [index.d.ts:107](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L107)
 
-___
+---
 
 ### batchTimeout
 
@@ -69,7 +69,7 @@ ___
 
 [index.d.ts:109](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L109)
 
-___
+---
 
 ### brokers
 
@@ -79,7 +79,7 @@ ___
 
 [index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L102)
 
-___
+---
 
 ### compression
 
@@ -89,7 +89,7 @@ ___
 
 [index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L112)
 
-___
+---
 
 ### connectLogger
 
@@ -99,7 +99,7 @@ ___
 
 [index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
 
-___
+---
 
 ### maxAttempts
 
@@ -109,7 +109,7 @@ ___
 
 [index.d.ts:106](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L106)
 
-___
+---
 
 ### readTimeout
 
@@ -119,7 +119,7 @@ ___
 
 [index.d.ts:110](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L110)
 
-___
+---
 
 ### sasl
 
@@ -129,7 +129,7 @@ ___
 
 [index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
 
-___
+---
 
 ### tls
 
@@ -139,7 +139,7 @@ ___
 
 [index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
 
-___
+---
 
 ### topic
 
@@ -149,7 +149,7 @@ ___
 
 [index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L103)
 
-___
+---
 
 ### writeTimeout
 

@@ -27,7 +27,7 @@ Message format for producing messages to a topic.
 
 [index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L129)
 
-___
+---
 
 ### highwaterMark
 
@@ -37,7 +37,7 @@ ___
 
 [index.d.ts:126](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L126)
 
-___
+---
 
 ### key
 
@@ -47,7 +47,7 @@ ___
 
 [index.d.ts:127](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L127)
 
-___
+---
 
 ### offset
 
@@ -57,7 +57,7 @@ ___
 
 [index.d.ts:125](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L125)
 
-___
+---
 
 ### partition
 
@@ -67,7 +67,7 @@ ___
 
 [index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L124)
 
-___
+---
 
 ### time
 
@@ -77,7 +77,7 @@ ___
 
 [index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L130)
 
-___
+---
 
 ### topic
 
@@ -87,7 +87,7 @@ ___
 
 [index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L123)
 
-___
+---
 
 ### value
 

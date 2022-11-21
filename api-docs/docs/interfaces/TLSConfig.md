@@ -21,7 +21,7 @@
 
 [index.d.ts:95](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L95)
 
-___
+---
 
 ### clientKeyPem
 
@@ -31,7 +31,7 @@ ___
 
 [index.d.ts:96](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L96)
 
-___
+---
 
 ### enableTls
 
@@ -41,7 +41,7 @@ ___
 
 [index.d.ts:92](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L92)
 
-___
+---
 
 ### insecureSkipTlsVerify
 
@@ -51,7 +51,7 @@ ___
 
 [index.d.ts:93](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L93)
 
-___
+---
 
 ### minVersion
 
@@ -61,7 +61,7 @@ ___
 
 [index.d.ts:94](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L94)
 
-___
+---
 
 ### serverCertPem
 

@@ -1,9 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "es2015",
-        "module": "commonjs",
-        "rootDir": ".",
-        "strict": true
-    },
-    "exclude": ["node_modules"]
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "rootDir": ".",
+    "strict": true
+  },
+  "exclude": ["node_modules"]
 }

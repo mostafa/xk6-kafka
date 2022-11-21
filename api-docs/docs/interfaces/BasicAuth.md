@@ -17,7 +17,7 @@
 
 [index.d.ts:136](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L136)
 
-___
+---
 
 ### username
 

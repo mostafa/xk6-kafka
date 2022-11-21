@@ -18,7 +18,7 @@
 
 [index.d.ts:231](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L231)
 
-___
+---
 
 ### schema
 
@@ -28,7 +28,7 @@ ___
 
 [index.d.ts:232](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L232)
 
-___
+---
 
 ### schemaType
 

@@ -21,7 +21,7 @@ const keySchema = schemaRegistry.createSchema({
   element: KEY,
   subject: "...",
   schema: "...",
-  schemaType: "AVRO"
+  schemaType: "AVRO",
 });
 
 const valueSchema = schemaRegistry.createSchema({
@@ -29,7 +29,7 @@ const valueSchema = schemaRegistry.createSchema({
   element: VALUE,
   subject: "...",
   schema: "...",
-  schemaType: "AVRO"
+  schemaType: "AVRO",
 });
 
 // In VU code (default function)
@@ -39,15 +39,15 @@ writer.produce({
       key: schemaRegistry.serialize({
         data: "key",
         schema: keySchema,
-        schemaType: SCHEMA_TYPE_AVRO
+        schemaType: SCHEMA_TYPE_AVRO,
       }),
       value: schemaRegistry.serialize({
         data: "value",
         schema: valueSchema,
-        schemaType: SCHEMA_TYPE_AVRO
+        schemaType: SCHEMA_TYPE_AVRO,
       }),
-    }
-  ]
+    },
+  ],
 });
 ```
 
@@ -73,8 +73,8 @@ writer.produce({
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name                   | Type                                                            | Description                    |
+| :--------------------- | :-------------------------------------------------------------- | :----------------------------- |
 | `schemaRegistryConfig` | [`SchemaRegistryConfig`](../interfaces/SchemaRegistryConfig.md) | Schema Registry configuration. |
 
 #### Defined in
@@ -92,8 +92,8 @@ Create or update a schema on Schema Registry.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name     | Type                                | Description           |
+| :------- | :---------------------------------- | :-------------------- |
 | `schema` | [`Schema`](../interfaces/Schema.md) | Schema configuration. |
 
 #### Returns
@@ -106,7 +106,7 @@ Create or update a schema on Schema Registry.
 
 [index.d.ts:456](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L456)
 
-___
+---
 
 ### deserialize
 
@@ -117,8 +117,8 @@ Deserializes the given data and schema into its original form.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name        | Type                                      | Description                                      |
+| :---------- | :---------------------------------------- | :----------------------------------------------- |
 | `container` | [`Container`](../interfaces/Container.md) | Container including data, schema and schemaType. |
 
 #### Returns
@@ -131,7 +131,7 @@ Deserializes the given data and schema into its original form.
 
 [index.d.ts:477](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L477)
 
-___
+---
 
 ### getSchema
 
@@ -142,8 +142,8 @@ Get a schema from Schema Registry by version and subject.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name     | Type                                | Description           |
+| :------- | :---------------------------------- | :-------------------- |
 | `schema` | [`Schema`](../interfaces/Schema.md) | Schema configuration. |
 
 #### Returns
@@ -156,7 +156,7 @@ Get a schema from Schema Registry by version and subject.
 
 [index.d.ts:449](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L449)
 
-___
+---
 
 ### getSubjectName
 
@@ -167,8 +167,8 @@ Returns the subject name for the given SubjectNameConfig.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name                | Type                                                      | Description                 |
+| :------------------ | :-------------------------------------------------------- | :-------------------------- |
 | `subjectNameConfig` | [`SubjectNameConfig`](../interfaces/SubjectNameConfig.md) | Subject name configuration. |
 
 #### Returns
@@ -181,7 +181,7 @@ Returns the subject name for the given SubjectNameConfig.
 
 [index.d.ts:463](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L463)
 
-___
+---
 
 ### serialize
 
@@ -192,8 +192,8 @@ Serializes the given data and schema into a byte array.
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
+| Name        | Type                                      | Description                                      |
+| :---------- | :---------------------------------------- | :----------------------------------------------- |
 | `container` | [`Container`](../interfaces/Container.md) | Container including data, schema and schemaType. |
 
 #### Returns

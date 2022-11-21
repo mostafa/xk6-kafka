@@ -19,7 +19,7 @@
 
 [index.d.ts:226](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L226)
 
-___
+---
 
 ### schema
 
@@ -29,7 +29,7 @@ ___
 
 [index.d.ts:224](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L224)
 
-___
+---
 
 ### subjectNameStrategy
 
@@ -39,7 +39,7 @@ ___
 
 [index.d.ts:227](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L227)
 
-___
+---
 
 ### topic
 
