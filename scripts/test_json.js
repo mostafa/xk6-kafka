@@ -42,27 +42,24 @@ const schemaRegistry = new SchemaRegistry();
 if (__VU == 0) {
     connection.createTopic({
         topic: topic,
-        configEntries: [
-            {
-                configName: "compression.type",
-                configValue: CODEC_SNAPPY,
-            },
-        ],
+        configEntries: [{
+            configName: "compression.type",
+            configValue: CODEC_SNAPPY,
+        }, ],
     });
 }
 
 export const options = {
     thresholds: {
         // Base thresholds to see if the writer or reader is working
-        "kafka.writer.error.count": ["count == 0"],
-        "kafka.reader.error.count": ["count == 0"],
+        "kafka_writer_error_count": ["count == 0"],
+        "kafka_reader_error_count": ["count == 0"],
     },
 };
 
-export default function () {
+export default function() {
     for (let index = 0; index < 100; index++) {
-        let messages = [
-            {
+        let messages = [{
                 // The data type of the key is JSON
                 key: schemaRegistry.serialize({
                     data: {
@@ -76,8 +73,7 @@ export default function () {
                         name: "xk6-kafka",
                         version: "0.9.0",
                         author: "Mostafa Moradian",
-                        description:
-                            "k6 extension to load test Apache Kafka with support for Avro messages",
+                        description: "k6 extension to load test Apache Kafka with support for Avro messages",
                         index: index,
                     },
                     schemaType: SCHEMA_TYPE_JSON,
@@ -101,8 +97,7 @@ export default function () {
                         name: "xk6-kafka",
                         version: "0.9.0",
                         author: "Mostafa Moradian",
-                        description:
-                            "k6 extension to load test Apache Kafka with support for Avro messages",
+                        description: "k6 extension to load test Apache Kafka with support for Avro messages",
                         index: index,
                     },
                     schemaType: SCHEMA_TYPE_JSON,
@@ -127,15 +122,15 @@ export default function () {
         "Topic equals to xk6_kafka_json_topic": (msg) => msg["topic"] == topic,
         "Key contains key/value and is JSON": (msg) =>
             schemaRegistry
-                .deserialize({ data: msg.key, schemaType: SCHEMA_TYPE_JSON })
-                .correlationId.startsWith("test-id-"),
+            .deserialize({ data: msg.key, schemaType: SCHEMA_TYPE_JSON })
+            .correlationId.startsWith("test-id-"),
         "Value contains key/value and is JSON": (msg) =>
             typeof schemaRegistry.deserialize({
                 data: msg.value,
                 schemaType: SCHEMA_TYPE_JSON,
             }) == "object" &&
             schemaRegistry.deserialize({ data: msg.value, schemaType: SCHEMA_TYPE_JSON }).name ==
-                "xk6-kafka",
+            "xk6-kafka",
         "Header equals {'mykey': 'myvalue'}": (msg) =>
             "mykey" in msg.headers && String.fromCharCode(...msg.headers["mykey"]) == "myvalue",
         "Time is past": (msg) => new Date(msg["time"]) < new Date(),

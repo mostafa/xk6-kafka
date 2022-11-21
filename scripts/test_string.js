@@ -36,15 +36,14 @@ if (__VU == 0) {
 export const options = {
     thresholds: {
         // Base thresholds to see if the writer or reader is working
-        "kafka.writer.error.count": ["count == 0"],
-        "kafka.reader.error.count": ["count == 0"],
+        "kafka_writer_error_count": ["count == 0"],
+        "kafka_reader_error_count": ["count == 0"],
     },
 };
 
-export default function () {
+export default function() {
     for (let index = 0; index < 100; index++) {
-        let messages = [
-            {
+        let messages = [{
                 key: schemaRegistry.serialize({
                     data: "test-key-string",
                     schemaType: SCHEMA_TYPE_STRING,
@@ -96,7 +95,7 @@ export default function () {
                 schemaType: SCHEMA_TYPE_STRING,
             }) == "string" &&
             schemaRegistry.deserialize({ data: msg.value, schemaType: SCHEMA_TYPE_STRING }) ==
-                "test-value-string",
+            "test-value-string",
         "Header equals {'mykey': 'myvalue'}": (msg) =>
             "mykey" in msg.headers && String.fromCharCode(...msg.headers["mykey"]) == "myvalue",
         "Time is past": (msg) => new Date(msg["time"]) < new Date(),
