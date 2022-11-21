@@ -3,12 +3,12 @@ module github.com/mostafa/xk6-kafka
 go 1.18
 
 require (
-	github.com/dop251/goja v0.0.0-20221025165401-cb5011b539fe
+	github.com/dop251/goja v0.0.0-20221118162653-d4bf6fde1b86
 	github.com/linkedin/goavro/v2 v2.12.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/riferrei/srclient v0.5.4
-	github.com/santhosh-tekuri/jsonschema/v5 v5.0.2
-	github.com/segmentio/kafka-go v0.4.36
+	github.com/santhosh-tekuri/jsonschema/v5 v5.1.0
+	github.com/segmentio/kafka-go v0.4.38
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	go.k6.io/k6 v0.41.0
@@ -32,13 +32,13 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
-	github.com/spf13/afero v1.9.2 // indirect
+	github.com/spf13/afero v1.9.3 // indirect
 	github.com/xdg/scram v1.0.5 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
-	golang.org/x/crypto v0.1.0 // indirect
+	golang.org/x/crypto v0.3.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	golang.org/x/time v0.1.0 // indirect
+	golang.org/x/time v0.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
