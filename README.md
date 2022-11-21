@@ -342,7 +342,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
    ```
 
-2. Why does the `reader.consume` keeps hanging?
+2. Why does the `reader.consume` keep hanging?
 
    If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
@@ -350,9 +350,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
    If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
 
-4. Why doesn't the consumer group consuming messages from the topic?
+4. Why doesn't the consumer group consume messages from the topic?
 
-   As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 causes multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
+   As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 cause multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
 ## Contributions, Issues and Feedback
 
