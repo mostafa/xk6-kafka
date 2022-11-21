@@ -23,6 +23,11 @@ jobs:
         with:
           go-version: "1.18"
 
+      - name: Run prettier for linting scripts, configs and docs 🧹
+        uses: creyD/prettier_action@v4.2
+        with:
+          dry: True
+
       - name: Lint code issues 🚨
         uses: golangci/golangci-lint-action@v3
 
