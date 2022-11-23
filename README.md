@@ -354,6 +354,24 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
    As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 cause multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
+5. Why do I receive a `MessageTooLargeError` when I produce messages bigger than 1 MB?
+
+   Kafka has a [maximum message size](https://docs.confluent.io/platform/current/installation/configuration/broker-configs.html) of 1 MB by default, which is set by `message.max.bytes`, and this limit is also applied to the `Writer` object.
+
+   There are two ways to produce larger messages: 1) Change the default value of your Kafka instance to a larger number. 2) Use compression.
+
+   Remember that the `Writer` object will reject messages larger than the default Kafka message size limit (1 MB). Hence you need to set `batchBytes` to a larger value, for example, `1024 * 1024 * 2` (2 MB). The `batchBytes` refers to the raw uncompressed size of all the keys and values (data) in your array of messages you pass to the `Writer` object. You can calculate the raw data size of your messages using [this example script](https://github.com/mostafa/xk6-kafka/issues/181#issuecomment-1325390880).
+
+6. Can I consume messages from a consumer group in a topic with multiple partitions?
+
+   Yes, you can. Just pass the `groupID` to your `Reader` object. You must not specify the partition anymore. Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
+
+   Remember that you must set `sessionTimeout` on your `Reader` object if the consume function terminates abruptly, thus failing to consume messages.
+
+7. Why does the `Reader.consume` produces an `unable to read message` error?
+
+   For performance testing reasons, the `maxWait` of the `Reader` is set to 200ms. If you keep receiving this error, consider increasing it to a larger value.
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
