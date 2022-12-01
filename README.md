@@ -291,41 +291,41 @@ The example scripts are available as `test_<format/feature>.js` with more code a
        data_sent......................: 0 B     0 B/s
        iteration_duration.............: avg=153.45ms min=6.01ms med=26.8ms  max=8.14s   p(90)=156.3ms p(95)=206.4ms
        iterations.....................: 20170   313.068545/s
-       kafka.reader.dial.count........: 50      0.776075/s
-       kafka.reader.dial.seconds......: avg=171.22µs min=0s     med=0s      max=1.09s   p(90)=0s      p(95)=0s
-    ✓ kafka.reader.error.count.......: 0       0/s
-       kafka.reader.fetch_bytes.max...: 1000000 min=1000000    max=1000000
-       kafka.reader.fetch_bytes.min...: 1       min=1          max=1
-       kafka.reader.fetch_wait.max....: 200ms   min=200ms      max=200ms
-       kafka.reader.fetch.bytes.......: 58 MB   897 kB/s
-       kafka.reader.fetch.size........: 147167  2284.25179/s
-       kafka.reader.fetches.count.....: 107     1.6608/s
-       kafka.reader.lag...............: 1519055 min=0          max=2436190
-       kafka.reader.message.bytes.....: 40 MB   615 kB/s
-       kafka.reader.message.count.....: 201749  3131.446006/s
-       kafka.reader.offset............: 4130    min=11         max=5130
-       kafka.reader.queue.capacity....: 1       min=1          max=1
-       kafka.reader.queue.length......: 1       min=0          max=1
-       kafka.reader.read.seconds......: avg=96.5ms   min=0s     med=0s      max=59.37s  p(90)=0s      p(95)=0s
-       kafka.reader.rebalance.count...: 0       0/s
-       kafka.reader.timeouts.count....: 57      0.884725/s
-       kafka.reader.wait.seconds......: avg=102.71µs min=0s     med=0s      max=85.71ms p(90)=0s      p(95)=0s
-       kafka.writer.acks.required.....: 0       min=0          max=0
-       kafka.writer.async.............: 0.00%   ✓ 0            ✗ 2017000
-       kafka.writer.attempts.max......: 0       min=0          max=0
-       kafka.writer.batch.bytes.......: 441 MB  6.8 MB/s
-       kafka.writer.batch.max.........: 1       min=1          max=1
-       kafka.writer.batch.size........: 2017000 31306.854525/s
-       kafka.writer.batch.timeout.....: 0s      min=0s         max=0s
-     ✓ kafka.writer.error.count.......: 0       0/s
-       kafka.writer.message.bytes.....: 883 MB  14 MB/s
-       kafka.writer.message.count.....: 4034000 62613.709051/s
-       kafka.writer.read.timeout......: 0s      min=0s         max=0s
-       kafka.writer.retries.count.....: 0       0/s
-       kafka.writer.wait.seconds......: avg=0s       min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
-       kafka.writer.write.count.......: 4034000 62613.709051/s
-       kafka.writer.write.seconds.....: avg=523.21µs min=4.84µs med=14.48µs max=4.05s   p(90)=33.85µs p(95)=42.68µs
-       kafka.writer.write.timeout.....: 0s      min=0s         max=0s
+       kafka_reader_dial_count........: 50      0.776075/s
+       kafka_reader_dial_seconds......: avg=171.22µs min=0s     med=0s      max=1.09s   p(90)=0s      p(95)=0s
+     ✓ kafka_reader_error_count.......: 0       0/s
+       kafka_reader_fetch_bytes_max...: 1000000 min=1000000    max=1000000
+       kafka_reader_fetch_bytes_min...: 1       min=1          max=1
+       kafka_reader_fetch_wait_max....: 200ms   min=200ms      max=200ms
+       kafka_reader_fetch_bytes.......: 58 MB   897 kB/s
+       kafka_reader_fetch_size........: 147167  2284.25179/s
+       kafka_reader_fetches_count.....: 107     1.6608/s
+       kafka_reader_lag...............: 1519055 min=0          max=2436190
+       kafka_reader_message_bytes.....: 40 MB   615 kB/s
+       kafka_reader_message_count.....: 201749  3131.446006/s
+       kafka_reader_offset............: 4130    min=11         max=5130
+       kafka_reader_queue_capacity....: 1       min=1          max=1
+       kafka_reader_queue_length......: 1       min=0          max=1
+       kafka_reader_read_seconds......: avg=96.5ms   min=0s     med=0s      max=59.37s  p(90)=0s      p(95)=0s
+       kafka_reader_rebalance_count...: 0       0/s
+       kafka_reader_timeouts_count....: 57      0.884725/s
+       kafka_reader_wait_seconds......: avg=102.71µs min=0s     med=0s      max=85.71ms p(90)=0s      p(95)=0s
+       kafka_writer_acks_required.....: 0       min=0          max=0
+       kafka_writer_async.............: 0.00%   ✓ 0            ✗ 2017000
+       kafka_writer_attempts_max......: 0       min=0          max=0
+       kafka_writer_batch_bytes.......: 441 MB  6.8 MB/s
+       kafka_writer_batch_max.........: 1       min=1          max=1
+       kafka_writer_batch_size........: 2017000 31306.854525/s
+       kafka_writer_batch_timeout.....: 0s      min=0s         max=0s
+     ✓ kafka_writer_error_count.......: 0       0/s
+       kafka_writer_message_bytes.....: 883 MB  14 MB/s
+       kafka_writer_message_count.....: 4034000 62613.709051/s
+       kafka_writer_read_timeout......: 0s      min=0s         max=0s
+       kafka_writer_retries_count.....: 0       0/s
+       kafka_writer_wait_seconds......: avg=0s       min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka_writer_write_count.......: 4034000 62613.709051/s
+       kafka_writer_write_seconds.....: avg=523.21µs min=4.84µs med=14.48µs max=4.05s   p(90)=33.85µs p(95)=42.68µs
+       kafka_writer_write_timeout.....: 0s      min=0s         max=0s
        vus............................: 7       min=7          max=50
        vus_max........................: 50      min=50         max=50
    ```
