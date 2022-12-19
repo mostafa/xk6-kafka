@@ -25,7 +25,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L129)
+[index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L130)
 
 ---
 
@@ -35,7 +35,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:126](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L126)
+[index.d.ts:127](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L127)
 
 ---
 
@@ -45,7 +45,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:127](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L127)
+[index.d.ts:128](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L128)
 
 ---
 
@@ -55,7 +55,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:125](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L125)
+[index.d.ts:126](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L126)
 
 ---
 
@@ -65,7 +65,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L124)
+[index.d.ts:125](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L125)
 
 ---
 
@@ -75,7 +75,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L130)
+[index.d.ts:131](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L131)
 
 ---
 
@@ -85,7 +85,7 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L123)
+[index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L124)
 
 ---
 
@@ -95,4 +95,4 @@ Message format for producing messages to a topic.
 
 #### Defined in
 
-[index.d.ts:128](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L128)
+[index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L129)

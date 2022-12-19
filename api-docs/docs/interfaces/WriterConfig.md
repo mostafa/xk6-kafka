@@ -14,6 +14,7 @@
 - [connectLogger](WriterConfig.md#connectlogger)
 - [maxAttempts](WriterConfig.md#maxattempts)
 - [readTimeout](WriterConfig.md#readtimeout)
+- [requiredAcks](WriterConfig.md#requiredacks)
 - [sasl](WriterConfig.md#sasl)
 - [tls](WriterConfig.md#tls)
 - [topic](WriterConfig.md#topic)
@@ -87,7 +88,7 @@
 
 #### Defined in
 
-[index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L112)
+[index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
 
 ---
 
@@ -97,7 +98,7 @@
 
 #### Defined in
 
-[index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
+[index.d.ts:116](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L116)
 
 ---
 
@@ -121,13 +122,23 @@
 
 ---
 
+### requiredAcks
+
+• **requiredAcks**: `number`
+
+#### Defined in
+
+[index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L111)
+
+---
+
 ### sasl
 
 • **sasl**: [`SASLConfig`](SASLConfig.md)
 
 #### Defined in
 
-[index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
+[index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
 
 ---
 
@@ -137,7 +148,7 @@
 
 #### Defined in
 
-[index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
+[index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
 
 ---
 
@@ -157,4 +168,4 @@
 
 #### Defined in
 
-[index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L111)
+[index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L112)

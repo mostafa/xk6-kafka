@@ -108,6 +108,7 @@ export interface WriterConfig {
   batchBytes: number;
   batchTimeout: number;
   readTimeout: number;
+  requiredAcks: number;
   writeTimeout: number;
   compression: COMPRESSION_CODECS;
   sasl: SASLConfig;

@@ -14,4 +14,4 @@
 
 #### Defined in
 
-[index.d.ts:148](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L148)
+[index.d.ts:149](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L149)
