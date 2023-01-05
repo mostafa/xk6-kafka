@@ -151,35 +151,35 @@ export interface ProduceConfig {
 
 /* Configuration for creating a Reader instance. */
 export interface ReaderConfig {
-    brokers: string[];
-    groupID: string;
-    groupTopics: string[];
-    topic: string;
-    partition: number;
-    queueCapacity: number;
-    minBytes: number;
-    maxBytes: number;
-    readBatchTimeout: number;
-    maxWait: number;
-    readLagInterval: number;
-    groupBalancers: GROUP_BALANCERS[];
-    heartbeatInterval: number;
-    commitInterval: number;
-    partitionWatchInterval: number;
-    watchPartitionChanges: boolean;
-    sessionTimeout: number;
-    rebalanceTimeout: number;
-    joinGroupBackoff: number;
-    retentionTime: number;
-    startOffset: number;
-    readBackoffMin: number;
-    readBackoffMax: number;
-    connectLogger: boolean;
-    maxAttempts: number;
-    isolationLevel: ISOLATION_LEVEL;
-    offset: number;
-    sasl: SASLConfig;
-    tls: TLSConfig;
+  brokers: string[];
+  groupID: string;
+  groupTopics: string[];
+  topic: string;
+  partition: number;
+  queueCapacity: number;
+  minBytes: number;
+  maxBytes: number;
+  readBatchTimeout: number;
+  maxWait: number;
+  readLagInterval: number;
+  groupBalancers: GROUP_BALANCERS[];
+  heartbeatInterval: number;
+  commitInterval: number;
+  partitionWatchInterval: number;
+  watchPartitionChanges: boolean;
+  sessionTimeout: number;
+  rebalanceTimeout: number;
+  joinGroupBackoff: number;
+  retentionTime: number;
+  startOffset: number;
+  readBackoffMin: number;
+  readBackoffMax: number;
+  connectLogger: boolean;
+  maxAttempts: number;
+  isolationLevel: ISOLATION_LEVEL;
+  offset: number;
+  sasl: SASLConfig;
+  tls: TLSConfig;
 }
 
 /* Configuration for Consume method. */
