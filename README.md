@@ -330,6 +330,46 @@ The example scripts are available as `test_<format/feature>.js` with more code a
        vus_max........................: 50      min=50         max=50
    ```
 
+### Emitted Metrics
+
+| Metric                       | Type    | Description                                                             |
+| ---------------------------- | ------- | ----------------------------------------------------------------------- |
+| kafka_reader_dial_count      | Counter | Total number of times the reader tries to connect.                      |
+| kafka_reader_fetches_count   | Counter | Total number of times the reader fetches batches of messages.           |
+| kafka_reader_message_count   | Counter | Total number of messages consumed.                                      |
+| kafka_reader_message_bytes   | Counter | Total bytes consumed.                                                   |
+| kafka_reader_rebalance_count | Counter | Total number of rebalances of a topic in a consumer group (deprecated). |
+| kafka_reader_timeouts_count  | Counter | Total number of timeouts occurred when reading.                         |
+| kafka_reader_error_count     | Counter | Total number of errors occurred when reading.                           |
+| kafka_reader_dial_seconds    | Trend   | The time it takes to connect to the leader in a Kafka cluster.          |
+| kafka_reader_read_seconds    | Trend   | The time it takes to read a batch of message.                           |
+| kafka_reader_wait_seconds    | Trend   | Waiting time before read a batch of messages.                           |
+| kafka_reader_fetch_size      | Counter | Total messages fetched.                                                 |
+| kafka_reader_fetch_bytes     | Counter | Total bytes fetched.                                                    |
+| kafka_reader_offset          | Gauge   | Number of messages read after the given offset in a batch.              |
+| kafka_reader_lag             | Gauge   | The lag between the last message offset and the current read offset.    |
+| kafka_reader_fetch_bytes_min | Gauge   | Minimum number of bytes fetched.                                        |
+| kafka_reader_fetch_bytes_max | Gauge   | Maximum number of bytes fetched.                                        |
+| kafka_reader_fetch_wait_max  | Gauge   | The maximum time it takes to fetch a batch of messages.                 |
+| kafka_reader_queue_length    | Gauge   | The queue length while reading batch of messages.                       |
+| kafka_reader_queue_capacity  | Gauge   | The queue capacity while reading batch of messages.                     |
+| kafka_writer_write_count     | Counter | Total number of times the writer writes batches of messages.            |
+| kafka_writer_message_count   | Counter | Total number of messages produced.                                      |
+| kafka_writer_message_bytes   | Counter | Total bytes produced.                                                   |
+| kafka_writer_error_count     | Counter | Total number of errors occurred when writing.                           |
+| kafka_writer_write_seconds   | Trend   | The time it takes writing messages.                                     |
+| kafka_writer_wait_seconds    | Trend   | Waiting time before writing messages.                                   |
+| kafka_writer_retries_count   | Counter | Total number of attempts at writing messages.                           |
+| kafka_writer_batch_size      | Counter | Total batch size.                                                       |
+| kafka_writer_batch_bytes     | Counter | Total number of bytes in a batch of messages.                           |
+| kafka_writer_attempts_max    | Gauge   | Maximum number of attempts at writing messages.                         |
+| kafka_writer_batch_max       | Gauge   | Maximum batch size.                                                     |
+| kafka_writer_batch_timeout   | Gauge   | Batch timeout.                                                          |
+| kafka_writer_read_timeout    | Gauge   | Batch read timeout.                                                     |
+| kafka_writer_write_timeout   | Gauge   | Batch write timeout.                                                    |
+| kafka_writer_acks_required   | Gauge   | Required Acks.                                                          |
+| kafka_writer_async           | Rate    | Async writer.                                                           |
+
 ### FAQ
 
 1. Why do I receive `Error writing messages`?
