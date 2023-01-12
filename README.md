@@ -20,7 +20,7 @@ If you want to learn more about the extension, read the [article](https://k6.io/
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
 - Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
-- Support consumption from all partitions with a group ID
+- Support consumption from all partitions with a [group ID](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js)
 - Support Kafka message compression: Gzip, [Snappy](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), Lz4 & Zstd
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on custom Kafka metrics
@@ -371,6 +371,10 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 7. Why does the `Reader.consume` produces an `unable to read message` error?
 
    For performance testing reasons, the `maxWait` of the `Reader` is set to 200ms. If you keep receiving this error, consider increasing it to a larger value.
+
+8. How can I consume from multiple partitions on a single topic?
+
+   You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieve by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
 ## Contributions, Issues and Feedback
 
