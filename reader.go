@@ -157,10 +157,6 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		readerConfig.RebalanceTimeout = RebalanceTimeout
 	}
 
-	if readerConfig.QueueCapacity == 0 {
-		readerConfig.QueueCapacity = 1
-	}
-
 	groupBalancers := []kafkago.GroupBalancer{}
 	for _, balancer := range readerConfig.GroupBalancers {
 		if b, ok := GroupBalancers[balancer]; ok {
