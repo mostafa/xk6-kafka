@@ -87,7 +87,8 @@ var (
 		partitionAndGroupID, "Partition and groupID cannot be set at the same time", nil)
 
 	ErrTopicAndGroupID = NewXk6KafkaError(
-		topicAndGroupID, "When you specifiy groupID, you must set groupTopics instead", nil)
+		topicAndGroupID,
+		"When you specifiy groupID, you must set groupTopics instead of topic", nil)
 
 	// ErrNotEnoughArguments is used when a function is called with too few arguments.
 	ErrNotEnoughArguments = errors.New("not enough arguments")
