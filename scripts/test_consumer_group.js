@@ -94,7 +94,8 @@ export default function () {
   });
 
   check(messages[0], {
-    "Topic equals to xk6_kafka_consumer_group_topic": (msg) => msg["topic"] == topic,
+    "Topic equals to xk6_kafka_consumer_group_topic": (msg) =>
+      msg["topic"] == topic,
     "Key contains key/value and is JSON": (msg) =>
       schemaRegistry.deserialize({
         data: msg.key,
