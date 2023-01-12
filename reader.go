@@ -69,6 +69,7 @@ type ReaderConfig struct {
 	RetentionTime          time.Duration `json:"retentionTime"`
 	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
 	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
+	OffsetOutOfRangeError  bool          `json:"offsetOutOfRangeError"` // deprecated, do not use
 	SASL                   SASLConfig    `json:"sasl"`
 	TLS                    TLSConfig     `json:"tls"`
 }
@@ -243,6 +244,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		ReadBackoffMax:         readerConfig.ReadBackoffMax,
 		IsolationLevel:         isolationLevel,
 		MaxAttempts:            readerConfig.MaxAttempts,
+		OffsetOutOfRangeError:  readerConfig.OffsetOutOfRangeError,
 		Dialer:                 dialer,
 	}
 
