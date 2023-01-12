@@ -51,7 +51,7 @@ writer.close();
 
 #### Defined in
 
-[index.d.ts:271](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L271)
+[index.d.ts:272](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L272)
 
 ## Methods
 
@@ -71,7 +71,7 @@ writer.close();
 
 #### Defined in
 
-[index.d.ts:284](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L284)
+[index.d.ts:285](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L285)
 
 ---
 
@@ -96,4 +96,4 @@ Write messages to Kafka.
 
 #### Defined in
 
-[index.d.ts:278](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L278)
+[index.d.ts:279](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L279)

@@ -159,6 +159,7 @@ export interface ReaderConfig {
   queueCapacity: number;
   minBytes: number;
   maxBytes: number;
+  readBatchTimeout: number;
   maxWait: number;
   readLagInterval: number;
   groupBalancers: GROUP_BALANCERS[];
