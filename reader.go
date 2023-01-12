@@ -33,7 +33,6 @@ var (
 
 	StartOffsets map[string]int64
 
-	MaxWait                = time.Millisecond * 200
 	RebalanceTimeout       = time.Second * 5
 	HeartbeatInterval      = time.Second * 3
 	SessionTimeout         = time.Second * 30
