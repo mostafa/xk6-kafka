@@ -61,8 +61,8 @@ func init() {
 
 	// Initialize the start offsets map.
 	StartOffsets = map[string]int64{
-		lastOffset:  -1, // The most recent offset available for a partition.
-		firstOffset: -2, // The least recent offset available for a partition.
+		lastOffset:  kafkago.LastOffset,  // The most recent offset available for a partition.
+		firstOffset: kafkago.FirstOffset, // The least recent offset available for a partition.
 	}
 
 	// Register the module namespace (aka. JS import path).
