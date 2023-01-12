@@ -22,8 +22,6 @@ import {
 const brokers = ["localhost:9092"];
 const topic = "xk6_kafka_json_topic";
 
-// const writer = new kafka.Writer(...);
-// const reader = new kafka.Reader(...);
 const writer = new Writer({
   brokers: brokers,
   topic: topic,
