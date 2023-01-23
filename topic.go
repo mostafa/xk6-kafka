@@ -1,8 +1,15 @@
 package kafka
 
 import (
+	"crypto/tls"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	sigv4 "github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/segmentio/kafka-go/sasl/aws_msk_iam"
+	"log"
 	"net"
+	"os"
 	"strconv"
 
 	"github.com/dop251/goja"
@@ -116,6 +123,23 @@ func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig)
 			common.Throw(k.vu.Runtime(), wrappedError)
 			return nil
 		}
+	}
+
+	isConnectionWithIAM := os.Getenv("CONNECT_AWS_IAM")
+	awsRegion := aws.String(os.Getenv("AWS_DEFAULT_REGION"))
+	sess, errSession := session.NewSession(&aws.Config{
+		Region: awsRegion,
+	})
+	if errSession != nil {
+		log.Panicf("Error creating session: %s", errSession)
+	}
+
+	if isConnectionWithIAM != "" {
+		dialer.SASLMechanism = &aws_msk_iam.Mechanism{
+			Signer: sigv4.NewSigner(sess.Config.Credentials),
+			Region: *awsRegion,
+		}
+		dialer.TLS = &tls.Config{}
 	}
 
 	ctx := k.vu.Context()

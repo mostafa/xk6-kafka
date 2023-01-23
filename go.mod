@@ -16,11 +16,13 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go v1.44.185 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4-0.20211119122758-180fcef48034+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.13 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -31,6 +33,7 @@ require (
 	github.com/onsi/gomega v1.20.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/segmentio/kafka-go/sasl/aws_msk_iam v0.0.0-20221118181021-eba9cae7fd57 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/xdg/scram v1.0.5 // indirect
