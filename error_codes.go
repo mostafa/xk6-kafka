@@ -32,9 +32,11 @@ const (
 	failedDecodeBase64         errCode = 2009
 
 	// consumer.
-	failedSetOffset   errCode = 3000
-	failedReadMessage errCode = 3001
-	noMoreMessages    errCode = 3002
+	failedSetOffset     errCode = 3000
+	failedReadMessage   errCode = 3001
+	noMoreMessages      errCode = 3002
+	partitionAndGroupID errCode = 3003
+	topicAndGroupID     errCode = 3004
 
 	// authentication.
 	failedCreateDialerWithScram   errCode = 4000
@@ -80,6 +82,13 @@ var (
 
 	// ErrUnknownSerdesType is used when a serdes type is not supported.
 	ErrUnknownSerdesType = NewXk6KafkaError(invalidSerdeType, "Unknown serdes type", nil)
+
+	ErrPartitionAndGroupID = NewXk6KafkaError(
+		partitionAndGroupID, "Partition and groupID cannot be set at the same time", nil)
+
+	ErrTopicAndGroupID = NewXk6KafkaError(
+		topicAndGroupID,
+		"When you specifiy groupID, you must set groupTopics instead of topic", nil)
 
 	// ErrNotEnoughArguments is used when a function is called with too few arguments.
 	ErrNotEnoughArguments = errors.New("not enough arguments")

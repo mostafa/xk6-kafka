@@ -59,6 +59,12 @@ func init() {
 		isolationLevelReadCommitted:   kafkago.ReadCommitted,
 	}
 
+	// Initialize the start offsets map.
+	StartOffsets = map[string]int64{
+		lastOffset:  kafkago.LastOffset,  // The most recent offset available for a partition.
+		firstOffset: kafkago.FirstOffset, // The least recent offset available for a partition.
+	}
+
 	// Register the module namespace (aka. JS import path).
 	modules.Register("k6/x/kafka", New())
 }
@@ -182,6 +188,10 @@ func (m *Module) defineConstants() {
 	// Isolation levels
 	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", isolationLevelReadUncommitted)
 	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", isolationLevelReadCommitted)
+
+	// Start offsets
+	mustAddProp("FIRST_OFFSET", firstOffset)
+	mustAddProp("LAST_OFFSET", lastOffset)
 
 	// TopicNameStrategy types
 	mustAddProp("TOPIC_NAME_STRATEGY", TopicNameStrategy)

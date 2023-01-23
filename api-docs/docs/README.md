@@ -17,6 +17,7 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [ISOLATION_LEVEL](enums/ISOLATION_LEVEL.md)
 - [SASL_MECHANISMS](enums/SASL_MECHANISMS.md)
 - [SCHEMA_TYPES](enums/SCHEMA_TYPES.md)
+- [START_OFFSETS](enums/START_OFFSETS.md)
 - [SUBJECT_NAME_STRATEGY](enums/SUBJECT_NAME_STRATEGY.md)
 - [TLS_VERSIONS](enums/TLS_VERSIONS.md)
 

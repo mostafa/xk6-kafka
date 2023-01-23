@@ -20,7 +20,7 @@ If you want to learn more about the extension, read the [article](https://k6.io/
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
 - Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
-- Support consumption from all partitions with a group ID
+- Support consumption from all partitions with a [group ID](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js)
 - Support Kafka message compression: Gzip, [Snappy](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), Lz4 & Zstd
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on custom Kafka metrics
@@ -330,6 +330,46 @@ The example scripts are available as `test_<format/feature>.js` with more code a
        vus_max........................: 50      min=50         max=50
    ```
 
+### Emitted Metrics
+
+| Metric                       | Type    | Description                                                             |
+| ---------------------------- | ------- | ----------------------------------------------------------------------- |
+| kafka_reader_dial_count      | Counter | Total number of times the reader tries to connect.                      |
+| kafka_reader_fetches_count   | Counter | Total number of times the reader fetches batches of messages.           |
+| kafka_reader_message_count   | Counter | Total number of messages consumed.                                      |
+| kafka_reader_message_bytes   | Counter | Total bytes consumed.                                                   |
+| kafka_reader_rebalance_count | Counter | Total number of rebalances of a topic in a consumer group (deprecated). |
+| kafka_reader_timeouts_count  | Counter | Total number of timeouts occurred when reading.                         |
+| kafka_reader_error_count     | Counter | Total number of errors occurred when reading.                           |
+| kafka_reader_dial_seconds    | Trend   | The time it takes to connect to the leader in a Kafka cluster.          |
+| kafka_reader_read_seconds    | Trend   | The time it takes to read a batch of message.                           |
+| kafka_reader_wait_seconds    | Trend   | Waiting time before read a batch of messages.                           |
+| kafka_reader_fetch_size      | Counter | Total messages fetched.                                                 |
+| kafka_reader_fetch_bytes     | Counter | Total bytes fetched.                                                    |
+| kafka_reader_offset          | Gauge   | Number of messages read after the given offset in a batch.              |
+| kafka_reader_lag             | Gauge   | The lag between the last message offset and the current read offset.    |
+| kafka_reader_fetch_bytes_min | Gauge   | Minimum number of bytes fetched.                                        |
+| kafka_reader_fetch_bytes_max | Gauge   | Maximum number of bytes fetched.                                        |
+| kafka_reader_fetch_wait_max  | Gauge   | The maximum time it takes to fetch a batch of messages.                 |
+| kafka_reader_queue_length    | Gauge   | The queue length while reading batch of messages.                       |
+| kafka_reader_queue_capacity  | Gauge   | The queue capacity while reading batch of messages.                     |
+| kafka_writer_write_count     | Counter | Total number of times the writer writes batches of messages.            |
+| kafka_writer_message_count   | Counter | Total number of messages produced.                                      |
+| kafka_writer_message_bytes   | Counter | Total bytes produced.                                                   |
+| kafka_writer_error_count     | Counter | Total number of errors occurred when writing.                           |
+| kafka_writer_write_seconds   | Trend   | The time it takes writing messages.                                     |
+| kafka_writer_wait_seconds    | Trend   | Waiting time before writing messages.                                   |
+| kafka_writer_retries_count   | Counter | Total number of attempts at writing messages.                           |
+| kafka_writer_batch_size      | Counter | Total batch size.                                                       |
+| kafka_writer_batch_bytes     | Counter | Total number of bytes in a batch of messages.                           |
+| kafka_writer_attempts_max    | Gauge   | Maximum number of attempts at writing messages.                         |
+| kafka_writer_batch_max       | Gauge   | Maximum batch size.                                                     |
+| kafka_writer_batch_timeout   | Gauge   | Batch timeout.                                                          |
+| kafka_writer_read_timeout    | Gauge   | Batch read timeout.                                                     |
+| kafka_writer_write_timeout   | Gauge   | Batch write timeout.                                                    |
+| kafka_writer_acks_required   | Gauge   | Required Acks.                                                          |
+| kafka_writer_async           | Rate    | Async writer.                                                           |
+
 ### FAQ
 
 1. Why do I receive `Error writing messages`?
@@ -371,6 +411,10 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 7. Why does the `Reader.consume` produces an `unable to read message` error?
 
    For performance testing reasons, the `maxWait` of the `Reader` is set to 200ms. If you keep receiving this error, consider increasing it to a larger value.
+
+8. How can I consume from multiple partitions on a single topic?
+
+   You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieve by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
 ## Contributions, Issues and Feedback
 

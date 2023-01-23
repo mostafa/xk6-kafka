@@ -27,8 +27,18 @@ var (
 
 	IsolationLevels map[string]kafkago.IsolationLevel
 
-	MaxWait          = time.Millisecond * 200
-	RebalanceTimeout = time.Second * 5
+	// Start offsets.
+	lastOffset  = "start_offset_last_offset"
+	firstOffset = "start_offset_first_offset"
+
+	StartOffsets map[string]int64
+
+	RebalanceTimeout       = time.Second * 5
+	HeartbeatInterval      = time.Second * 3
+	SessionTimeout         = time.Second * 30
+	PartitionWatchInterval = time.Second * 5
+	JoinGroupBackoff       = time.Second * 5
+	RetentionTime          = time.Hour * 24
 )
 
 type ReaderConfig struct {
@@ -42,7 +52,7 @@ type ReaderConfig struct {
 	GroupID                string        `json:"groupId"`
 	Topic                  string        `json:"topic"`
 	IsolationLevel         string        `json:"isolationLevel"`
-	StartOffset            int64         `json:"startOffset"`
+	StartOffset            string        `json:"startOffset"`
 	Offset                 int64         `json:"offset"`
 	Brokers                []string      `json:"brokers"`
 	GroupTopics            []string      `json:"groupTopics"`
@@ -59,6 +69,7 @@ type ReaderConfig struct {
 	RetentionTime          time.Duration `json:"retentionTime"`
 	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
 	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
+	OffsetOutOfRangeError  bool          `json:"offsetOutOfRangeError"` // deprecated, do not use
 	SASL                   SASLConfig    `json:"sasl"`
 	TLS                    TLSConfig     `json:"tls"`
 }
@@ -137,10 +148,6 @@ func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
 // reader creates a Kafka reader with the given configuration
 // nolint: funlen
 func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
-	if readerConfig.GroupID != "" {
-		readerConfig.Partition = 0
-	}
-
 	dialer, err := GetDialer(readerConfig.SASL, readerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
@@ -149,33 +156,66 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	if readerConfig.MaxWait == 0 {
-		readerConfig.MaxWait = MaxWait
+	if readerConfig.Partition != 0 && readerConfig.GroupID != "" {
+		common.Throw(k.vu.Runtime(), ErrPartitionAndGroupID)
 	}
 
-	if readerConfig.RebalanceTimeout == 0 {
+	if readerConfig.Topic != "" && readerConfig.GroupID != "" {
+		common.Throw(k.vu.Runtime(), ErrTopicAndGroupID)
+	}
+
+	if readerConfig.GroupID != "" &&
+		len(readerConfig.GroupTopics) >= 0 &&
+		readerConfig.HeartbeatInterval == 0 {
+		readerConfig.HeartbeatInterval = HeartbeatInterval
+	}
+
+	if readerConfig.GroupID != "" && readerConfig.SessionTimeout == 0 {
+		readerConfig.SessionTimeout = SessionTimeout
+	}
+
+	if readerConfig.GroupID != "" && readerConfig.RebalanceTimeout == 0 {
 		readerConfig.RebalanceTimeout = RebalanceTimeout
 	}
 
-	if readerConfig.QueueCapacity == 0 {
-		readerConfig.QueueCapacity = 1
+	if readerConfig.GroupID != "" && readerConfig.JoinGroupBackoff == 0 {
+		readerConfig.JoinGroupBackoff = JoinGroupBackoff
 	}
 
-	groupBalancers := []kafkago.GroupBalancer{}
-	for _, balancer := range readerConfig.GroupBalancers {
-		if b, ok := GroupBalancers[balancer]; ok {
-			groupBalancers = append(groupBalancers, b)
-		}
+	if readerConfig.GroupID != "" && readerConfig.PartitionWatchInterval == 0 {
+		readerConfig.PartitionWatchInterval = PartitionWatchInterval
 	}
-	if len(groupBalancers) == 0 {
-		// Default to [Range, RoundRobin] if no balancer is specified
-		groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRange])
-		groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRoundRobin])
+
+	if readerConfig.GroupID != "" && readerConfig.RetentionTime == 0 {
+		readerConfig.RetentionTime = RetentionTime
+	}
+
+	var groupBalancers []kafkago.GroupBalancer
+	if readerConfig.GroupID != "" {
+		groupBalancers = make([]kafkago.GroupBalancer, 0, len(readerConfig.GroupBalancers))
+		for _, balancer := range readerConfig.GroupBalancers {
+			if b, ok := GroupBalancers[balancer]; ok {
+				groupBalancers = append(groupBalancers, b)
+			}
+		}
+		if len(groupBalancers) == 0 {
+			// Default to [Range, RoundRobin] if no balancer is specified
+			groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRange])
+			groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRoundRobin])
+		}
 	}
 
 	isolationLevel := IsolationLevels[isolationLevelReadUncommitted]
 	if readerConfig.IsolationLevel == "" {
 		isolationLevel = IsolationLevels[readerConfig.IsolationLevel]
+	}
+
+	var startOffset int64
+	if readerConfig.GroupID != "" && readerConfig.StartOffset != "" {
+		startOffset = StartOffsets[firstOffset] // Default to FirstOffset
+		if s, ok := StartOffsets[readerConfig.StartOffset]; ok {
+			startOffset = s
+		}
 	}
 
 	consolidatedConfig := kafkago.ReaderConfig{
@@ -199,11 +239,12 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		RebalanceTimeout:       readerConfig.RebalanceTimeout,
 		JoinGroupBackoff:       readerConfig.JoinGroupBackoff,
 		RetentionTime:          readerConfig.RetentionTime,
-		StartOffset:            readerConfig.StartOffset,
+		StartOffset:            startOffset,
 		ReadBackoffMin:         readerConfig.ReadBackoffMin,
 		ReadBackoffMax:         readerConfig.ReadBackoffMax,
 		IsolationLevel:         isolationLevel,
 		MaxAttempts:            readerConfig.MaxAttempts,
+		OffsetOutOfRangeError:  readerConfig.OffsetOutOfRangeError,
 		Dialer:                 dialer,
 	}
 
