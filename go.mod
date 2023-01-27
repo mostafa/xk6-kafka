@@ -3,12 +3,14 @@ module github.com/mostafa/xk6-kafka
 go 1.18
 
 require (
-	github.com/dop251/goja v0.0.0-20230216180835-5937a312edda
+	github.com/aws/aws-sdk-go-v2/config v1.18.10
+	github.com/dop251/goja v0.0.0-20230128084908-78b980256d04
 	github.com/linkedin/goavro/v2 v2.12.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/riferrei/srclient v0.5.4
 	github.com/santhosh-tekuri/jsonschema/v5 v5.2.0
 	github.com/segmentio/kafka-go v0.4.38
+	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.0.0-20221118181021-eba9cae7fd57
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	go.k6.io/k6 v0.43.0
@@ -16,6 +18,17 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.17.3 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.10 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.18.2 // indirect
+	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.8.0 // indirect
 	github.com/fatih/color v1.14.1 // indirect

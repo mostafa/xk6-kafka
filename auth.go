@@ -1,14 +1,17 @@
 package kafka
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
+	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
@@ -22,6 +25,7 @@ const (
 	saslScramSha256 = "sasl_scram_sha256"
 	saslScramSha512 = "sasl_scram_sha512"
 	saslSsl         = "sasl_ssl"
+	saslAwsIam      = "sasl_aws_iam"
 
 	Timeout = time.Second * 10
 )
@@ -107,6 +111,13 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 				failedCreateDialerWithScram, "Unable to create SCRAM mechanism", err)
 		}
 		return mechanism, nil
+	case saslAwsIam:
+		cfg, err := config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return nil, NewXk6KafkaError(
+				failedCreateDialerWithAwsIam, "Unable to load AWS IAM config for AWS MSK", err)
+		}
+		return aws_msk_iam_v2.NewMechanism(cfg), nil
 	default:
 		// Should we fail silently?
 		return nil, nil
