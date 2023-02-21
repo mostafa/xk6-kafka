@@ -426,6 +426,17 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    ...
    ```
 
+10. Why timeouts give up sooner than expected?
+
+   There are many ways to configure timeout for the `Reader` and `Writer` objects. They follow Go's time conventions, which means that one second is equal to 1000000000 (one billion). For ease of use, I added the constants that can be imported from the module.
+
+   ```javascript
+   import { SECOND } from 'k6/x/kafka';
+
+   console.log(2 * SECOND); // 2000000000
+   console.log(typeof SECOND); // number
+   ```
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
