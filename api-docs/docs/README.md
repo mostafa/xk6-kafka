@@ -19,6 +19,7 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [SCHEMA_TYPES](enums/SCHEMA_TYPES.md)
 - [START_OFFSETS](enums/START_OFFSETS.md)
 - [SUBJECT_NAME_STRATEGY](enums/SUBJECT_NAME_STRATEGY.md)
+- [TIME](enums/TIME.md)
 - [TLS_VERSIONS](enums/TLS_VERSIONS.md)
 
 ### Classes
