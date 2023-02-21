@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"crypto/tls"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/riferrei/srclient"
@@ -208,4 +209,12 @@ func (m *Module) defineConstants() {
 	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro.String())
 	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json.String())
 	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf.String())
+
+	// Time constants
+	mustAddProp("NANOSECOND", int64(time.Nanosecond))
+	mustAddProp("MICROSECOND", int64(time.Microsecond))
+	mustAddProp("MILLISECOND", int64(time.Millisecond))
+	mustAddProp("SECOND", int64(time.Second))
+	mustAddProp("MINUTE", int64(time.Minute))
+	mustAddProp("HOUR", int64(time.Hour))
 }
