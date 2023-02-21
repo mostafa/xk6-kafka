@@ -44,6 +44,7 @@ const (
 	failedLoadX509KeyPair         errCode = 4002
 	failedReadCaCertFile          errCode = 4003
 	failedAppendCaCertFile        errCode = 4004
+	failedCreateDialerWithAwsIam  errCode = 4005
 
 	// schema registry.
 	messageTooShort                     errCode = 5000

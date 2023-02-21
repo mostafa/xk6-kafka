@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[index.d.ts:96](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L96)
+[index.d.ts:97](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L97)
 
 ---
 
@@ -29,7 +29,7 @@
 
 #### Defined in
 
-[index.d.ts:92](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L92)
+[index.d.ts:93](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L93)
 
 ---
 
@@ -39,7 +39,7 @@
 
 #### Defined in
 
-[index.d.ts:93](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L93)
+[index.d.ts:94](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L94)
 
 ---
 
@@ -49,7 +49,7 @@
 
 #### Defined in
 
-[index.d.ts:95](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L95)
+[index.d.ts:96](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L96)
 
 ---
 
@@ -59,7 +59,7 @@
 
 #### Defined in
 
-[index.d.ts:91](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L91)
+[index.d.ts:92](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L92)
 
 ---
 
@@ -69,4 +69,4 @@
 
 #### Defined in
 
-[index.d.ts:94](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L94)
+[index.d.ts:95](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L95)

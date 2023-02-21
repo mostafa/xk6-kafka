@@ -43,6 +43,7 @@ const saslConfig = {
   // SASL_SCRAM_SHA256
   // SASL_SCRAM_SHA512
   // SASL_SSL (must enable TLS)
+  // SASL_AWS_IAM (configurable via env or AWS IAM config files - no username/password needed)
   algorithm: SASL_PLAIN,
 };
 

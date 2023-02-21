@@ -15,7 +15,7 @@
 
 #### Defined in
 
-[index.d.ts:48](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L48)
+[index.d.ts:49](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L49)
 
 ---
 
@@ -25,4 +25,4 @@
 
 #### Defined in
 
-[index.d.ts:47](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L47)
+[index.d.ts:48](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L48)
