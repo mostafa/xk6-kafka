@@ -86,6 +86,16 @@ export enum SCHEMA_TYPES {
   SCHEMA_TYPE_PROTOBUF = "PROTOBUF",
 }
 
+/* Time units for use in timeouts. */
+export enum TIME {
+  NANOSECOND = 1,
+  MICROSECOND = 1000,
+  MILLISECOND = 1000000,
+  SECOND = 1000000000,
+  MINUTE = 60000000000,
+  HOUR = 3600000000000,
+}
+
 /* SASL configurations for authenticating to Kafka. */
 export interface SASLConfig {
   username: string;
