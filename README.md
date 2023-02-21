@@ -416,6 +416,16 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieve by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
+9. How can I use autocompletion in IDEs?
+
+   Copy [`api-docs/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
+
+   ```javascript
+   /// <reference path="index.d.ts" />
+
+   ...
+   ```
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
