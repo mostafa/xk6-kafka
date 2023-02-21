@@ -145,7 +145,7 @@ func (m *Module) Exports() modules.Exports {
 // nolint: funlen
 func (m *Module) defineConstants() {
 	runtime := m.vu.Runtime()
-	mustAddProp := func(name, val string) {
+	mustAddProp := func(name string, val interface{}) {
 		err := m.exports.DefineDataProperty(
 			name, runtime.ToValue(val), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE,
 		)
