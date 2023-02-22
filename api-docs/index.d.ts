@@ -111,7 +111,7 @@ export interface TLSConfig {
   minVersion: TLS_VERSIONS;
   clientCertPem: string;
   clientKeyPem: string;
-  serverCertPem: string;
+  serverCaPem: string;
 }
 
 /* Writer configurations for producing messages to a topic. */

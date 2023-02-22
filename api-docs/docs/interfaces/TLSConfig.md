@@ -9,7 +9,7 @@
 - [enableTls](TLSConfig.md#enabletls)
 - [insecureSkipTlsVerify](TLSConfig.md#insecureskiptlsverify)
 - [minVersion](TLSConfig.md#minversion)
-- [serverCertPem](TLSConfig.md#servercertpem)
+- [serverCaPem](TLSConfig.md#servercapem)
 
 ## Properties
 
@@ -63,9 +63,9 @@
 
 ---
 
-### serverCertPem
+### serverCaPem
 
-• **serverCertPem**: `string`
+• **serverCaPem**: `string`
 
 #### Defined in
 
