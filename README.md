@@ -16,7 +16,7 @@ If you want to learn more about the extension, read the [article](https://k6.io/
 
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
-- Authentication with [SASL PLAIN, SCRAM and SSL](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
+- Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
 - Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
@@ -374,68 +374,68 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 1. Why do I receive `Error writing messages`?
 
-   There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic. You can use `Connection.createTopic` method to create the topic in Kafka, as shown in `scripts/test_topics.js`. You can also set the `autoCreateTopic` on the `WriterConfig`. You can also create a topic using the `kafka-topics` command:
+    There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic. You can use `Connection.createTopic` method to create the topic in Kafka, as shown in `scripts/test_topics.js`. You can also set the `autoCreateTopic` on the `WriterConfig`. You can also create a topic using the `kafka-topics` command:
 
-   ```bash
-   $ docker exec -it lensesio bash
-   (inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
-   (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
-   ```
+    ```bash
+    $ docker exec -it lensesio bash
+    (inside container)$ kafka-topics --create --topic xk6_kafka_avro_topic --bootstrap-server localhost:9092
+    (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
+    ```
 
 2. Why does the `reader.consume` keep hanging?
 
-   If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
+    If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
 3. I want to test SASL authentication. How should I do that?
 
-   If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
+    If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
 
 4. Why doesn't the consumer group consume messages from the topic?
 
-   As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 cause multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
+    As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 cause multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
 5. Why do I receive a `MessageTooLargeError` when I produce messages bigger than 1 MB?
 
-   Kafka has a [maximum message size](https://docs.confluent.io/platform/current/installation/configuration/broker-configs.html) of 1 MB by default, which is set by `message.max.bytes`, and this limit is also applied to the `Writer` object.
+    Kafka has a [maximum message size](https://docs.confluent.io/platform/current/installation/configuration/broker-configs.html) of 1 MB by default, which is set by `message.max.bytes`, and this limit is also applied to the `Writer` object.
 
-   There are two ways to produce larger messages: 1) Change the default value of your Kafka instance to a larger number. 2) Use compression.
+    There are two ways to produce larger messages: 1) Change the default value of your Kafka instance to a larger number. 2) Use compression.
 
-   Remember that the `Writer` object will reject messages larger than the default Kafka message size limit (1 MB). Hence you need to set `batchBytes` to a larger value, for example, `1024 * 1024 * 2` (2 MB). The `batchBytes` refers to the raw uncompressed size of all the keys and values (data) in your array of messages you pass to the `Writer` object. You can calculate the raw data size of your messages using [this example script](https://github.com/mostafa/xk6-kafka/issues/181#issuecomment-1325390880).
+    Remember that the `Writer` object will reject messages larger than the default Kafka message size limit (1 MB). Hence you need to set `batchBytes` to a larger value, for example, `1024 * 1024 * 2` (2 MB). The `batchBytes` refers to the raw uncompressed size of all the keys and values (data) in your array of messages you pass to the `Writer` object. You can calculate the raw data size of your messages using [this example script](https://github.com/mostafa/xk6-kafka/issues/181#issuecomment-1325390880).
 
 6. Can I consume messages from a consumer group in a topic with multiple partitions?
 
-   Yes, you can. Just pass the `groupID` to your `Reader` object. You must not specify the partition anymore. Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
+    Yes, you can. Just pass the `groupID` to your `Reader` object. You must not specify the partition anymore. Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
 
-   Remember that you must set `sessionTimeout` on your `Reader` object if the consume function terminates abruptly, thus failing to consume messages.
+    Remember that you must set `sessionTimeout` on your `Reader` object if the consume function terminates abruptly, thus failing to consume messages.
 
 7. Why does the `Reader.consume` produces an `unable to read message` error?
 
-   For performance testing reasons, the `maxWait` of the `Reader` is set to 200ms. If you keep receiving this error, consider increasing it to a larger value.
+    For performance testing reasons, the `maxWait` of the `Reader` is set to 200ms. If you keep receiving this error, consider increasing it to a larger value.
 
 8. How can I consume from multiple partitions on a single topic?
 
-   You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieve by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
+    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieve by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
 9. How can I use autocompletion in IDEs?
 
-   Copy [`api-docs/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
+    Copy [`api-docs/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
 
-   ```javascript
-   /// <reference path="index.d.ts" />
+    ```javascript
+    /// <reference path="index.d.ts" />
 
-   ...
-   ```
+    ...
+    ```
 
 10. Why timeouts give up sooner than expected?
 
-   There are many ways to configure timeout for the `Reader` and `Writer` objects. They follow Go's time conventions, which means that one second is equal to 1000000000 (one billion). For ease of use, I added the constants that can be imported from the module.
+    There are many ways to configure timeout for the `Reader` and `Writer` objects. They follow Go's time conventions, which means that one second is equal to 1000000000 (one billion). For ease of use, I added the constants that can be imported from the module.
 
-   ```javascript
-   import { SECOND } from 'k6/x/kafka';
+    ```javascript
+    import { SECOND } from 'k6/x/kafka';
 
-   console.log(2 * SECOND); // 2000000000
-   console.log(typeof SECOND); // number
-   ```
+    console.log(2 * SECOND); // 2000000000
+    console.log(typeof SECOND); // number
+    ```
 
 ## Contributions, Issues and Feedback
 
