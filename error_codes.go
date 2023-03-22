@@ -45,6 +45,11 @@ const (
 	failedReadCaCertFile          errCode = 4003
 	failedAppendCaCertFile        errCode = 4004
 	failedCreateDialerWithAwsIam  errCode = 4005
+	failedReadJKSFile             errCode = 4006
+	failedDecodeJKSFile           errCode = 4007
+	failedDecodePrivateKey        errCode = 4008
+	failedDecodeServerCa          errCode = 4009
+	failedConfigureJKS            errCode = 4010
 
 	// schema registry.
 	messageTooShort                     errCode = 5000
@@ -99,6 +104,9 @@ var (
 		failedConfigureSchemaRegistryClient,
 		"Failed to configure the schema registry client",
 		nil)
+
+	// ErrNoJKSConfig is used when a JKS config is not configured correctly.
+	ErrNoJKSConfig = NewXk6KafkaError(failedConfigureJKS, "Failed to configure JKS", nil)
 
 	ErrInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
 )
