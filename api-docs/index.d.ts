@@ -252,6 +252,21 @@ export interface Container {
   schemaType: SCHEMA_TYPES;
 }
 
+export interface JKSConfig {
+  path: string;
+  password: string;
+  clientCertAlias: string;
+  clientKeyAlias: string;
+  clientKeyPassword: string;
+  serverCaAlias: string;
+}
+
+export interface JKS {
+  clientCertsPem: string[];
+  clientKeyPem: string;
+  serverCaPem: string;
+}
+
 /**
  * @class
  * @classdesc Writer writes messages to Kafka.
@@ -494,3 +509,22 @@ export class SchemaRegistry {
    */
   deserialize(container: Container): any;
 }
+
+/**
+ * @function
+ * @description Load a JKS keystore from a file.
+ * @param {JKSConfig} jksConfig - JKS configuration.
+ * @returns {JKS} - JKS client and server certificates and private key.
+ * @example
+ * ```javascript
+ * const jks = LoadJKS({
+ *  path: "/path/to/keystore.jks",
+ *  password: "password",
+ *  clientCertAlias: "localhost",
+ *  clientKeyAlias: "localhost",
+ *  clientKeyPassword: "password",
+ *  serverCaAlias: "ca",
+ * });
+ * ```
+ */
+export function LoadJKS(jksConfig: JKSConfig): JKS;

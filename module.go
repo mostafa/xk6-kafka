@@ -121,7 +121,7 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 		}
 	}
 
-	// Export the functions from the Kafka module to the JS code.
+	// Export the constructors and functions from the Kafka module to the JS code.
 	// The Writer is a constructor and must be called with new, e.g. new Writer(...).
 	mustExport("Writer", moduleInstance.writerClass)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...).
@@ -130,6 +130,9 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	mustExport("Connection", moduleInstance.connectionClass)
 	// The SchemaRegistry is a constructor and must be called with new, e.g. new SchemaRegistry(...).
 	mustExport("SchemaRegistry", moduleInstance.schemaRegistryClientClass)
+
+	// The LoadJKS is a function and must be called without new, e.g. LoadJKS(...).
+	mustExport("LoadJKS", moduleInstance.loadJKSFunction)
 
 	return moduleInstance
 }

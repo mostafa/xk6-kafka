@@ -121,9 +121,8 @@ func TestFileExists(t *testing.T) {
 }
 
 type SimpleTLSConfig struct {
-	saslConfig SASLConfig
-	tlsConfig  TLSConfig
-	err        *Xk6KafkaError
+	tlsConfig TLSConfig
+	err       *Xk6KafkaError
 }
 
 // TestTlsConfig tests the creation of a TLS config.
@@ -142,10 +141,9 @@ func TestTlsConfig(t *testing.T) {
 // TestTlsConfigFails tests the creation of a TLS config and fails on invalid files and configs.
 // nolint: funlen
 func TestTlsConfigFails(t *testing.T) {
-	saslConfig := []*SimpleTLSConfig{
+	tlsConfigs := []*SimpleTLSConfig{
 		{
-			saslConfig: SASLConfig{},
-			tlsConfig:  TLSConfig{},
+			tlsConfig: TLSConfig{},
 			err: &Xk6KafkaError{
 				Code:          noTLSConfig,
 				Message:       "No TLS config provided. Continuing with TLS disabled.",
@@ -153,7 +151,6 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 		},
 		{
-			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "server.cer",
@@ -167,7 +164,6 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 		},
 		{
-			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "server.cer",
@@ -181,7 +177,6 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 		},
 		{
-			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "server.cer",
@@ -195,7 +190,6 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 		},
 		{
-			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "fixtures/caroot.cer",
@@ -210,7 +204,6 @@ func TestTlsConfigFails(t *testing.T) {
 			},
 		},
 		{
-			saslConfig: SASLConfig{},
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ClientCertPem: "fixtures/client.cer",
@@ -224,7 +217,7 @@ func TestTlsConfigFails(t *testing.T) {
 		},
 	}
 
-	for _, c := range saslConfig {
+	for _, c := range tlsConfigs {
 		tlsObject, err := GetTLSConfig(c.tlsConfig)
 		assert.NotNil(t, err)
 		assert.Equal(t, c.err.Code, err.Code)

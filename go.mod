@@ -7,6 +7,7 @@ require (
 	github.com/dop251/goja v0.0.0-20230128084908-78b980256d04
 	github.com/linkedin/goavro/v2 v2.12.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
+	github.com/pavlo-v-chernykh/keystore-go/v4 v4.4.1
 	github.com/riferrei/srclient v0.5.4
 	github.com/santhosh-tekuri/jsonschema/v5 v5.2.0
 	github.com/segmentio/kafka-go v0.4.38
