@@ -18,6 +18,7 @@ If you want to learn more about the extension, read the [article](https://k6.io/
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
+- Support for loading [Java Keystore (JKS) files](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_tls_with_jks.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js)
 - Support for [byte array](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js) for binary data (from binary protocols)
 - Support consumption from all partitions with a [group ID](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js)
