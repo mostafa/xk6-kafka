@@ -36,6 +36,8 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [ConnectionConfig](interfaces/ConnectionConfig.md)
 - [ConsumeConfig](interfaces/ConsumeConfig.md)
 - [Container](interfaces/Container.md)
+- [JKS](interfaces/JKS.md)
+- [JKSConfig](interfaces/JKSConfig.md)
 - [Message](interfaces/Message.md)
 - [ProduceConfig](interfaces/ProduceConfig.md)
 - [ReaderConfig](interfaces/ReaderConfig.md)
@@ -47,3 +49,46 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [TLSConfig](interfaces/TLSConfig.md)
 - [TopicConfig](interfaces/TopicConfig.md)
 - [WriterConfig](interfaces/WriterConfig.md)
+
+### Functions
+
+- [LoadJKS](README.md#loadjks)
+
+## Functions
+
+### LoadJKS
+
+▸ **LoadJKS**(`jksConfig`): [`JKS`](interfaces/JKS.md)
+
+**`function`**
+
+**`description`** Load a JKS keystore from a file.
+
+**`example`**
+
+```javascript
+const jks = LoadJKS({
+  path: "/path/to/keystore.jks",
+  password: "password",
+  clientCertAlias: "localhost",
+  clientKeyAlias: "localhost",
+  clientKeyPassword: "password",
+  serverCaAlias: "ca",
+});
+```
+
+#### Parameters
+
+| Name        | Type                                   | Description        |
+| :---------- | :------------------------------------- | :----------------- |
+| `jksConfig` | [`JKSConfig`](interfaces/JKSConfig.md) | JKS configuration. |
+
+#### Returns
+
+[`JKS`](interfaces/JKS.md)
+
+- JKS client and server certificates and private key.
+
+#### Defined in
+
+[index.d.ts:530](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L530)
