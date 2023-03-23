@@ -3,6 +3,7 @@ package kafka
 import (
 	"testing"
 
+	"github.com/dop251/goja"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -90,4 +91,30 @@ func TestJKS(t *testing.T) {
 		assert.NotNil(t, jks.ServerCaPem)
 		assert.NotEmpty(t, jks.ServerCaPem)
 	}
+}
+
+func TestLoadJKS_Function(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	jks := test.module.Kafka.loadJKSFunction(goja.FunctionCall{
+		Arguments: []goja.Value{
+			test.module.vu.Runtime().ToValue(
+				map[string]interface{}{
+					"path":              "fixtures/kafka-keystore.jks",
+					"password":          "password",
+					"clientCertAlias":   "localhost",
+					"clientKeyAlias":    "localhost",
+					"clientKeyPassword": "password",
+					"serverCaAlias":     "caroot",
+				},
+			),
+		},
+	})
+
+	assert.NotNil(t, jks)
+
+	jksMap := jks.ToObject(test.vu.Runtime())
+	assert.NotNil(t, jksMap.Get("clientCertsPem"))
+	assert.NotNil(t, jksMap.Get("clientKeyPem"))
+	assert.NotNil(t, jksMap.Get("serverCaPem"))
 }
