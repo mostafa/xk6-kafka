@@ -57,7 +57,7 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 	clientKey, err := ks.GetPrivateKeyEntry(
 		jksConfig.ClientKeyAlias, []byte(jksConfig.ClientKeyPassword))
 	if err != nil {
-		// Server CA is loaded and returnedm, even if client key is not loaded.
+		// Server CA is loaded, so it will be returned, even though the client key is not loaded.
 		// This is because one might not have enabled mutual TLS (mTLS).
 		return &JKS{
 				ClientCertsPem: nil,
