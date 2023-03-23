@@ -7,7 +7,7 @@
  * ⚠️ The PKCS#12 format is not supported.
  */
 
-import { LoadJKS, TLS_1_2 } from "k6/x/kafka"
+import { LoadJKS, TLS_1_2 } from "k6/x/kafka";
 
 // If server and client keystore are separate, then you must
 // call LoadJKS twice, once for each keystore.
@@ -18,7 +18,7 @@ const jks = LoadJKS({
   clientKeyAlias: "localhost",
   clientKeyPassword: "password",
   serverCaAlias: "caroot",
-})
+});
 const tlsConfig = {
   enableTls: true,
   insecureSkipTlsVerify: false,
@@ -28,10 +28,10 @@ const tlsConfig = {
   clientCertPem: jks["clientCertsPem"][0], // The first certificate in the chain
   clientKeyPem: jks["clientKeyPem"],
   serverCaPem: jks["serverCaPem"],
-}
+};
 
 export default function () {
-  console.log(Object.keys(jks))
-  console.log(jks)
-  console.log(tlsConfig)
+  console.log(Object.keys(jks));
+  console.log(jks);
+  console.log(tlsConfig);
 }
