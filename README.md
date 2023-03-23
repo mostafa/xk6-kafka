@@ -26,7 +26,7 @@ If you want to learn more about the extension, read the [article](https://k6.io/
 - Support for sending messages with [no key](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js)
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on custom Kafka metrics
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
-- Lots of exported metrics, as shown in the result output of the [k6 test script](https://github.com/mostafa/xk6-kafka/blob/main/README.md#k6-test-scripts)
+- Lots of exported metrics, as shown in the list of [emitted metrics](https://github.com/mostafa/xk6-kafka/blob/main/README.md#emitted-metrics)
 
 ## Download Binaries
 
