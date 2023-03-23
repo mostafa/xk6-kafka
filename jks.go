@@ -108,8 +108,21 @@ func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
 	}
 
 	obj := runtime.NewObject()
-	obj.Set("clientCertsPem", jks.ClientCertsPem)
-	obj.Set("clientKeyPem", jks.ClientKeyPem)
-	obj.Set("serverCaPem", jks.ServerCaPem)
+	// Zero-value fields are not returned to JS.
+	if jks.ServerCaPem != "" {
+		if err := obj.Set("serverCaPem", jks.ServerCaPem); err != nil {
+			common.Throw(runtime, err)
+		}
+	}
+	if jks.ClientCertsPem != nil {
+		if err := obj.Set("clientCertsPem", jks.ClientCertsPem); err != nil {
+			common.Throw(runtime, err)
+		}
+	}
+	if jks.ClientKeyPem != "" {
+		if err := obj.Set("clientKeyPem", jks.ClientKeyPem); err != nil {
+			common.Throw(runtime, err)
+		}
+	}
 	return runtime.ToValue(obj)
 }
