@@ -107,5 +107,9 @@ func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
 		common.Throw(runtime, err)
 	}
 
-	return runtime.ToValue(jks)
+	obj := runtime.NewObject()
+	obj.Set("clientCertsPem", jks.ClientCertsPem)
+	obj.Set("clientKeyPem", jks.ClientKeyPem)
+	obj.Set("serverCaPem", jks.ServerCaPem)
+	return runtime.ToValue(obj)
 }
