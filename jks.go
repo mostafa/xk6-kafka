@@ -57,9 +57,15 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 	clientKey, err := ks.GetPrivateKeyEntry(
 		jksConfig.ClientKeyAlias, []byte(jksConfig.ClientKeyPassword))
 	if err != nil {
-		return nil, NewXk6KafkaError(
-			failedDecodePrivateKey,
-			fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
+		// Server CA is loaded and returnedm, even if client key is not loaded.
+		// This is because one might not have enabled mutual TLS (mTLS).
+		return &JKS{
+				ClientCertsPem: nil,
+				ClientKeyPem:   "",
+				ServerCaPem:    string(serverCa.Certificate.Content),
+			}, NewXk6KafkaError(
+				failedDecodePrivateKey,
+				fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
 	}
 
 	clientCertsChain := make([]string, 0, len(clientKey.CertificateChain))
