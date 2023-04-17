@@ -232,11 +232,23 @@ export interface TopicConfig {
   configEntries: ConfigEntry[];
 }
 
+/* Reference uses the import statement of Protobuf
+and the $ref field of JSON Schema. */
+export interface Reference {
+  name: string;
+  subject: string;
+  version: number;
+}
+
 /* Schema for Schema Registry client to help with serdes. */
 export interface Schema {
-  data: any;
+  enableCaching: boolean;
+  id: number;
   schema: string;
   schemaType: SCHEMA_TYPES;
+  version: number;
+  references: Reference[];
+  subject: string;
 }
 
 export interface SubjectNameConfig {
