@@ -41,6 +41,7 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [Message](interfaces/Message.md)
 - [ProduceConfig](interfaces/ProduceConfig.md)
 - [ReaderConfig](interfaces/ReaderConfig.md)
+- [Reference](interfaces/Reference.md)
 - [ReplicaAssignment](interfaces/ReplicaAssignment.md)
 - [SASLConfig](interfaces/SASLConfig.md)
 - [Schema](interfaces/Schema.md)
@@ -91,4 +92,4 @@ const jks = LoadJKS({
 
 #### Defined in
 
-[index.d.ts:530](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L530)
+[index.d.ts:542](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L542)
