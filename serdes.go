@@ -6,9 +6,9 @@ import (
 )
 
 type Container struct {
-	Data       interface{} `json:"data"`
-	Schema     *Schema     `json:"schema"`
-	SchemaType string      `json:"schemaType"`
+	Data       interface{}         `json:"data"`
+	Schema     *Schema             `json:"schema"`
+	SchemaType srclient.SchemaType `json:"schemaType"`
 }
 
 // serialize checks whether the incoming data has a schema or not.
@@ -36,7 +36,7 @@ func (k *Kafka) serialize(container *Container) []byte {
 		// we are dealing with binary data to be encoded with Avro, JSONSchema or Protocol Buffer
 
 		switch container.SchemaType {
-		case srclient.Avro.String(), srclient.Json.String():
+		case srclient.Avro, srclient.Json:
 			serde, err := GetSerdes(container.SchemaType)
 			if err != nil {
 				common.Throw(k.vu.Runtime(), err)
@@ -75,7 +75,7 @@ func (k *Kafka) deserialize(container *Container) interface{} {
 		switch container.Data.(type) {
 		case []byte:
 			switch container.SchemaType {
-			case String.String():
+			case String:
 				return string(container.Data.([]byte))
 			default:
 				if isJSON(container.Data.([]byte)) {
@@ -132,7 +132,7 @@ func (k *Kafka) deserialize(container *Container) interface{} {
 		jsonBytes = k.decodeWireFormat(jsonBytes)
 
 		switch container.SchemaType {
-		case srclient.Avro.String(), srclient.Json.String():
+		case srclient.Avro, srclient.Json:
 			serde, err := GetSerdes(container.SchemaType)
 			if err != nil {
 				common.Throw(k.vu.Runtime(), err)

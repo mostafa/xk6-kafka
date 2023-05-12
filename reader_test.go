@@ -39,11 +39,11 @@ func TestConsume(t *testing.T) {
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Offset: 0,
 					},
@@ -58,7 +58,7 @@ func TestConsume(t *testing.T) {
 
 			result := test.module.Kafka.deserialize(&Container{
 				Data:       messages[0]["key"],
-				SchemaType: String.String(),
+				SchemaType: String,
 			})
 
 			if key, ok := result.([]byte); ok {
@@ -67,7 +67,7 @@ func TestConsume(t *testing.T) {
 
 			result = test.module.Kafka.deserialize(&Container{
 				Data:       messages[0]["value"],
-				SchemaType: String.String(),
+				SchemaType: String,
 			})
 			if value, ok := result.([]byte); ok {
 				assert.Equal(t, "value1", string(value))
@@ -124,7 +124,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 					{
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Offset: 1,
 					},
@@ -140,7 +140,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 			result := test.module.Kafka.deserialize(&Container{
 				Data:       messages[0]["value"],
-				SchemaType: String.String(),
+				SchemaType: String,
 			})
 			if value, ok := result.([]byte); ok {
 				assert.Equal(t, "value1", string(value))
@@ -182,7 +182,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 					{
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Offset: 2,
 					},
@@ -249,7 +249,7 @@ func TestConsumeJSON(t *testing.T) {
 
 			result := test.module.Kafka.deserialize(&Container{
 				Data:       messages[0]["value"],
-				SchemaType: srclient.Json.String(),
+				SchemaType: srclient.Json,
 			})
 			if data, ok := result.(map[string]interface{}); ok {
 				assert.Equal(t, "value", data["field"])
@@ -280,11 +280,11 @@ func TestReaderClass(t *testing.T) {
 			{
 				Key: test.module.Kafka.serialize(&Container{
 					Data:       "key",
-					SchemaType: String.String(),
+					SchemaType: String,
 				}),
 				Value: test.module.Kafka.serialize(&Container{
 					Data:       "value",
-					SchemaType: String.String(),
+					SchemaType: String,
 				}),
 			},
 		},
@@ -316,12 +316,12 @@ func TestReaderClass(t *testing.T) {
 		assert.Equal(t, 1, len(messages))
 		deserializedKey := test.module.Kafka.deserialize(&Container{
 			Data:       messages[0]["key"],
-			SchemaType: String.String(),
+			SchemaType: String,
 		})
 		assert.Equal(t, "key", deserializedKey)
 		deserializedValue := test.module.Kafka.deserialize(&Container{
 			Data:       messages[0]["value"],
-			SchemaType: String.String(),
+			SchemaType: String,
 		})
 		assert.Equal(t, "value", deserializedValue)
 

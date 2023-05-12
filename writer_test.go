@@ -31,21 +31,21 @@ func TestProduce(t *testing.T) {
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 				},
@@ -61,21 +61,21 @@ func TestProduce(t *testing.T) {
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 				},
@@ -123,7 +123,7 @@ func TestProduceWithoutKey(t *testing.T) {
 					{
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Topic:  "test-topic",
 						Offset: 0,
@@ -132,7 +132,7 @@ func TestProduceWithoutKey(t *testing.T) {
 					{
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Topic: "test-topic",
 					},
@@ -174,21 +174,21 @@ func TestProducerContextCancelled(t *testing.T) {
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value1",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 					{
 						Key: test.module.Kafka.serialize(&Container{
 							Data:       "key2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       "value2",
-							SchemaType: String.String(),
+							SchemaType: String,
 						}),
 					},
 				},
@@ -226,7 +226,7 @@ func TestProduceJSON(t *testing.T) {
 					{
 						Value: test.module.Kafka.serialize(&Container{
 							Data:       map[string]interface{}{"field": "value"},
-							SchemaType: srclient.Json.String(),
+							SchemaType: srclient.Json,
 						}),
 					},
 				},
@@ -272,11 +272,11 @@ func TestWriterClass(t *testing.T) {
 							{
 								"key": test.module.Kafka.serialize(&Container{
 									Data:       "key",
-									SchemaType: String.String(),
+									SchemaType: String,
 								}),
 								"value": test.module.Kafka.serialize(&Container{
 									Data:       "value",
-									SchemaType: String.String(),
+									SchemaType: String,
 								}),
 							},
 						},

@@ -295,7 +295,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]interface{}{
 						"subject":    "test-subject",
 						"schema":     avroSchema,
-						"schemaType": srclient.Avro.String(),
+						"schemaType": srclient.Avro,
 					},
 				),
 			},
@@ -343,7 +343,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]interface{}{
 						"data":       map[string]interface{}{"field": "value"},
 						"schema":     currentSchema,
-						"schemaType": srclient.Avro.String(),
+						"schemaType": srclient.Avro,
 					},
 				),
 			},
@@ -358,7 +358,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]interface{}{
 						"data":       serialized,
 						"schema":     currentSchema,
-						"schemaType": srclient.Avro.String(),
+						"schemaType": srclient.Avro,
 					},
 				),
 			},

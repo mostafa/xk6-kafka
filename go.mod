@@ -6,7 +6,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.25
 	github.com/dop251/goja v0.0.0-20230427124612-428fc442ff5f
 	github.com/linkedin/goavro/v2 v2.12.0
-	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.4.1
 	github.com/riferrei/srclient v0.6.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.0

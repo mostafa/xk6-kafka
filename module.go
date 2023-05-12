@@ -208,11 +208,11 @@ func (m *Module) defineConstants() {
 	mustAddProp("VALUE", string(Value))
 
 	// Schema types
-	mustAddProp("SCHEMA_TYPE_STRING", String.String())
-	mustAddProp("SCHEMA_TYPE_BYTES", Bytes.String())
-	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro.String())
-	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json.String())
-	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf.String())
+	mustAddProp("SCHEMA_TYPE_STRING", String)
+	mustAddProp("SCHEMA_TYPE_BYTES", Bytes)
+	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro)
+	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json)
+	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf)
 
 	// Time constants
 	mustAddProp("NANOSECOND", int64(time.Nanosecond))

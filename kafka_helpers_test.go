@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
-	"github.com/oxtoacart/bpool"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/js/common"
@@ -40,10 +39,13 @@ func getTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Cleanup(cancel)
 
 	root := New()
+	registry := metrics.NewRegistry()
 	mockVU := &modulestest.VU{
 		RuntimeField: runtime,
 		InitEnvField: &common.InitEnvironment{
-			Registry: metrics.NewRegistry(),
+			TestPreInitState: &lib.TestPreInitState{
+				Registry: registry,
+			},
 		},
 		CtxField: ctx,
 	}
@@ -78,11 +80,15 @@ func (k *kafkaTest) moveToVUCode() error {
 			UserAgent: null.StringFrom("TestUserAgent"),
 			Paused:    null.BoolFrom(false),
 		},
-		BPool:   bpool.NewBufferPool(1),
-		Samples: k.samples,
-		Tags: lib.NewVUStateTags(registry.RootTagSet().WithTagsFromMap(map[string]string{
-			"group": rootGroup.Path,
-		})),
+		BufferPool: lib.NewBufferPool(),
+		Samples:    k.samples,
+		Tags: lib.NewVUStateTags(
+			registry.RootTagSet().WithTagsFromMap(
+				map[string]string{
+					"group": rootGroup.Path,
+				},
+			),
+		),
 		BuiltinMetrics: metrics.RegisterBuiltinMetrics(registry),
 	}
 	k.vu.StateField = state

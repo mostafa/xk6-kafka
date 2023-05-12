@@ -27,15 +27,15 @@ func TestSerdes(t *testing.T) {
 	containers := []*Container{
 		{
 			Data:       "string",
-			SchemaType: String.String(),
+			SchemaType: String,
 		},
 		{
 			Data:       []byte("byte array"),
-			SchemaType: Bytes.String(),
+			SchemaType: Bytes,
 		},
 		{
 			Data:       []byte{62, 79, 74, 65, 20, 61, 72, 72, 61, 79}, // byte array
-			SchemaType: Bytes.String(),
+			SchemaType: Bytes,
 		},
 		{
 			Data: map[string]interface{}{
@@ -52,7 +52,7 @@ func TestSerdes(t *testing.T) {
 					"array":  []interface{}{1.0, 2.0, 3.0},
 				},
 			},
-			SchemaType: srclient.Json.String(),
+			SchemaType: srclient.Json,
 		},
 		{
 			Data: map[string]interface{}{"key": "value"},
@@ -69,7 +69,7 @@ func TestSerdes(t *testing.T) {
 				Version: 1,
 				Subject: "json-schema",
 			},
-			SchemaType: srclient.Json.String(),
+			SchemaType: srclient.Json,
 		},
 		{
 			Data: map[string]interface{}{"key": "value"},
@@ -83,7 +83,7 @@ func TestSerdes(t *testing.T) {
 				Version: 1,
 				Subject: "avro-schema",
 			},
-			SchemaType: srclient.Avro.String(),
+			SchemaType: srclient.Avro,
 		},
 	}
 
@@ -140,35 +140,35 @@ func TestSerializeFails(t *testing.T) {
 		{
 			container: &Container{
 				Data:       1.1,
-				SchemaType: String.String(),
+				SchemaType: String,
 			},
 			err: ErrInvalidDataType,
 		},
 		{
 			container: &Container{
 				Data:       []interface{}{"test"},
-				SchemaType: Bytes.String(),
+				SchemaType: Bytes,
 			},
 			err: ErrFailedTypeCast,
 		},
 		{
 			container: &Container{
 				Data:       "test",
-				SchemaType: Bytes.String(),
+				SchemaType: Bytes,
 			},
 			err: ErrInvalidDataType,
 		},
 		{
 			container: &Container{
 				Data:       map[string]interface{}{"key": unsafe.Pointer(nil)},
-				SchemaType: srclient.Json.String(),
+				SchemaType: srclient.Json,
 			},
 			err: ErrInvalidDataType,
 		},
 		{
 			container: &Container{
 				Data:       "test",
-				SchemaType: srclient.Json.String(),
+				SchemaType: srclient.Json,
 			},
 			err: ErrInvalidDataType,
 		},
@@ -181,14 +181,14 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "json-schema",
 				},
-				SchemaType: srclient.Json.String(),
+				SchemaType: srclient.Json,
 			},
 			err: ErrInvalidSchema,
 		},
 		{
 			container: &Container{
 				Data:       `{"key": "value"}`,
-				SchemaType: srclient.Avro.String(),
+				SchemaType: srclient.Avro,
 			},
 			err: ErrInvalidDataType,
 		},
@@ -205,7 +205,7 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "avro-schema",
 				},
-				SchemaType: srclient.Avro.String(),
+				SchemaType: srclient.Avro,
 			},
 			err: NewXk6KafkaError(failedToEncode, "Failed to encode data", errors.New("cannot decode textual record \"io.confluent.kafka.avro.Schema\": cannot decode textual map: cannot determine codec: \"unknown\"")),
 		},
@@ -222,7 +222,7 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "avro-schema",
 				},
-				SchemaType: srclient.Avro.String(),
+				SchemaType: srclient.Avro,
 			},
 			err: ErrInvalidDataType,
 		},
