@@ -295,7 +295,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]interface{}{
 						"subject":    "test-subject",
 						"schema":     avroSchema,
-						"schemaType": srclient.Avro.String(),
+						"schemaType": srclient.Avro,
 					},
 				),
 			},
