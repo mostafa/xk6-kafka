@@ -318,6 +318,24 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 			{
 				Time: now,
 				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBatchTime,
+					Tags:   sampleTags,
+				},
+				Value:    metrics.D(currentStats.BatchTime.Avg),
+				Metadata: ctm.Metadata,
+			},
+			{
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
+					Metric: k.metrics.WriterBatchQueueTime,
+					Tags:   sampleTags,
+				},
+				Value:    metrics.D(currentStats.BatchQueueTime.Avg),
+				Metadata: ctm.Metadata,
+			},
+			{
+				Time: now,
+				TimeSeries: metrics.TimeSeries{
 					Metric: k.metrics.WriterWriteTime,
 					Tags:   sampleTags,
 				},
