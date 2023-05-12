@@ -50,6 +50,9 @@ const (
 	failedDecodePrivateKey        errCode = 4008
 	failedDecodeServerCa          errCode = 4009
 	failedConfigureJKS            errCode = 4010
+	failedWriteCertFile           errCode = 4011
+	failedWriteKeyFile            errCode = 4012
+	failedWriteServerCaFile       errCode = 4013
 
 	// schema registry.
 	messageTooShort                     errCode = 5000
