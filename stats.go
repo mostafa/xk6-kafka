@@ -35,11 +35,13 @@ type kafkaMetrics struct {
 	WriterBytes    *metrics.Metric
 	WriterErrors   *metrics.Metric
 
-	WriterWriteTime  *metrics.Metric
-	WriterWaitTime   *metrics.Metric
-	WriterRetries    *metrics.Metric
-	WriterBatchSize  *metrics.Metric
-	WriterBatchBytes *metrics.Metric
+	WriterBatchTime      *metrics.Metric
+	WriterBatchQueueTime *metrics.Metric
+	WriterWriteTime      *metrics.Metric
+	WriterWaitTime       *metrics.Metric
+	WriterRetries        *metrics.Metric
+	WriterBatchSize      *metrics.Metric
+	WriterBatchBytes     *metrics.Metric
 
 	WriterMaxAttempts  *metrics.Metric
 	WriterMaxBatchSize *metrics.Metric
@@ -169,6 +171,16 @@ func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
 
 	if kafkaMetrics.WriterErrors, err = registry.NewMetric(
 		"kafka_writer_error_count", metrics.Counter); err != nil {
+		return kafkaMetrics, errors.Unwrap(err)
+	}
+
+	if kafkaMetrics.WriterBatchTime, err = registry.NewMetric(
+		"kafka_writer_batch_seconds", metrics.Trend, metrics.Time); err != nil {
+		return kafkaMetrics, errors.Unwrap(err)
+	}
+
+	if kafkaMetrics.WriterBatchQueueTime, err = registry.NewMetric(
+		"kafka_writer_batch_queue_seconds", metrics.Trend, metrics.Time); err != nil {
 		return kafkaMetrics, errors.Unwrap(err)
 	}
 
