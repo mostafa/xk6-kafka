@@ -3,6 +3,7 @@ package kafka
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/dop251/goja"
@@ -73,10 +74,33 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 		clientCertsChain = append(clientCertsChain, string(cert.Content))
 	}
 
+	clientKeyPemFilenames := make([]string, 0, len(clientKey.CertificateChain))
+	for idx, cert := range clientKey.CertificateChain {
+		filename := fmt.Sprintf("client-cert-%d.pem", idx)
+		if err := ioutil.WriteFile(filename, cert.Content, 0644); err != nil {
+			return nil, NewXk6KafkaError(
+				failedWriteCertFile, "Failed to write cert file", err)
+		}
+		clientKeyPemFilenames = append(clientKeyPemFilenames, filename)
+	}
+
+	clientKeyPemFilename := "client-key.pem"
+	if err := ioutil.WriteFile(clientKeyPemFilename, clientKey.PrivateKey, 0644); err != nil {
+		return nil, NewXk6KafkaError(
+			failedWriteKeyFile, "Failed to write key file", err)
+	}
+
+	serverCaPemFilename := "server-ca.pem"
+	if err := ioutil.WriteFile(
+		serverCaPemFilename, serverCa.Certificate.Content, 0644); err != nil {
+		return nil, NewXk6KafkaError(
+			failedWriteServerCaFile, "Failed to write server CA file", err)
+	}
+
 	return &JKS{
-		ClientCertsPem: clientCertsChain,
-		ClientKeyPem:   string(clientKey.PrivateKey),
-		ServerCaPem:    string(serverCa.Certificate.Content),
+		ClientCertsPem: clientKeyPemFilenames,
+		ClientKeyPem:   clientKeyPemFilename,
+		ServerCaPem:    serverCaPemFilename,
 	}, nil
 }
 
