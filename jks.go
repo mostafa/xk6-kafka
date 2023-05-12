@@ -69,11 +69,6 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 				fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
 	}
 
-	clientCertsChain := make([]string, 0, len(clientKey.CertificateChain))
-	for _, cert := range clientKey.CertificateChain {
-		clientCertsChain = append(clientCertsChain, string(cert.Content))
-	}
-
 	clientKeyPemFilenames := make([]string, 0, len(clientKey.CertificateChain))
 	for idx, cert := range clientKey.CertificateChain {
 		filename := fmt.Sprintf("client-cert-%d.pem", idx)
