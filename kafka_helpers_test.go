@@ -42,10 +42,6 @@ func getTestModuleInstance(tb testing.TB) *kafkaTest {
 	registry := metrics.NewRegistry()
 	mockVU := &modulestest.VU{
 		RuntimeField: runtime,
-		// StateField: &lib.State{
-		// 	BuiltinMetrics: metrics.RegisterBuiltinMetrics(registry),
-		// 	Tags:           lib.NewVUStateTags(registry.RootTagSet()),
-		// },
 		InitEnvField: &common.InitEnvironment{
 			TestPreInitState: &lib.TestPreInitState{
 				Registry: registry,
