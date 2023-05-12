@@ -9,14 +9,14 @@ type Serdes interface {
 	Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError)
 }
 
-var TypesRegistry map[string]Serdes = map[string]Serdes{
-	String.String():        &StringSerde{},
-	Bytes.String():         &ByteArraySerde{},
-	srclient.Json.String(): &JSONSerde{},
-	srclient.Avro.String(): &AvroSerde{},
+var TypesRegistry map[srclient.SchemaType]Serdes = map[srclient.SchemaType]Serdes{
+	String:        &StringSerde{},
+	Bytes:         &ByteArraySerde{},
+	srclient.Json: &JSONSerde{},
+	srclient.Avro: &AvroSerde{},
 }
 
-func GetSerdes(schemaType string) (Serdes, *Xk6KafkaError) {
+func GetSerdes(schemaType srclient.SchemaType) (Serdes, *Xk6KafkaError) {
 	if serdes, ok := TypesRegistry[schemaType]; ok {
 		return serdes, nil
 	} else {
