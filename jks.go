@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -69,33 +70,44 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 				fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
 	}
 
-	clientKeyPemFilenames := make([]string, 0, len(clientKey.CertificateChain))
+	clientCertsFilenames := make([]string, 0, len(clientKey.CertificateChain))
 	for idx, cert := range clientKey.CertificateChain {
 		filename := fmt.Sprintf("client-cert-%d.pem", idx)
-		if err := ioutil.WriteFile(filename, cert.Content, 0644); err != nil {
+		clientCertPem := pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Content,
+		})
+		if err := ioutil.WriteFile(filename, clientCertPem, 0644); err != nil {
 			return nil, NewXk6KafkaError(
 				failedWriteCertFile, "Failed to write cert file", err)
 		}
-		clientKeyPemFilenames = append(clientKeyPemFilenames, filename)
+		clientCertsFilenames = append(clientCertsFilenames, filename)
 	}
 
-	clientKeyPemFilename := "client-key.pem"
-	if err := ioutil.WriteFile(clientKeyPemFilename, clientKey.PrivateKey, 0644); err != nil {
+	clientKeyFilename := "client-key.pem"
+	clientKeyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: clientKey.PrivateKey,
+	})
+	if err := ioutil.WriteFile(clientKeyFilename, clientKeyPem, 0644); err != nil {
 		return nil, NewXk6KafkaError(
 			failedWriteKeyFile, "Failed to write key file", err)
 	}
 
-	serverCaPemFilename := "server-ca.pem"
-	if err := ioutil.WriteFile(
-		serverCaPemFilename, serverCa.Certificate.Content, 0644); err != nil {
+	serverCaFilename := "server-ca.pem"
+	serverCertPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: serverCa.Certificate.Content,
+	})
+	if err := ioutil.WriteFile(serverCaFilename, serverCertPem, 0644); err != nil {
 		return nil, NewXk6KafkaError(
 			failedWriteServerCaFile, "Failed to write server CA file", err)
 	}
 
 	return &JKS{
-		ClientCertsPem: clientKeyPemFilenames,
-		ClientKeyPem:   clientKeyPemFilename,
-		ServerCaPem:    serverCaPemFilename,
+		ClientCertsPem: clientCertsFilenames,
+		ClientKeyPem:   clientKeyFilename,
+		ServerCaPem:    serverCaFilename,
 	}, nil
 }
 
