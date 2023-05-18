@@ -71,7 +71,7 @@ jobs:
 
       - name: Sign the Docker image ✍️
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign docker.io/{}
+        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign -y docker.io/{}
 
       - name: Verify the Docker image signature ✅
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
