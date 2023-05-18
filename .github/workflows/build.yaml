@@ -75,7 +75,11 @@ jobs:
 
       - name: Verify the Docker image signature ✅
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign verify docker.io/{}
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign verify --certificate-identity ${IDENTITY} --certificate-oidc-issuer ${OIDC_ISSUER_URL} docker.io/{}
+        env:
+          IDENTITY: ${{ secrets.IDENTITY }}
+          OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
 
       - name: Scan code with Trivy vulnerability scanner 🔍
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
