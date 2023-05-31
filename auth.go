@@ -166,7 +166,7 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		} else if err != nil {
 			return nil, NewXk6KafkaError(
 				failedLoadX509KeyPair,
-				fmt.Sprintf("Error creating x509 key pair from passed content."), err)
+				"Error creating x509 key pair from passed content.", err)
 		}
 
 		tlsObject.Certificates = []tls.Certificate{cert}
