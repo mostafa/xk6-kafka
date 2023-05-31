@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -224,4 +225,26 @@ func TestTlsConfigFails(t *testing.T) {
 		assert.Equal(t, c.err.Message, err.Message)
 		assert.Nil(t, tlsObject)
 	}
+}
+
+// TestTlsConfigFromContent tests the creation of a TLS config.
+func TestTlsConfigFromContent(t *testing.T) {
+	paths := []string{"fixtures/client.cer", "fixtures/client.pem", "fixtures/caroot.cer"}
+	files := make([]string, len(paths))
+
+	for i, path := range paths {
+		file, _ := os.ReadFile(path)
+		files[i] = string(file)
+	}
+
+	tlsConfig := TLSConfig{
+		EnableTLS:     true,
+		ClientCertPem: files[0],
+		ClientKeyPem:  files[1],
+		ServerCaPem:   files[2],
+	}
+	tlsObject, err := GetTLSConfig(tlsConfig)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, tlsObject)
 }
