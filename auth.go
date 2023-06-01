@@ -140,11 +140,10 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	}
 
 	if tlsConfig.ClientCertPem != "" && tlsConfig.ClientKeyPem != "" {
-		var cert tls.Certificate
-
+		// Try to load the certificates from string
 		cert, err := tls.X509KeyPair([]byte(tlsConfig.ClientCertPem), []byte(tlsConfig.ClientKeyPem))
 		if err != nil && err.Error() == "tls: failed to find any PEM data in certificate input" {
-			// Load the client certificate and key if provided
+			// Fall back to loading the client certificate and key from the file
 			if err := fileExists(tlsConfig.ClientCertPem); err != nil {
 				return nil, err
 			}
@@ -174,9 +173,9 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 
 	caCertPool := x509.NewCertPool()
 
-	// Load the CA certificate if provided
+	// Load the CA certificate as string if provided
 	if ok := caCertPool.AppendCertsFromPEM([]byte(tlsConfig.ServerCaPem)); !ok {
-		// Fallback if provided as file path
+		// Fall back if file path is provided
 		if err := fileExists(tlsConfig.ServerCaPem); err != nil {
 			return nil, err
 		}
