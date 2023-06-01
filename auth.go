@@ -140,53 +140,65 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	}
 
 	if tlsConfig.ClientCertPem != "" && tlsConfig.ClientKeyPem != "" {
-		// Load the client certificate and key if provided
-		if err := fileExists(tlsConfig.ClientCertPem); err != nil {
-			return nil, err
-		}
+		// Try to load the certificates from string
+		cert, err := tls.X509KeyPair([]byte(tlsConfig.ClientCertPem), []byte(tlsConfig.ClientKeyPem))
+		if err != nil && err.Error() == "tls: failed to find any PEM data in certificate input" {
+			// Fall back to loading the client certificate and key from the file
+			if err := fileExists(tlsConfig.ClientCertPem); err != nil {
+				return nil, err
+			}
 
-		if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
-			return nil, err
-		}
+			if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
+				return nil, err
+			}
 
-		cert, err := tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
-		if err != nil {
+			cert, err = tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
+			if err != nil {
+				return nil, NewXk6KafkaError(
+					failedLoadX509KeyPair,
+					fmt.Sprintf(
+						"Error creating x509 key pair from \"%s\" and \"%s\".",
+						tlsConfig.ClientCertPem,
+						tlsConfig.ClientKeyPem),
+					err)
+			}
+		} else if err != nil {
 			return nil, NewXk6KafkaError(
 				failedLoadX509KeyPair,
-				fmt.Sprintf(
-					"Error creating x509 key pair from \"%s\" and \"%s\".",
-					tlsConfig.ClientCertPem,
-					tlsConfig.ClientKeyPem),
-				err)
+				"Error creating x509 key pair from passed content.", err)
 		}
 
 		tlsObject.Certificates = []tls.Certificate{cert}
 	}
 
-	// Load the CA certificate if provided
-	if err := fileExists(tlsConfig.ServerCaPem); err != nil {
-		return nil, err
-	}
-
-	caCert, err := os.ReadFile(tlsConfig.ServerCaPem)
-	if err != nil {
-		// This might happen on permissions issues or if the file is unreadable somehow
-		return nil, NewXk6KafkaError(
-			failedReadCaCertFile,
-			fmt.Sprintf(
-				"Error reading CA certificate file \"%s\".",
-				tlsConfig.ServerCaPem),
-			err)
-	}
-
 	caCertPool := x509.NewCertPool()
-	if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
-		return nil, NewXk6KafkaError(
-			failedAppendCaCertFile,
-			fmt.Sprintf(
-				"Error appending CA certificate file \"%s\".",
-				tlsConfig.ServerCaPem),
-			nil)
+
+	// Load the CA certificate as string if provided
+	if ok := caCertPool.AppendCertsFromPEM([]byte(tlsConfig.ServerCaPem)); !ok {
+		// Fall back if file path is provided
+		if err := fileExists(tlsConfig.ServerCaPem); err != nil {
+			return nil, err
+		}
+
+		caCert, err := os.ReadFile(tlsConfig.ServerCaPem)
+		if err != nil {
+			// This might happen on permissions issues or if the file is unreadable somehow
+			return nil, NewXk6KafkaError(
+				failedReadCaCertFile,
+				fmt.Sprintf(
+					"Error reading CA certificate file \"%s\".",
+					tlsConfig.ServerCaPem),
+				err)
+		}
+
+		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+			return nil, NewXk6KafkaError(
+				failedAppendCaCertFile,
+				fmt.Sprintf(
+					"Error appending CA certificate file \"%s\".",
+					tlsConfig.ServerCaPem),
+				nil)
+		}
 	}
 
 	tlsObject.RootCAs = caCertPool
