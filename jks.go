@@ -134,7 +134,7 @@ func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
 	}
 
 	jks, err := k.loadJKS(jksConfig)
-	if err != nil {
+	if jks !=nil && err != nil {
 		common.Throw(runtime, err)
 	}
 
