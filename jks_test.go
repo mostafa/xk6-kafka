@@ -46,7 +46,28 @@ func TestJKS(t *testing.T) {
 				Password: "password",
 			},
 			err: NewXk6KafkaError(
-				failedDecodeServerCa, "Failed to decode server's CA: fixtures/kafka-truststore.jks", nil),
+				failedDecodePrivateKey, "Failed to decode client's private key: fixtures/kafka-truststore.jks", nil),
+		},
+		{
+			jksConfig: JKSConfig{
+				Path:          "fixtures/kafka-keystore.jks",
+				Password:      "password",
+				ServerCaAlias: "wrong-alias", // This alias does not exist in the JKS file.
+			},
+			err: NewXk6KafkaError(
+				failedDecodeServerCa, "Failed to decode server's CA: fixtures/kafka-keystore.jks", nil),
+		},
+		{
+			jksConfig: JKSConfig{
+				Path:              "fixtures/kafka-keystore.jks",
+				Password:          "password",
+				ServerCaAlias:     "caroot",
+				ClientKeyAlias:    "wrong-alias", // These alias don't exist in the JKS file.
+				ClientCertAlias:   "wrong-alias",
+				ClientKeyPassword: "password", // This password is correct.
+			},
+			err: NewXk6KafkaError(
+				failedDecodePrivateKey, "Failed to decode client's private key: fixtures/kafka-keystore.jks", nil),
 		},
 		{
 			jksConfig: JKSConfig{

@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/dop251/goja"
@@ -49,22 +50,41 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 			failedDecodeJKSFile, fmt.Sprintf("Failed to decode JKS file: %s", jksConfig.Path), err)
 	}
 
-	serverCa, err := ks.GetTrustedCertificateEntry(jksConfig.ServerCaAlias)
-	if err != nil {
-		return nil, NewXk6KafkaError(
-			failedDecodeServerCa,
-			fmt.Sprintf("Failed to decode server's CA: %s", jksConfig.Path), err)
+	// Load server's CA certificate if an alias is provided.
+	// This makes it possible to use mTLS using two separate
+	// JKS files for loading the certificates:
+	// one for the client and one for the server.
+	var serverCa keystore.TrustedCertificateEntry
+	if jksConfig.ServerCaAlias != "" {
+		serverCa, err = ks.GetTrustedCertificateEntry(jksConfig.ServerCaAlias)
+		if err != nil {
+			return nil, NewXk6KafkaError(
+				failedDecodeServerCa,
+				fmt.Sprintf("Failed to decode server's CA: %s", jksConfig.Path), err)
+		}
+	} else {
+		serverCa = keystore.TrustedCertificateEntry{}
+		// Log a message if no server's CA alias is provided.
+		log.Println("No server's CA alias provided, skipping server's CA")
 	}
 
+	// Load client's certificate and key if aliases are provided.
 	clientKey, err := ks.GetPrivateKeyEntry(
 		jksConfig.ClientKeyAlias, []byte(jksConfig.ClientKeyPassword))
 	if err != nil {
-		// Server CA is loaded, so it will be returned, even though the client key is not loaded.
+		// Server CA is loaded, so it will be saved, even though the client key is not loaded.
 		// This is because one might not have enabled mutual TLS (mTLS).
+		serverCaFilename := "server-ca.pem"
+		if serverCa.Certificate.Content != nil {
+			if err := saveServerCaFile(serverCaFilename, &serverCa); err != nil {
+				return nil, err
+			}
+		}
+
 		return &JKS{
 				ClientCertsPem: nil,
 				ClientKeyPem:   "",
-				ServerCaPem:    string(serverCa.Certificate.Content),
+				ServerCaPem:    serverCaFilename,
 			}, NewXk6KafkaError(
 				failedDecodePrivateKey,
 				fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
@@ -73,35 +93,22 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 	clientCertsFilenames := make([]string, 0, len(clientKey.CertificateChain))
 	for idx, cert := range clientKey.CertificateChain {
 		filename := fmt.Sprintf("client-cert-%d.pem", idx)
-		clientCertPem := pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: cert.Content,
-		})
-		if err := ioutil.WriteFile(filename, clientCertPem, 0644); err != nil {
-			return nil, NewXk6KafkaError(
-				failedWriteCertFile, "Failed to write cert file", err)
+		if err := saveClientCertFile(filename, &cert); err != nil {
+			return nil, err
 		}
 		clientCertsFilenames = append(clientCertsFilenames, filename)
 	}
 
 	clientKeyFilename := "client-key.pem"
-	clientKeyPem := pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: clientKey.PrivateKey,
-	})
-	if err := ioutil.WriteFile(clientKeyFilename, clientKeyPem, 0644); err != nil {
-		return nil, NewXk6KafkaError(
-			failedWriteKeyFile, "Failed to write key file", err)
+	if err := saveClientKeyFile(clientKeyFilename, &clientKey); err != nil {
+		return nil, err
 	}
 
 	serverCaFilename := "server-ca.pem"
-	serverCertPem := pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: serverCa.Certificate.Content,
-	})
-	if err := ioutil.WriteFile(serverCaFilename, serverCertPem, 0644); err != nil {
-		return nil, NewXk6KafkaError(
-			failedWriteServerCaFile, "Failed to write server CA file", err)
+	if serverCa.Certificate.Content != nil {
+		if err := saveServerCaFile(serverCaFilename, &serverCa); err != nil {
+			return nil, err
+		}
 	}
 
 	return &JKS{
@@ -134,7 +141,7 @@ func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
 	}
 
 	jks, err := k.loadJKS(jksConfig)
-	if err != nil {
+	if jks == nil && err != nil {
 		common.Throw(runtime, err)
 	}
 
@@ -156,4 +163,48 @@ func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
 		}
 	}
 	return runtime.ToValue(obj)
+}
+
+// saveServerCaFile saves the server's CA certificate to a file.
+func saveServerCaFile(filename string, cert *keystore.TrustedCertificateEntry) *Xk6KafkaError {
+	certPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Certificate.Content,
+	})
+
+	if err := ioutil.WriteFile(filename, certPem, 0644); err != nil {
+		return NewXk6KafkaError(
+			failedWriteServerCaFile, "Failed to write CA file", err)
+	}
+
+	return nil
+}
+
+// saveClientKeyFile saves the client's key to a file.
+func saveClientKeyFile(filename string, key *keystore.PrivateKeyEntry) *Xk6KafkaError {
+	keyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: key.PrivateKey,
+	})
+
+	if err := ioutil.WriteFile(filename, keyPem, 0644); err != nil {
+		return NewXk6KafkaError(
+			failedWriteKeyFile, "Failed to write key file", err)
+	}
+
+	return nil
+}
+
+// saveClientCertFile saves the client's certificate to a file.
+func saveClientCertFile(filename string, cert *keystore.Certificate) *Xk6KafkaError {
+	clientCertPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Content,
+	})
+	if err := ioutil.WriteFile(filename, clientCertPem, 0644); err != nil {
+		return NewXk6KafkaError(
+			failedWriteCertFile, "Failed to write cert file", err)
+	}
+
+	return nil
 }
