@@ -78,14 +78,14 @@ export default function () {
         ...schemaRegistry.deserialize({
           data: msgs[0].key,
           schemaType: SCHEMA_TYPE_BYTES,
-        })
+        }),
       ).startsWith("test-id-"),
     "value is correct": (msgs) =>
       String.fromCharCode(
         ...schemaRegistry.deserialize({
           data: msgs[0].value,
           schemaType: SCHEMA_TYPE_BYTES,
-        })
+        }),
       ) == payload,
   });
 }
