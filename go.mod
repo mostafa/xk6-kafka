@@ -13,7 +13,7 @@ require (
 	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.2
-	go.k6.io/k6 v0.45.0
+	go.k6.io/k6 v0.45.1
 	gopkg.in/guregu/null.v3 v3.5.0
 )
 

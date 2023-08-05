@@ -101,7 +101,7 @@ if (__VU == 0) {
   });
   console.log(
     "Existing topics: ",
-    connection.listTopics(saslConfig, tlsConfig)
+    connection.listTopics(saslConfig, tlsConfig),
   );
 }
 
