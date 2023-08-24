@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-// TestConsumerMaxWaitExceeded tests the consume function when no messages are sent
+// TestConsumerMaxWaitExceeded tests the consume function when no messages are sent.
+// The reader should not hang
 func TestConsumerMaxWaitExceeded(t *testing.T) {
 	test := getTestModuleInstance(t)
 	writer := test.newWriter("test-topic")
