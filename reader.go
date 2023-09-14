@@ -93,7 +93,6 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 
 	switch value := v.(type) {
-
 	case string:
 		var err error
 		d.Duration, err = time.ParseDuration(value)
@@ -103,9 +102,7 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 		return nil
 	default:
 		return errors.New("invalid duration")
-
 	}
-
 }
 
 // readerClass is a wrapper around kafkago.reader and acts as a JS constructor

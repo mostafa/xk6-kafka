@@ -2,12 +2,14 @@ package kafka
 
 import (
 	"encoding/json"
-	"github.com/dop251/goja"
-	"github.com/riferrei/srclient"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/dop251/goja"
+	"github.com/riferrei/srclient"
+	kafkago "github.com/segmentio/kafka-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestConsumerMaxWaitExceeded tests the consume function when no messages are sent.
@@ -333,11 +335,17 @@ func TestReaderClass(t *testing.T) {
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
 						"topic":   "test-reader-class",
+						"maxWait": "3s",
 					},
 				),
 			},
 		})
 		assert.NotNil(t, reader)
+		this := reader.Get("This").Export().(*kafkago.Reader)
+		assert.NotNil(t, this)
+		assert.Equal(t, this.Config().Brokers, []string{"localhost:9092"})
+		assert.Equal(t, this.Config().Topic, "test-reader-class")
+		assert.Equal(t, this.Config().MaxWait, time.Second*3)
 
 		consume := reader.Get("consume").Export().(func(goja.FunctionCall) goja.Value)
 		messages := consume(goja.FunctionCall{
