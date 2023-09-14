@@ -7,10 +7,7 @@ This is a k6 test script that imports the xk6-kafka and
 
 import { check } from "k6";
 // import * as kafka from "k6/x/kafka";
-import {
-  Reader,
-  Connection,
-} from "k6/x/kafka"; // import kafka extension
+import { Reader, Connection } from "k6/x/kafka"; // import kafka extension
 
 // Prints module-level constants
 // console.log(kafka);
@@ -21,7 +18,7 @@ const topic = "xk6_kafka_json_topic";
 const reader = new Reader({
   brokers: brokers,
   topic: topic,
-  maxWait: "5s"
+  maxWait: "5s",
 });
 
 const connection = new Connection({
@@ -38,21 +35,18 @@ export const options = {
     kafka_writer_error_count: ["count == 0"],
     kafka_reader_error_count: ["count == 0"],
   },
-  duration: "11s"
+  duration: "11s",
 };
 
 export default function () {
-
   // Read 10 messages only
   let messages = reader.consume({ limit: 10 });
 
-  console.log("continuing execution")
+  console.log("continuing execution");
 
   check(messages, {
     "10 messages are received": (messages) => messages.length === 10,
   });
-
-
 }
 
 export function teardown(data) {
