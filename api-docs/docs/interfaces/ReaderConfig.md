@@ -148,7 +148,7 @@
 
 ### maxWait
 
-• **maxWait**: `number`
+• **maxWait**: `string`
 
 #### Defined in
 
