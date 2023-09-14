@@ -57,7 +57,7 @@ type ReaderConfig struct {
 	Brokers                []string      `json:"brokers"`
 	GroupTopics            []string      `json:"groupTopics"`
 	GroupBalancers         []string      `json:"groupBalancers"`
-	MaxWait                time.Duration `json:"maxWait"`
+	MaxWait                Duration      `json:"maxWait"`
 	ReadBatchTimeout       time.Duration `json:"readBatchTimeout"`
 	ReadLagInterval        time.Duration `json:"readLagInterval"`
 	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
@@ -76,6 +76,33 @@ type ReaderConfig struct {
 
 type ConsumeConfig struct {
 	Limit int64 `json:"limit"`
+}
+
+type Duration struct {
+	time.Duration
+}
+
+func (d Duration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.String())
+}
+
+func (d *Duration) UnmarshalJSON(b []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+
+	switch value := v.(type) {
+	case string:
+		var err error
+		d.Duration, err = time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		return errors.New("invalid duration")
+	}
 }
 
 // readerClass is a wrapper around kafkago.reader and acts as a JS constructor
@@ -227,7 +254,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 		QueueCapacity:          readerConfig.QueueCapacity,
 		MinBytes:               readerConfig.MinBytes,
 		MaxBytes:               readerConfig.MaxBytes,
-		MaxWait:                readerConfig.MaxWait,
+		MaxWait:                readerConfig.MaxWait.Duration,
 		ReadBatchTimeout:       readerConfig.ReadBatchTimeout,
 		ReadLagInterval:        readerConfig.ReadLagInterval,
 		GroupBalancers:         groupBalancers,
@@ -297,9 +324,12 @@ func (k *Kafka) consume(
 
 	messages := make([]map[string]interface{}, 0)
 
-	for i := int64(0); i < consumeConfig.Limit; i++ {
-		msg, err := reader.ReadMessage(ctx)
+	maxWait := reader.Config().MaxWait
 
+	for i := int64(0); i < consumeConfig.Limit; i++ {
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, maxWait)
+		msg, err := reader.ReadMessage(ctxWithTimeout)
+		cancel()
 		if errors.Is(err, io.EOF) {
 			k.reportReaderStats(reader.Stats())
 

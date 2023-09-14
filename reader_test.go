@@ -3,12 +3,50 @@ package kafka
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/riferrei/srclient"
+	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// TestConsumerMaxWaitExceeded tests the consume function when no messages are sent.
+// The reader should not hang
+func TestConsumerMaxWaitExceeded(t *testing.T) {
+	test := getTestModuleInstance(t)
+	writer := test.newWriter("test-topic")
+	defer writer.Close()
+
+	// Create a reader to consume messages.
+	assert.NotPanics(t, func() {
+		reader := test.module.Kafka.reader(&ReaderConfig{
+			Brokers: []string{"localhost:9092"},
+			Topic:   "test-topic",
+			MaxWait: Duration{time.Second * 3},
+		})
+		assert.NotNil(t, reader)
+		defer reader.Close()
+
+		// Switch to VU code.
+		require.NoError(t, test.moveToVUCode())
+
+		// Consume a message in the VU function.
+		assert.NotPanics(t, func() {
+			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
+			assert.Empty(t, messages)
+		})
+	})
+
+	// Check if no message was consumed.
+	metricsValues := test.getCounterMetricsValues()
+	assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderBytes.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderMessages.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
+}
 
 // TestConsume tests the consume function.
 // nolint: funlen
@@ -297,11 +335,17 @@ func TestReaderClass(t *testing.T) {
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
 						"topic":   "test-reader-class",
+						"maxWait": "3s",
 					},
 				),
 			},
 		})
 		assert.NotNil(t, reader)
+		this := reader.Get("This").Export().(*kafkago.Reader)
+		assert.NotNil(t, this)
+		assert.Equal(t, this.Config().Brokers, []string{"localhost:9092"})
+		assert.Equal(t, this.Config().Topic, "test-reader-class")
+		assert.Equal(t, this.Config().MaxWait, time.Second*3)
 
 		consume := reader.Get("consume").Export().(func(goja.FunctionCall) goja.Value)
 		messages := consume(goja.FunctionCall{
