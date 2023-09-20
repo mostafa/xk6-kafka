@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"os"
 	"testing"
 
 	"github.com/dop251/goja"
@@ -138,4 +139,10 @@ func TestLoadJKS_Function(t *testing.T) {
 	assert.NotNil(t, jksMap.Get("clientCertsPem"))
 	assert.NotNil(t, jksMap.Get("clientKeyPem"))
 	assert.NotNil(t, jksMap.Get("serverCaPem"))
+
+	// Remove generated files after the test.
+	assert.NoError(t, os.Remove("client-cert-0.pem"))
+	assert.NoError(t, os.Remove("client-cert-1.pem"))
+	assert.NoError(t, os.Remove("client-key.pem"))
+	assert.NoError(t, os.Remove("server-ca.pem"))
 }
