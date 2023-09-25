@@ -157,9 +157,10 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	}
 
 	writer := &kafkago.Writer{
-		Addr:         kafkago.TCP(writerConfig.Brokers...),
-		Topic:        writerConfig.Topic,
-		Balancer:     Balancers[balancerLeastBytes],
+		Addr:  kafkago.TCP(writerConfig.Brokers...),
+		Topic: writerConfig.Topic,
+		// Normal expected behaviour with kafka is messages with same key should go to same partition. So changing the default behaviour of balancer to balancerHash
+		Balancer:     Balancers[balancerHash],
 		MaxAttempts:  writerConfig.MaxAttempts,
 		BatchSize:    writerConfig.BatchSize,
 		BatchBytes:   int64(writerConfig.BatchBytes),
