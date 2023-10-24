@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"errors"
-	"fmt"
 )
 
 type errCode uint32
@@ -130,7 +129,7 @@ func (e Xk6KafkaError) Error() string {
 	if e.OriginalError == nil {
 		return e.Message
 	}
-	return fmt.Sprintf(e.Message+", OriginalError: %w", e.OriginalError)
+	return e.Message + ", OriginalError: " + e.OriginalError.Error()
 }
 
 // Unwrap implements the `xerrors.Wrapper` interface, so Xk6KafkaError are a bit
