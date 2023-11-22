@@ -233,7 +233,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	}
 
 	isolationLevel := IsolationLevels[isolationLevelReadUncommitted]
-	if readerConfig.IsolationLevel == "" {
+	if readerConfig.IsolationLevel != "" {
 		isolationLevel = IsolationLevels[readerConfig.IsolationLevel]
 	}
 
