@@ -26,12 +26,24 @@ jobs:
         run: |
           mkdir dist
           go install go.k6.io/xk6/cmd/xk6@latest
+          # ------------------------- Linux amd64 -------------------------
           GOOS=linux GOARCH=amd64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_linux_amd64 --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
           tar cvzf dist/xk6-kafka_${{ github.ref_name }}_linux_amd64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_linux_amd64
+          # ------------------------- Linux arm64 -------------------------
+          GOOS=linux GOARCH=arm64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_linux_arm64 --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
+          tar cvzf dist/xk6-kafka_${{ github.ref_name }}_linux_arm64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_linux_arm64
+          # ------------------------- macOS amd64 -------------------------
           GOOS=darwin GOARCH=amd64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_darwin_amd64 --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
           tar cvzf dist/xk6-kafka_${{ github.ref_name }}_darwin_amd64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_darwin_amd64
+          # ------------------------- macOS arm64 -------------------------
+          GOOS=darwin GOARCH=arm64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_darwin_arm64 --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
+          tar cvzf dist/xk6-kafka_${{ github.ref_name }}_darwin_arm64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_darwin_arm64
+          # ------------------------- Windows amd64 -------------------------
           GOOS=windows GOARCH=amd64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_windows_amd64.exe --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
           tar cvzf dist/xk6-kafka_${{ github.ref_name }}_windows_amd64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_windows_amd64.exe
+          # ------------------------- Windows arm64 -------------------------
+          GOOS=windows GOARCH=arm64 xk6 build --output dist/xk6-kafka_${{ github.ref_name }}_windows_arm64.exe --with github.com/mostafa/xk6-kafka@${{ github.ref_name }}
+          tar cvzf dist/xk6-kafka_${{ github.ref_name }}_windows_arm64.tar.gz dist/xk6-kafka_${{ github.ref_name }}_windows_arm64.exe
 
       - name: Generate CycloneDX SBOM artifacts 📃
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
@@ -66,7 +78,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           platforms: linux/amd64,linux/arm64
           build-args: VERSION_TAG=${{ github.ref_name }}
           tags: ${{ steps.meta.outputs.tags }}
