@@ -75,7 +75,8 @@ type ReaderConfig struct {
 }
 
 type ConsumeConfig struct {
-	Limit int64 `json:"limit"`
+	Limit int64   `json:"limit"`
+	Name  string  `json:"name"`
 }
 
 type Duration struct {
@@ -323,6 +324,7 @@ func (k *Kafka) consume(
 	}
 
 	messages := make([]map[string]interface{}, 0)
+	messagesName := consumeConfig.Name
 
 	maxWait := reader.Config().MaxWait
 
@@ -331,7 +333,7 @@ func (k *Kafka) consume(
 		msg, err := reader.ReadMessage(ctxWithTimeout)
 		cancel()
 		if errors.Is(err, io.EOF) {
-			k.reportReaderStats(reader.Stats())
+			k.reportReaderStats(reader.Stats(), messagesName)
 
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
 			logger.WithField("error", err).Info(err)
@@ -339,7 +341,7 @@ func (k *Kafka) consume(
 		}
 
 		if err != nil {
-			k.reportReaderStats(reader.Stats())
+			k.reportReaderStats(reader.Stats(), messagesName)
 
 			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", nil)
 			logger.WithField("error", err).Error(err)
@@ -376,13 +378,13 @@ func (k *Kafka) consume(
 		messages = append(messages, message)
 	}
 
-	k.reportReaderStats(reader.Stats())
+	k.reportReaderStats(reader.Stats(), messagesName)
 	return messages
 }
 
 // reportReaderStats reports the reader stats
 // nolint:funlen
-func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
+func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats, messagesName string) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
@@ -400,6 +402,7 @@ func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 	sampleTags := ctm.Tags.With("topic", currentStats.Topic)
 	sampleTags = sampleTags.With("clientid", currentStats.ClientID)
 	sampleTags = sampleTags.With("partition", currentStats.Partition)
+	sampleTags = sampleTags.With("name", messagesName)
 
 	now := time.Now()
 	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
