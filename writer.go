@@ -62,6 +62,7 @@ type Message struct {
 	Key           []byte                 `json:"key"`
 	Value         []byte                 `json:"value"`
 	Headers       map[string]interface{} `json:"headers"`
+	Name          string                 `json:"name"`
 
 	// If not set at the creation, Time will be automatically set when
 	// writing the message.
@@ -207,6 +208,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	}
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
+	kafkaMessagesName := produceConfig.Messages[0].Name
 	for index, message := range produceConfig.Messages {
 		kafkaMessages[index] = kafkago.Message{
 			Offset: message.Offset,
@@ -247,7 +249,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 
 	originalErr := writer.WriteMessages(k.vu.Context(), kafkaMessages...)
 
-	k.reportWriterStats(writer.Stats())
+	k.reportWriterStats(writer.Stats(), kafkaMessagesName)
 
 	if originalErr != nil {
 		err := NewXk6KafkaError(writerError, "Error writing messages.", originalErr)
@@ -258,7 +260,7 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 
 // reportWriterStats reports the writer stats to the state.
 // nolint: funlen
-func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
+func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats, messagesName string) {
 	state := k.vu.State()
 	if state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
@@ -274,6 +276,7 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 
 	ctm := k.vu.State().Tags.GetCurrentValues()
 	sampleTags := ctm.Tags.With("topic", currentStats.Topic)
+	sampleTags = sampleTags.With("name", messagesName)
 
 	now := time.Now()
 
