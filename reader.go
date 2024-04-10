@@ -75,7 +75,8 @@ type ReaderConfig struct {
 }
 
 type ConsumeConfig struct {
-	Limit int64 `json:"limit"`
+	Limit         int64 `json:"limit"`
+	NanoPrecision bool  `json:"nanoPrecision"`
 }
 
 type Duration struct {
@@ -346,12 +347,19 @@ func (k *Kafka) consume(
 			return messages
 		}
 
+		var messageTime string
+		if consumeConfig.NanoPrecision {
+			messageTime = msg.Time.Format(time.RFC3339Nano)
+		} else {
+			messageTime = time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339)
+		}
+
 		// Rest of the fields of a given message
 		message := map[string]interface{}{
 			"topic":         msg.Topic,
 			"partition":     msg.Partition,
 			"offset":        msg.Offset,
-			"time":          time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339),
+			"time":		 messageTime,
 			"highWaterMark": msg.HighWaterMark,
 			"headers":       make(map[string]interface{}),
 		}
