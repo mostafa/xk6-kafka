@@ -12,7 +12,7 @@ const reader = new Reader({
 });
 
 // In VU code (default function)
-const messages = reader.consume({ limit: 10 });
+const messages = reader.consume({ limit: 10, nanoPrecision: false });
 
 // In teardown function
 reader.close();
@@ -43,7 +43,7 @@ reader.close();
 
 #### Defined in
 
-[index.d.ts:358](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L358)
+[index.d.ts:359](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L359)
 
 ## Methods
 
@@ -63,7 +63,7 @@ reader.close();
 
 #### Defined in
 
-[index.d.ts:371](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L371)
+[index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L372)
 
 ---
 
@@ -88,4 +88,4 @@ Read messages from Kafka.
 
 #### Defined in
 
-[index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L365)
+[index.d.ts:366](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L366)

@@ -202,6 +202,7 @@ export interface ReaderConfig {
 /* Configuration for Consume method. */
 export interface ConsumeConfig {
   limit: number;
+  nanoPrecision: boolean;
 }
 
 /* Configuration for creating a Connector instance for working with topics. */
@@ -342,7 +343,7 @@ export class Writer {
  * });
  *
  * // In VU code (default function)
- * const messages = reader.consume({limit: 10});
+ * const messages = reader.consume({limit: 10, nanoPrecision: false});
  *
  * // In teardown function
  * reader.close();
