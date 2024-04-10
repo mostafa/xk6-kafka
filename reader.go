@@ -359,7 +359,7 @@ func (k *Kafka) consume(
 			"topic":         msg.Topic,
 			"partition":     msg.Partition,
 			"offset":        msg.Offset,
-			"time":		 messageTime,
+			"time":          messageTime,
 			"highWaterMark": msg.HighWaterMark,
 			"headers":       make(map[string]interface{}),
 		}
