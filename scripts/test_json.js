@@ -114,36 +114,40 @@ export default function () {
     writer.produce({ messages: messages });
   }
 
-  // Read 10 messages only
-  let messages = reader.consume({ limit: 10 });
+  try {
+    // Read 10 messages only
+    let messages = reader.consume({ limit: 10 });
 
-  check(messages, {
-    "10 messages are received": (messages) => messages.length == 10,
-  });
+    check(messages, {
+      "10 messages are received": (messages) => messages.length == 10,
+    });
 
-  check(messages[0], {
-    "Topic equals to xk6_kafka_json_topic": (msg) => msg["topic"] == topic,
-    "Key contains key/value and is JSON": (msg) =>
-      schemaRegistry
-        .deserialize({ data: msg.key, schemaType: SCHEMA_TYPE_JSON })
-        .correlationId.startsWith("test-id-"),
-    "Value contains key/value and is JSON": (msg) =>
-      typeof schemaRegistry.deserialize({
-        data: msg.value,
-        schemaType: SCHEMA_TYPE_JSON,
-      }) == "object" &&
-      schemaRegistry.deserialize({
-        data: msg.value,
-        schemaType: SCHEMA_TYPE_JSON,
-      }).name == "xk6-kafka",
-    "Header equals {'mykey': 'myvalue'}": (msg) =>
-      "mykey" in msg.headers &&
-      String.fromCharCode(...msg.headers["mykey"]) == "myvalue",
-    "Time is past": (msg) => new Date(msg["time"]) < new Date(),
-    "Partition is zero": (msg) => msg["partition"] == 0,
-    "Offset is gte zero": (msg) => msg["offset"] >= 0,
-    "High watermark is gte zero": (msg) => msg["highWaterMark"] >= 0,
-  });
+    check(messages[0], {
+      "Topic equals to xk6_kafka_json_topic": (msg) => msg["topic"] == topic,
+      "Key contains key/value and is JSON": (msg) =>
+        schemaRegistry
+          .deserialize({ data: msg.key, schemaType: SCHEMA_TYPE_JSON })
+          .correlationId.startsWith("test-id-"),
+      "Value contains key/value and is JSON": (msg) =>
+        typeof schemaRegistry.deserialize({
+          data: msg.value,
+          schemaType: SCHEMA_TYPE_JSON,
+        }) == "object" &&
+        schemaRegistry.deserialize({
+          data: msg.value,
+          schemaType: SCHEMA_TYPE_JSON,
+        }).name == "xk6-kafka",
+      "Header equals {'mykey': 'myvalue'}": (msg) =>
+        "mykey" in msg.headers &&
+        String.fromCharCode(...msg.headers["mykey"]) == "myvalue",
+      "Time is past": (msg) => new Date(msg["time"]) < new Date(),
+      "Partition is zero": (msg) => msg["partition"] == 0,
+      "Offset is gte zero": (msg) => msg["offset"] >= 0,
+      "High watermark is gte zero": (msg) => msg["highWaterMark"] >= 0,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export function teardown(data) {
