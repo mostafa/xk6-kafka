@@ -33,7 +33,7 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 		require.NoError(t, test.moveToVUCode())
 
 		// Consume a message in the VU function.
-		assert.NotPanics(t, func() {
+		assert.Panics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Empty(t, messages)
 		})
@@ -231,7 +231,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 		test.cancelContext()
 
 		// Consume a message in the VU function.
-		assert.NotPanics(t, func() {
+		assert.Panics(t, func() {
 			messages := test.module.Kafka.consume(reader, &ConsumeConfig{Limit: 1})
 			assert.Empty(t, messages)
 		})

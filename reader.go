@@ -336,7 +336,7 @@ func (k *Kafka) consume(
 
 			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
 			logger.WithField("error", err).Info(err)
-			return messages
+			common.Throw(k.vu.Runtime(), err)
 		}
 
 		if err != nil {
@@ -344,7 +344,7 @@ func (k *Kafka) consume(
 
 			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", nil)
 			logger.WithField("error", err).Error(err)
-			return messages
+			common.Throw(k.vu.Runtime(), err)
 		}
 
 		var messageTime string
