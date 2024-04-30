@@ -342,7 +342,7 @@ func (k *Kafka) consume(
 		if err != nil {
 			k.reportReaderStats(reader.Stats())
 
-			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", nil)
+			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", err)
 			logger.WithField("error", err).Error(err)
 			common.Throw(k.vu.Runtime(), err)
 		}
