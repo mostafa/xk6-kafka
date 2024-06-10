@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/pavlo-v-chernykh/keystore-go/v4"
 	"go.k6.io/k6/js/common"
 )
@@ -117,7 +117,7 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 	}, nil
 }
 
-func (k *Kafka) loadJKSFunction(call goja.FunctionCall) goja.Value {
+func (k *Kafka) loadJKSFunction(call sobek.FunctionCall) sobek.Value {
 	runtime := k.vu.Runtime()
 	var jksConfig *JKSConfig
 
@@ -171,7 +171,7 @@ func saveServerCaFile(filename string, cert *keystore.TrustedCertificateEntry) *
 		Bytes: cert.Certificate.Content,
 	})
 
-	if err := os.WriteFile(filename, certPem, 0644); err != nil {
+	if err := os.WriteFile(filename, certPem, 0o644); err != nil {
 		return NewXk6KafkaError(
 			failedWriteServerCaFile, "Failed to write CA file", err)
 	}
@@ -186,7 +186,7 @@ func saveClientKeyFile(filename string, key *keystore.PrivateKeyEntry) *Xk6Kafka
 		Bytes: key.PrivateKey,
 	})
 
-	if err := os.WriteFile(filename, keyPem, 0644); err != nil {
+	if err := os.WriteFile(filename, keyPem, 0o644); err != nil {
 		return NewXk6KafkaError(
 			failedWriteKeyFile, "Failed to write key file", err)
 	}
@@ -200,7 +200,7 @@ func saveClientCertFile(filename string, cert *keystore.Certificate) *Xk6KafkaEr
 		Type:  "CERTIFICATE",
 		Bytes: cert.Content,
 	})
-	if err := os.WriteFile(filename, clientCertPem, 0644); err != nil {
+	if err := os.WriteFile(filename, clientCertPem, 0o644); err != nil {
 		return NewXk6KafkaError(
 			failedWriteCertFile, "Failed to write cert file", err)
 	}

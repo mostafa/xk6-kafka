@@ -3,7 +3,7 @@ package kafka
 import (
 	"testing"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,7 +32,7 @@ func TestDecodeWireFormatFails(t *testing.T) {
 	defer func() {
 		err := recover()
 		assert.Equal(t,
-			err.(*goja.Object).ToString().String(),
+			err.(*sobek.Object).ToString().String(),
 			GoErrorPrefix+"Invalid message: message too short to contain schema id.")
 	}()
 
@@ -276,8 +276,8 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
 		// Create a schema registry client.
-		client := test.module.schemaRegistryClientClass(goja.ConstructorCall{
-			Arguments: []goja.Value{
+		client := test.module.schemaRegistryClientClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"url": "http://localhost:8081",
@@ -288,9 +288,9 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.NotNil(t, client)
 
 		// Create a schema and send it to the registry.
-		createSchema := client.Get("createSchema").Export().(func(goja.FunctionCall) goja.Value)
-		newSchema := createSchema(goja.FunctionCall{
-			Arguments: []goja.Value{
+		createSchema := client.Get("createSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		newSchema := createSchema(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"subject":    "test-subject",
@@ -304,9 +304,9 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.Equal(t, 0, newSchema.Version)
 
 		// Get the latest version of the schema from the registry.
-		getSchema := client.Get("getSchema").Export().(func(goja.FunctionCall) goja.Value)
-		currentSchema := getSchema(goja.FunctionCall{
-			Arguments: []goja.Value{
+		getSchema := client.Get("getSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		currentSchema := getSchema(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"subject": "test-subject",
@@ -320,9 +320,9 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.Equal(t, avroSchema, currentSchema.Schema)
 
 		// Get the subject name based on the given subject name config.
-		getSubjectName := client.Get("getSubjectName").Export().(func(goja.FunctionCall) goja.Value)
-		subjectName := getSubjectName(goja.FunctionCall{
-			Arguments: []goja.Value{
+		getSubjectName := client.Get("getSubjectName").Export().(func(sobek.FunctionCall) sobek.Value)
+		subjectName := getSubjectName(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"schema":              avroSchema,
@@ -336,9 +336,9 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.Equal(t, "test-topic-com.example.person.Schema", subjectName)
 
 		// Serialize the given value to byte array.
-		serialize := client.Get("serialize").Export().(func(goja.FunctionCall) goja.Value)
-		serialized := serialize(goja.FunctionCall{
-			Arguments: []goja.Value{
+		serialize := client.Get("serialize").Export().(func(sobek.FunctionCall) sobek.Value)
+		serialized := serialize(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"data":       map[string]interface{}{"field": "value"},
@@ -351,9 +351,9 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.NotNil(t, serialized)
 
 		// Deserialize the given byte array to the actual value.
-		deserialize := client.Get("deserialize").Export().(func(goja.FunctionCall) goja.Value)
-		deserialized := deserialize(goja.FunctionCall{
-			Arguments: []goja.Value{
+		deserialize := client.Get("deserialize").Export().(func(sobek.FunctionCall) sobek.Value)
+		deserialized := deserialize(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"data":       serialized,

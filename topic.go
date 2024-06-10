@@ -5,7 +5,7 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/js/common"
 )
@@ -20,7 +20,7 @@ type ConnectionConfig struct {
 // that creates a new connection for creating, listing and deleting topics,
 // e.g. new Connection(...).
 // nolint: funlen
-func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var connectionConfig *ConnectionConfig
 	if len(call.Arguments) == 0 {
@@ -45,7 +45,7 @@ func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 		common.Throw(runtime, err)
 	}
 
-	err := connectionObject.Set("createTopic", func(call goja.FunctionCall) goja.Value {
+	err := connectionObject.Set("createTopic", func(call sobek.FunctionCall) sobek.Value {
 		var topicConfig *kafkago.TopicConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -62,13 +62,13 @@ func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 		}
 
 		k.createTopic(connection, topicConfig)
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("deleteTopic", func(call goja.FunctionCall) goja.Value {
+	err = connectionObject.Set("deleteTopic", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) > 0 {
 			if topic, ok := call.Argument(0).Export().(string); !ok {
 				common.Throw(runtime, ErrNotEnoughArguments)
@@ -77,13 +77,13 @@ func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 			}
 		}
 
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("listTopics", func(call goja.FunctionCall) goja.Value {
+	err = connectionObject.Set("listTopics", func(call sobek.FunctionCall) sobek.Value {
 		topics := k.listTopics(connection)
 		return runtime.ToValue(topics)
 	})
@@ -91,12 +91,12 @@ func (k *Kafka) connectionClass(call goja.ConstructorCall) *goja.Object {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("close", func(call goja.FunctionCall) goja.Value {
+	err = connectionObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
 		if err := connection.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)

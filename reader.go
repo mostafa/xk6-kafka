@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/metrics"
@@ -109,7 +109,7 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 // readerClass is a wrapper around kafkago.reader and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 // nolint: funlen
-func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig *ReaderConfig
 	if len(call.Arguments) == 0 {
@@ -134,7 +134,7 @@ func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
 		common.Throw(runtime, err)
 	}
 
-	err := readerObject.Set("consume", func(call goja.FunctionCall) goja.Value {
+	err := readerObject.Set("consume", func(call sobek.FunctionCall) sobek.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -157,12 +157,12 @@ func (k *Kafka) readerClass(call goja.ConstructorCall) *goja.Object {
 	}
 
 	// This is unnecessary, but it's here for reference purposes
-	err = readerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+	err = readerObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
 		if err := reader.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -118,8 +118,8 @@ func TestJKS(t *testing.T) {
 func TestLoadJKS_Function(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	jks := test.module.Kafka.loadJKSFunction(goja.FunctionCall{
-		Arguments: []goja.Value{
+	jks := test.module.Kafka.loadJKSFunction(sobek.FunctionCall{
+		Arguments: []sobek.Value{
 			test.module.vu.Runtime().ToValue(
 				map[string]interface{}{
 					"path":              "fixtures/kafka-keystore.jks",

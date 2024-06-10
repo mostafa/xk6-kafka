@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
@@ -74,7 +74,7 @@ type (
 	Kafka struct {
 		vu          modules.VU
 		metrics     kafkaMetrics
-		exports     *goja.Object
+		exports     *sobek.Object
 		schemaCache map[string]*Schema
 	}
 	RootModule struct{}
@@ -151,7 +151,7 @@ func (m *Module) defineConstants() {
 	runtime := m.vu.Runtime()
 	mustAddProp := func(name string, val interface{}) {
 		err := m.exports.DefineDataProperty(
-			name, runtime.ToValue(val), goja.FLAG_FALSE, goja.FLAG_FALSE, goja.FLAG_TRUE,
+			name, runtime.ToValue(val), sobek.FLAG_FALSE, sobek.FLAG_FALSE, sobek.FLAG_TRUE,
 		)
 		if err != nil {
 			common.Throw(runtime, err)
