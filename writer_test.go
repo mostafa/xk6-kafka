@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -250,8 +250,8 @@ func TestWriterClass(t *testing.T) {
 	test.createTopic("test-writer-class")
 
 	assert.NotPanics(t, func() {
-		writer := test.module.writerClass(goja.ConstructorCall{
-			Arguments: []goja.Value{
+		writer := test.module.writerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
@@ -263,9 +263,9 @@ func TestWriterClass(t *testing.T) {
 		assert.NotNil(t, writer)
 
 		// Produce a message.
-		produce := writer.Get("produce").Export().(func(goja.FunctionCall) goja.Value)
-		result := produce(goja.FunctionCall{
-			Arguments: []goja.Value{
+		produce := writer.Get("produce").Export().(func(sobek.FunctionCall) sobek.Value)
+		result := produce(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"messages": []map[string]interface{}{
@@ -287,9 +287,9 @@ func TestWriterClass(t *testing.T) {
 		assert.Nil(t, result)
 
 		// Close the writer.
-		close := writer.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		close := writer.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, close)
-		result = close(goja.FunctionCall{}).Export()
+		result = close(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
 		// Check if one message was produced.

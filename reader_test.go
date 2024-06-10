@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
@@ -329,8 +329,8 @@ func TestReaderClass(t *testing.T) {
 	})
 
 	assert.NotPanics(t, func() {
-		reader := test.module.readerClass(goja.ConstructorCall{
-			Arguments: []goja.Value{
+		reader := test.module.readerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
@@ -347,9 +347,9 @@ func TestReaderClass(t *testing.T) {
 		assert.Equal(t, this.Config().Topic, "test-reader-class")
 		assert.Equal(t, this.Config().MaxWait, time.Second*3)
 
-		consume := reader.Get("consume").Export().(func(goja.FunctionCall) goja.Value)
-		messages := consume(goja.FunctionCall{
-			Arguments: []goja.Value{
+		consume := reader.Get("consume").Export().(func(sobek.FunctionCall) sobek.Value)
+		messages := consume(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"limit": 1,
@@ -370,9 +370,9 @@ func TestReaderClass(t *testing.T) {
 		assert.Equal(t, "value", deserializedValue)
 
 		// Close the reader.
-		close := reader.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		close := reader.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, close)
-		result := close(goja.FunctionCall{}).Export()
+		result := close(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
 		// Check if one message was consumed.

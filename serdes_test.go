@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -233,7 +233,7 @@ func TestSerializeFails(t *testing.T) {
 			defer func(t *testing.T) {
 				err := recover()
 				assert.Equal(t,
-					err.(*goja.Object).ToString().String(),
+					err.(*sobek.Object).ToString().String(),
 					GoErrorPrefix+testData.err.Error())
 			}(t)
 

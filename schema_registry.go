@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	"github.com/linkedin/goavro/v2"
 	"github.com/riferrei/srclient"
 	"github.com/santhosh-tekuri/jsonschema/v5"
@@ -92,7 +92,7 @@ func (s *Schema) JsonSchema() *jsonschema.Schema {
 	return s.jsonSchema
 }
 
-func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var configuration *SchemaRegistryConfig
 	var schemaRegistryClient *srclient.SchemaRegistryClient
@@ -117,7 +117,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		common.Throw(runtime, err)
 	}
 
-	err := schemaRegistryClientObject.Set("getSchema", func(call goja.FunctionCall) goja.Value {
+	err := schemaRegistryClientObject.Set("getSchema", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
@@ -143,7 +143,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		common.Throw(runtime, err)
 	}
 
-	err = schemaRegistryClientObject.Set("createSchema", func(call goja.FunctionCall) goja.Value {
+	err = schemaRegistryClientObject.Set("createSchema", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
@@ -170,7 +170,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 	}
 
 	var subjectNameConfig *SubjectNameConfig
-	err = schemaRegistryClientObject.Set("getSubjectName", func(call goja.FunctionCall) goja.Value {
+	err = schemaRegistryClientObject.Set("getSubjectName", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
@@ -191,7 +191,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		common.Throw(runtime, err)
 	}
 
-	err = schemaRegistryClientObject.Set("serialize", func(call goja.FunctionCall) goja.Value {
+	err = schemaRegistryClientObject.Set("serialize", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
@@ -213,7 +213,7 @@ func (k *Kafka) schemaRegistryClientClass(call goja.ConstructorCall) *goja.Objec
 		common.Throw(runtime, err)
 	}
 
-	err = schemaRegistryClientObject.Set("deserialize", func(call goja.FunctionCall) goja.Value {
+	err = schemaRegistryClientObject.Set("deserialize", func(call sobek.FunctionCall) sobek.Value {
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}

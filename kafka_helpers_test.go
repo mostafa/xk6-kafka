@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/js/common"
@@ -20,7 +20,7 @@ const (
 
 // struct to keep all the things test need in one place.
 type kafkaTest struct {
-	rt            *goja.Runtime
+	rt            *sobek.Runtime
 	module        *Module
 	vu            *modulestest.VU
 	samples       chan metrics.SampleContainer
@@ -31,7 +31,7 @@ type kafkaTest struct {
 // nolint: golint,revive
 func getTestModuleInstance(tb testing.TB) *kafkaTest {
 	tb.Helper()
-	runtime := goja.New()
+	runtime := sobek.New()
 	runtime.SetFieldNameMapper(common.FieldNameMapper{})
 
 	ctx, cancel := context.WithCancel(context.Background())

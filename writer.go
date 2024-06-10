@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
 	"go.k6.io/k6/js/common"
@@ -75,7 +75,7 @@ type ProduceConfig struct {
 // writerClass is a wrapper around kafkago.writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 // nolint: funlen
-func (k *Kafka) writerClass(call goja.ConstructorCall) *goja.Object {
+func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var writerConfig *WriterConfig
 	if len(call.Arguments) == 0 {
@@ -100,7 +100,7 @@ func (k *Kafka) writerClass(call goja.ConstructorCall) *goja.Object {
 		common.Throw(runtime, err)
 	}
 
-	err := writerObject.Set("produce", func(call goja.FunctionCall) goja.Value {
+	err := writerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -118,19 +118,19 @@ func (k *Kafka) writerClass(call goja.ConstructorCall) *goja.Object {
 		}
 
 		k.produce(writer, producerConfig)
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
 	// This is unnecessary, but it's here for reference purposes.
-	err = writerObject.Set("close", func(call goja.FunctionCall) goja.Value {
+	err = writerObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
 		if err := writer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
-		return goja.Undefined()
+		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)

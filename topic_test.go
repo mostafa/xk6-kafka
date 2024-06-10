@@ -3,7 +3,7 @@ package kafka
 import (
 	"testing"
 
-	"github.com/dop251/goja"
+	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -68,8 +68,8 @@ func TestConnectionClass(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
 		// Create a connection
-		connection := test.module.Kafka.connectionClass(goja.ConstructorCall{
-			Arguments: []goja.Value{
+		connection := test.module.Kafka.connectionClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"url": "localhost:9092",
@@ -80,10 +80,10 @@ func TestConnectionClass(t *testing.T) {
 		assert.NotNil(t, connection)
 
 		// Create a topic
-		createTopic := connection.Get("createTopic").Export().(func(goja.FunctionCall) goja.Value)
+		createTopic := connection.Get("createTopic").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, createTopic)
-		result := createTopic(goja.FunctionCall{
-			Arguments: []goja.Value{
+		result := createTopic(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"topic": "test-connection-class",
@@ -94,27 +94,27 @@ func TestConnectionClass(t *testing.T) {
 		assert.Nil(t, result)
 
 		// List all topics
-		listTopics := connection.Get("listTopics").Export().(func(goja.FunctionCall) goja.Value)
+		listTopics := connection.Get("listTopics").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, listTopics)
-		allTopics := listTopics(goja.FunctionCall{}).Export().([]string)
+		allTopics := listTopics(sobek.FunctionCall{}).Export().([]string)
 		assert.Contains(t, allTopics, "test-connection-class")
 
 		// Delete the topic
-		deleteTopic := connection.Get("deleteTopic").Export().(func(goja.FunctionCall) goja.Value)
+		deleteTopic := connection.Get("deleteTopic").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, deleteTopic)
-		result = deleteTopic(goja.FunctionCall{
-			Arguments: []goja.Value{
+		result = deleteTopic(sobek.FunctionCall{
+			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue("test-connection-class"),
 			},
 		}).Export()
 		assert.Nil(t, result)
-		allTopics = listTopics(goja.FunctionCall{}).Export().([]string)
+		allTopics = listTopics(sobek.FunctionCall{}).Export().([]string)
 		assert.NotContains(t, allTopics, "test-connection-class")
 
 		// Close the connection
-		close := connection.Get("close").Export().(func(goja.FunctionCall) goja.Value)
+		close := connection.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
 		assert.NotNil(t, close)
-		result = close(goja.FunctionCall{}).Export()
+		result = close(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 	})
 }
