@@ -458,6 +458,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
     If you have a nested Avro schema and you want to test it against your data, I created a small tool for it, called [nested-avro-schema](https://github.com/mostafa/nested-avro-schema). This tool will help you to find discrepancies and errors in your schema data, so that you can fix them before you run [xk6-kafka](https://github.com/mostafa/xk6-kafka) tests. Refer to [this comment](https://github.com/mostafa/xk6-kafka/issues/266) for more information.
 
+13. What is the difference between hard-coded schemas in the script and the ones fetched from the Schema Registry?
+    Read [this comment](https://github.com/mostafa/xk6-kafka/issues/298#issuecomment-2165246467).
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
