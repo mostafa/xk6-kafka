@@ -150,6 +150,47 @@ func TestProduceWithoutKey(t *testing.T) {
 	assert.Equal(t, 2.0, metricsValues[test.module.metrics.WriterWrites.Name])
 }
 
+// TestProduceWithBalancer tests the produce function with a key-based balancer.
+func TestProduceWithBalancer(t *testing.T) {
+	test := getTestModuleInstance(t)
+	assert.True(t, test.topicExists("test-topic"))
+
+	require.NoError(t, test.moveToVUCode())
+
+	assert.NotPanics(t, func() {
+		writer := test.module.Kafka.writer(&WriterConfig{
+			Brokers:  []string{"localhost:9092"},
+			Topic:    "test-topic",
+			Balancer: "balancer_hash", // Testing key-based balancer
+		})
+		assert.NotNil(t, writer)
+		defer writer.Close()
+
+		assert.NotPanics(t, func() {
+			test.module.Kafka.produce(writer, &ProduceConfig{
+				Messages: []Message{
+					{
+						Key: test.module.Kafka.serialize(&Container{
+							Data:       "key1",
+							SchemaType: String,
+						}),
+						Value: test.module.Kafka.serialize(&Container{
+							Data:       "value1",
+							SchemaType: String,
+						}),
+					},
+				},
+			})
+		})
+	})
+
+	// Check if the message was produced and balancer was used correctly.
+	metricsValues := test.getCounterMetricsValues()
+	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
+	assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
+	assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
+}
+
 // TestProducerContextCancelled tests the produce function with a cancelled context.
 func TestProducerContextCancelled(t *testing.T) {
 	test := getTestModuleInstance(t)

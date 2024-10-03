@@ -178,6 +178,12 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 
 	if balancer, ok := Balancers[writerConfig.Balancer]; ok {
 		writer.Balancer = balancer
+	} else {
+		writer.Balancer = Balancers[balancerHash] // Default to key-based balancer if not provided
+	}
+
+	if balancer, ok := Balancers[writerConfig.Balancer]; ok {
+		writer.Balancer = balancer
 	}
 
 	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
