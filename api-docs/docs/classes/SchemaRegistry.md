@@ -137,8 +137,10 @@ Deserializes the given data and schema into its original form.
 
 ▸ **getSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
 
-**`method`**
-Get a schema from Schema Registry by version and subject.
+**`method`** Get a schema from Schema Registry
+* if only `schema.subject` is set: returns the latest schema for the given subject
+* if `schema.subject` and `schema.schema` is set: returns the schema for the given schema string
+* if `schema.subject` and `schema.version` is set: returns the schema for the given version
 
 #### Parameters
 
