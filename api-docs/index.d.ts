@@ -488,7 +488,8 @@ export class SchemaRegistry {
   constructor(schemaRegistryConfig: SchemaRegistryConfig);
   /**
    * @method
-   * Get a schema from Schema Registry by version and subject.
+   * Get latest schema from Schema Registry by subject.
+   * Alternatively a specific schema version can be fetched by either specifing schema.version of schema.schema
    * @param {Schema} schema - Schema configuration.
    * @returns {Schema} - Schema.
    */
