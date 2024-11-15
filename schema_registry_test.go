@@ -271,7 +271,8 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 // TestSchemaRegistryClientClass tests the schema registry client class.
 func TestSchemaRegistryClientClass(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}]}`
+	avroSchema1 := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}]}`
+	avroSchema2 := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}, {"name":"field2","type":"int"}]}`
 
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
@@ -287,21 +288,36 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		})
 		assert.NotNil(t, client)
 
-		// Create a schema and send it to the registry.
+		// Create first schema and send it to the registry.
 		createSchema := client.Get("createSchema").Export().(func(sobek.FunctionCall) sobek.Value)
-		newSchema := createSchema(sobek.FunctionCall{
+		newSchema1 := createSchema(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"subject":    "test-subject",
-						"schema":     avroSchema,
+						"schema":     avroSchema1,
 						"schemaType": srclient.Avro,
 					},
 				),
 			},
 		}).Export().(*Schema)
-		assert.Equal(t, "test-subject", newSchema.Subject)
-		assert.Equal(t, 0, newSchema.Version)
+		assert.Equal(t, "test-subject", newSchema1.Subject)
+		assert.Equal(t, 1, newSchema1.Version)
+
+		// Create second schema and send it to the registry.
+		newSchema2 := createSchema(sobek.FunctionCall{
+			Arguments: []sobek.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"subject":    "test-subject",
+						"schema":     avroSchema2,
+						"schemaType": srclient.Avro,
+					},
+				),
+			},
+		}).Export().(*Schema)
+		assert.Equal(t, "test-subject", newSchema2.Subject)
+		assert.Equal(t, 2, newSchema2.Version)
 
 		// Get the latest version of the schema from the registry.
 		getSchema := client.Get("getSchema").Export().(func(sobek.FunctionCall) sobek.Value)
@@ -316,8 +332,38 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 			},
 		}).Export().(*Schema)
 		assert.Equal(t, "test-subject", currentSchema.Subject)
-		assert.Equal(t, 1, currentSchema.Version)
-		assert.Equal(t, avroSchema, currentSchema.Schema)
+		assert.Equal(t, 2, currentSchema.Version)
+		assert.Equal(t, avroSchema2, currentSchema.Schema)
+
+		// get schema by schema string
+		schemaByString := getSchema(sobek.FunctionCall{
+			Arguments: []sobek.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"subject": "test-subject",
+						"schema": avroSchema1,
+					},
+				),
+			},
+		}).Export().(*Schema)
+		assert.Equal(t, "test-subject", schemaByString.Subject)
+		assert.Equal(t, 1, schemaByString.Version)
+		assert.Equal(t, avroSchema1, schemaByString.Schema)
+
+		// get schema by version
+		schemaByVersion := getSchema(sobek.FunctionCall{
+			Arguments: []sobek.Value{
+				test.module.vu.Runtime().ToValue(
+					map[string]interface{}{
+						"subject": "test-subject",
+						"version": 1,
+					},
+				),
+			},
+		}).Export().(*Schema)
+		assert.Equal(t, "test-subject", schemaByVersion.Subject)
+		assert.Equal(t, 1, schemaByVersion.Version)
+		assert.Equal(t, avroSchema1, schemaByVersion.Schema)
 
 		// Get the subject name based on the given subject name config.
 		getSubjectName := client.Get("getSubjectName").Export().(func(sobek.FunctionCall) sobek.Value)
@@ -325,7 +371,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
-						"schema":              avroSchema,
+						"schema":              avroSchema1,
 						"topic":               "test-topic",
 						"subjectNameStrategy": TopicRecordNameStrategy,
 						"element":             Value,
