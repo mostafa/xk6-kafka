@@ -1,10 +1,10 @@
-FROM alpine
+FROM alpine:3.20
 
 ARG VERSION_TAG
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN apk add --no-cache ca-certificates && \
+RUN apk add --no-cache ca-certificates=20240705-r0 openssl=3.3.2-r3 && \
     adduser -D -u 12345 -g 12345 k6
 COPY ./dist/xk6-kafka_${VERSION_TAG}_${TARGETOS}_${TARGETARCH} /usr/bin/k6
 
