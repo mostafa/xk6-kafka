@@ -102,7 +102,7 @@ jobs:
 
       - name: Scan code with Trivy vulnerability scanner 🔍
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: mostafamoradian/xk6-kafka:${{ github.ref_name }}
           scan-type: "fs"
