@@ -77,6 +77,7 @@ type ReaderConfig struct {
 type ConsumeConfig struct {
 	Limit         int64 `json:"limit"`
 	NanoPrecision bool  `json:"nanoPrecision"`
+	ExpectTimeout bool  `json:"expectTimeout"`
 }
 
 type Duration struct {
@@ -331,6 +332,11 @@ func (k *Kafka) consume(
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, maxWait)
 		msg, err := reader.ReadMessage(ctxWithTimeout)
 		cancel()
+		if errors.Is(ctxWithTimeout.Err(), context.DeadlineExceeded) && consumeConfig.ExpectTimeout {
+			k.reportReaderStats(reader.Stats())
+
+			return messages
+		}
 		if errors.Is(err, io.EOF) {
 			k.reportReaderStats(reader.Stats())
 
