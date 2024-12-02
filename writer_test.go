@@ -14,12 +14,12 @@ import (
 // nolint: funlen
 func TestProduce(t *testing.T) {
 	test := getTestModuleInstance(t)
-	assert.True(t, test.topicExists("test-topic"))
+	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
@@ -106,6 +106,7 @@ func TestProduce(t *testing.T) {
 // TestProduceWithoutKey tests the produce function without a key.
 func TestProduceWithoutKey(t *testing.T) {
 	test := getTestModuleInstance(t)
+	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.writer(&WriterConfig{
@@ -125,7 +126,7 @@ func TestProduceWithoutKey(t *testing.T) {
 							Data:       "value1",
 							SchemaType: String,
 						}),
-						Topic:  "test-topic",
+						Topic:  test.topicName,
 						Offset: 0,
 						Time:   time.Now(),
 					},
@@ -134,7 +135,7 @@ func TestProduceWithoutKey(t *testing.T) {
 							Data:       "value2",
 							SchemaType: String,
 						}),
-						Topic: "test-topic",
+						Topic: test.topicName,
 					},
 				},
 			})
@@ -153,11 +154,12 @@ func TestProduceWithoutKey(t *testing.T) {
 // TestProducerContextCancelled tests the produce function with a cancelled context.
 func TestProducerContextCancelled(t *testing.T) {
 	test := getTestModuleInstance(t)
+	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
@@ -208,11 +210,12 @@ func TestProducerContextCancelled(t *testing.T) {
 // TestProduceJSON tests the produce function with a JSON value.
 func TestProduceJSON(t *testing.T) {
 	test := getTestModuleInstance(t)
+	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.Kafka.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
+			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
 		defer writer.Close()
@@ -247,7 +250,7 @@ func TestWriterClass(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	require.NoError(t, test.moveToVUCode())
-	test.createTopic("test-writer-class")
+	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.writerClass(sobek.ConstructorCall{
@@ -255,7 +258,7 @@ func TestWriterClass(t *testing.T) {
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
 						"brokers": []string{"localhost:9092"},
-						"topic":   "test-writer-class",
+						"topic":   test.topicName,
 					},
 				),
 			},

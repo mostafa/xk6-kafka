@@ -103,7 +103,7 @@ func TestGetLatestSchemaFails(t *testing.T) {
 	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
 		schema := test.module.Kafka.getSchema(srClient, &Schema{
-			Subject: "test-subject",
+			Subject: "no-such-subject",
 			Version: 0,
 		})
 		assert.Equal(t, schema, nil)
@@ -125,7 +125,7 @@ func TestGetSchemaFails(t *testing.T) {
 	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
 		schema := test.module.Kafka.getSchema(srClient, &Schema{
-			Subject: "test-subject",
+			Subject: "no-such-subject",
 			Version: 0,
 		})
 		assert.Equal(t, schema, nil)
@@ -147,7 +147,7 @@ func TestCreateSchemaFails(t *testing.T) {
 	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
 		schema := test.module.Kafka.getSchema(srClient, &Schema{
-			Subject: "test-subject",
+			Subject: "no-such-subject",
 			Version: 0,
 		})
 		assert.Equal(t, schema, nil)
