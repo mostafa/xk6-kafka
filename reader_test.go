@@ -144,16 +144,15 @@ func TestConsumeWithoutKey(t *testing.T) {
 	writer := test.newWriter()
 	defer writer.Close()
 
+	reader := test.module.Kafka.reader(&ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   test.topicName,
+	})
+	assert.NotNil(t, reader)
+	defer reader.Close()
+
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.reader(&ReaderConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
-			Offset:  1,
-		})
-		assert.NotNil(t, reader)
-		defer reader.Close()
-
 		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
@@ -203,15 +202,15 @@ func TestConsumerContextCancelled(t *testing.T) {
 	writer := test.newWriter()
 	defer writer.Close()
 
+	reader := test.module.Kafka.reader(&ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   test.topicName,
+	})
+	assert.NotNil(t, reader)
+	defer reader.Close()
+
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.reader(&ReaderConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
-		})
-		assert.NotNil(t, reader)
-		defer reader.Close()
-
 		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
@@ -254,16 +253,15 @@ func TestConsumeJSON(t *testing.T) {
 	writer := test.newWriter()
 	defer writer.Close()
 
+	reader := test.module.Kafka.reader(&ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		Topic:   test.topicName,
+	})
+	assert.NotNil(t, reader)
+	defer reader.Close()
+
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
-		reader := test.module.Kafka.reader(&ReaderConfig{
-			Brokers: []string{"localhost:9092"},
-			Topic:   "test-topic",
-			Offset:  3,
-		})
-		assert.NotNil(t, reader)
-		defer reader.Close()
-
 		// Switch to VU code.
 		require.NoError(t, test.moveToVUCode())
 
