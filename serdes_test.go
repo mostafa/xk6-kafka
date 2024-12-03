@@ -15,10 +15,10 @@ import (
 func TestSerdes(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	test.createTopic("test-serdes-topic")
-	writer := test.newWriter("test-serdes-topic")
+	test.createTopic()
+	writer := test.newWriter()
 	defer writer.Close()
-	reader := test.newReader("test-serdes-topic")
+	reader := test.newReader()
 	defer reader.Close()
 
 	// Switch to VU code.
