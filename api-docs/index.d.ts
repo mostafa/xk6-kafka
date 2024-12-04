@@ -199,10 +199,17 @@ export interface ReaderConfig {
   tls: TLSConfig;
 }
 
-/* Configuration for Consume method. */
+/** Configuration for Consume method. */
 export interface ConsumeConfig {
+  /** collect this many messages before returning. */
   limit: number;
+  /** If true, returned message RFC3339 timestamps carry nanosecond precision. */
   nanoPrecision: boolean;
+  /**
+   * If true, return whatever messages have been collected when maxWait is
+   * passed.
+   * */
+  expectTimeout: boolean;
 }
 
 /* Configuration for creating a Connector instance for working with topics. */
