@@ -18,31 +18,6 @@ import {
 } from "k6/x/kafka"; // import kafka extension
 
 
-// If server and client keystore are separate, then you must
-// call LoadJKS twice, once for each keystore.
-// This will load the certificates and keys from the keystore
-// and write them to the disk, so that they can be used in
-// the TLS configuration.
-const jksTrust = LoadJKS({
-  path: "cert/truststore/real.kafka.truststore.jks",
-  password: "datahub",
-  clientCertAlias: "caroot",
-  clientKeyAlias: "caroot",
-  clientKeyPassword: "datahub",
-  serverCaAlias: "caroot"
-});
-console.log(JSON.stringify(jksTrust));
-
-// const jks = LoadJKS({
-//   path: "cert/keystore/real.kafka.keystore.jks",
-//   password: "datahub",
-//   clientCertAlias: "localhost",
-//   clientKeyAlias: "localhost",
-//   clientKeyPassword: "datahub",
-//   serverCaAlias: "localhost"
-// });
-// console.log(JSON.stringify(jks));
-
 const tlsConfig = {
   enableTls: true,
   insecureSkipTlsVerify: true,
@@ -59,12 +34,13 @@ const tlsConfig = {
   // clientKeyPem: jks["clientKeyPem"],
   //clientCertsPem: jks["clientCertsPem"],
   //serverCaPem: jksTrust["kafka.pem"],
-  serverCaPem: "kafka.pem",
+  
+  serverCaPem: "fixtures/kafka.pem",
 };
 
 //console.log(tlsConfig);
 
-const brokers = ["localhost:9092"];
+const brokers = ["example.kafka.com:9092"];
 const topic = "xk6_kafka_byte_array_topic";
 
 const writer = new Writer({
@@ -80,6 +56,7 @@ const reader = new Reader({
 });
 const connection = new Connection({
   address: brokers[0],
+  tls: tlsConfig
 });
 const schemaRegistry = new SchemaRegistry();
 
