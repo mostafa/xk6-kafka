@@ -402,7 +402,7 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 					Metric: k.metrics.WriterBatchTimeout,
 					Tags:   sampleTags,
 				},
-				Value:    float64(currentStats.BatchTimeout),
+				Value:    metrics.D(currentStats.BatchTimeout),
 				Metadata: ctm.Metadata,
 			},
 			{
@@ -411,7 +411,7 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 					Metric: k.metrics.WriterReadTimeout,
 					Tags:   sampleTags,
 				},
-				Value:    float64(currentStats.ReadTimeout),
+				Value:    metrics.D(currentStats.ReadTimeout),
 				Metadata: ctm.Metadata,
 			},
 			{
@@ -420,7 +420,7 @@ func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
 					Metric: k.metrics.WriterWriteTimeout,
 					Tags:   sampleTags,
 				},
-				Value:    float64(currentStats.WriteTimeout),
+				Value:    metrics.D(currentStats.WriteTimeout),
 				Metadata: ctm.Metadata,
 			},
 			{
