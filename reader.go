@@ -258,11 +258,14 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 			// Attempt to parse StartOffset as an integer
 			parsedOffset, err := strconv.ParseInt(readerConfig.StartOffset, 10, 64)
 			if err != nil {
+				wrappedError := NewXk6KafkaError(
+					failedParseStartOffset,
+					"Failed to parse StartOffset, defaulting to FirstOffset", err)
 				// Log the error and default to FirstOffset
 				logger.WithFields(logrus.Fields{
 					"error":        err,
 					"start_offset": readerConfig.StartOffset,
-				}).Error("Invalid StartOffset, defaulting to FirstOffset")
+				}).Warn(wrappedError)
 				startOffset = StartOffsets[firstOffset]
 			} else {
 				// Use the parsed offset if valid
