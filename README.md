@@ -471,34 +471,34 @@ The example scripts are available as `test_<format/feature>.js` with more code a
        - `-2`: Consume from the oldest message. This is equivalent to `START_OFFSETS_FIRST_OFFSET`.
        - Any positive number: Consume from the specific offset number provided.
 
-    The constants `START_OFFSETS_LAST_OFFSET` and `START_OFFSETS_FIRST_OFFSET` are part of the xk6-kafka module. You can import and use them in your script. The `startOffset` option is a string.
+        The constants `START_OFFSETS_LAST_OFFSET` and `START_OFFSETS_FIRST_OFFSET` are part of the xk6-kafka module. You can import and use them in your script. The `startOffset` option is a string.
 
-    ```javascript
-    import {
-        Reader,
-        START_OFFSETS_LAST_OFFSET,
-    } from "k6/x/kafka";
+        ```javascript
+        import {
+            Reader,
+            START_OFFSETS_LAST_OFFSET,
+        } from "k6/x/kafka";
 
-    const reader = new Reader({
-        brokers: ["localhost:9092"], // Replace with your broker(s)
-        groupID: "example-group", // Specify your consumer group ID
-        groupTopics: ["example-topic"], // List of topics for the group
-        startOffset: START_OFFSETS_LAST_OFFSET, // Use the most recent offset
-    });
-    ```
+        const reader = new Reader({
+            brokers: ["localhost:9092"], // Replace with your broker(s)
+            groupID: "example-group", // Specify your consumer group ID
+            groupTopics: ["example-topic"], // List of topics for the group
+            startOffset: START_OFFSETS_LAST_OFFSET, // Use the most recent offset
+        });
+        ```
 
     2. **When consuming from a topic:**
     Use the `offset` option instead of `startOffset`. The `offset` option is a number that directly specifies the offset of the message you want to consume, unlike `startOffset`, which is a string.
 
-    ```javascript
-    import { Reader } from "k6/x/kafka";
+        ```javascript
+        import { Reader } from "k6/x/kafka";
 
-    const reader = new Reader({
-        brokers: ["localhost:9092"], // Replace with your broker(s)
-        topic: "example-topic", // Specify the topic
-        offset: 10, // Consume from offset 10
-    });
-    ```
+        const reader = new Reader({
+            brokers: ["localhost:9092"], // Replace with your broker(s)
+            topic: "example-topic", // Specify the topic
+            offset: 10, // Consume from offset 10
+        });
+        ```
 
 ## Contributions, Issues and Feedback
 
