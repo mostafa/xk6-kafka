@@ -31,11 +31,12 @@ const (
 	failedDecodeBase64         errCode = 2009
 
 	// consumer.
-	failedSetOffset     errCode = 3000
-	failedReadMessage   errCode = 3001
-	noMoreMessages      errCode = 3002
-	partitionAndGroupID errCode = 3003
-	topicAndGroupID     errCode = 3004
+	failedSetOffset        errCode = 3000
+	failedReadMessage      errCode = 3001
+	noMoreMessages         errCode = 3002
+	partitionAndGroupID    errCode = 3003
+	topicAndGroupID        errCode = 3004
+	failedParseStartOffset errCode = 3005
 
 	// authentication.
 	failedCreateDialerWithScram   errCode = 4000

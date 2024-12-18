@@ -194,9 +194,13 @@ func (m *Module) defineConstants() {
 	mustAddProp("ISOLATION_LEVEL_READ_UNCOMMITTED", isolationLevelReadUncommitted)
 	mustAddProp("ISOLATION_LEVEL_READ_COMMITTED", isolationLevelReadCommitted)
 
-	// Start offsets
+	// Start offsets (backwards compatibility)
 	mustAddProp("FIRST_OFFSET", firstOffset)
 	mustAddProp("LAST_OFFSET", lastOffset)
+
+	// Start offsets (new constants)
+	mustAddProp("START_OFFSETS_FIRST_OFFSET", firstOffset)
+	mustAddProp("START_OFFSETS_LAST_OFFSET", lastOffset)
 
 	// TopicNameStrategy types
 	mustAddProp("TOPIC_NAME_STRATEGY", TopicNameStrategy)
