@@ -461,6 +461,30 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 13. What is the difference between hard-coded schemas in the script and the ones fetched from the Schema Registry?
     Read [this comment](https://github.com/mostafa/xk6-kafka/issues/298#issuecomment-2165246467).
 
+14. I want to specify the offset of a message when consuming from a topic. How can I do that?
+
+    To specify the offset of a message while consuming from a topic, use the `startOffset` option in the Reader object. This option allows you to define the starting point for message consumption. Here are the values you can use for `startOffset`:
+
+    - `-1`: Consume from the most recent message. This is equivalent to START_OFFSETS_LAST_OFFSET.
+    - `-2`: Consume from the oldest message. This is equivalent to START_OFFSETS_FIRST_OFFSET.
+    - Any positive number: Consume from the specific offset number provided.
+
+    The constants `START_OFFSETS_LAST_OFFSET` and `START_OFFSETS_FIRST_OFFSET` are part of the xk6-kafka module. You can import and use them in your script for better readability and maintainability. Note that the `startOffset` option is only applicable when consuming from a group.
+
+    ```javascript
+    import {
+        Reader,
+        START_OFFSETS_LAST_OFFSET,
+    } from "k6/x/kafka";
+
+    const reader = new Reader({
+        brokers: brokers,
+        groupID: groupID,
+        groupTopics: [topic],
+        startOffset: START_OFFSETS_LAST_OFFSET,
+    });
+    ```
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
