@@ -500,6 +500,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         });
         ```
 
+15. How can I use Avro union types in my Avro schema?
+    Read [this comment](https://github.com/mostafa/xk6-kafka/issues/220#issuecomment-1564061967).
+
 ## Contributions, Issues and Feedback
 
 I'd be thrilled to receive contributions and feedback on this project. You're always welcome to create an issue if you find one (or many). I would do my best to address the issues. Also, feel free to contribute by opening a PR with changes, and I'll do my best to review and merge it as soon as I can.
