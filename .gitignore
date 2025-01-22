@@ -19,3 +19,8 @@ act
 __debug_bin
 dist/
 node_modules/
+kafka_server_jaas.conf
+server.properties
+docker-compose.yaml
+*.jks
+cert/
