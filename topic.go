@@ -145,7 +145,7 @@ func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig)
 	controllerConn, err := dialer.DialContext(
 		ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
 	if err != nil {
-		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
+		wrappedError := NewXk6KafkaError(failedGetController, "Failed to dial context on controller.", err)
 		logger.WithField("error", wrappedError).Error(wrappedError)
 		common.Throw(k.vu.Runtime(), wrappedError)
 		return nil
