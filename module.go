@@ -35,7 +35,7 @@ func init() {
 	}
 	// set global log level
 	logger.SetLevel(ll)
-	logger.Debug("loglevel set to: " + ll.String())
+	logger.Info("loglevel set to: " + ll.String())
 
 	// Initialize the TLS versions map.
 	TLSVersions = map[string]uint16{
@@ -186,6 +186,7 @@ func (m *Module) defineConstants() {
 	mustAddProp("SASL_SCRAM_SHA512", saslScramSha512)
 	mustAddProp("SASL_SSL", saslSsl)
 	mustAddProp("SASL_AWS_IAM", saslAwsIam)
+	mustAddProp("SASL_SSL_OAUTHBEARER", saslSslOauthbearer)
 
 	// Compression codecs
 	mustAddProp("CODEC_GZIP", codecGzip)
