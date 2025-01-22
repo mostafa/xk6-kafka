@@ -4,15 +4,18 @@ go 1.23
 
 toolchain go1.23.1
 
+replace github.com/segmentio/kafka-go v0.4.34 => /Users/selamanse/Documents/GITHUB/kafka-go
+
+replace github.com/deepshore/kafka-go/sasl/azure_entra v0.1.7 => /Users/selamanse/Documents/GITHUB/kafka-go/sasl/azure_entra
+
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
 	github.com/aws/aws-sdk-go-v2/config v1.28.4
 	github.com/grafana/sobek v0.0.0-20241024150027-d91f02b05e9b
 	github.com/linkedin/goavro/v2 v2.13.0
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
 	github.com/riferrei/srclient v0.7.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
-	github.com/segmentio/kafka-go v0.4.47
-	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	go.k6.io/k6 v0.55.0
@@ -20,6 +23,15 @@ require (
 )
 
 require (
+	github.com/segmentio/kafka-go v0.4.34
+	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
+	github.com/deepshore/kafka-go/sasl/azure_entra v0.1.7
+)
+
+require (
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
+	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.32.4 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.45 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.19 // indirect
@@ -40,12 +52,14 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/pprof v0.0.0-20241101162523-b92577c0c142 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -54,6 +68,7 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/onsi/gomega v1.35.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
 	github.com/spf13/afero v1.11.0 // indirect

@@ -11,10 +11,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/deepshore/kafka-go/sasl/azure_entra"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
-	"github.com/segmentio/kafka-go/sasl/azure_event_hubs_entra"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
 )
@@ -143,7 +143,7 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 		}
 
 		// Create Azure Entra SASL Mechanism
-		mechanism := azure_event_hubs_entra.NewMechanism(cred, reqOptions)
+		mechanism := azure_entra.NewMechanism(cred, reqOptions)
 
 		return mechanism, nil
 	default:
