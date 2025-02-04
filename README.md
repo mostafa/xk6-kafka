@@ -87,6 +87,26 @@ git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
 xk6 build --with github.com/mostafa/xk6-kafka@latest=.
 ```
 
+## Build using docker
+
+The Grafana xk6 also supports [using docker to build a k6 custom binary with extensions](https://grafana.com/docs/k6/latest/extensions/#xk6-makes-custom-binaries).
+
+1. Install the latest xk6 docker image.
+
+    ```shell
+    docker pull grafana/k6
+    ```
+
+2. Build the custom binary. On Mac, make sure to add the `GOOS=darwin` option.
+
+    ```shell
+    docker run --rm -e GOOS=darwin -u "$(id -u):$(id -g)" -v "${PWD}:/xk6" \
+    grafana/xk6 build \
+    --with github.com/avitalique/xk6-file@latest \
+    --with github.com/LeonAdato/xk6-output-statsd@latest \
+    --with github.com/mostafa/xk6-kafka@latest
+    ```
+
 ## Example scripts
 
 There are many examples in the [script](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory that show how to use various features of the extension.
