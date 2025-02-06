@@ -93,6 +93,12 @@ const valueSchemaObject = schemaRegistry.createSchema({
   schemaType: SCHEMA_TYPE_AVRO,
 });
 
+// if you want use a schema which has already been created you can fetch it by the schema string
+const valueSchemaObjectExisting = schemaRegistry.get({
+  subject: valueSubjectName,
+  schema: valueSchema,
+});
+
 export default function () {
   for (let index = 0; index < 100; index++) {
     let messages = [
