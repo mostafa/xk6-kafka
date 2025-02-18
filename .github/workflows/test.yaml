@@ -21,7 +21,7 @@ jobs:
       - name: Install Go 🧑‍💻
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.24"
 
       - name: Run prettier for linting scripts, configs and docs 🧹
         uses: creyD/prettier_action@v4.3
