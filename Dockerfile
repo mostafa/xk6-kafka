@@ -11,3 +11,4 @@ COPY ./dist/xk6-kafka_${VERSION_TAG}_${TARGETOS}_${TARGETARCH} /usr/bin/k6
 USER 12345
 WORKDIR /home/k6
 ENTRYPOINT ["k6"]
+
