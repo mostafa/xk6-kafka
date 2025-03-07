@@ -92,4 +92,4 @@ const jks = LoadJKS({
 
 #### Defined in
 
-[index.d.ts:550](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L550)
+[index.d.ts:551](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L551)

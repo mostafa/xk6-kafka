@@ -479,9 +479,11 @@ The example scripts are available as `test_<format/feature>.js` with more code a
     If you have a nested Avro schema and you want to test it against your data, I created a small tool for it, called [nested-avro-schema](https://github.com/mostafa/nested-avro-schema). This tool will help you to find discrepancies and errors in your schema data, so that you can fix them before you run [xk6-kafka](https://github.com/mostafa/xk6-kafka) tests. Refer to [this comment](https://github.com/mostafa/xk6-kafka/issues/266) for more information.
 
 13. What is the difference between hard-coded schemas in the script and the ones fetched from the Schema Registry?
+
     Read [this comment](https://github.com/mostafa/xk6-kafka/issues/298#issuecomment-2165246467).
 
 14. I want to specify the offset of a message when consuming from a topic. How can I do that?
+
     To specify the offset of a message while consuming from a topic, use the following options based on your consumption setup:
 
     1. **When consuming from a group:**
@@ -508,7 +510,8 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         ```
 
     2. **When consuming from a topic:**
-    Use the `offset` option instead of `startOffset`. The `offset` option is a number that directly specifies the offset of the message you want to consume, unlike `startOffset`, which is a string.
+
+        Use the `offset` option instead of `startOffset`. The `offset` option is a number that directly specifies the offset of the message you want to consume, unlike `startOffset`, which is a string.
 
         ```javascript
         import { Reader } from "k6/x/kafka";
@@ -521,7 +524,12 @@ The example scripts are available as `test_<format/feature>.js` with more code a
         ```
 
 15. How can I use Avro union types in my Avro schema?
+
     Read [this comment](https://github.com/mostafa/xk6-kafka/issues/220#issuecomment-1564061967).
+
+16. What if I want to use a custom profile for the SASL authentication with AWS IAM instead of the default profile?
+
+    You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/docs/interfaces/SASLConfig.md).
 
 ## Contributions, Issues and Feedback
 
