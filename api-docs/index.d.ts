@@ -102,6 +102,7 @@ export interface SASLConfig {
   username: string;
   password: string;
   algorithm: SASL_MECHANISMS;
+  awsProfile: string;
 }
 
 /* TLS configurations for creating a secure communication channel with Kafka. */

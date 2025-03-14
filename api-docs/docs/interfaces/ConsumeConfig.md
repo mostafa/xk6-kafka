@@ -21,7 +21,7 @@ passed.
 
 #### Defined in
 
-[index.d.ts:212](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L212)
+[index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
 
 ---
 
@@ -33,7 +33,7 @@ collect this many messages before returning.
 
 #### Defined in
 
-[index.d.ts:205](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L205)
+[index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L206)
 
 ---
 
@@ -45,4 +45,4 @@ If true, returned message RFC3339 timestamps carry nanosecond precision.
 
 #### Defined in
 
-[index.d.ts:207](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L207)
+[index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L208)

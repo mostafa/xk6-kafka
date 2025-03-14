@@ -5,6 +5,7 @@
 ### Properties
 
 - [algorithm](SASLConfig.md#algorithm)
+- [awsProfile](SASLConfig.md#awsprofile)
 - [password](SASLConfig.md#password)
 - [username](SASLConfig.md#username)
 
@@ -17,6 +18,16 @@
 #### Defined in
 
 [index.d.ts:104](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L104)
+
+---
+
+### awsProfile
+
+• **awsProfile**: `string`
+
+#### Defined in
+
+[index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L105)
 
 ---
 

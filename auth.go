@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
@@ -31,9 +32,10 @@ const (
 )
 
 type SASLConfig struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Algorithm string `json:"algorithm"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	Algorithm  string `json:"algorithm"`
+	AWSProfile string `json:"awsProfile"`
 }
 
 type TLSConfig struct {
@@ -112,7 +114,18 @@ func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
 		}
 		return mechanism, nil
 	case saslAwsIam:
-		cfg, err := config.LoadDefaultConfig(context.TODO())
+		var (
+			cfg aws.Config
+			err error
+		)
+		if saslConfig.AWSProfile != "" {
+			cfg, err = config.LoadDefaultConfig(
+				context.TODO(),
+				config.WithSharedConfigProfile(saslConfig.AWSProfile),
+			)
+		} else {
+			cfg, err = config.LoadDefaultConfig(context.TODO())
+		}
 		if err != nil {
 			return nil, NewXk6KafkaError(
 				failedCreateDialerWithAwsIam, "Unable to load AWS IAM config for AWS MSK", err)
