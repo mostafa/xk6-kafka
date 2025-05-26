@@ -51,8 +51,8 @@ export enum ISOLATION_LEVEL {
 
 /* Start offsets for consuming messages from a consumer group. */
 export enum START_OFFSETS {
-  START_OFFSETS_LAST_OFFSET = "start_offset_last_offset",
-  START_OFFSETS_FIRST_OFFSET = "start_offset_first_offset", // default
+  START_OFFSETS_LAST_OFFSET = "start_offsets_last_offset",
+  START_OFFSETS_FIRST_OFFSET = "start_offsets_first_offset", // default
 }
 
 /* Subject name strategy for storing a schema in Schema Registry. */
