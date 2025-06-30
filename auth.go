@@ -144,6 +144,11 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 
 	if tlsConfig.EnableTLS {
 		if tlsConfig.ServerCaPem == "" {
+			pool, err := x509.SystemCertPool()
+			if err != nil {
+				return nil, NewXk6KafkaError(failedLoadSystemCertPool, "Unable to load system cert pool", err)
+			}
+			tlsObject.RootCAs = pool
 			return tlsObject, nil
 		}
 	} else {

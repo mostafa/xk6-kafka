@@ -53,6 +53,7 @@ const (
 	failedWriteCertFile           errCode = 4011
 	failedWriteKeyFile            errCode = 4012
 	failedWriteServerCaFile       errCode = 4013
+	failedLoadSystemCertPool      errCode = 4014
 
 	// schema registry.
 	messageTooShort                     errCode = 5000
