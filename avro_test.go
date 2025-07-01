@@ -62,8 +62,8 @@ func TestSerializeAvroFailsOnValidation(t *testing.T) {
 	actual, err := avroSerde.Serialize(map[string]interface{}{"value": "key"}, schema)
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
-	assert.Equal(t, "Failed to encode data", err.Message)
-	assert.Equal(t, failedToEncode, err.Code)
+	assert.Equal(t, "Failed to encode data into binary", err.Message)
+	assert.Equal(t, failedToEncodeToBinary, err.Code)
 }
 
 // TestDeserializeAvro tests the deserialization of a JSON object from Avro binary.

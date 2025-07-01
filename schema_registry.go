@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/grafana/sobek"
-	"github.com/linkedin/goavro/v2"
+	"github.com/hamba/avro/v2"
 	"github.com/riferrei/srclient"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"go.k6.io/k6/js/common"
@@ -50,7 +50,7 @@ type Schema struct {
 	Version       int                  `json:"version"`
 	References    []srclient.Reference `json:"references"`
 	Subject       string               `json:"subject"`
-	codec         *goavro.Codec
+	avroSchema    avro.Schema
 	jsonSchema    *jsonschema.Schema
 }
 
@@ -66,17 +66,17 @@ type WireFormat struct {
 	Data     []byte `json:"data"`
 }
 
-// Codec ensures access to Codec
+// Codec ensures access to parsed Avro Schema
 // Will try to initialize a new one if it hasn't been initialized before
-// Will return nil if it can't initialize a codec from the schema
-func (s *Schema) Codec() *goavro.Codec {
-	if s.codec == nil {
-		codec, err := goavro.NewCodec(s.Schema)
+// Will return nil if it can't initialize a schema from the schema string
+func (s *Schema) Codec() avro.Schema {
+	if s.avroSchema == nil {
+		schema, err := avro.Parse(s.Schema)
 		if err == nil {
-			s.codec = codec
+			s.avroSchema = schema
 		}
 	}
-	return s.codec
+	return s.avroSchema
 }
 
 // JsonSchema ensures access to JsonSchema

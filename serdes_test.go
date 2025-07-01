@@ -207,7 +207,7 @@ func TestSerializeFails(t *testing.T) {
 				},
 				SchemaType: srclient.Avro,
 			},
-			err: NewXk6KafkaError(failedToEncode, "Failed to encode data", errors.New("cannot decode textual record \"io.confluent.kafka.avro.Schema\": cannot decode textual map: cannot determine codec: \"unknown\"")),
+			err: NewXk6KafkaError(failedToEncodeToBinary, "Failed to encode data into binary", errors.New("avro: missing required field key")),
 		},
 		{
 			container: &Container{
