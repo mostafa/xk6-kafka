@@ -33,8 +33,8 @@ const connection = new Connection({
 // Schema registry with authentication (basic auth)
 const schemaRegistry = new SchemaRegistry({
     url: "http://localhost:8081",
-    username: "your-username", // 🔐 Replace with your actual username
-    password: "your-password", // 🔐 Replace with your actual password
+    username: __ENV.SCHEMA_REGISTRY_USERNAME, // 🔐 Replace with your actual username
+    password: __ENV.SCHEMA_REGISTRY_PASSWORD, // 🔐 Replace with your actual password
 });
 
 // Only VU 0 creates the topic
