@@ -45,7 +45,7 @@ type WriterConfig struct {
 }
 ```
 
-_All the parameters are named following the camelCase notation style_
+All the parameters are named following the camelCase notation style.
 
 
 ### Manage multiple writers for various topics
