@@ -23,7 +23,7 @@ producer.produce({
 });
 ```
 
-_tips : here you can find more options for your writer:_
+Tip: here you can find more options for your writer:
 
 ```golang
 type WriterConfig struct {
