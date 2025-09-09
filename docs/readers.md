@@ -63,7 +63,7 @@ type ReaderConfig struct {
 } 
 ```
 
-_All the parameters are named following the camelCase notation style_
+All the parameters are named following the camelCase notation style.
 
 ---
 
