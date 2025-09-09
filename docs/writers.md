@@ -14,8 +14,8 @@ const producer = new Writer({
     topic: topicName, // The topic name to produce messages to
     autoCreateTopic: false, // Should the topic be created automatically if it doesn't exist?
     compression: CODEC_SNAPPY, // Optional: Compression codec to use for messages
-    tls: tlsConfig
-});// Config object for TLS settings, if needed
+    tls: tlsConfig // Config object for TLS settings, if needed
+});
 
 
 producer.produce({
