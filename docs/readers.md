@@ -18,7 +18,7 @@ const reader = new Reader({
     brokers, // Array of Kafka broker addresses
     topic: topicName, // The topic to consume from
     groupId: "my-consumer-group", // Consumer group ID
-    partition: 0, // Optional: partition to read from
+    partition: 0, // Optional: partition to read from, ineffective when using consumer group
     minBytes: 1, // Minimum bytes per fetch request
     maxBytes: 1048576, // Maximum bytes per fetch request
     offset: 0, // Optional: Start at specific offset (default: latest)
