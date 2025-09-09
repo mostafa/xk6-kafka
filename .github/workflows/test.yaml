@@ -56,7 +56,7 @@ jobs:
           for f in $(ls scripts/); do
             # Until after we have a setup for SASL Authentication,
             # we need to skip this test.
-            if [[ "$f" != "test_sasl_auth.js" || "$f" != "test_avro_with_multiple_topics.js" || "$f" != "test_avro_with_auth_schema_registry.js" ]]; then
+            if [[ "$f" != "test_sasl_auth.js" && "$f" != "test_avro_with_multiple_topics.js" && "$f" != "test_avro_with_auth_schema_registry.js" ]]; then
               ./k6 run --quiet -d 2s scripts/$f;
             fi
           done
