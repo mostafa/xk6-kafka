@@ -17,7 +17,7 @@ you need to create a Schema Registry client that will handle the communication w
 
 ```javascript
 const schemaRegistry = new SchemaRegistry({
-    url: "http://localhost:8081",
+  url: "http://localhost:8081",
 });
 ```
 
@@ -25,11 +25,11 @@ const schemaRegistry = new SchemaRegistry({
 
 ```javascript
 const schemaRegistry = new SchemaRegistry({
-    url: "http://localhost:8081",
-    basicAuth: {
-        username: "my-username",
-        password: "my-password"
-    }
+  url: "http://localhost:8081",
+  basicAuth: {
+    username: "my-username",
+    password: "my-password",
+  },
 });
 ```
 
@@ -68,32 +68,33 @@ const valueSchema = `{
 }`;
 
 const keySchemaObject = schemaRegistry.createSchema({
-    subject: "my-key-schema-name",
-    schema: keySchema,
-    schemaType: SCHEMA_TYPE_AVRO,
+  subject: "my-key-schema-name",
+  schema: keySchema,
+  schemaType: SCHEMA_TYPE_AVRO,
 });
 
 const valueSchemaObject = schemaRegistry.createSchema({
-    subject: "my-value-schema-name",
-    schema: valueSchema,
-    schemaType: SCHEMA_TYPE_AVRO,
+  subject: "my-value-schema-name",
+  schema: valueSchema,
+  schemaType: SCHEMA_TYPE_AVRO,
 });
 ```
 
 Optional : Retrieve the subject name directly from the schema:
+
 ```javascript
 const keySubjectName = schemaRegistry.getSubjectName({
-    topic: topic,
-    element: KEY,
-    subjectNameStrategy: TOPIC_NAME_STRATEGY, // or RECORD_NAME_STRATEGY depending on your needs
-    schema: keySchema,
+  topic: topic,
+  element: KEY,
+  subjectNameStrategy: TOPIC_NAME_STRATEGY, // or RECORD_NAME_STRATEGY depending on your needs
+  schema: keySchema,
 });
 
 const valueSubjectName = schemaRegistry.getSubjectName({
-    topic: topic,
-    element: VALUE,
-    subjectNameStrategy: RECORD_NAME_STRATEGY, // or TOPIC_NAME_STRATEGY depending on your needs
-    schema: valueSchema,
+  topic: topic,
+  element: VALUE,
+  subjectNameStrategy: RECORD_NAME_STRATEGY, // or TOPIC_NAME_STRATEGY depending on your needs
+  schema: valueSchema,
 });
 ```
 
@@ -101,29 +102,29 @@ You can then use these schemas in your load test to produce and consume messages
 
 ```javascript
 const messages = [
-    {
-        key: schemaRegistry.serialize({
-            data: {
-                ssn: "123-45-6789",
-            },
-            schema: keySchemaObject,
-            schemaType: SCHEMA_TYPE_AVRO,
-        }),
-        value: schemaRegistry.serialize({
-            data: {
-                firstName: "John",
-                lastName: "Doe",
-            },
-            schema: valueSchemaObject,
-            schemaType: SCHEMA_TYPE_AVRO,
-        }),
-        headers: {
-            mykey: "myvalue",
-        },
-        offset: 0,
-        partition: 0,
-        time: new Date()
-    }
+  {
+    key: schemaRegistry.serialize({
+      data: {
+        ssn: "123-45-6789",
+      },
+      schema: keySchemaObject,
+      schemaType: SCHEMA_TYPE_AVRO,
+    }),
+    value: schemaRegistry.serialize({
+      data: {
+        firstName: "John",
+        lastName: "Doe",
+      },
+      schema: valueSchemaObject,
+      schemaType: SCHEMA_TYPE_AVRO,
+    }),
+    headers: {
+      mykey: "myvalue",
+    },
+    offset: 0,
+    partition: 0,
+    time: new Date(),
+  },
 ];
 ```
 
@@ -133,37 +134,37 @@ If you already have a schema registered in your Schema Registry, you can load it
 
 ```javascript
 const keySchemaObject = schemaRegistry.getSchema({
-    subject: "my-key-schema-name"
+  subject: "my-key-schema-name",
 });
 
 const valueSchemaObject = schemaRegistry.getSchema({
-    subject: "my-value-schema-name"
+  subject: "my-value-schema-name",
 });
 
 const messages = [
-    {
-        key: schemaRegistry.serialize({
-            data: {
-                ssn: "123-45-6789",
-            },
-            schema: keySchemaObject,
-            schemaType: SCHEMA_TYPE_AVRO,
-        }),
-        value: schemaRegistry.serialize({
-            data: {
-                firstName: "John",
-                lastName: "Doe",
-            },
-            schema: valueSchemaObject,
-            schemaType: SCHEMA_TYPE_AVRO,
-        }),
-        headers: {
-            mykey: "myvalue",
-        },
-        offset: 0,
-        partition: 0,
-        time: new Date()
-    }
+  {
+    key: schemaRegistry.serialize({
+      data: {
+        ssn: "123-45-6789",
+      },
+      schema: keySchemaObject,
+      schemaType: SCHEMA_TYPE_AVRO,
+    }),
+    value: schemaRegistry.serialize({
+      data: {
+        firstName: "John",
+        lastName: "Doe",
+      },
+      schema: valueSchemaObject,
+      schemaType: SCHEMA_TYPE_AVRO,
+    }),
+    headers: {
+      mykey: "myvalue",
+    },
+    offset: 0,
+    partition: 0,
+    time: new Date(),
+  },
 ];
 ```
 
@@ -191,7 +192,7 @@ Your object must respect the goavro serialization rules, which means you need to
 
 ```javascript
 export const productionOrder = {
-    myField: { string: "My awesome value" }
+  myField: { string: "My awesome value" },
 };
 ```
 

@@ -15,14 +15,14 @@ Each reader listens to a specific topic and can be configured with several optio
 
 ```javascript
 const reader = new Reader({
-    brokers, // Array of Kafka broker addresses
-    topic: topicName, // The topic to consume from
-    groupId: "my-consumer-group", // Consumer group ID
-    partition: 0, // Optional: partition to read from, ineffective when using consumer group
-    minBytes: 1, // Minimum bytes per fetch request
-    maxBytes: 1048576, // Maximum bytes per fetch request
-    offset: 0, // Optional: Start at specific offset (default: latest)
-    tls: tlsConfig // TLS configuration, if needed
+  brokers, // Array of Kafka broker addresses
+  topic: topicName, // The topic to consume from
+  groupId: "my-consumer-group", // Consumer group ID
+  partition: 0, // Optional: partition to read from, ineffective when using consumer group
+  minBytes: 1, // Minimum bytes per fetch request
+  maxBytes: 1048576, // Maximum bytes per fetch request
+  offset: 0, // Optional: Start at specific offset (default: latest)
+  tls: tlsConfig, // TLS configuration, if needed
 });
 ```
 
@@ -60,7 +60,7 @@ type ReaderConfig struct {
 	OffsetOutOfRangeError  bool          `json:"offsetOutOfRangeError"` // deprecated, do not use
 	SASL                   SASLConfig    `json:"sasl"`
 	TLS                    TLSConfig     `json:"tls"`
-} 
+}
 ```
 
 All the parameters are named following the camelCase notation style.
@@ -73,8 +73,8 @@ Once you’ve created the reader, you can consume messages using the `consume()`
 
 ```javascript
 const messages = reader.consume({
-    limit: 10, // Max number of messages to consume
-    expectedTimeout: "2s"// Max time to wait
+  limit: 10, // Max number of messages to consume
+  expectedTimeout: "2s", // Max time to wait
 });
 ```
 
@@ -86,17 +86,20 @@ If you need to consume from several topics simultaneously, you can manage multip
 
 ```javascript
 function createKafkaReaders(brokers, topicNamesList, tlsConfig) {
-    const readers = new Map();
-    Object.values(topicNamesList).forEach(topicName => {
-        readers.set(topicName, new Reader({
-            brokers,
-            topic: topicName,
-            groupId: "my-group",
-            offset: 0,
-            tls: tlsConfig,
-        }));
-    });
-    return readers;
+  const readers = new Map();
+  Object.values(topicNamesList).forEach((topicName) => {
+    readers.set(
+      topicName,
+      new Reader({
+        brokers,
+        topic: topicName,
+        groupId: "my-group",
+        offset: 0,
+        tls: tlsConfig,
+      }),
+    );
+  });
+  return readers;
 }
 ```
 
@@ -105,8 +108,8 @@ You can then use them like this:
 ```javascript
 const readers = createKafkaReaders(brokers, topicNamesList, tlsConfig);
 const messages = readers.get("my-topic").consume({
-    limit: 5,
-    expectedTimeout: "2s"
+  limit: 5,
+  expectedTimeout: "2s",
 });
 ```
 
@@ -119,11 +122,12 @@ Returned `messages` is an array of consumed messages, each with properties such 
 If you are using a schema registry, you'll have to deserialize the messages after consuming them. Here’s how you can do it:
 You need first to create a `SchemaRegistry` instance. Please refer to the [Schema Registry documentation](./schema-registry.md) for more details on how to set it up.
 In order to perform deserialization, you can use the `schemaRegistry.deserialize` method:
+
 ```javascript
 const readers = createKafkaReaders(brokers, topicNamesList, tlsConfig);
 const messages = readers.get("my-topic").consume({
-    limit: 5,
-    expectedTimeout: "2s"
+  limit: 5,
+  expectedTimeout: "2s",
 });
 ```
 
@@ -132,7 +136,7 @@ const messages = readers.get("my-topic").consume({
 ## ✅ Notes
 
 - The `offset` can be set to:
-    - `0` to start from the beginning
-    - `-1` to start from the latest message
+  - `0` to start from the beginning
+  - `-1` to start from the latest message
 - `groupId` ensures offset tracking and distribution in real Kafka clusters.
 - Be careful when consuming a high volume — make sure the `expectedTimeout` and `limit` values are tuned properly for your tests.
