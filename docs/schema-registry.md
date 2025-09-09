@@ -80,7 +80,7 @@ const valueSchemaObject = schemaRegistry.createSchema({
 });
 ```
 
-_Optional : Retrieve the subject name directly from the schema_
+Optional : Retrieve the subject name directly from the schema:
 ```javascript
 const keySubjectName = schemaRegistry.getSubjectName({
     topic: topic,
