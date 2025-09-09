@@ -26,7 +26,7 @@ const reader = new Reader({
 });
 ```
 
-_tips : here you can find more options for your reader:_
+Tip: here you can find more options for your reader:
 
 ```golang
 type ReaderConfig struct {
