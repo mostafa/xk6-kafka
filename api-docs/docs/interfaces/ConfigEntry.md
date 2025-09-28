@@ -1,28 +1,23 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: ConfigEntry
 
-## Table of contents
-
-### Properties
-
-- [configName](ConfigEntry.md#configname)
-- [configValue](ConfigEntry.md#configvalue)
+Defined in: [index.d.ts:235](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L235)
 
 ## Properties
 
 ### configName
 
-• **configName**: `string`
+> **configName**: `string`
 
-#### Defined in
-
-[index.d.ts:231](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L231)
+Defined in: [index.d.ts:236](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L236)
 
 ---
 
 ### configValue
 
-• **configValue**: `string`
+> **configValue**: `string`
 
-#### Defined in
-
-[index.d.ts:232](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L232)
+Defined in: [index.d.ts:237](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L237)

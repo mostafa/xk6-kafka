@@ -1,50 +1,39 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: SubjectNameConfig
 
-## Table of contents
-
-### Properties
-
-- [element](SubjectNameConfig.md#element)
-- [schema](SubjectNameConfig.md#schema)
-- [subjectNameStrategy](SubjectNameConfig.md#subjectnamestrategy)
-- [topic](SubjectNameConfig.md#topic)
+Defined in: [index.d.ts:268](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L268)
 
 ## Properties
 
 ### element
 
-• **element**: [`ELEMENT_TYPES`](../enums/ELEMENT_TYPES.md)
+> **element**: [`ELEMENT_TYPES`](../enumerations/ELEMENT_TYPES.md)
 
-#### Defined in
-
-[index.d.ts:266](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L266)
+Defined in: [index.d.ts:271](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L271)
 
 ---
 
 ### schema
 
-• **schema**: `String`
+> **schema**: `string`
 
-#### Defined in
-
-[index.d.ts:264](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L264)
+Defined in: [index.d.ts:269](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L269)
 
 ---
 
 ### subjectNameStrategy
 
-• **subjectNameStrategy**: [`SUBJECT_NAME_STRATEGY`](../enums/SUBJECT_NAME_STRATEGY.md)
+> **subjectNameStrategy**: [`SUBJECT_NAME_STRATEGY`](../enumerations/SUBJECT_NAME_STRATEGY.md)
 
-#### Defined in
-
-[index.d.ts:267](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L267)
+Defined in: [index.d.ts:272](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L272)
 
 ---
 
 ### topic
 
-• **topic**: `String`
+> **topic**: `string`
 
-#### Defined in
-
-[index.d.ts:265](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L265)
+Defined in: [index.d.ts:270](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L270)

@@ -2,8 +2,9 @@
   "theme": "markdown",
   "hideBreadcrumbs": true,
   "disableSources": false,
-  "entryPoints": ["index.d.ts"],
   "plugin": ["typedoc-plugin-markdown"],
+  "out": "./docs",
+  "entryPoints": ["index.d.ts"],
   "readme": "none",
   "gitRevision": "main"
 }

@@ -1,8 +1,16 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Class: Reader
 
-**`classdesc`** Reader reads messages from Kafka.
+Defined in: [index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L365)
 
-**`example`**
+## Classdesc
+
+Reader reads messages from Kafka.
+
+## Example
 
 ```javascript
 // In init context
@@ -18,42 +26,35 @@ const messages = reader.consume({ limit: 10, nanoPrecision: false });
 reader.close();
 ```
 
-## Table of contents
-
-### Constructors
-
-- [constructor](Reader.md#constructor)
-
-### Methods
-
-- [close](Reader.md#close)
-- [consume](Reader.md#consume)
-
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new Reader**(`readerConfig`)
+> **new Reader**(`readerConfig`): `Reader`
+
+Defined in: [index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L372)
 
 #### Parameters
 
-| Name           | Type                                            | Description           |
-| :------------- | :---------------------------------------------- | :-------------------- |
-| `readerConfig` | [`ReaderConfig`](../interfaces/ReaderConfig.md) | Reader configuration. |
+##### readerConfig
 
-#### Defined in
+[`ReaderConfig`](../interfaces/ReaderConfig.md)
 
-[index.d.ts:367](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L367)
+Reader configuration.
+
+#### Returns
+
+`Reader`
+
+- Reader instance.
 
 ## Methods
 
-### close
+### close()
 
-▸ **close**(): `void`
+> **close**(): `void`
 
-**`destructor`**
-
-**`description`** Close the reader.
+Defined in: [index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L385)
 
 #### Returns
 
@@ -61,24 +62,27 @@ reader.close();
 
 - Nothing.
 
-#### Defined in
+#### Destructor
 
-[index.d.ts:380](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L380)
+#### Description
+
+Close the reader.
 
 ---
 
-### consume
+### consume()
 
-▸ **consume**(`consumeConfig`): [`Message`](../interfaces/Message.md)[]
+> **consume**(`consumeConfig`): [`Message`](../interfaces/Message.md)[]
 
-**`method`**
-Read messages from Kafka.
+Defined in: [index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L379)
 
 #### Parameters
 
-| Name            | Type                                              | Description            |
-| :-------------- | :------------------------------------------------ | :--------------------- |
-| `consumeConfig` | [`ConsumeConfig`](../interfaces/ConsumeConfig.md) | Consume configuration. |
+##### consumeConfig
+
+[`ConsumeConfig`](../interfaces/ConsumeConfig.md)
+
+Consume configuration.
 
 #### Returns
 
@@ -86,6 +90,6 @@ Read messages from Kafka.
 
 - Messages.
 
-#### Defined in
+#### Method
 
-[index.d.ts:374](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L374)
+Read messages from Kafka.

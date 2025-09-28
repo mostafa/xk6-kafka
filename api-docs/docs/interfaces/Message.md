@@ -1,98 +1,74 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: Message
 
+Defined in: [index.d.ts:145](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L145)
+
 Message format for producing messages to a topic.
-
-**`note:`** The message format will be adopted by the reader at some point.
-
-## Table of contents
-
-### Properties
-
-- [headers](Message.md#headers)
-- [highwaterMark](Message.md#highwatermark)
-- [key](Message.md#key)
-- [offset](Message.md#offset)
-- [partition](Message.md#partition)
-- [time](Message.md#time)
-- [topic](Message.md#topic)
-- [value](Message.md#value)
+@note: The message format will be adopted by the reader at some point.
 
 ## Properties
 
 ### headers
 
-• **headers**: `Map`<`string`, `any`\>
+> **headers**: `Map`\<`string`, `any`\>
 
-#### Defined in
-
-[index.d.ts:148](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L148)
+Defined in: [index.d.ts:152](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L152)
 
 ---
 
 ### highwaterMark
 
-• **highwaterMark**: `number`
+> **highwaterMark**: `number`
 
-#### Defined in
-
-[index.d.ts:145](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L145)
+Defined in: [index.d.ts:149](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L149)
 
 ---
 
 ### key
 
-• **key**: `Uint8Array`
+> **key**: `number`[]
 
-#### Defined in
-
-[index.d.ts:146](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L146)
+Defined in: [index.d.ts:150](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L150)
 
 ---
 
 ### offset
 
-• **offset**: `number`
+> **offset**: `number`
 
-#### Defined in
-
-[index.d.ts:144](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L144)
+Defined in: [index.d.ts:148](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L148)
 
 ---
 
 ### partition
 
-• **partition**: `number`
+> **partition**: `number`
 
-#### Defined in
-
-[index.d.ts:143](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L143)
+Defined in: [index.d.ts:147](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L147)
 
 ---
 
 ### time
 
-• **time**: `Date`
+> **time**: `Date`
 
-#### Defined in
-
-[index.d.ts:149](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L149)
+Defined in: [index.d.ts:153](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L153)
 
 ---
 
 ### topic
 
-• **topic**: `string`
+> **topic**: `string`
 
-#### Defined in
-
-[index.d.ts:142](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L142)
+Defined in: [index.d.ts:146](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L146)
 
 ---
 
 ### value
 
-• **value**: `Uint8Array`
+> **value**: `number`[]
 
-#### Defined in
-
-[index.d.ts:147](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L147)
+Defined in: [index.d.ts:151](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L151)

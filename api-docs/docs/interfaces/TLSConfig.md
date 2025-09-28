@@ -1,72 +1,55 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: TLSConfig
 
-## Table of contents
-
-### Properties
-
-- [clientCertPem](TLSConfig.md#clientcertpem)
-- [clientKeyPem](TLSConfig.md#clientkeypem)
-- [enableTls](TLSConfig.md#enabletls)
-- [insecureSkipTlsVerify](TLSConfig.md#insecureskiptlsverify)
-- [minVersion](TLSConfig.md#minversion)
-- [serverCaPem](TLSConfig.md#servercapem)
+Defined in: [index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
 
 ## Properties
 
 ### clientCertPem
 
-• **clientCertPem**: `string`
+> **clientCertPem**: `string`
 
-#### Defined in
-
-[index.d.ts:113](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L113)
+Defined in: [index.d.ts:117](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L117)
 
 ---
 
 ### clientKeyPem
 
-• **clientKeyPem**: `string`
+> **clientKeyPem**: `string`
 
-#### Defined in
-
-[index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
+Defined in: [index.d.ts:118](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L118)
 
 ---
 
 ### enableTls
 
-• **enableTls**: `boolean`
+> **enableTls**: `boolean`
 
-#### Defined in
-
-[index.d.ts:110](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L110)
+Defined in: [index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L114)
 
 ---
 
 ### insecureSkipTlsVerify
 
-• **insecureSkipTlsVerify**: `boolean`
+> **insecureSkipTlsVerify**: `boolean`
 
-#### Defined in
-
-[index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L111)
+Defined in: [index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
 
 ---
 
 ### minVersion
 
-• **minVersion**: [`TLS_VERSIONS`](../enums/TLS_VERSIONS.md)
+> **minVersion**: [`TLS_VERSIONS`](../enumerations/TLS_VERSIONS.md)
 
-#### Defined in
-
-[index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L112)
+Defined in: [index.d.ts:116](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L116)
 
 ---
 
 ### serverCaPem
 
-• **serverCaPem**: `string`
+> **serverCaPem**: `string`
 
-#### Defined in
-
-[index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L115)
+Defined in: [index.d.ts:119](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L119)

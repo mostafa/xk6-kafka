@@ -1,39 +1,31 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: ConnectionConfig
 
-## Table of contents
-
-### Properties
-
-- [address](ConnectionConfig.md#address)
-- [sasl](ConnectionConfig.md#sasl)
-- [tls](ConnectionConfig.md#tls)
+Defined in: [index.d.ts:222](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L222)
 
 ## Properties
 
 ### address
 
-• **address**: `string`
+> **address**: `string`
 
-#### Defined in
-
-[index.d.ts:218](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L218)
+Defined in: [index.d.ts:223](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L223)
 
 ---
 
 ### sasl
 
-• **sasl**: [`SASLConfig`](SASLConfig.md)
+> **sasl**: [`SASLConfig`](SASLConfig.md)
 
-#### Defined in
-
-[index.d.ts:219](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L219)
+Defined in: [index.d.ts:224](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L224)
 
 ---
 
 ### tls
 
-• **tls**: [`TLSConfig`](TLSConfig.md)
+> **tls**: [`TLSConfig`](TLSConfig.md)
 
-#### Defined in
-
-[index.d.ts:220](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L220)
+Defined in: [index.d.ts:225](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L225)

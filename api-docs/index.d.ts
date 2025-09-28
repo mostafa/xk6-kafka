@@ -55,6 +55,10 @@ export enum START_OFFSETS {
   START_OFFSETS_FIRST_OFFSET = "start_offsets_first_offset", // default
 }
 
+/* Backward compatibility constants for start offsets. */
+export const FIRST_OFFSET = "start_offsets_first_offset";
+export const LAST_OFFSET = "start_offsets_last_offset";
+
 /* Subject name strategy for storing a schema in Schema Registry. */
 export enum SUBJECT_NAME_STRATEGY {
   TOPIC_NAME_STRATEGY = "TopicNameStrategy",
@@ -158,6 +162,7 @@ export interface BasicAuth {
 /* Schema Registry configurations for creating a possible secure communication channel with Schema Registry for storing and retrieving schemas. */
 export interface SchemaRegistryConfig {
   url: string;
+  enableCaching: boolean;
   basicAuth: BasicAuth;
   tls: TLSConfig;
 }
@@ -261,8 +266,8 @@ export interface Schema {
 }
 
 export interface SubjectNameConfig {
-  schema: String;
-  topic: String;
+  schema: string;
+  topic: string;
   element: ELEMENT_TYPES;
   subjectNameStrategy: SUBJECT_NAME_STRATEGY;
 }

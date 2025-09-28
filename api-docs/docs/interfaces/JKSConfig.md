@@ -1,72 +1,55 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: JKSConfig
 
-## Table of contents
-
-### Properties
-
-- [clientCertAlias](JKSConfig.md#clientcertalias)
-- [clientKeyAlias](JKSConfig.md#clientkeyalias)
-- [clientKeyPassword](JKSConfig.md#clientkeypassword)
-- [password](JKSConfig.md#password)
-- [path](JKSConfig.md#path)
-- [serverCaAlias](JKSConfig.md#servercaalias)
+Defined in: [index.d.ts:281](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L281)
 
 ## Properties
 
 ### clientCertAlias
 
-• **clientCertAlias**: `string`
+> **clientCertAlias**: `string`
 
-#### Defined in
-
-[index.d.ts:279](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L279)
+Defined in: [index.d.ts:284](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L284)
 
 ---
 
 ### clientKeyAlias
 
-• **clientKeyAlias**: `string`
+> **clientKeyAlias**: `string`
 
-#### Defined in
-
-[index.d.ts:280](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L280)
+Defined in: [index.d.ts:285](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L285)
 
 ---
 
 ### clientKeyPassword
 
-• **clientKeyPassword**: `string`
+> **clientKeyPassword**: `string`
 
-#### Defined in
-
-[index.d.ts:281](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L281)
+Defined in: [index.d.ts:286](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L286)
 
 ---
 
 ### password
 
-• **password**: `string`
+> **password**: `string`
 
-#### Defined in
-
-[index.d.ts:278](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L278)
+Defined in: [index.d.ts:283](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L283)
 
 ---
 
 ### path
 
-• **path**: `string`
+> **path**: `string`
 
-#### Defined in
-
-[index.d.ts:277](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L277)
+Defined in: [index.d.ts:282](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L282)
 
 ---
 
 ### serverCaAlias
 
-• **serverCaAlias**: `string`
+> **serverCaAlias**: `string`
 
-#### Defined in
-
-[index.d.ts:282](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L282)
+Defined in: [index.d.ts:287](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L287)

@@ -1,8 +1,16 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Class: Writer
 
-**`classdesc`** Writer writes messages to Kafka.
+Defined in: [index.d.ts:323](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L323)
 
-**`example`**
+## Classdesc
+
+Writer writes messages to Kafka.
+
+## Example
 
 ```javascript
 // In init context
@@ -26,42 +34,35 @@ writer.produce({
 writer.close();
 ```
 
-## Table of contents
-
-### Constructors
-
-- [constructor](Writer.md#constructor)
-
-### Methods
-
-- [close](Writer.md#close)
-- [produce](Writer.md#produce)
-
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new Writer**(`writerConfig`)
+> **new Writer**(`writerConfig`): `Writer`
+
+Defined in: [index.d.ts:330](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L330)
 
 #### Parameters
 
-| Name           | Type                                            | Description           |
-| :------------- | :---------------------------------------------- | :-------------------- |
-| `writerConfig` | [`WriterConfig`](../interfaces/WriterConfig.md) | Writer configuration. |
+##### writerConfig
 
-#### Defined in
+[`WriterConfig`](../interfaces/WriterConfig.md)
 
-[index.d.ts:325](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L325)
+Writer configuration.
+
+#### Returns
+
+`Writer`
+
+- Writer instance.
 
 ## Methods
 
-### close
+### close()
 
-▸ **close**(): `void`
+> **close**(): `void`
 
-**`destructor`**
-
-**`description`** Close the writer.
+Defined in: [index.d.ts:343](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L343)
 
 #### Returns
 
@@ -69,24 +70,27 @@ writer.close();
 
 - Nothing.
 
-#### Defined in
+#### Destructor
 
-[index.d.ts:338](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L338)
+#### Description
+
+Close the writer.
 
 ---
 
-### produce
+### produce()
 
-▸ **produce**(`produceConfig`): `void`
+> **produce**(`produceConfig`): `void`
 
-**`method`**
-Write messages to Kafka.
+Defined in: [index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L337)
 
 #### Parameters
 
-| Name            | Type                                              | Description            |
-| :-------------- | :------------------------------------------------ | :--------------------- |
-| `produceConfig` | [`ProduceConfig`](../interfaces/ProduceConfig.md) | Produce configuration. |
+##### produceConfig
+
+[`ProduceConfig`](../interfaces/ProduceConfig.md)
+
+Produce configuration.
 
 #### Returns
 
@@ -94,6 +98,6 @@ Write messages to Kafka.
 
 - Nothing.
 
-#### Defined in
+#### Method
 
-[index.d.ts:332](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L332)
+Write messages to Kafka.

@@ -1,8 +1,16 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Class: SchemaRegistry
 
-**`classdesc`** Schema Registry is a client for Schema Registry and handles serdes.
+Defined in: [index.d.ts:494](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L494)
 
-**`example`**
+## Classdesc
+
+Schema Registry is a client for Schema Registry and handles serdes.
+
+## Example
 
 ```javascript
 // In init context
@@ -51,50 +59,43 @@ writer.produce({
 });
 ```
 
-## Table of contents
-
-### Constructors
-
-- [constructor](SchemaRegistry.md#constructor)
-
-### Methods
-
-- [createSchema](SchemaRegistry.md#createschema)
-- [deserialize](SchemaRegistry.md#deserialize)
-- [getSchema](SchemaRegistry.md#getschema)
-- [getSubjectName](SchemaRegistry.md#getsubjectname)
-- [serialize](SchemaRegistry.md#serialize)
-
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new SchemaRegistry**(`schemaRegistryConfig`)
+> **new SchemaRegistry**(`schemaRegistryConfig`): `SchemaRegistry`
+
+Defined in: [index.d.ts:501](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L501)
 
 #### Parameters
 
-| Name                   | Type                                                            | Description                    |
-| :--------------------- | :-------------------------------------------------------------- | :----------------------------- |
-| `schemaRegistryConfig` | [`SchemaRegistryConfig`](../interfaces/SchemaRegistryConfig.md) | Schema Registry configuration. |
+##### schemaRegistryConfig
 
-#### Defined in
+[`SchemaRegistryConfig`](../interfaces/SchemaRegistryConfig.md)
 
-[index.d.ts:496](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L496)
+Schema Registry configuration.
+
+#### Returns
+
+`SchemaRegistry`
+
+- SchemaRegistry instance.
 
 ## Methods
 
-### createSchema
+### createSchema()
 
-▸ **createSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
+> **createSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
 
-**`method`**
-Create or update a schema on Schema Registry.
+Defined in: [index.d.ts:515](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L515)
 
 #### Parameters
 
-| Name     | Type                                | Description           |
-| :------- | :---------------------------------- | :-------------------- |
-| `schema` | [`Schema`](../interfaces/Schema.md) | Schema configuration. |
+##### schema
+
+[`Schema`](../interfaces/Schema.md)
+
+Schema configuration.
 
 #### Returns
 
@@ -102,24 +103,25 @@ Create or update a schema on Schema Registry.
 
 - Schema.
 
-#### Defined in
+#### Method
 
-[index.d.ts:510](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L510)
+Create or update a schema on Schema Registry.
 
 ---
 
-### deserialize
+### deserialize()
 
-▸ **deserialize**(`container`): `any`
+> **deserialize**(`container`): `any`
 
-**`method`**
-Deserializes the given data and schema into its original form.
+Defined in: [index.d.ts:536](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L536)
 
 #### Parameters
 
-| Name        | Type                                      | Description                                      |
-| :---------- | :---------------------------------------- | :----------------------------------------------- |
-| `container` | [`Container`](../interfaces/Container.md) | Container including data, schema and schemaType. |
+##### container
+
+[`Container`](../interfaces/Container.md)
+
+Container including data, schema and schemaType.
 
 #### Returns
 
@@ -127,24 +129,25 @@ Deserializes the given data and schema into its original form.
 
 - Deserialized data as string, byte array or JSON object.
 
-#### Defined in
+#### Method
 
-[index.d.ts:531](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L531)
+Deserializes the given data and schema into its original form.
 
 ---
 
-### getSchema
+### getSchema()
 
-▸ **getSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
+> **getSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
 
-**`method`**
-Get a schema from Schema Registry by version and subject.
+Defined in: [index.d.ts:508](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L508)
 
 #### Parameters
 
-| Name     | Type                                | Description           |
-| :------- | :---------------------------------- | :-------------------- |
-| `schema` | [`Schema`](../interfaces/Schema.md) | Schema configuration. |
+##### schema
+
+[`Schema`](../interfaces/Schema.md)
+
+Schema configuration.
 
 #### Returns
 
@@ -152,24 +155,25 @@ Get a schema from Schema Registry by version and subject.
 
 - Schema.
 
-#### Defined in
+#### Method
 
-[index.d.ts:503](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L503)
+Get a schema from Schema Registry by version and subject.
 
 ---
 
-### getSubjectName
+### getSubjectName()
 
-▸ **getSubjectName**(`subjectNameConfig`): `string`
+> **getSubjectName**(`subjectNameConfig`): `string`
 
-**`method`**
-Returns the subject name for the given SubjectNameConfig.
+Defined in: [index.d.ts:522](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L522)
 
 #### Parameters
 
-| Name                | Type                                                      | Description                 |
-| :------------------ | :-------------------------------------------------------- | :-------------------------- |
-| `subjectNameConfig` | [`SubjectNameConfig`](../interfaces/SubjectNameConfig.md) | Subject name configuration. |
+##### subjectNameConfig
+
+[`SubjectNameConfig`](../interfaces/SubjectNameConfig.md)
+
+Subject name configuration.
 
 #### Returns
 
@@ -177,24 +181,25 @@ Returns the subject name for the given SubjectNameConfig.
 
 - Subject name.
 
-#### Defined in
+#### Method
 
-[index.d.ts:517](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L517)
+Returns the subject name for the given SubjectNameConfig.
 
 ---
 
-### serialize
+### serialize()
 
-▸ **serialize**(`container`): `Uint8Array`
+> **serialize**(`container`): `Uint8Array`
 
-**`method`**
-Serializes the given data and schema into a byte array.
+Defined in: [index.d.ts:529](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L529)
 
 #### Parameters
 
-| Name        | Type                                      | Description                                      |
-| :---------- | :---------------------------------------- | :----------------------------------------------- |
-| `container` | [`Container`](../interfaces/Container.md) | Container including data, schema and schemaType. |
+##### container
+
+[`Container`](../interfaces/Container.md)
+
+Container including data, schema and schemaType.
 
 #### Returns
 
@@ -202,6 +207,6 @@ Serializes the given data and schema into a byte array.
 
 - Serialized data as byte array.
 
-#### Defined in
+#### Method
 
-[index.d.ts:524](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L524)
+Serializes the given data and schema into a byte array.
