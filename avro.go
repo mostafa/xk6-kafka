@@ -1,5 +1,11 @@
 package kafka
 
+import (
+	"encoding/json"
+
+	"github.com/hamba/avro/v2"
+)
+
 type AvroSerde struct {
 	Serdes
 }
@@ -11,12 +17,19 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 		return nil, err
 	}
 
-	encodedData, _, originalErr := schema.Codec().NativeFromTextual(jsonBytes)
-	if originalErr != nil {
-		return nil, NewXk6KafkaError(failedToEncode, "Failed to encode data", originalErr)
+	avroSchema := schema.Codec()
+	if avroSchema == nil {
+		return nil, NewXk6KafkaError(failedToEncode, "Failed to parse Avro schema", nil)
 	}
 
-	bytesData, originalErr := schema.Codec().BinaryFromNative(nil, encodedData)
+	// Parse JSON data into a map for marshaling
+	var jsonData interface{}
+	if jsonErr := json.Unmarshal(jsonBytes, &jsonData); jsonErr != nil {
+		return nil, NewXk6KafkaError(failedToEncode, "Failed to parse JSON data", jsonErr)
+	}
+
+	// Marshal to binary using hamba/avro
+	bytesData, originalErr := avro.Marshal(avroSchema, jsonData)
 	if originalErr != nil {
 		return nil, NewXk6KafkaError(failedToEncodeToBinary,
 			"Failed to encode data into binary",
@@ -28,7 +41,13 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 
 // Deserialize deserializes a Avro binary into a JSON object.
 func (*AvroSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
-	decodedData, _, err := schema.Codec().NativeFromBinary(data)
+	avroSchema := schema.Codec()
+	if avroSchema == nil {
+		return nil, NewXk6KafkaError(failedToDecodeFromBinary, "Failed to parse Avro schema", nil)
+	}
+
+	var decodedData interface{}
+	err := avro.Unmarshal(avroSchema, data, &decodedData)
 	if err != nil {
 		return nil, NewXk6KafkaError(
 			failedToDecodeFromBinary, "Failed to decode data", err)
@@ -37,6 +56,6 @@ func (*AvroSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6Kaf
 	if data, ok := decodedData.(map[string]interface{}); ok {
 		return data, nil
 	} else {
-		return nil, ErrInvalidDataType
+		return decodedData, nil
 	}
 }
