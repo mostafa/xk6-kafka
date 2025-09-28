@@ -1,48 +1,40 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: ConsumeConfig
 
+Defined in: [index.d.ts:209](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L209)
+
 Configuration for Consume method.
-
-## Table of contents
-
-### Properties
-
-- [expectTimeout](ConsumeConfig.md#expecttimeout)
-- [limit](ConsumeConfig.md#limit)
-- [nanoPrecision](ConsumeConfig.md#nanoprecision)
 
 ## Properties
 
 ### expectTimeout
 
-• **expectTimeout**: `boolean`
+> **expectTimeout**: `boolean`
+
+Defined in: [index.d.ts:218](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L218)
 
 If true, return whatever messages have been collected when maxWait is
 passed.
-
-#### Defined in
-
-[index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
 
 ---
 
 ### limit
 
-• **limit**: `number`
+> **limit**: `number`
+
+Defined in: [index.d.ts:211](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L211)
 
 collect this many messages before returning.
-
-#### Defined in
-
-[index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L206)
 
 ---
 
 ### nanoPrecision
 
-• **nanoPrecision**: `boolean`
+> **nanoPrecision**: `boolean`
+
+Defined in: [index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
 
 If true, returned message RFC3339 timestamps carry nanosecond precision.
-
-#### Defined in
-
-[index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L208)

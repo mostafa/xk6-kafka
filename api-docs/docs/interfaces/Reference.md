@@ -1,39 +1,31 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: Reference
 
-## Table of contents
-
-### Properties
-
-- [name](Reference.md#name)
-- [subject](Reference.md#subject)
-- [version](Reference.md#version)
+Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L251)
 
 ## Properties
 
 ### name
 
-• **name**: `string`
+> **name**: `string`
 
-#### Defined in
-
-[index.d.ts:247](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L247)
+Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L252)
 
 ---
 
 ### subject
 
-• **subject**: `string`
+> **subject**: `string`
 
-#### Defined in
-
-[index.d.ts:248](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L248)
+Defined in: [index.d.ts:253](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L253)
 
 ---
 
 ### version
 
-• **version**: `number`
+> **version**: `number`
 
-#### Defined in
-
-[index.d.ts:249](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L249)
+Defined in: [index.d.ts:254](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L254)

@@ -1,35 +1,33 @@
+**xk6-kafka**
+
+---
+
 # xk6-kafka
 
-**`description`**
-The xk6-kafka project is a k6 extension that enables k6 users to load test Apache Kafka using a producer and possibly a consumer for debugging.
-This documentation refers to the development version of the xk6-kafka project, which means the latest changes on `main` branch and might not be released yet, as explained in [the release process](https://github.com/mostafa/xk6-kafka#the-release-process).
+xk6-kafka is a k6 extension to load test Apache Kafka
 
-**`see`** [https://github.com/mostafa/xk6-kafka](https://github.com/mostafa/xk6-kafka)
+## Enumerations
 
-## Table of contents
+- [BALANCERS](enumerations/BALANCERS.md)
+- [COMPRESSION_CODECS](enumerations/COMPRESSION_CODECS.md)
+- [ELEMENT_TYPES](enumerations/ELEMENT_TYPES.md)
+- [GROUP_BALANCERS](enumerations/GROUP_BALANCERS.md)
+- [ISOLATION_LEVEL](enumerations/ISOLATION_LEVEL.md)
+- [SASL_MECHANISMS](enumerations/SASL_MECHANISMS.md)
+- [SCHEMA_TYPES](enumerations/SCHEMA_TYPES.md)
+- [START_OFFSETS](enumerations/START_OFFSETS.md)
+- [SUBJECT_NAME_STRATEGY](enumerations/SUBJECT_NAME_STRATEGY.md)
+- [TIME](enumerations/TIME.md)
+- [TLS_VERSIONS](enumerations/TLS_VERSIONS.md)
 
-### Enumerations
-
-- [BALANCERS](enums/BALANCERS.md)
-- [COMPRESSION_CODECS](enums/COMPRESSION_CODECS.md)
-- [ELEMENT_TYPES](enums/ELEMENT_TYPES.md)
-- [GROUP_BALANCERS](enums/GROUP_BALANCERS.md)
-- [ISOLATION_LEVEL](enums/ISOLATION_LEVEL.md)
-- [SASL_MECHANISMS](enums/SASL_MECHANISMS.md)
-- [SCHEMA_TYPES](enums/SCHEMA_TYPES.md)
-- [START_OFFSETS](enums/START_OFFSETS.md)
-- [SUBJECT_NAME_STRATEGY](enums/SUBJECT_NAME_STRATEGY.md)
-- [TIME](enums/TIME.md)
-- [TLS_VERSIONS](enums/TLS_VERSIONS.md)
-
-### Classes
+## Classes
 
 - [Connection](classes/Connection.md)
 - [Reader](classes/Reader.md)
 - [SchemaRegistry](classes/SchemaRegistry.md)
 - [Writer](classes/Writer.md)
 
-### Interfaces
+## Interfaces
 
 - [BasicAuth](interfaces/BasicAuth.md)
 - [ConfigEntry](interfaces/ConfigEntry.md)
@@ -51,45 +49,11 @@ This documentation refers to the development version of the xk6-kafka project, w
 - [TopicConfig](interfaces/TopicConfig.md)
 - [WriterConfig](interfaces/WriterConfig.md)
 
-### Functions
+## Variables
 
-- [LoadJKS](README.md#loadjks)
+- [FIRST_OFFSET](variables/FIRST_OFFSET.md)
+- [LAST_OFFSET](variables/LAST_OFFSET.md)
 
 ## Functions
 
-### LoadJKS
-
-▸ **LoadJKS**(`jksConfig`): [`JKS`](interfaces/JKS.md)
-
-**`function`**
-
-**`description`** Load a JKS keystore from a file.
-
-**`example`**
-
-```javascript
-const jks = LoadJKS({
-  path: "/path/to/keystore.jks",
-  password: "password",
-  clientCertAlias: "localhost",
-  clientKeyAlias: "localhost",
-  clientKeyPassword: "password",
-  serverCaAlias: "ca",
-});
-```
-
-#### Parameters
-
-| Name        | Type                                   | Description        |
-| :---------- | :------------------------------------- | :----------------- |
-| `jksConfig` | [`JKSConfig`](interfaces/JKSConfig.md) | JKS configuration. |
-
-#### Returns
-
-[`JKS`](interfaces/JKS.md)
-
-- JKS client and server certificates and private key.
-
-#### Defined in
-
-[index.d.ts:551](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L551)
+- [LoadJKS](functions/LoadJKS.md)

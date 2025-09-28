@@ -1,83 +1,63 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: Schema
 
-## Table of contents
-
-### Properties
-
-- [enableCaching](Schema.md#enablecaching)
-- [id](Schema.md#id)
-- [references](Schema.md#references)
-- [schema](Schema.md#schema)
-- [schemaType](Schema.md#schematype)
-- [subject](Schema.md#subject)
-- [version](Schema.md#version)
+Defined in: [index.d.ts:258](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L258)
 
 ## Properties
 
 ### enableCaching
 
-• **enableCaching**: `boolean`
+> **enableCaching**: `boolean`
 
-#### Defined in
-
-[index.d.ts:254](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L254)
+Defined in: [index.d.ts:259](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L259)
 
 ---
 
 ### id
 
-• **id**: `number`
+> **id**: `number`
 
-#### Defined in
-
-[index.d.ts:255](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L255)
+Defined in: [index.d.ts:260](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L260)
 
 ---
 
 ### references
 
-• **references**: [`Reference`](Reference.md)[]
+> **references**: [`Reference`](Reference.md)[]
 
-#### Defined in
-
-[index.d.ts:259](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L259)
+Defined in: [index.d.ts:264](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L264)
 
 ---
 
 ### schema
 
-• **schema**: `string`
+> **schema**: `string`
 
-#### Defined in
-
-[index.d.ts:256](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L256)
+Defined in: [index.d.ts:261](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L261)
 
 ---
 
 ### schemaType
 
-• **schemaType**: [`SCHEMA_TYPES`](../enums/SCHEMA_TYPES.md)
+> **schemaType**: [`SCHEMA_TYPES`](../enumerations/SCHEMA_TYPES.md)
 
-#### Defined in
-
-[index.d.ts:257](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L257)
+Defined in: [index.d.ts:262](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L262)
 
 ---
 
 ### subject
 
-• **subject**: `string`
+> **subject**: `string`
 
-#### Defined in
-
-[index.d.ts:260](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L260)
+Defined in: [index.d.ts:265](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L265)
 
 ---
 
 ### version
 
-• **version**: `number`
+> **version**: `number`
 
-#### Defined in
-
-[index.d.ts:258](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L258)
+Defined in: [index.d.ts:263](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L263)

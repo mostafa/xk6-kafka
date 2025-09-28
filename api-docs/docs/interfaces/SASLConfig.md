@@ -1,50 +1,39 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: SASLConfig
 
-## Table of contents
-
-### Properties
-
-- [algorithm](SASLConfig.md#algorithm)
-- [awsProfile](SASLConfig.md#awsprofile)
-- [password](SASLConfig.md#password)
-- [username](SASLConfig.md#username)
+Defined in: [index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L105)
 
 ## Properties
 
 ### algorithm
 
-• **algorithm**: [`SASL_MECHANISMS`](../enums/SASL_MECHANISMS.md)
+> **algorithm**: [`SASL_MECHANISMS`](../enumerations/SASL_MECHANISMS.md)
 
-#### Defined in
-
-[index.d.ts:104](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L104)
+Defined in: [index.d.ts:108](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L108)
 
 ---
 
 ### awsProfile
 
-• **awsProfile**: `string`
+> **awsProfile**: `string`
 
-#### Defined in
-
-[index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L105)
+Defined in: [index.d.ts:109](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L109)
 
 ---
 
 ### password
 
-• **password**: `string`
+> **password**: `string`
 
-#### Defined in
-
-[index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L103)
+Defined in: [index.d.ts:107](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L107)
 
 ---
 
 ### username
 
-• **username**: `string`
+> **username**: `string`
 
-#### Defined in
-
-[index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L102)
+Defined in: [index.d.ts:106](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L106)

@@ -1,39 +1,39 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: SchemaRegistryConfig
 
-## Table of contents
-
-### Properties
-
-- [basicAuth](SchemaRegistryConfig.md#basicauth)
-- [tls](SchemaRegistryConfig.md#tls)
-- [url](SchemaRegistryConfig.md#url)
+Defined in: [index.d.ts:163](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L163)
 
 ## Properties
 
 ### basicAuth
 
-• **basicAuth**: [`BasicAuth`](BasicAuth.md)
+> **basicAuth**: [`BasicAuth`](BasicAuth.md)
 
-#### Defined in
+Defined in: [index.d.ts:166](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L166)
 
-[index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L161)
+---
+
+### enableCaching
+
+> **enableCaching**: `boolean`
+
+Defined in: [index.d.ts:165](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L165)
 
 ---
 
 ### tls
 
-• **tls**: [`TLSConfig`](TLSConfig.md)
+> **tls**: [`TLSConfig`](TLSConfig.md)
 
-#### Defined in
-
-[index.d.ts:162](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L162)
+Defined in: [index.d.ts:167](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L167)
 
 ---
 
 ### url
 
-• **url**: `string`
+> **url**: `string`
 
-#### Defined in
-
-[index.d.ts:160](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L160)
+Defined in: [index.d.ts:164](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L164)
