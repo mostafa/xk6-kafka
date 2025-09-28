@@ -12,11 +12,11 @@
     "prettify": "prettier -w ."
   },
   "devDependencies": {
-    "prettier": "^2.8.1",
-    "typedoc": "^0.22.17",
-    "typedoc-plugin-markdown": "^3.12.1"
+    "prettier": "^3.6.2",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-markdown": "^4.9.0"
   },
   "dependencies": {
-    "typescript": "^4.7.3"
+    "typescript": "^5.9.2"
   }
 }
