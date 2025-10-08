@@ -197,7 +197,6 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	if writerConfig.BalancerFunc != nil {
 		writer.Balancer = kafkago.BalancerFunc(func(msg kafkago.Message, partitions ...int) int {
 			r := writerConfig.BalancerFunc(msg.Key, partitions...)
-			fmt.Printf("%d %d %d \n", r, len(partitions), msg.Offset)
 			return r
 		})
 	}

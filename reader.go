@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -359,7 +358,6 @@ func (k *Kafka) consume(
 	for i := int64(0); i < consumeConfig.Limit; i++ {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, maxWait)
 		msg, err := reader.ReadMessage(ctxWithTimeout)
-		fmt.Printf("Consuming message %#v %v\n", msg, err)
 		cancel()
 		if errors.Is(ctxWithTimeout.Err(), context.DeadlineExceeded) && consumeConfig.ExpectTimeout {
 			k.reportReaderStats(reader.Stats())
