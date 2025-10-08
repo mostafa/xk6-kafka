@@ -75,6 +75,8 @@ export enum BALANCERS {
   BALANCER_MURMUR2 = "balancer_murmur2",
 }
 
+type BalancerFunction = (key: Uint8Array, partitionCount: number) => number;
+
 /* Consumer group balancing strategies for consuming messages. */
 export enum GROUP_BALANCERS {
   GROUP_BALANCER_RANGE = "group_balancer_range",
@@ -125,6 +127,7 @@ export interface WriterConfig {
   topic: string;
   autoCreateTopic: boolean;
   balancer: BALANCERS;
+  balancerFunc: BalancerFunction;
   maxAttempts: number;
   batchSize: number;
   batchBytes: number;
