@@ -315,14 +315,11 @@ func TestWriterConfig_Parse(t *testing.T) {
 		"RequiredAcks":    5,
 		"Topic":           "Juana Martinez",
 		"Balancer":        "5ts6x7RJ",
-		//"BalancerFunc": func(sobek.FunctionCall) sobek.Value {
-		//	return nil
-		//},
-		"Compression":  "7R8cX5PlXEN",
-		"Brokers":      []string{"localhost:9092"},
-		"BatchTimeout": 747,
-		"ReadTimeout":  642,
-		"WriteTimeout": 264,
+		"Compression":     "7R8cX5PlXEN",
+		"Brokers":         []string{"localhost:9092"},
+		"BatchTimeout":    747,
+		"ReadTimeout":     642,
+		"WriteTimeout":    264,
 		"SASL": map[string]any{
 			"Username":   "GfiaNXfyR",
 			"Password":   "Mtia8icljU",
@@ -348,14 +345,11 @@ func TestWriterConfig_Parse(t *testing.T) {
 		RequiredAcks:    5,
 		Topic:           "Juana Martinez",
 		Balancer:        "5ts6x7RJ",
-		//BalancerFunc: func(key []byte, partitions ...int) (partition int) {
-		//	return 77
-		//},
-		Compression:  "7R8cX5PlXEN",
-		Brokers:      []string{"localhost:9092"},
-		BatchTimeout: 747,
-		ReadTimeout:  642,
-		WriteTimeout: 264,
+		Compression:     "7R8cX5PlXEN",
+		Brokers:         []string{"localhost:9092"},
+		BatchTimeout:    747,
+		ReadTimeout:     642,
+		WriteTimeout:    264,
 		SASL: SASLConfig{
 			Username:   "GfiaNXfyR",
 			Password:   "Mtia8icljU",
