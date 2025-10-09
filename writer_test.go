@@ -303,3 +303,64 @@ func TestWriterClass(t *testing.T) {
 		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
 	})
 }
+
+func TestWriterConfig_Parse(t *testing.T) {
+	var writerConfig WriterConfig
+	m := map[string]any{
+		"AutoCreateTopic": true,
+		"ConnectLogger":   true,
+		"MaxAttempts":     879,
+		"BatchSize":       258,
+		"BatchBytes":      652,
+		"RequiredAcks":    5,
+		"Topic":           "Juana Martinez",
+		"Compression":     "7R8cX5PlXEN",
+		"Brokers":         []string{"localhost:9092"},
+		"BatchTimeout":    747,
+		"ReadTimeout":     642,
+		"WriteTimeout":    264,
+		"SASL": map[string]any{
+			"Username":   "GfiaNXfyR",
+			"Password":   "Mtia8icljU",
+			"Algorithm":  "XsL85F7Er",
+			"AWSProfile": "MJerPEC",
+		},
+		"TLS": map[string]any{
+			"EnableTLS":             true,
+			"InsecureSkipTLSVerify": false,
+			"MinVersion":            "nDZKIp5l",
+			"ClientCertPem":         "kAVlkqupirI",
+			"ClientKeyPem":          "MrKCYpVW",
+			"ServerCaPem":           "3zbbZEoc1",
+		},
+	}
+	require.NoError(t, writerConfig.Parse(m, sobek.New()))
+	assert.Equal(t, WriterConfig{
+		AutoCreateTopic: true,
+		ConnectLogger:   true,
+		MaxAttempts:     879,
+		BatchSize:       258,
+		BatchBytes:      652,
+		RequiredAcks:    5,
+		Topic:           "Juana Martinez",
+		Compression:     "7R8cX5PlXEN",
+		Brokers:         []string{"localhost:9092"},
+		BatchTimeout:    747,
+		ReadTimeout:     642,
+		WriteTimeout:    264,
+		SASL: SASLConfig{
+			Username:   "GfiaNXfyR",
+			Password:   "Mtia8icljU",
+			Algorithm:  "XsL85F7Er",
+			AWSProfile: "MJerPEC",
+		},
+		TLS: TLSConfig{
+			EnableTLS:             true,
+			InsecureSkipTLSVerify: false,
+			MinVersion:            "nDZKIp5l",
+			ClientCertPem:         "kAVlkqupirI",
+			ClientKeyPem:          "MrKCYpVW",
+			ServerCaPem:           "3zbbZEoc1",
+		},
+	}, writerConfig)
+}
