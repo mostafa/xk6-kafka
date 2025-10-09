@@ -30,6 +30,7 @@ var (
 	balancerHash       = "balancer_hash"
 	balancerCrc32      = "balancer_crc32"
 	balancerMurmur2    = "balancer_murmur2"
+	defaultBalancer    = balancerLeastBytes
 
 	// Balancers is a map of balancer names to their respective balancers.
 	Balancers map[string]kafkago.Balancer
@@ -43,7 +44,7 @@ type WriterConfig struct {
 	BatchBytes      int             `mapstructure:"batchBytes"`
 	RequiredAcks    int             `mapstructure:"requiredAcks"`
 	Topic           string          `mapstructure:"topic"`
-	Balancer        string          `mapstructure:"balancer"`
+	Balancer        string          `mapstructure:"-"`
 	BalancerFunc    BalancerKeyFunc `mapstructure:"-"`
 	Compression     string          `mapstructure:"compression"`
 	Brokers         []string        `mapstructure:"brokers"`
@@ -59,13 +60,32 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 	if err != nil {
 		return err
 	}
-	if m["balancerFunc"] != nil {
-		err = runtime.ExportTo(runtime.ToValue(m["balancerFunc"]), &c.BalancerFunc)
-		if err != nil {
-			return fmt.Errorf("error parsing balancerFunc: %w", err)
+	if m["balancer"] != nil {
+		if balancer, ok := m["balancer"].(string); ok {
+			c.Balancer = balancer
+		} else {
+			err = runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.Balancer)
+			if err != nil {
+				return fmt.Errorf("error parsing balancerFunc: %w", err)
+			}
 		}
 	}
 	return decoder.Decode(m)
+}
+
+func (c *WriterConfig) GetBalancer() kafkago.Balancer {
+	if c.BalancerFunc != nil {
+		return kafkago.BalancerFunc(func(message kafkago.Message, partitions ...int) int {
+			if message.Key == nil {
+				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
+			}
+			return c.BalancerFunc(message.Key, partitions...)
+		})
+	}
+	if c.Balancer != "" {
+		return Balancers[c.Balancer]
+	}
+	return Balancers[defaultBalancer]
 }
 
 type Message struct {
@@ -174,7 +194,7 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	writer := &kafkago.Writer{
 		Addr:         kafkago.TCP(writerConfig.Brokers...),
 		Topic:        writerConfig.Topic,
-		Balancer:     Balancers[balancerLeastBytes],
+		Balancer:     writerConfig.GetBalancer(),
 		MaxAttempts:  writerConfig.MaxAttempts,
 		BatchSize:    writerConfig.BatchSize,
 		BatchBytes:   int64(writerConfig.BatchBytes),
@@ -189,16 +209,6 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 			ClientID: dialer.ClientID,
 		},
 		AllowAutoTopicCreation: writerConfig.AutoCreateTopic,
-	}
-
-	if balancer, ok := Balancers[writerConfig.Balancer]; ok {
-		writer.Balancer = balancer
-	}
-	if writerConfig.BalancerFunc != nil {
-		writer.Balancer = kafkago.BalancerFunc(func(msg kafkago.Message, partitions ...int) int {
-			r := writerConfig.BalancerFunc(msg.Key, partitions...)
-			return r
-		})
 	}
 
 	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {

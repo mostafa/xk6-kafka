@@ -126,8 +126,7 @@ export interface WriterConfig {
   brokers: string[];
   topic: string;
   autoCreateTopic: boolean;
-  balancer: BALANCERS;
-  balancerFunc: BalancerFunction;
+  balancer: BALANCERS | BalancerFunction;
   maxAttempts: number;
   batchSize: number;
   batchBytes: number;

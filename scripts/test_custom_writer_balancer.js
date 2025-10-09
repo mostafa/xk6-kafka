@@ -19,7 +19,7 @@ const writer = new Writer({
     brokers: brokers,
     topic: topic,
     autoCreateTopic: true,
-    balancerFunc: function (bytes, partitionCount) {
+    balancer: function (bytes, partitionCount) {
         return 7
     },
     connectLogger: true,
