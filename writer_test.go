@@ -304,7 +304,7 @@ func TestWriterClass(t *testing.T) {
 	})
 }
 
-func TestWriterConfig_Parse(t *testing.T) {
+func TestWriterConfigParse(t *testing.T) {
 	var writerConfig WriterConfig
 	m := map[string]any{
 		"AutoCreateTopic": true,
