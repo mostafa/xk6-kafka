@@ -331,7 +331,7 @@ func TestWriterConfig_Parse(t *testing.T) {
 			"MinVersion":            "nDZKIp5l",
 			"ClientCertPem":         "kAVlkqupirI",
 			"ClientKeyPem":          "MrKCYpVW",
-			"ServerCaPem":           "3zbbZEoc",
+			"ServerCaPem":           "3zbbZEoc1",
 		},
 	}
 	require.NoError(t, writerConfig.Parse(m, sobek.New()))
@@ -360,7 +360,7 @@ func TestWriterConfig_Parse(t *testing.T) {
 			MinVersion:            "nDZKIp5l",
 			ClientCertPem:         "kAVlkqupirI",
 			ClientKeyPem:          "MrKCYpVW",
-			ServerCaPem:           "3zbbZEoc",
+			ServerCaPem:           "3zbbZEoc1",
 		},
 	}, writerConfig)
 }
