@@ -64,7 +64,7 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 		if balancer, ok := m["balancer"].(string); ok {
 			c.Balancer = balancer
 		} else {
-			err = runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.Balancer)
+			err = runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.BalancerFunc)
 			if err != nil {
 				return fmt.Errorf("error parsing balancerFunc: %w", err)
 			}
