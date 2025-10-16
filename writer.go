@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -282,7 +283,19 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	k.reportWriterStats(writer.Stats())
 
 	if originalErr != nil {
-		err := NewXk6KafkaError(writerError, "Error writing messages.", originalErr)
+		errorMsg := "Error writing messages."
+
+		// Check if the error is related to topic not existing or leader not being available
+		// These are common errors when topics don't exist or metadata hasn't propagated
+		if errors.Is(originalErr, kafkago.UnknownTopicOrPartition) ||
+			errors.Is(originalErr, kafkago.LeaderNotAvailable) {
+			errorMsg = "Error writing messages: Topic may not exist or metadata not yet propagated. " +
+				"Create the topic in setup() function with sleep(2) for metadata propagation, " +
+				"or set autoCreateTopic: true in WriterConfig. " +
+				"See: https://github.com/mostafa/xk6-kafka#usage"
+		}
+
+		err := NewXk6KafkaError(writerError, errorMsg, originalErr)
 		logger.WithField("error", err).Error(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
