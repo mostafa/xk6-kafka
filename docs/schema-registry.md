@@ -200,3 +200,135 @@ Here you have to define the type explicitly as `string` to match the schema.
 **Be careful**, in your schema, you'll have to define the _null_ value first in the union type, otherwise the serialization will fail.
 
 In order to help you with complex schemas, you can use the [nested-avro-schema](https://github.com/mostafa/nested-avro-schema) project, which provides a way to define complex Avro schemas in a more structured way.
+
+---
+
+## 🔧 Complete Example with Topic Management
+
+Here's a complete example showing schema registry usage with proper topic lifecycle management:
+
+```javascript
+import { check, sleep } from "k6";
+import {
+  Writer,
+  Reader,
+  Connection,
+  SchemaRegistry,
+  SCHEMA_TYPE_AVRO,
+} from "k6/x/kafka";
+
+const brokers = ["localhost:9092"];
+const topic = "my-avro-topic";
+
+// Create Writer and Reader at module level
+const writer = new Writer({
+  brokers: brokers,
+  topic: topic,
+});
+
+const reader = new Reader({
+  brokers: brokers,
+  topic: topic,
+});
+
+// Create Schema Registry client
+const schemaRegistry = new SchemaRegistry({
+  url: "http://localhost:8081",
+});
+
+// Define your schema
+const valueSchema = `{
+  "type": "record",
+  "name": "User",
+  "namespace": "com.example",
+  "fields": [
+    { "name": "firstName", "type": "string" },
+    { "name": "lastName", "type": "string" },
+    { "name": "age", "type": "int" }
+  ]
+}`;
+
+// Get schema object from registry
+const valueSchemaObject = schemaRegistry.getSchema({
+  subject: "my-avro-topic-value",
+});
+
+export function setup() {
+  // Create topic in setup() to avoid race conditions
+  const connection = new Connection({
+    address: brokers[0],
+  });
+
+  connection.createTopic({
+    topic: topic,
+    numPartitions: 3,
+  });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
+}
+
+export default function () {
+  // Produce Avro message
+  const messages = [
+    {
+      value: schemaRegistry.serialize({
+        data: {
+          firstName: "John",
+          lastName: "Doe",
+          age: 30,
+        },
+        schema: valueSchemaObject,
+        schemaType: SCHEMA_TYPE_AVRO,
+      }),
+    },
+  ];
+
+  writer.produce({ messages: messages });
+
+  // Consume and deserialize
+  const consumed = reader.consume({ limit: 1 });
+
+  if (consumed.length > 0) {
+    const user = schemaRegistry.deserialize({
+      data: consumed[0].value,
+      schema: valueSchemaObject,
+      schemaType: SCHEMA_TYPE_AVRO,
+    });
+
+    check(user, {
+      "firstName is correct": (u) => u.firstName === "John",
+      "age is correct": (u) => u.age === 30,
+    });
+  }
+}
+
+export function teardown() {
+  // Clean up
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
+  writer.close();
+  reader.close();
+}
+```
+
+**Key Points:**
+
+- Topic creation in `setup()` ensures all VUs wait before producing
+- Connection is created inside `setup()` for proper VU context
+- `sleep(2)` allows Kafka metadata to propagate
+- Schema objects are created at module level (one-time operation)
+- Serialization/deserialization happens in the VU function
+
+For more details on topic management, see the [Writers documentation](./writers.md#topic-management).

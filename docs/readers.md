@@ -140,3 +140,72 @@ const messages = readers.get("my-topic").consume({
   - `-1` to start from the latest message
 - `groupId` ensures offset tracking and distribution in real Kafka clusters.
 - Be careful when consuming a high volume — make sure the `expectedTimeout` and `limit` values are tuned properly for your tests.
+
+---
+
+## 🔧 Topic Management for Readers
+
+Before consuming messages, ensure the topic exists. When running tests with multiple VUs, create topics in the `setup()` function:
+
+```javascript
+import { sleep } from "k6";
+import { Reader, Connection } from "k6/x/kafka";
+
+const brokers = ["localhost:9092"];
+const topic = "my-topic";
+
+// Create Reader at module level
+const reader = new Reader({
+  brokers: brokers,
+  topic: topic,
+});
+
+export function setup() {
+  // Create Connection inside setup()
+  const connection = new Connection({
+    address: brokers[0],
+  });
+
+  // Ensure topic exists (or create it)
+  connection.createTopic({
+    topic: topic,
+    numPartitions: 3,
+  });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate
+  sleep(2);
+}
+
+export default function () {
+  // Now it's safe to consume messages
+  const messages = reader.consume({ limit: 10 });
+  console.log(`Consumed ${messages.length} messages`);
+}
+
+export function teardown() {
+  // Clean up
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
+  reader.close();
+}
+```
+
+**Why `setup()`?**
+
+- Runs once before all VUs start
+- All VUs wait for it to complete
+- Prevents race conditions
+- Ensures metadata propagation with `sleep(2)`
+
+For more details on topic management, see the [Writers documentation](./writers.md#topic-management).

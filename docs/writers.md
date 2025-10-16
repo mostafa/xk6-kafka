@@ -14,7 +14,6 @@ Writers are unique for each topic, if you want to produce messages to multiple t
 const producer = new Writer({
   brokers, // The broker addresses as array, e.g., ["localhost:9092"]
   topic: topicName, // The topic name to produce messages to
-  autoCreateTopic: false, // Should the topic be created automatically if it doesn't exist?
   compression: CODEC_SNAPPY, // Optional: Compression codec to use for messages
   tls: tlsConfig, // Config object for TLS settings, if needed
 });
@@ -23,6 +22,8 @@ producer.produce({
   messages: messagesToProduce,
 });
 ```
+
+**📌 Important**: Topics should be created in the `setup()` function before producing messages. See [Topic Management](#topic-management) below.
 
 Tip: here you can find more options for your writer:
 
@@ -152,3 +153,107 @@ let messages = [
   },
 ];
 ```
+
+---
+
+## Topic Management
+
+### Why Topic Creation Matters
+
+When running tests with multiple VUs (Virtual Users), topics must exist before messages are produced. Creating topics at the module level with `if (__VU == 0)` causes race conditions where other VUs start producing before the topic is ready.
+
+### ✅ Correct Pattern: Use setup()
+
+The `setup()` function runs **once** before any VU iterations begin, and **all VUs wait** for it to complete. This is the recommended way to create topics:
+
+```javascript
+import { sleep } from "k6";
+import { Writer, Connection } from "k6/x/kafka";
+
+const brokers = ["localhost:9092"];
+const topic = "my-topic";
+
+// Create Writer at module level
+const writer = new Writer({
+  brokers: brokers,
+  topic: topic,
+});
+
+export function setup() {
+  // Create Connection inside setup() for proper VU context
+  const connection = new Connection({
+    address: brokers[0],
+  });
+
+  connection.createTopic({
+    topic: topic,
+    numPartitions: 10,
+    replicationFactor: 1,
+  });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  // This ensures Writer can see all partitions
+  sleep(2);
+}
+
+export default function () {
+  // Now it's safe to produce messages
+  writer.produce({
+    messages: [
+      {
+        key: "my-key",
+        value: "my-value",
+      },
+    ],
+  });
+}
+
+export function teardown() {
+  // Clean up: delete topic and close writer
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
+  writer.close();
+}
+```
+
+### Alternative: autoCreateTopic
+
+If you don't need to control partition count, you can use `autoCreateTopic`:
+
+```javascript
+const writer = new Writer({
+  brokers: brokers,
+  topic: topic,
+  autoCreateTopic: true, // Writer creates topic with broker defaults
+});
+```
+
+**⚠️ Limitations of autoCreateTopic:**
+
+- Uses broker's default partition count (often 1)
+- Cannot specify replication factor
+- Cannot set topic-level configurations
+
+### ❌ Incorrect Pattern: Module-level with \_\_VU check
+
+**Don't do this** - it causes race conditions:
+
+```javascript
+// ❌ BAD: Other VUs start before topic is ready
+if (__VU == 0) {
+  connection.createTopic({ topic: topic });
+}
+```
+
+---

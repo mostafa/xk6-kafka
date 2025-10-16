@@ -3,7 +3,7 @@ This is a k6 test script that imports the xk6-kafka and
 tests Kafka with a 100 Avro messages per iteration.
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 import {
   Writer,
   Reader,
@@ -22,21 +22,32 @@ const topic = "com.example.person";
 const writer = new Writer({
   brokers: brokers,
   topic: topic,
-  autoCreateTopic: true,
 });
 const reader = new Reader({
   brokers: brokers,
   topic: topic,
 });
-const connection = new Connection({
-  address: brokers[0],
-});
 const schemaRegistry = new SchemaRegistry({
   url: "http://localhost:8081",
 });
 
-if (__VU == 0) {
+export function setup() {
+  const connection = new Connection({
+    address: brokers[0],
+  });
+
   connection.createTopic({ topic: topic });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
 }
 
 const keySchema = `{
@@ -147,11 +158,11 @@ export default function () {
 }
 
 export function teardown(data) {
-  if (__VU == 0) {
-    // Delete the topic
-    connection.deleteTopic(topic);
-  }
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
   writer.close();
   reader.close();
-  connection.close();
 }

@@ -49,6 +49,10 @@ xk6-kafka is a k6 extension to load test Apache Kafka
 - [TopicConfig](interfaces/TopicConfig.md)
 - [WriterConfig](interfaces/WriterConfig.md)
 
+## Type Aliases
+
+- [BalancerFunction](type-aliases/BalancerFunction.md)
+
 ## Variables
 
 - [FIRST_OFFSET](variables/FIRST_OFFSET.md)

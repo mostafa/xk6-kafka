@@ -6,7 +6,7 @@ also uses SASL authentication.
 
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 import {
   Writer,
   Reader,
@@ -86,23 +86,32 @@ const reader = new Reader({
   sasl: saslConfig,
   tls: tlsConfig,
 });
-const connection = new Connection({
-  address: brokers[0],
-  sasl: saslConfig,
-  tls: tlsConfig,
-});
 const schemaRegistry = new SchemaRegistry();
 
-if (__VU == 0) {
+export function setup() {
+  const connection = new Connection({
+    address: brokers[0],
+    sasl: saslConfig,
+    tls: tlsConfig,
+  });
+
   connection.createTopic({
     topic: topic,
     numPartitions: numPartitions,
     replicationFactor: replicationFactor,
   });
-  console.log(
-    "Existing topics: ",
-    connection.listTopics(saslConfig, tlsConfig),
-  );
+
+  // Verify topic was created
+  const topics = connection.listTopics(saslConfig, tlsConfig);
+  console.log("Existing topics: ", topics);
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
 }
 
 export default function () {
@@ -158,11 +167,13 @@ export default function () {
 }
 
 export function teardown(data) {
-  if (__VU == 0) {
-    // Delete the topic
-    connection.deleteTopic(topic);
-  }
+  const connection = new Connection({
+    address: brokers[0],
+    sasl: saslConfig,
+    tls: tlsConfig,
+  });
+  connection.deleteTopic(topic);
+  connection.close();
   writer.close();
   reader.close();
-  connection.close();
 }

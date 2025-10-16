@@ -3,9 +3,11 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
@@ -29,27 +31,63 @@ var (
 	balancerHash       = "balancer_hash"
 	balancerCrc32      = "balancer_crc32"
 	balancerMurmur2    = "balancer_murmur2"
+	defaultBalancer    = balancerLeastBytes
 
 	// Balancers is a map of balancer names to their respective balancers.
 	Balancers map[string]kafkago.Balancer
 )
 
 type WriterConfig struct {
-	AutoCreateTopic bool          `json:"autoCreateTopic"`
-	ConnectLogger   bool          `json:"connectLogger"`
-	MaxAttempts     int           `json:"maxAttempts"`
-	BatchSize       int           `json:"batchSize"`
-	BatchBytes      int           `json:"batchBytes"`
-	RequiredAcks    int           `json:"requiredAcks"`
-	Topic           string        `json:"topic"`
-	Balancer        string        `json:"balancer"`
-	Compression     string        `json:"compression"`
-	Brokers         []string      `json:"brokers"`
-	BatchTimeout    time.Duration `json:"batchTimeout"`
-	ReadTimeout     time.Duration `json:"readTimeout"`
-	WriteTimeout    time.Duration `json:"writeTimeout"`
-	SASL            SASLConfig    `json:"sasl"`
-	TLS             TLSConfig     `json:"tls"`
+	AutoCreateTopic bool            `mapstructure:"autoCreateTopic"`
+	ConnectLogger   bool            `mapstructure:"connectLogger"`
+	MaxAttempts     int             `mapstructure:"maxAttempts"`
+	BatchSize       int             `mapstructure:"batchSize"`
+	BatchBytes      int             `mapstructure:"batchBytes"`
+	RequiredAcks    int             `mapstructure:"requiredAcks"`
+	Topic           string          `mapstructure:"topic"`
+	Balancer        string          `mapstructure:"-"`
+	BalancerFunc    BalancerKeyFunc `mapstructure:"-"`
+	Compression     string          `mapstructure:"compression"`
+	Brokers         []string        `mapstructure:"brokers"`
+	BatchTimeout    time.Duration   `mapstructure:"batchTimeout"`
+	ReadTimeout     time.Duration   `mapstructure:"readTimeout"`
+	WriteTimeout    time.Duration   `mapstructure:"writeTimeout"`
+	SASL            SASLConfig      `mapstructure:"sasl"`
+	TLS             TLSConfig       `mapstructure:"tls"`
+}
+
+func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &c})
+	if err != nil {
+		return err
+	}
+	if m["balancer"] != nil {
+		if balancer, ok := m["balancer"].(string); ok {
+			c.Balancer = balancer
+		} else {
+			err = runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.BalancerFunc)
+			if err != nil {
+				return fmt.Errorf("error parsing balancerFunc: %w", err)
+			}
+		}
+	}
+	return decoder.Decode(m)
+}
+
+func (c *WriterConfig) GetBalancer() kafkago.Balancer {
+	switch {
+	case c.BalancerFunc != nil:
+		return kafkago.BalancerFunc(func(message kafkago.Message, partitions ...int) int {
+			if message.Key == nil {
+				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
+			}
+			return c.BalancerFunc(message.Key, partitions...)
+		})
+	case c.Balancer != "":
+		return Balancers[c.Balancer]
+	default:
+		return Balancers[defaultBalancer]
+	}
 }
 
 type Message struct {
@@ -77,22 +115,21 @@ type ProduceConfig struct {
 // nolint: funlen
 func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var writerConfig *WriterConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
-		if b, err := json.Marshal(params); err != nil {
-			common.Throw(runtime, err)
-		} else {
-			if err = json.Unmarshal(b, &writerConfig); err != nil {
-				common.Throw(runtime, err)
-			}
-		}
+	m := map[string]any{}
+	err := runtime.ExportTo(call.Arguments[0], &m)
+	if err != nil {
+		common.Throw(runtime, fmt.Errorf("can't export: %w", err))
 	}
-
-	writer := k.writer(writerConfig)
+	var writerConfig WriterConfig
+	err = writerConfig.Parse(m, runtime)
+	if err != nil {
+		common.Throw(runtime, fmt.Errorf("can't parse writerConfig: %w", err))
+	}
+	writer := k.writer(&writerConfig)
 
 	writerObject := runtime.NewObject()
 	// This is the writer object itself.
@@ -100,7 +137,7 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	err := writerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
+	err = writerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -159,7 +196,7 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 	writer := &kafkago.Writer{
 		Addr:         kafkago.TCP(writerConfig.Brokers...),
 		Topic:        writerConfig.Topic,
-		Balancer:     Balancers[balancerLeastBytes],
+		Balancer:     writerConfig.GetBalancer(),
 		MaxAttempts:  writerConfig.MaxAttempts,
 		BatchSize:    writerConfig.BatchSize,
 		BatchBytes:   int64(writerConfig.BatchBytes),
@@ -174,10 +211,6 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 			ClientID: dialer.ClientID,
 		},
 		AllowAutoTopicCreation: writerConfig.AutoCreateTopic,
-	}
-
-	if balancer, ok := Balancers[writerConfig.Balancer]; ok {
-		writer.Balancer = balancer
 	}
 
 	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
@@ -250,7 +283,19 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 	k.reportWriterStats(writer.Stats())
 
 	if originalErr != nil {
-		err := NewXk6KafkaError(writerError, "Error writing messages.", originalErr)
+		errorMsg := "Error writing messages."
+
+		// Check if the error is related to topic not existing or leader not being available
+		// These are common errors when topics don't exist or metadata hasn't propagated
+		if errors.Is(originalErr, kafkago.UnknownTopicOrPartition) ||
+			errors.Is(originalErr, kafkago.LeaderNotAvailable) {
+			errorMsg = "Error writing messages: Topic may not exist or metadata not yet propagated. " +
+				"Create the topic in setup() function with sleep(2) for metadata propagation, " +
+				"or set autoCreateTopic: true in WriterConfig. " +
+				"See: https://github.com/mostafa/xk6-kafka#usage"
+		}
+
+		err := NewXk6KafkaError(writerError, errorMsg, originalErr)
 		logger.WithField("error", err).Error(err)
 		common.Throw(k.vu.Runtime(), err)
 	}

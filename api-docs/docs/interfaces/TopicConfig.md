@@ -4,7 +4,7 @@
 
 # Interface: TopicConfig
 
-Defined in: [index.d.ts:241](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L241)
+Defined in: [index.d.ts:243](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L243)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:241](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **configEntries**: [`ConfigEntry`](ConfigEntry.md)[]
 
-Defined in: [index.d.ts:246](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L246)
+Defined in: [index.d.ts:248](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L248)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:246](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **numPartitions**: `number`
 
-Defined in: [index.d.ts:243](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L243)
+Defined in: [index.d.ts:245](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L245)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:243](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **replicaAssignments**: [`ReplicaAssignment`](ReplicaAssignment.md)[]
 
-Defined in: [index.d.ts:245](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L245)
+Defined in: [index.d.ts:247](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L247)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:245](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **replicationFactor**: `number`
 
-Defined in: [index.d.ts:244](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L244)
+Defined in: [index.d.ts:246](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L246)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: [index.d.ts:244](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **topic**: `string`
 
-Defined in: [index.d.ts:242](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L242)
+Defined in: [index.d.ts:244](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L244)

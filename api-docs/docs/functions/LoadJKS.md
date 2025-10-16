@@ -6,7 +6,7 @@
 
 > **LoadJKS**(`jksConfig`): [`JKS`](../interfaces/JKS.md)
 
-Defined in: [index.d.ts:556](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L556)
+Defined in: [index.d.ts:558](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L558)
 
 **`Function`**
 

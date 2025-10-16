@@ -1,18 +1,8 @@
-import { check } from "k6";
+import { check, sleep } from "k6";
 import { Writer, Reader, Connection } from "k6/x/kafka";
 
 const brokers = ["localhost:9092"];
 const topics = ["topicA", "topicB"];
-
-// Create Kafka connection
-const connection = new Connection({ address: brokers[0] });
-
-// Create topics (only once for VU 0)
-if (__VU === 0) {
-  for (const topic of topics) {
-    connection.createTopic({ topic });
-  }
-}
 
 // Create writers and readers for each topic
 const writers = new Map();
@@ -36,6 +26,27 @@ topics.forEach((topic) => {
     }),
   );
 });
+
+export function setup() {
+  const connection = new Connection({ address: brokers[0] });
+
+  for (const topic of topics) {
+    connection.createTopic({ topic });
+  }
+
+  // Verify all topics were created
+  const createdTopics = connection.listTopics();
+  for (const topic of topics) {
+    if (!createdTopics.includes(topic)) {
+      throw new Error(`Topic ${topic} was not created successfully`);
+    }
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
+}
 
 export default function () {
   for (const topic of topics) {
@@ -62,14 +73,15 @@ export default function () {
 }
 
 export function teardown() {
-  if (__VU === 0) {
-    for (const topic of topics) {
-      connection.deleteTopic(topic);
-    }
+  const connection = new Connection({ address: brokers[0] });
+
+  for (const topic of topics) {
+    connection.deleteTopic(topic);
   }
+
+  connection.close();
 
   // Close all clients
   writers.forEach((w) => w.close());
   readers.forEach((r) => r.close());
-  connection.close();
 }
