@@ -5,7 +5,7 @@ tests Kafka with a 200 JSON messages per iteration.
 
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 // import * as kafka from "k6/x/kafka";
 import {
   Connection,
@@ -19,12 +19,11 @@ import {
 // console.log(kafka);
 
 const brokers = ["localhost:9092"];
-const topic = "xk6_kafka_json_topic_415";
+const topic = "xk6_kafka_custom_writer_balancer_topic";
 
 const writer = new Writer({
   brokers: brokers,
   topic: topic,
-  autoCreateTopic: true,
   balancer: function (bytes, partitionCount) {
     return 7;
   },
@@ -34,14 +33,7 @@ const reader = new Reader({
   topic: topic,
   partition: 7,
 });
-const connection = new Connection({
-  address: brokers[0],
-});
 const schemaRegistry = new SchemaRegistry();
-
-if (__VU == 0) {
-  connection.createTopic({ topic: topic, numPartitions: 10 });
-}
 
 export const options = {
   thresholds: {
@@ -50,6 +42,27 @@ export const options = {
     kafka_reader_error_count: ["count == 0"],
   },
 };
+
+export function setup() {
+  // Create connection inside setup() to ensure proper VU context
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.createTopic({ topic: topic, numPartitions: 10 });
+
+  // Verify topic exists and has the correct number of partitions
+  // This ensures metadata has propagated before VUs start
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  // This ensures Writer/Reader can see all partitions
+  sleep(2);
+}
 
 export default function () {
   for (let index = 0; index < 100; index++) {
@@ -80,11 +93,12 @@ export default function () {
 }
 
 export function teardown(data) {
-  if (__VU == 0) {
-    // Delete the topic
-    connection.deleteTopic(topic);
-  }
+  // Create connection inside teardown() to ensure proper VU context
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
   writer.close();
   reader.close();
-  connection.close();
 }
