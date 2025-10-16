@@ -1,4 +1,4 @@
-import { check } from "k6";
+import { check, sleep } from "k6";
 import {
   Writer,
   Reader,
@@ -18,16 +18,11 @@ const topic = "com.example.person";
 const writer = new Writer({
   brokers,
   topic,
-  autoCreateTopic: true,
 });
 
 const reader = new Reader({
   brokers,
   topic,
-});
-
-const connection = new Connection({
-  address: brokers[0],
 });
 
 // Schema registry with authentication (basic auth)
@@ -36,11 +31,6 @@ const schemaRegistry = new SchemaRegistry({
   username: __ENV.SCHEMA_REGISTRY_USERNAME, // 🔐 Replace with your actual username
   password: __ENV.SCHEMA_REGISTRY_PASSWORD, // 🔐 Replace with your actual password
 });
-
-// Only VU 0 creates the topic
-if (__VU == 0) {
-  connection.createTopic({ topic });
-}
 
 // Define schemas
 const keySchema = `{
@@ -82,6 +72,24 @@ const keySchemaObject = schemaRegistry.getSchema({ subject: keySubjectName });
 const valueSchemaObject = schemaRegistry.getSchema({
   subject: valueSubjectName,
 });
+
+export function setup() {
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.createTopic({ topic });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
+}
 
 export default function () {
   for (let index = 0; index < 100; index++) {
@@ -132,10 +140,11 @@ export default function () {
 }
 
 export function teardown() {
-  if (__VU == 0) {
-    connection.deleteTopic(topic);
-  }
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
   writer.close();
   reader.close();
-  connection.close();
 }
