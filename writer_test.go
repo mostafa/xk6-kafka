@@ -305,62 +305,130 @@ func TestWriterClass(t *testing.T) {
 }
 
 func TestWriterConfigParse(t *testing.T) {
-	var writerConfig WriterConfig
-	m := map[string]any{
-		"AutoCreateTopic": true,
-		"ConnectLogger":   true,
-		"MaxAttempts":     879,
-		"BatchSize":       258,
-		"BatchBytes":      652,
-		"RequiredAcks":    5,
-		"Topic":           "Juana Martinez",
-		"Compression":     "7R8cX5PlXEN",
-		"Brokers":         []string{"localhost:9092"},
-		"BatchTimeout":    747,
-		"ReadTimeout":     642,
-		"WriteTimeout":    264,
-		"SASL": map[string]any{
-			"Username":   "GfiaNXfyR",
-			"Password":   "Mtia8icljU",
-			"Algorithm":  "XsL85F7Er",
-			"AWSProfile": "MJerPEC",
-		},
-		"TLS": map[string]any{
-			"EnableTLS":             true,
-			"InsecureSkipTLSVerify": false,
-			"MinVersion":            "nDZKIp5l",
-			"ClientCertPem":         "kAVlkqupirI",
-			"ClientKeyPem":          "MrKCYpVW",
-			"ServerCaPem":           "3zbbZEoc1",
-		},
-	}
-	require.NoError(t, writerConfig.Parse(m, sobek.New()))
-	assert.Equal(t, WriterConfig{
-		AutoCreateTopic: true,
-		ConnectLogger:   true,
-		MaxAttempts:     879,
-		BatchSize:       258,
-		BatchBytes:      652,
-		RequiredAcks:    5,
-		Topic:           "Juana Martinez",
-		Compression:     "7R8cX5PlXEN",
-		Brokers:         []string{"localhost:9092"},
-		BatchTimeout:    747,
-		ReadTimeout:     642,
-		WriteTimeout:    264,
-		SASL: SASLConfig{
-			Username:   "GfiaNXfyR",
-			Password:   "Mtia8icljU",
-			Algorithm:  "XsL85F7Er",
-			AWSProfile: "MJerPEC",
-		},
-		TLS: TLSConfig{
-			EnableTLS:             true,
-			InsecureSkipTLSVerify: false,
-			MinVersion:            "nDZKIp5l",
-			ClientCertPem:         "kAVlkqupirI",
-			ClientKeyPem:          "MrKCYpVW",
-			ServerCaPem:           "3zbbZEoc1",
-		},
-	}, writerConfig)
+	t.Run("basic config without balancer", func(t *testing.T) {
+		var writerConfig WriterConfig
+		m := map[string]any{
+			"autoCreateTopic": true,
+			"connectLogger":   true,
+			"maxAttempts":     10,
+			"batchSize":       100,
+			"batchBytes":      1048576,
+			"requiredAcks":    1,
+			"topic":           "test-topic",
+			"compression":     codecGzip,
+			"brokers":         []string{"localhost:9092"},
+			"batchTimeout":    time.Second * 10,
+			"readTimeout":     time.Second * 30,
+			"writeTimeout":    time.Second * 30,
+			"sasl": map[string]any{
+				"username":   "test-user",
+				"password":   "test-password",
+				"algorithm":  "PLAIN",
+				"awsProfile": "default",
+			},
+			"tls": map[string]any{
+				"enableTLS":             true,
+				"insecureSkipTLSVerify": false,
+				"minVersion":            "TLS12",
+				"clientCertPem":         "cert-pem-content",
+				"clientKeyPem":          "key-pem-content",
+				"serverCaPem":           "ca-pem-content",
+			},
+		}
+		require.NoError(t, writerConfig.Parse(m, sobek.New()))
+		assert.Equal(t, WriterConfig{
+			AutoCreateTopic: true,
+			ConnectLogger:   true,
+			MaxAttempts:     10,
+			BatchSize:       100,
+			BatchBytes:      1048576,
+			RequiredAcks:    1,
+			Topic:           "test-topic",
+			Compression:     codecGzip,
+			Brokers:         []string{"localhost:9092"},
+			BatchTimeout:    time.Second * 10,
+			ReadTimeout:     time.Second * 30,
+			WriteTimeout:    time.Second * 30,
+			SASL: SASLConfig{
+				Username:   "test-user",
+				Password:   "test-password",
+				Algorithm:  "PLAIN",
+				AWSProfile: "default",
+			},
+			TLS: TLSConfig{
+				EnableTLS:             true,
+				InsecureSkipTLSVerify: false,
+				MinVersion:            "TLS12",
+				ClientCertPem:         "cert-pem-content",
+				ClientKeyPem:          "key-pem-content",
+				ServerCaPem:           "ca-pem-content",
+			},
+		}, writerConfig)
+	})
+
+	t.Run("config with string balancer", func(t *testing.T) {
+		var writerConfig WriterConfig
+		m := map[string]any{
+			"brokers":  []string{"localhost:9092"},
+			"topic":    "test-topic",
+			"balancer": balancerRoundRobin,
+		}
+		require.NoError(t, writerConfig.Parse(m, sobek.New()))
+		assert.Equal(t, balancerRoundRobin, writerConfig.Balancer)
+		assert.Nil(t, writerConfig.BalancerFunc)
+
+		// Test that GetBalancer returns the correct balancer
+		balancer := writerConfig.GetBalancer()
+		assert.NotNil(t, balancer)
+		assert.Equal(t, Balancers[balancerRoundRobin], balancer)
+	})
+
+	t.Run("config with balancer function", func(t *testing.T) {
+		runtime := sobek.New()
+		// Create a JavaScript function that returns partition 5
+		_, err := runtime.RunString(`
+			function customBalancer(key, partitions) {
+				return 5;
+			}
+		`)
+		require.NoError(t, err)
+
+		customBalancerFunc := runtime.Get("customBalancer")
+		require.NotNil(t, customBalancerFunc)
+
+		var writerConfig WriterConfig
+		m := map[string]any{
+			"brokers":  []string{"localhost:9092"},
+			"topic":    "test-topic",
+			"balancer": customBalancerFunc,
+		}
+		require.NoError(t, writerConfig.Parse(m, runtime))
+		assert.Empty(t, writerConfig.Balancer)
+		assert.NotNil(t, writerConfig.BalancerFunc)
+
+		// Test that GetBalancer returns a function balancer
+		balancer := writerConfig.GetBalancer()
+		assert.NotNil(t, balancer)
+
+		// Test that the balancer function works correctly
+		testKey := []byte("test-key")
+		partition := writerConfig.BalancerFunc(testKey, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+		assert.Equal(t, 5, partition)
+	})
+
+	t.Run("config without balancer uses default", func(t *testing.T) {
+		var writerConfig WriterConfig
+		m := map[string]any{
+			"brokers": []string{"localhost:9092"},
+			"topic":   "test-topic",
+		}
+		require.NoError(t, writerConfig.Parse(m, sobek.New()))
+		assert.Empty(t, writerConfig.Balancer)
+		assert.Nil(t, writerConfig.BalancerFunc)
+
+		// Test that GetBalancer returns the default balancer
+		balancer := writerConfig.GetBalancer()
+		assert.NotNil(t, balancer)
+		assert.Equal(t, Balancers[defaultBalancer], balancer)
+	})
 }
