@@ -74,18 +74,19 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 }
 
 func (c *WriterConfig) GetBalancer() kafkago.Balancer {
-	if c.BalancerFunc != nil {
+	switch {
+	case c.BalancerFunc != nil:
 		return kafkago.BalancerFunc(func(message kafkago.Message, partitions ...int) int {
 			if message.Key == nil {
 				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
 			}
 			return c.BalancerFunc(message.Key, partitions...)
 		})
-	}
-	if c.Balancer != "" {
+	case c.Balancer != "":
 		return Balancers[c.Balancer]
+	default:
+		return Balancers[defaultBalancer]
 	}
-	return Balancers[defaultBalancer]
 }
 
 type Message struct {
