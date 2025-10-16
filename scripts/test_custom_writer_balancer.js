@@ -74,7 +74,8 @@ export default function () {
   let messages = reader.consume({ limit: 10 });
 
   check(messages, {
-    "10 messages are received": (messages) => messages.partition == 7,
+    "10 messages are received": (messages) => messages.length == 10,
+    "messages are all in partition 7": (messages) => messages.every((message) => message.partition == 7),
   });
 }
 
