@@ -28,7 +28,6 @@ const writer = new Writer({
   balancer: function (bytes, partitionCount) {
     return 7;
   },
-  connectLogger: true,
 });
 const reader = new Reader({
   brokers: brokers,
