@@ -4,7 +4,7 @@
 
 # Enumeration: GROUP_BALANCERS
 
-Defined in: [index.d.ts:79](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L79)
+Defined in: [index.d.ts:81](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L81)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:79](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **GROUP_BALANCER_RACK_AFFINITY**: `"group_balancer_rack_affinity"`
 
-Defined in: [index.d.ts:82](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L82)
+Defined in: [index.d.ts:84](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L84)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:82](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **GROUP_BALANCER_RANGE**: `"group_balancer_range"`
 
-Defined in: [index.d.ts:80](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L80)
+Defined in: [index.d.ts:82](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L82)
 
 ---
 
@@ -28,4 +28,4 @@ Defined in: [index.d.ts:80](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **GROUP_BALANCER_ROUND_ROBIN**: `"group_balancer_round_robin"`
 
-Defined in: [index.d.ts:81](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L81)
+Defined in: [index.d.ts:83](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L83)

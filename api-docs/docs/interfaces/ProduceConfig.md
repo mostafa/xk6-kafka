@@ -4,7 +4,7 @@
 
 # Interface: ProduceConfig
 
-Defined in: [index.d.ts:171](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L171)
+Defined in: [index.d.ts:173](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L173)
 
 ## Properties
 
@@ -12,4 +12,4 @@ Defined in: [index.d.ts:171](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **messages**: [`Message`](Message.md)[]
 
-Defined in: [index.d.ts:172](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L172)
+Defined in: [index.d.ts:174](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L174)

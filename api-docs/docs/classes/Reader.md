@@ -4,7 +4,7 @@
 
 # Class: Reader
 
-Defined in: [index.d.ts:365](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L365)
+Defined in: [index.d.ts:367](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L367)
 
 ## Classdesc
 
@@ -32,7 +32,7 @@ reader.close();
 
 > **new Reader**(`readerConfig`): `Reader`
 
-Defined in: [index.d.ts:372](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L372)
+Defined in: [index.d.ts:374](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L374)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Reader configuration.
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L385)
+Defined in: [index.d.ts:387](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L387)
 
 #### Returns
 
@@ -74,7 +74,7 @@ Close the reader.
 
 > **consume**(`consumeConfig`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [index.d.ts:379](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L379)
+Defined in: [index.d.ts:381](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L381)
 
 #### Parameters
 

@@ -4,7 +4,7 @@
 
 # Class: Writer
 
-Defined in: [index.d.ts:323](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L323)
+Defined in: [index.d.ts:325](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L325)
 
 ## Classdesc
 
@@ -40,7 +40,7 @@ writer.close();
 
 > **new Writer**(`writerConfig`): `Writer`
 
-Defined in: [index.d.ts:330](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L330)
+Defined in: [index.d.ts:332](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L332)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Writer configuration.
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:343](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L343)
+Defined in: [index.d.ts:345](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L345)
 
 #### Returns
 
@@ -82,7 +82,7 @@ Close the writer.
 
 > **produce**(`produceConfig`): `void`
 
-Defined in: [index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L337)
+Defined in: [index.d.ts:339](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L339)
 
 #### Parameters
 

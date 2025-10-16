@@ -4,7 +4,7 @@
 
 # Interface: ConsumeConfig
 
-Defined in: [index.d.ts:209](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L209)
+Defined in: [index.d.ts:211](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L211)
 
 Configuration for Consume method.
 
@@ -14,7 +14,7 @@ Configuration for Consume method.
 
 > **expectTimeout**: `boolean`
 
-Defined in: [index.d.ts:218](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L218)
+Defined in: [index.d.ts:220](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L220)
 
 If true, return whatever messages have been collected when maxWait is
 passed.
@@ -25,7 +25,7 @@ passed.
 
 > **limit**: `number`
 
-Defined in: [index.d.ts:211](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L211)
+Defined in: [index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
 
 collect this many messages before returning.
 
@@ -35,6 +35,6 @@ collect this many messages before returning.
 
 > **nanoPrecision**: `boolean`
 
-Defined in: [index.d.ts:213](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L213)
+Defined in: [index.d.ts:215](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L215)
 
 If true, returned message RFC3339 timestamps carry nanosecond precision.
