@@ -75,7 +75,8 @@ export default function () {
 
   check(messages, {
     "10 messages are received": (messages) => messages.length == 10,
-    "messages are all in partition 7": (messages) => messages.every((message) => message.partition == 7),
+    "messages are all in partition 7": (messages) =>
+      messages.every((message) => message.partition == 7),
   });
 }
 
