@@ -20,7 +20,7 @@ func TestSerializeAvro(t *testing.T) {
 		Version: 1,
 		Subject: "avro-schema",
 	}
-	actual, err := avroSerde.Serialize(map[string]interface{}{"key": "value"}, schema)
+	actual, err := avroSerde.Serialize(map[string]any{"key": "value"}, schema)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -59,7 +59,7 @@ func TestSerializeAvroFailsOnValidation(t *testing.T) {
 		Version: 1,
 		Subject: "avro-schema",
 	}
-	actual, err := avroSerde.Serialize(map[string]interface{}{"value": "key"}, schema)
+	actual, err := avroSerde.Serialize(map[string]any{"value": "key"}, schema)
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Failed to encode data into binary", err.Message)
@@ -79,7 +79,7 @@ func TestDeserializeAvro(t *testing.T) {
 		Version: 1,
 		Subject: "avro-schema",
 	}
-	expected := map[string]interface{}{"key": "value"}
+	expected := map[string]any{"key": "value"}
 	actual, err := avroSerde.Deserialize([]byte{0x0a, 0x76, 0x61, 0x6c, 0x75, 0x65}, schema)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, actual)

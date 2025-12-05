@@ -66,9 +66,9 @@ type WireFormat struct {
 	Data     []byte `json:"data"`
 }
 
-// Codec ensures access to parsed Avro Schema
-// Will try to initialize a new one if it hasn't been initialized before
-// Will return nil if it can't initialize a schema from the schema string
+// Codec ensures access to parsed Avro Schema.
+// Will try to initialize a new one if it hasn't been initialized before.
+// Will return nil if it can't initialize a schema from the schema string.
 func (s *Schema) Codec() avro.Schema {
 	if s.avroSchema == nil {
 		schema, err := avro.Parse(s.Schema)
@@ -79,10 +79,10 @@ func (s *Schema) Codec() avro.Schema {
 	return s.avroSchema
 }
 
-// JsonSchema ensures access to JsonSchema
-// Will try to initialize a new one if it hasn't been initialized before
-// Will return nil if it can't initialize a json schema from the schema
-func (s *Schema) JsonSchema() *jsonschema.Schema {
+// JSONSchema ensures access to JsonSchema.
+// Will try to initialize a new one if it hasn't been initialized before.
+// Will return nil if it can't initialize a json schema from the schema.
+func (s *Schema) JSONSchema() *jsonschema.Schema {
 	if s.jsonSchema == nil {
 		jsonSchema, err := jsonschema.CompileString("schema.json", s.Schema)
 		if err == nil {
@@ -98,7 +98,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 	var schemaRegistryClient *srclient.SchemaRegistryClient
 
 	if len(call.Arguments) == 1 {
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -127,7 +127,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var schema *Schema
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -153,7 +153,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var schema *Schema
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -175,7 +175,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -197,7 +197,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -219,7 +219,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -354,7 +354,7 @@ func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 	}
 
 	runtime := k.vu.Runtime()
-	var schemaMap map[string]interface{}
+	var schemaMap map[string]any
 	err := json.Unmarshal([]byte(subjectNameConfig.Schema), &schemaMap)
 	if err != nil {
 		common.Throw(runtime, NewXk6KafkaError(

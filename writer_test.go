@@ -54,7 +54,7 @@ func TestProduce(t *testing.T) {
 			})
 		})
 
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -119,7 +119,7 @@ func TestProduceWithoutKey(t *testing.T) {
 			_ = writer.Close()
 		}()
 
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
@@ -170,7 +170,7 @@ func TestProducerContextCancelled(t *testing.T) {
 			_ = writer.Close()
 		}()
 
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// This will cancel the context, so the produce will fail.
 		test.cancelContext()
@@ -228,7 +228,7 @@ func TestProduceJSON(t *testing.T) {
 			_ = writer.Close()
 		}()
 
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -236,7 +236,7 @@ func TestProduceJSON(t *testing.T) {
 				Messages: []Message{
 					{
 						Value: test.module.serialize(&Container{
-							Data:       map[string]interface{}{"field": "value"},
+							Data:       map[string]any{"field": "value"},
 							SchemaType: srclient.Json,
 						}),
 					},
@@ -257,14 +257,14 @@ func TestProduceJSON(t *testing.T) {
 func TestWriterClass(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
 		writer := test.module.writerClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"brokers": []string{"localhost:9092"},
 						"topic":   test.topicName,
 					},
@@ -278,8 +278,8 @@ func TestWriterClass(t *testing.T) {
 		result := produce(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
-						"messages": []map[string]interface{}{
+					map[string]any{
+						"messages": []map[string]any{
 							{
 								"key": test.module.serialize(&Container{
 									Data:       "key",
@@ -298,9 +298,11 @@ func TestWriterClass(t *testing.T) {
 		assert.Nil(t, result)
 
 		// Close the writer.
-		close := writer.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, close)
-		result = close(sobek.FunctionCall{}).Export()
+		closeVal := writer.Get("close").Export()
+		closeFunc, ok := closeVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
+		assert.NotNil(t, closeFunc)
+		result = closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
 		// Check if one message was produced.

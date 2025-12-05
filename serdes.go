@@ -6,7 +6,7 @@ import (
 )
 
 type Container struct {
-	Data       interface{}         `json:"data"`
+	Data       any                 `json:"data"`
 	Schema     *Schema             `json:"schema"`
 	SchemaType srclient.SchemaType `json:"schemaType"`
 }
@@ -32,28 +32,30 @@ func (k *Kafka) serialize(container *Container) []byte {
 			return nil
 		}
 		return data
-	} else {
-		// we are dealing with binary data to be encoded with Avro, JSONSchema or Protocol Buffer
+	}
+	// we are dealing with binary data to be encoded with Avro, JSONSchema or Protocol Buffer
 
-		switch container.SchemaType {
-		case srclient.Avro, srclient.Json:
-			serde, err := GetSerdes(container.SchemaType)
-			if err != nil {
-				common.Throw(k.vu.Runtime(), err)
-				return nil
-			}
-
-			bytesData, err := serde.Serialize(container.Data, container.Schema)
-			if err != nil {
-				common.Throw(k.vu.Runtime(), err)
-				return nil
-			}
-
-			return k.encodeWireFormat(bytesData, container.Schema.ID)
-		default:
-			common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+	switch container.SchemaType {
+	case srclient.Avro, srclient.Json:
+		serde, err := GetSerdes(container.SchemaType)
+		if err != nil {
+			common.Throw(k.vu.Runtime(), err)
 			return nil
 		}
+
+		bytesData, err := serde.Serialize(container.Data, container.Schema)
+		if err != nil {
+			common.Throw(k.vu.Runtime(), err)
+			return nil
+		}
+
+		return k.encodeWireFormat(bytesData, container.Schema.ID)
+	case srclient.Protobuf:
+		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+		return nil
+	default:
+		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+		return nil
 	}
 }
 
@@ -63,7 +65,7 @@ func (k *Kafka) serialize(container *Container) []byte {
 // If no schema is passed, it treats the data as a byte array, a string or a JSON object without
 // a JSONSchema. Then, it returns the data based on how it can decode it.
 // nolint: funlen
-func (k *Kafka) deserialize(container *Container) interface{} {
+func (k *Kafka) deserialize(container *Container) any {
 	if container.Schema == nil {
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
@@ -72,38 +74,41 @@ func (k *Kafka) deserialize(container *Container) interface{} {
 			return nil
 		}
 
-		switch container.Data.(type) {
+		switch data := container.Data.(type) {
 		case []byte:
 			switch container.SchemaType {
 			case String:
-				return string(container.Data.([]byte))
-			default:
-				if isJSON(container.Data.([]byte)) {
-					js, err := toMap(container.Data.([]byte))
+				return string(data)
+			case srclient.Avro, srclient.Json:
+				if isJSON(data) {
+					js, err := toMap(data)
 					if err != nil {
 						common.Throw(k.vu.Runtime(), err)
 						return nil
 					}
 					return js
 				}
-				return container.Data.([]byte)
+				return data
+			case srclient.Protobuf:
+				return data
+			default:
+				return data
 			}
 		case string:
-			if isBase64Encoded(container.Data.(string)) {
-				if data, err := base64ToBytes(container.Data.(string)); err != nil {
+			if isBase64Encoded(data) {
+				decodedData, err := base64ToBytes(data)
+				if err != nil {
 					common.Throw(k.vu.Runtime(), err)
 					return nil
-				} else {
-					if result, err := serde.Deserialize(data, nil); err != nil {
-						common.Throw(k.vu.Runtime(), err)
-						return nil
-					} else {
-						return result
-					}
 				}
+				result, err := serde.Deserialize(decodedData, nil)
+				if err != nil {
+					common.Throw(k.vu.Runtime(), err)
+					return nil
+				}
+				return result
 			}
-
-			return []byte(container.Data.(string))
+			return []byte(data)
 		default:
 			return container.Data
 		}
@@ -113,18 +118,18 @@ func (k *Kafka) deserialize(container *Container) interface{} {
 
 		var jsonBytes []byte
 
-		switch container.Data.(type) {
+		switch data := container.Data.(type) {
 		case []byte:
-			jsonBytes = container.Data.([]byte)
+			jsonBytes = data
 		case string:
 			// Decode the data into JSON bytes from base64-encoded data
-			if isBase64Encoded(container.Data.(string)) {
-				if data, err := base64ToBytes(container.Data.(string)); err != nil {
+			if isBase64Encoded(data) {
+				decodedData, err := base64ToBytes(data)
+				if err != nil {
 					common.Throw(k.vu.Runtime(), err)
 					return nil
-				} else {
-					jsonBytes = data
 				}
+				jsonBytes = decodedData
 			}
 		}
 
@@ -145,12 +150,14 @@ func (k *Kafka) deserialize(container *Container) interface{} {
 				return nil
 			}
 
-			if jsonObj, ok := deserialized.(map[string]interface{}); ok {
+			if jsonObj, ok := deserialized.(map[string]any); ok {
 				return jsonObj
-			} else {
-				common.Throw(k.vu.Runtime(), ErrInvalidDataType)
-				return nil
 			}
+			common.Throw(k.vu.Runtime(), ErrInvalidDataType)
+			return nil
+		case srclient.Protobuf:
+			common.Throw(runtime, ErrUnsupportedOperation)
+			return nil
 		default:
 			common.Throw(runtime, ErrUnsupportedOperation)
 			return nil

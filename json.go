@@ -9,9 +9,9 @@ type JSONSerde struct {
 }
 
 // Serialize serializes a JSON object as map to bytes.
-func (*JSONSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
+func (*JSONSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError) {
 	var jsonObject []byte
-	if data, ok := data.(map[string]interface{}); ok {
+	if data, ok := data.(map[string]any); ok {
 		if encodedData, err := json.Marshal(data); err == nil {
 			jsonObject = encodedData
 		} else {
@@ -24,7 +24,7 @@ func (*JSONSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 	if schema != nil {
 		// Validate the JSON object against the schema only if the schema is
 		// provided.
-		jsonSchema := schema.JsonSchema()
+		jsonSchema := schema.JSONSchema()
 		if jsonSchema != nil {
 			if err := jsonSchema.Validate(data); err != nil {
 				return nil, NewXk6KafkaError(failedValidateJSON,
@@ -40,8 +40,8 @@ func (*JSONSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 }
 
 // Deserialize deserializes a map from bytes to be exported as object to JS.
-func (*JSONSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
-	var jsonObject interface{}
+func (*JSONSerde) Deserialize(data []byte, schema *Schema) (any, *Xk6KafkaError) {
+	var jsonObject any
 	if err := json.Unmarshal(data, &jsonObject); err != nil {
 		return nil, NewXk6KafkaError(failedUnmarshalJSON,
 			"Failed to unmarshal JSON data",
@@ -51,7 +51,7 @@ func (*JSONSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6Kaf
 	if schema != nil {
 		// Validate the JSON object against the schema only if the schema is
 		// provided.
-		if err := schema.JsonSchema().Validate(jsonObject); err != nil {
+		if err := schema.JSONSchema().Validate(jsonObject); err != nil {
 			err := NewXk6KafkaError(failedDecodeJSONFromBinary,
 				"Failed to decode data from JSON",
 				err)

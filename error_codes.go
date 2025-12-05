@@ -68,7 +68,7 @@ const (
 )
 
 var (
-	// ErrUnsupported is the error returned when the operation is not supported.
+	// ErrUnsupportedOperation is the error returned when the operation is not supported.
 	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
 
 	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
@@ -97,7 +97,7 @@ var (
 
 	ErrTopicAndGroupID = NewXk6KafkaError(
 		topicAndGroupID,
-		"When you specifiy groupID, you must set groupTopics instead of topic", nil)
+		"When you specify groupID, you must set groupTopics instead of topic", nil)
 
 	// ErrNotEnoughArguments is used when a function is called with too few arguments.
 	ErrNotEnoughArguments = errors.New("not enough arguments")
@@ -111,7 +111,14 @@ var (
 	// ErrNoJKSConfig is used when a JKS config is not configured correctly.
 	ErrNoJKSConfig = NewXk6KafkaError(failedConfigureJKS, "Failed to configure JKS", nil)
 
+	// ErrInvalidPEMData is used when PEM data is invalid.
 	ErrInvalidPEMData = errors.New("tls: failed to find any PEM data in certificate input")
+
+	// ErrInvalidDuration is used when duration parsing fails.
+	ErrInvalidDuration = errors.New("invalid duration")
+
+	// ErrAvroMissingRequiredField is used when Avro encoding fails due to missing required field.
+	ErrAvroMissingRequiredField = errors.New("avro: missing required field key")
 )
 
 type Xk6KafkaError struct {

@@ -71,7 +71,10 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 			}
 		}
 	}
-	return decoder.Decode(m)
+	if err := decoder.Decode(m); err != nil {
+		return fmt.Errorf("failed to decode writer config: %w", err)
+	}
+	return nil
 }
 
 func (c *WriterConfig) GetBalancer() kafkago.Balancer {
@@ -94,12 +97,12 @@ type Message struct {
 	Topic string `json:"topic"`
 
 	// Setting Partition has no effect when writing messages.
-	Partition     int                    `json:"partition"`
-	Offset        int64                  `json:"offset"`
-	HighWaterMark int64                  `json:"highWaterMark"`
-	Key           []byte                 `json:"key"`
-	Value         []byte                 `json:"value"`
-	Headers       map[string]interface{} `json:"headers"`
+	Partition     int            `json:"partition"`
+	Offset        int64          `json:"offset"`
+	HighWaterMark int64          `json:"highWaterMark"`
+	Key           []byte         `json:"key"`
+	Value         []byte         `json:"value"`
+	Headers       map[string]any `json:"headers"`
 
 	// If not set at the creation, Time will be automatically set when
 	// writing the message.
@@ -143,7 +146,7 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			b, err := json.Marshal(params)
 			if err != nil {
 				common.Throw(runtime, err)
@@ -162,7 +165,7 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	// This is unnecessary, but it's here for reference purposes.
-	err = writerObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
+	err = writerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
 		if err := writer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
@@ -270,9 +273,11 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 		// If headers are provided, add them to the message.
 		if len(message.Headers) > 0 {
 			for key, value := range message.Headers {
+				var headerValue []byte
+				headerValue = fmt.Appendf(headerValue, "%v", value)
 				kafkaMessages[index].Headers = append(kafkaMessages[index].Headers, kafkago.Header{
 					Key:   key,
-					Value: []byte(fmt.Sprint(value)),
+					Value: headerValue,
 				})
 			}
 		}

@@ -157,12 +157,14 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 		cert, err := tls.X509KeyPair([]byte(tlsConfig.ClientCertPem), []byte(tlsConfig.ClientKeyPem))
 		if err != nil && err.Error() == "tls: failed to find any PEM data in certificate input" {
 			// Fall back to loading the client certificate and key from the file
-			if err := fileExists(tlsConfig.ClientCertPem); err != nil {
-				return nil, err
+			fileErr := fileExists(tlsConfig.ClientCertPem)
+			if fileErr != nil {
+				return nil, fileErr
 			}
 
-			if err := fileExists(tlsConfig.ClientKeyPem); err != nil {
-				return nil, err
+			fileErr = fileExists(tlsConfig.ClientKeyPem)
+			if fileErr != nil {
+				return nil, fileErr
 			}
 
 			cert, err = tls.LoadX509KeyPair(tlsConfig.ClientCertPem, tlsConfig.ClientKeyPem)
@@ -189,19 +191,18 @@ func GetTLSConfig(tlsConfig TLSConfig) (*tls.Config, *Xk6KafkaError) {
 	// Load the CA certificate as string if provided
 	if ok := caCertPool.AppendCertsFromPEM([]byte(tlsConfig.ServerCaPem)); !ok {
 		// Fall back if file path is provided
-		if err := fileExists(tlsConfig.ServerCaPem); err != nil {
+		err := fileExists(tlsConfig.ServerCaPem)
+		if err != nil {
 			return nil, err
 		}
 
-		caCert, err := os.ReadFile(tlsConfig.ServerCaPem)
-		if err != nil {
+		caCert, readErr := os.ReadFile(tlsConfig.ServerCaPem)
+		if readErr != nil {
 			// This might happen on permissions issues or if the file is unreadable somehow
 			return nil, NewXk6KafkaError(
 				failedReadCaCertFile,
-				fmt.Sprintf(
-					"Error reading CA certificate file \"%s\".",
-					tlsConfig.ServerCaPem),
-				err)
+				"Failed to read CA cert file: "+tlsConfig.ServerCaPem,
+				readErr)
 		}
 
 		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
@@ -239,8 +240,9 @@ func newTLSObject(tlsConfig TLSConfig) *tls.Config {
 
 // fileExists returns nil if the given file exists and error otherwise.
 func fileExists(filename string) *Xk6KafkaError {
-	if _, err := os.Stat(filename); err != nil {
-		return NewXk6KafkaError(fileNotFound, fmt.Sprintf("File not found: %s", filename), err)
+	_, err := os.Stat(filename)
+	if err != nil {
+		return NewXk6KafkaError(fileNotFound, "File not found: "+filename, err)
 	}
 	return nil
 }

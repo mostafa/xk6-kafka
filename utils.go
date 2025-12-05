@@ -32,9 +32,9 @@ func isBase64Encoded(data string) bool {
 	return err == nil
 }
 
-// toJSONBytes encodes a map into JSON bytes
-func toJSONBytes(data interface{}) ([]byte, *Xk6KafkaError) {
-	if data, ok := data.(map[string]interface{}); ok {
+// toJSONBytes encodes a map into JSON bytes.
+func toJSONBytes(data any) ([]byte, *Xk6KafkaError) {
+	if data, ok := data.(map[string]any); ok {
 		if jsonData, err := json.Marshal(data); err == nil {
 			return jsonData, nil
 		}
@@ -43,8 +43,8 @@ func toJSONBytes(data interface{}) ([]byte, *Xk6KafkaError) {
 	return nil, ErrInvalidDataType
 }
 
-func toMap(data []byte) (map[string]interface{}, *Xk6KafkaError) {
-	var js map[string]interface{}
+func toMap(data []byte) (map[string]any, *Xk6KafkaError) {
+	var js map[string]any
 	if err := json.Unmarshal(data, &js); err != nil {
 		return nil, NewXk6KafkaError(failedUnmarshalJSON, "Failed to decode data", err)
 	}

@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -67,7 +68,7 @@ func getTestModuleInstance(tb testing.TB) *kafkaTest {
 }
 
 // moveToVUCode moves to the VU code from the init code (to test certain functions).
-func (k *kafkaTest) moveToVUCode() error {
+func (k *kafkaTest) moveToVUCode() {
 	samples := make(chan metrics.SampleContainer, 1000)
 	// Save it, so we can reuse it in other tests
 	k.samples = samples
@@ -86,7 +87,6 @@ func (k *kafkaTest) moveToVUCode() error {
 	}
 	k.vu.StateField = state
 	k.vu.InitEnvField = nil
-	return nil
 }
 
 // getCounterMetricsValues returns the samples of the collected metrics in the VU.
@@ -147,11 +147,5 @@ func (k *kafkaTest) topicExists() bool {
 
 	// Create a topic.
 	topics := k.module.listTopics(connection)
-	for _, topic := range topics {
-		if topic == k.topicName {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(topics, k.topicName)
 }

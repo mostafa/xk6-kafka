@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var avroSchemaForSRTests = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
@@ -31,8 +30,10 @@ func TestDecodeWireFormatFails(t *testing.T) {
 
 	defer func() {
 		err := recover()
+		errObj, ok := err.(*sobek.Object)
+		assert.True(t, ok)
 		assert.Equal(t,
-			err.(*sobek.Object).ToString().String(),
+			errObj.ToString().String(),
 			GoErrorPrefix+"Invalid message: message too short to contain schema id.")
 	}()
 
@@ -271,15 +272,16 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 // TestSchemaRegistryClientClass tests the schema registry client class.
 func TestSchemaRegistryClientClass(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}]}`
+	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person",` +
+		`"fields":[{"name":"field","type":"string"}]}`
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	assert.NotPanics(t, func() {
 		// Create a schema registry client.
 		client := test.module.schemaRegistryClientClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"url": "http://localhost:8081",
 					},
 				),
@@ -288,11 +290,13 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.NotNil(t, client)
 
 		// Create a schema and send it to the registry.
-		createSchema := client.Get("createSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		createSchemaVal := client.Get("createSchema").Export()
+		createSchema, ok := createSchemaVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
 		newSchema := createSchema(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"subject":    "test-subject",
 						"schema":     avroSchema,
 						"schemaType": srclient.Avro,
@@ -304,11 +308,13 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.Equal(t, 0, newSchema.Version)
 
 		// Get the latest version of the schema from the registry.
-		getSchema := client.Get("getSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		getSchemaVal := client.Get("getSchema").Export()
+		getSchema, ok := getSchemaVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
 		currentSchema := getSchema(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"subject": "test-subject",
 						"version": 0,
 					},
@@ -324,7 +330,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		subjectName := getSubjectName(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"schema":              avroSchema,
 						"topic":               "test-topic",
 						"subjectNameStrategy": TopicRecordNameStrategy,
@@ -340,8 +346,8 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		serialized := serialize(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
-						"data":       map[string]interface{}{"field": "value"},
+					map[string]any{
+						"data":       map[string]any{"field": "value"},
 						"schema":     currentSchema,
 						"schemaType": srclient.Avro,
 					},
@@ -355,14 +361,14 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		deserialized := deserialize(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"data":       serialized,
 						"schema":     currentSchema,
 						"schemaType": srclient.Avro,
 					},
 				),
 			},
-		}).Export().(map[string]interface{})
+		}).Export().(map[string]any)
 		assert.Equal(t, "value", deserialized["field"])
 	})
 }

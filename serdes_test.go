@@ -1,14 +1,12 @@
 package kafka
 
 import (
-	"errors"
 	"testing"
 	"unsafe"
 
 	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestSerdes tests serialization and deserialization of messages with different schemas.
@@ -26,7 +24,7 @@ func TestSerdes(t *testing.T) {
 	}()
 
 	// Switch to VU code.
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 
 	containers := []*Container{
 		{
@@ -42,24 +40,24 @@ func TestSerdes(t *testing.T) {
 			SchemaType: Bytes,
 		},
 		{
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"string": "some-string",
 				"number": 1.1,
 				"bool":   true,
 				"null":   nil,
-				"array":  []interface{}{1.0, 2.0, 3.0},
-				"object": map[string]interface{}{
+				"array":  []any{1.0, 2.0, 3.0},
+				"object": map[string]any{
 					"string": "string-value",
 					"number": 1.1,
 					"bool":   true,
 					"null":   nil,
-					"array":  []interface{}{1.0, 2.0, 3.0},
+					"array":  []any{1.0, 2.0, 3.0},
 				},
 			},
 			SchemaType: srclient.Json,
 		},
 		{
-			Data: map[string]interface{}{"key": "value"},
+			Data: map[string]any{"key": "value"},
 			Schema: &Schema{
 				ID: 1,
 				Schema: `{
@@ -76,7 +74,7 @@ func TestSerdes(t *testing.T) {
 			SchemaType: srclient.Json,
 		},
 		{
-			Data: map[string]interface{}{"key": "value"},
+			Data: map[string]any{"key": "value"},
 			Schema: &Schema{
 				ID: 2,
 				Schema: `{
@@ -113,7 +111,7 @@ func TestSerdes(t *testing.T) {
 		})
 		assert.Equal(t, 1, len(messages))
 
-		if value, ok := messages[0]["value"].(map[string]interface{}); ok {
+		if value, ok := messages[0]["value"].(map[string]any); ok {
 			// Deserialize the key or value (removes the magic bytes).
 			deserialized := test.module.deserialize(&Container{
 				Data:       value,
@@ -150,7 +148,7 @@ func TestSerializeFails(t *testing.T) {
 		},
 		{
 			container: &Container{
-				Data:       []interface{}{"test"},
+				Data:       []any{"test"},
 				SchemaType: Bytes,
 			},
 			err: ErrFailedTypeCast,
@@ -164,7 +162,7 @@ func TestSerializeFails(t *testing.T) {
 		},
 		{
 			container: &Container{
-				Data:       map[string]interface{}{"key": unsafe.Pointer(nil)},
+				Data:       map[string]any{"key": unsafe.Pointer(nil)}, // #nosec G103
 				SchemaType: srclient.Json,
 			},
 			err: ErrInvalidDataType,
@@ -178,7 +176,7 @@ func TestSerializeFails(t *testing.T) {
 		},
 		{
 			container: &Container{
-				Data: map[string]interface{}{"key": "value"},
+				Data: map[string]any{"key": "value"},
 				Schema: &Schema{
 					ID:      1,
 					Schema:  `{`, // Invalid JSONSchema.
@@ -198,7 +196,7 @@ func TestSerializeFails(t *testing.T) {
 		},
 		{
 			container: &Container{
-				Data: map[string]interface{}{"unknown": "value"},
+				Data: map[string]any{"unknown": "value"},
 				Schema: &Schema{
 					ID: 2,
 					Schema: `{
@@ -211,11 +209,11 @@ func TestSerializeFails(t *testing.T) {
 				},
 				SchemaType: srclient.Avro,
 			},
-			err: NewXk6KafkaError(failedToEncodeToBinary, "Failed to encode data into binary", errors.New("avro: missing required field key")),
+			err: NewXk6KafkaError(failedToEncodeToBinary, "Failed to encode data into binary", ErrAvroMissingRequiredField),
 		},
 		{
 			container: &Container{
-				Data: map[string]interface{}{"key": unsafe.Pointer(nil)},
+				Data: map[string]any{"key": unsafe.Pointer(nil)}, // #nosec G103
 				Schema: &Schema{
 					ID: 2,
 					Schema: `{
@@ -235,6 +233,8 @@ func TestSerializeFails(t *testing.T) {
 	for _, testData := range testDataContainer {
 		t.Run("serialize fails", func(t *testing.T) {
 			defer func(t *testing.T) {
+				t.Helper()
+
 				err := recover()
 				assert.Equal(t,
 					err.(*sobek.Object).ToString().String(),

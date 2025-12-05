@@ -19,7 +19,7 @@ func TestSerializeByteArray(t *testing.T) {
 func TestSerializeInterfaceArray(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
 	expected := []byte{0x41, 0x42, 0x43}
-	actual, err := byteArraySerde.Serialize([]interface{}{65.0, 66.0, 67.0}, nil)
+	actual, err := byteArraySerde.Serialize([]any{65.0, 66.0, 67.0}, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -28,7 +28,7 @@ func TestSerializeInterfaceArray(t *testing.T) {
 // and fails on mixed data type.
 func TestSerializeInterfaceArrayFails(t *testing.T) {
 	byteArraySerde := &ByteArraySerde{}
-	actual, err := byteArraySerde.Serialize([]interface{}{65.0, 66.0, "a"}, nil)
+	actual, err := byteArraySerde.Serialize([]any{65.0, 66.0, "a"}, nil)
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrFailedTypeCast, err)

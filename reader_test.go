@@ -9,11 +9,10 @@ import (
 	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestConsumerMaxWaitExceeded tests the consume function when no messages are sent.
-// The reader should not hang
+// The reader should not hang.
 func TestConsumerMaxWaitExceeded(t *testing.T) {
 	test := getTestModuleInstance(t)
 	test.createTopic()
@@ -34,7 +33,7 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 	}()
 
 	// Switch to VU code.
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 
 	test.module.produce(writer, &ProduceConfig{
 		Messages: []Message{
@@ -90,7 +89,7 @@ func TestConsumerPanicsOnClose(t *testing.T) {
 	}()
 
 	// Switch to VU code.
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 
 	// Consume a message in the VU function.
 	assert.Panics(t, func() {
@@ -122,7 +121,7 @@ func TestConsume(t *testing.T) {
 		}()
 
 		// Switch to VU code.
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -211,7 +210,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		// Switch to VU code.
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -273,7 +272,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		// Switch to VU code.
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
@@ -328,9 +327,9 @@ func TestConsumeJSON(t *testing.T) {
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
 		// Switch to VU code.
-		require.NoError(t, test.moveToVUCode())
+		test.moveToVUCode()
 
-		serialized, jsonErr := json.Marshal(map[string]interface{}{"field": "value"})
+		serialized, jsonErr := json.Marshal(map[string]any{"field": "value"})
 		assert.Nil(t, jsonErr)
 
 		// Produce a message in the VU function.
@@ -353,7 +352,7 @@ func TestConsumeJSON(t *testing.T) {
 				Data:       messages[0]["value"],
 				SchemaType: srclient.Json,
 			})
-			if data, ok := result.(map[string]interface{}); ok {
+			if data, ok := result.(map[string]any); ok {
 				assert.Equal(t, "value", data["field"])
 			}
 		})
@@ -372,7 +371,7 @@ func TestConsumeJSON(t *testing.T) {
 func TestReaderClass(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	test.createTopic()
 	writer := test.newWriter()
 	defer func() {
@@ -398,7 +397,7 @@ func TestReaderClass(t *testing.T) {
 		reader := test.module.readerClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"brokers": []string{"localhost:9092"},
 						"topic":   test.topicName,
 						"maxWait": "3s",
@@ -407,22 +406,26 @@ func TestReaderClass(t *testing.T) {
 			},
 		})
 		assert.NotNil(t, reader)
-		this := reader.Get("This").Export().(*kafkago.Reader)
+		thisVal := reader.Get("This").Export()
+		this, ok := thisVal.(*kafkago.Reader)
+		assert.True(t, ok)
 		assert.NotNil(t, this)
 		assert.Equal(t, this.Config().Brokers, []string{"localhost:9092"})
 		assert.Equal(t, this.Config().Topic, test.topicName)
 		assert.Equal(t, this.Config().MaxWait, time.Second*3)
 
-		consume := reader.Get("consume").Export().(func(sobek.FunctionCall) sobek.Value)
+		consumeVal := reader.Get("consume").Export()
+		consume, ok := consumeVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
 		messages := consume(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"limit": 1,
 					},
 				),
 			},
-		}).Export().([]map[string]interface{})
+		}).Export().([]map[string]any)
 		assert.Equal(t, 1, len(messages))
 		deserializedKey := test.module.deserialize(&Container{
 			Data:       messages[0]["key"],
@@ -436,9 +439,11 @@ func TestReaderClass(t *testing.T) {
 		assert.Equal(t, "value", deserializedValue)
 
 		// Close the reader.
-		close := reader.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, close)
-		result := close(sobek.FunctionCall{}).Export()
+		closeVal := reader.Get("close").Export()
+		closeFunc, ok := closeVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
+		assert.NotNil(t, closeFunc)
+		result := closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
 		// Check if one message was consumed.

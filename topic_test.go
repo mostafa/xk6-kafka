@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/sobek"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestGetKafkaControllerConnection tests whether a connection can be established to a kafka broker.
@@ -38,7 +37,7 @@ func TestGetKafkaControllerConnectionFails(t *testing.T) {
 func TestTopics(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	assert.NotPanics(t, func() {
 		topic := "test-topics"
 		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
@@ -65,13 +64,13 @@ func TestTopics(t *testing.T) {
 func TestConnectionClass(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	assert.NotPanics(t, func() {
 		// Create a connection
 		connection := test.module.connectionClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"url": "localhost:9092",
 					},
 				),
@@ -85,7 +84,7 @@ func TestConnectionClass(t *testing.T) {
 		result := createTopic(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"topic": "test-connection-class",
 					},
 				),
@@ -112,9 +111,11 @@ func TestConnectionClass(t *testing.T) {
 		assert.NotContains(t, allTopics, "test-connection-class")
 
 		// Close the connection
-		close := connection.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, close)
-		result = close(sobek.FunctionCall{}).Export()
+		closeVal := connection.Get("close").Export()
+		closeFunc, ok := closeVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
+		assert.NotNil(t, closeFunc)
+		result = closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 	})
 }
