@@ -141,7 +141,7 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 // that can be called from the JS code.
 func (m *Module) Exports() modules.Exports {
 	return modules.Exports{
-		Default: m.Kafka.exports,
+		Default: m.exports,
 	}
 }
 

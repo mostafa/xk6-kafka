@@ -17,9 +17,13 @@ func TestSerdes(t *testing.T) {
 
 	test.createTopic()
 	writer := test.newWriter()
-	defer writer.Close()
+	defer func() {
+		_ = writer.Close()
+	}()
 	reader := test.newReader()
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	// Switch to VU code.
 	require.NoError(t, test.moveToVUCode())
@@ -89,13 +93,13 @@ func TestSerdes(t *testing.T) {
 
 	for _, container := range containers {
 		// Test with a schema registry, which fails and manually (de)serializes the data.
-		serialized := test.module.Kafka.serialize(container)
+		serialized := test.module.serialize(container)
 		assert.NotNil(t, serialized)
 		// 4 bytes for magic byte, 1 byte for schema ID, and the rest is the data.
 		assert.GreaterOrEqual(t, len(serialized), 5)
 
 		// Send data to Kafka.
-		test.module.Kafka.produce(writer, &ProduceConfig{
+		test.module.produce(writer, &ProduceConfig{
 			Messages: []Message{
 				{
 					Value: serialized,
@@ -104,14 +108,14 @@ func TestSerdes(t *testing.T) {
 		})
 
 		// Read data from Kafka.
-		messages := test.module.Kafka.consume(reader, &ConsumeConfig{
+		messages := test.module.consume(reader, &ConsumeConfig{
 			Limit: 1,
 		})
 		assert.Equal(t, 1, len(messages))
 
 		if value, ok := messages[0]["value"].(map[string]interface{}); ok {
 			// Deserialize the key or value (removes the magic bytes).
-			deserialized := test.module.Kafka.deserialize(&Container{
+			deserialized := test.module.deserialize(&Container{
 				Data:       value,
 				Schema:     container.Schema,
 				SchemaType: container.SchemaType,
@@ -237,7 +241,7 @@ func TestSerializeFails(t *testing.T) {
 					GoErrorPrefix+testData.err.Error())
 			}(t)
 
-			err := test.module.Kafka.serialize(testData.container)
+			err := test.module.serialize(testData.container)
 			assert.Equal(t, err, testData.err)
 		})
 	}

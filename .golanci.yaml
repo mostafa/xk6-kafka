@@ -1,18 +1,39 @@
-run:
-  timeout: 10m
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
     - cyclop
-    - wsl
-    - godox
+    - exhaustruct
     - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - gocyclo
+    - godox
     - ireturn
     - nlreturn
-    - testpackage
     - paralleltest
-    - exhaustivestruct
-    - exhaustruct
-    - gocognit
-    - gochecknoinits
-    - gocyclo
+    - testpackage
+    - wsl
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

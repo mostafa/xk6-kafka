@@ -18,7 +18,7 @@ func TestDecodeWireFormat(t *testing.T) {
 	encoded := []byte{0, 1, 2, 3, 4, 5}
 	decoded := []byte{5}
 
-	result := test.module.Kafka.decodeWireFormat(encoded)
+	result := test.module.decodeWireFormat(encoded)
 	assert.Equal(t, decoded, result)
 }
 
@@ -36,7 +36,7 @@ func TestDecodeWireFormatFails(t *testing.T) {
 			GoErrorPrefix+"Invalid message: message too short to contain schema id.")
 	}()
 
-	test.module.Kafka.decodeWireFormat(encoded)
+	test.module.decodeWireFormat(encoded)
 }
 
 // TestEncodeWireFormat tests the encoding of a message and adding wire-format to it.
@@ -47,7 +47,7 @@ func TestEncodeWireFormat(t *testing.T) {
 	schemaID := 5
 	encoded := []byte{0, 0, 0, 0, 5, 6}
 
-	result := test.module.Kafka.encodeWireFormat(data, schemaID)
+	result := test.module.encodeWireFormat(data, schemaID)
 	assert.Equal(t, encoded, result)
 }
 
@@ -63,7 +63,7 @@ func TestSchemaRegistryClient(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
@@ -84,7 +84,7 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 			ServerCaPem:   "fixtures/caroot.cer",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
@@ -100,9 +100,9 @@ func TestGetLatestSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -122,9 +122,9 @@ func TestGetSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -144,9 +144,9 @@ func TestCreateSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -158,7 +158,7 @@ func TestGetSubjectNameFailsIfInvalidSchema(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              `Bad Schema`,
 			Topic:               "test-topic",
 			SubjectNameStrategy: RecordNameStrategy,
@@ -172,7 +172,7 @@ func TestGetSubjectNameFailsIfSubjectNameStrategyUnknown(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: "Unknown",
@@ -186,7 +186,7 @@ func TestGetSubjectNameCanUseDefaultSubjectNameStrategy(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	for _, element := range []Element{Key, Value} {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: "",
@@ -200,7 +200,7 @@ func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	for _, element := range []Element{Key, Value} {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: TopicNameStrategy,
@@ -218,7 +218,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) 
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchema,
 		Topic:               "test-topic",
 		SubjectNameStrategy: TopicRecordNameStrategy,
@@ -230,7 +230,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchemaForSRTests,
 		Topic:               "test-topic",
 		SubjectNameStrategy: TopicRecordNameStrategy,
@@ -242,7 +242,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.
 func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	subject := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subject := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchemaForSRTests,
 		Topic:               "test-topic",
 		SubjectNameStrategy: RecordNameStrategy,
@@ -259,7 +259,7 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchema,
 		Topic:               "test-topic",
 		SubjectNameStrategy: RecordNameStrategy,

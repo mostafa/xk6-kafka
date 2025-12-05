@@ -17,33 +17,35 @@ func TestProduce(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.writer(&WriterConfig{
+		writer := test.module.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
-		defer writer.Close()
+		defer func() {
+			_ = writer.Close()
+		}()
 
 		// Produce a message in the init context.
 		assert.Panics(t, func() {
-			test.module.Kafka.produce(writer, &ProduceConfig{
+			test.module.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key1",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value1",
 							SchemaType: String,
 						}),
 					},
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key2",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value2",
 							SchemaType: String,
 						}),
@@ -56,24 +58,24 @@ func TestProduce(t *testing.T) {
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produce(writer, &ProduceConfig{
+			test.module.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key1",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value1",
 							SchemaType: String,
 						}),
 					},
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key2",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value2",
 							SchemaType: String,
 						}),
@@ -109,20 +111,22 @@ func TestProduceWithoutKey(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.writer(&WriterConfig{
+		writer := test.module.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 		})
 		assert.NotNil(t, writer)
-		defer writer.Close()
+		defer func() {
+			_ = writer.Close()
+		}()
 
 		require.NoError(t, test.moveToVUCode())
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produce(writer, &ProduceConfig{
+			test.module.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value1",
 							SchemaType: String,
 						}),
@@ -131,7 +135,7 @@ func TestProduceWithoutKey(t *testing.T) {
 						Time:   time.Now(),
 					},
 					{
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value2",
 							SchemaType: String,
 						}),
@@ -157,12 +161,14 @@ func TestProducerContextCancelled(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.writer(&WriterConfig{
+		writer := test.module.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
-		defer writer.Close()
+		defer func() {
+			_ = writer.Close()
+		}()
 
 		require.NoError(t, test.moveToVUCode())
 
@@ -171,24 +177,24 @@ func TestProducerContextCancelled(t *testing.T) {
 
 		// Produce two messages in the VU function.
 		assert.Panics(t, func() {
-			test.module.Kafka.produce(writer, &ProduceConfig{
+			test.module.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key1",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value1",
 							SchemaType: String,
 						}),
 					},
 					{
-						Key: test.module.Kafka.serialize(&Container{
+						Key: test.module.serialize(&Container{
 							Data:       "key2",
 							SchemaType: String,
 						}),
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       "value2",
 							SchemaType: String,
 						}),
@@ -213,21 +219,23 @@ func TestProduceJSON(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.Kafka.writer(&WriterConfig{
+		writer := test.module.writer(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
 		assert.NotNil(t, writer)
-		defer writer.Close()
+		defer func() {
+			_ = writer.Close()
+		}()
 
 		require.NoError(t, test.moveToVUCode())
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.Kafka.produce(writer, &ProduceConfig{
+			test.module.produce(writer, &ProduceConfig{
 				Messages: []Message{
 					{
-						Value: test.module.Kafka.serialize(&Container{
+						Value: test.module.serialize(&Container{
 							Data:       map[string]interface{}{"field": "value"},
 							SchemaType: srclient.Json,
 						}),
@@ -273,11 +281,11 @@ func TestWriterClass(t *testing.T) {
 					map[string]interface{}{
 						"messages": []map[string]interface{}{
 							{
-								"key": test.module.Kafka.serialize(&Container{
+								"key": test.module.serialize(&Container{
 									Data:       "key",
 									SchemaType: String,
 								}),
-								"value": test.module.Kafka.serialize(&Container{
+								"value": test.module.serialize(&Container{
 									Data:       "value",
 									SchemaType: String,
 								}),

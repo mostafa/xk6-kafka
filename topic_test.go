@@ -13,11 +13,11 @@ import (
 func TestGetKafkaControllerConnection(t *testing.T) {
 	test := getTestModuleInstance(t)
 	assert.NotPanics(t, func() {
-		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
 		assert.NotNil(t, connection)
-		connection.Close()
+		_ = connection.Close()
 	})
 }
 
@@ -27,7 +27,7 @@ func TestGetKafkaControllerConnectionFails(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9094",
 		})
 		assert.Nil(t, connection)
@@ -41,23 +41,23 @@ func TestTopics(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
 		topic := "test-topics"
-		connection := test.module.Kafka.getKafkaControllerConnection(&ConnectionConfig{
+		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
 			Address: "localhost:9092",
 		})
 
-		test.module.Kafka.createTopic(connection, &kafkago.TopicConfig{
+		test.module.createTopic(connection, &kafkago.TopicConfig{
 			Topic: topic,
 		})
 
-		topics := test.module.Kafka.listTopics(connection)
+		topics := test.module.listTopics(connection)
 		assert.Contains(t, topics, topic)
 
-		test.module.Kafka.deleteTopic(connection, topic)
+		test.module.deleteTopic(connection, topic)
 
-		topics = test.module.Kafka.listTopics(connection)
+		topics = test.module.listTopics(connection)
 		assert.NotContains(t, topics, topic)
 
-		connection.Close()
+		_ = connection.Close()
 	})
 }
 
@@ -68,7 +68,7 @@ func TestConnectionClass(t *testing.T) {
 	require.NoError(t, test.moveToVUCode())
 	assert.NotPanics(t, func() {
 		// Create a connection
-		connection := test.module.Kafka.connectionClass(sobek.ConstructorCall{
+		connection := test.module.connectionClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]interface{}{
