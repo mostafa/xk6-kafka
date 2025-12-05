@@ -29,9 +29,7 @@ jobs:
           dry: True
 
       - name: Lint code issues 🚨
-        uses: golangci/golangci-lint-action@v4
-        with:
-          skip-pkg-cache: true
+        uses: golangci/golangci-lint-action@v9.2.0
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
