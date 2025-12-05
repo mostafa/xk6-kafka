@@ -596,6 +596,10 @@ If you want to keep up to date with the latest changes, please follow the [proje
 
 I make no guarantee to keep the API stable, as this project is in _active development_ unless I release a major version. The best way to keep up with the changes is to follow [the xk6-kafka API](https://github.com/mostafa/xk6-kafka/blob/main/README.md#the-xk6-kafka-api) and look at the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory.
 
+### Migration to hamba/avro
+
+As of the latest version, xk6-kafka has migrated from `goavro` to `hamba/avro` for Avro serialization/deserialization. This change provides better performance and active maintenance. **Breaking change**: If you're using Avro union types, the serialization format has changed. With `hamba/avro`, you can provide union values directly without wrapping them in type-specific objects. See the [Schema Registry documentation](./docs/schema-registry.md#complex-schemas--manage-union-types) for updated examples.
+
 ## The Release Process
 
 The `main` branch is the _development_ branch, and the pull requests will be _squashed and merged_ into the `main` branch. When a commit is tagged with a version, for example, `v0.10.0`, the build pipeline will build the `main` branch on that commit. The build process creates the binaries and the Docker image. If you want to test the latest unreleased features, you can clone the `main` branch and instruct the `xk6` to use the locally cloned repository instead of using the `@latest`, which refers to the latest tagged version, as explained in the [build for development](https://github.com/mostafa/xk6-kafka/blob/main/README.md#build-for-development) section.
