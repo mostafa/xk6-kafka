@@ -65,8 +65,3 @@ jobs:
               ./k6 run --quiet -d 2s scripts/$f;
             fi
           done
-
-      - name: Stop containers 🛑
-        if: always()
-        run: |
-          docker stop lensesio
