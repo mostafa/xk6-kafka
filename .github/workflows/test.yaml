@@ -12,6 +12,18 @@ jobs:
   test:
     name: Test xk6-kafka
     runs-on: ubuntu-latest
+    services:
+      kafka:
+        image: lensesio/fast-data-dev:latest
+        ports:
+          - 2181:2181
+          - 3030:3030
+          - 8081-8083:8081-8083
+          - 9581-9585:9581-9585
+          - 9092:9092
+        env:
+          RUNTESTS: "0"
+          ADV_HOST: "127.0.0.1"
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -29,19 +41,12 @@ jobs:
           dry: True
 
       - name: Lint code issues 🚨
-        uses: golangci/golangci-lint-action@v4
-        with:
-          skip-pkg-cache: true
+        uses: golangci/golangci-lint-action@v9.2.0
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
           xk6 build --with github.com/mostafa/xk6-kafka@latest=.
-
-      - name: Run Zookeeper and Kafka ⚙️
-        run: |
-          docker run --detach --rm --name lensesio -p 2181:2181 -p 3030:3030 -p 8081-8083:8081-8083 -p 9581-9585:9581-9585 -p 9092:9092 -e RUNTESTS=0 -e ADV_HOST=127.0.0.1 lensesio/fast-data-dev:latest
-          sleep 15s
 
       - name: Run Go tests 🔬
         run: go test -cover -covermode atomic -coverprofile=profile.cov -v .
@@ -60,8 +65,3 @@ jobs:
               ./k6 run --quiet -d 2s scripts/$f;
             fi
           done
-
-      - name: Stop containers 🛑
-        if: always()
-        run: |
-          docker stop lensesio

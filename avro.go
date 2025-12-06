@@ -11,7 +11,7 @@ type AvroSerde struct {
 }
 
 // Serialize serializes a JSON object into Avro binary.
-func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
+func (*AvroSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError) {
 	jsonBytes, err := toJSONBytes(data)
 	if err != nil {
 		return nil, err
@@ -23,8 +23,9 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 	}
 
 	// Parse JSON data into a map for marshaling
-	var jsonData interface{}
-	if jsonErr := json.Unmarshal(jsonBytes, &jsonData); jsonErr != nil {
+	var jsonData any
+	jsonErr := json.Unmarshal(jsonBytes, &jsonData)
+	if jsonErr != nil {
 		return nil, NewXk6KafkaError(failedToEncode, "Failed to parse JSON data", jsonErr)
 	}
 
@@ -40,22 +41,21 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 }
 
 // Deserialize deserializes a Avro binary into a JSON object.
-func (*AvroSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
+func (*AvroSerde) Deserialize(data []byte, schema *Schema) (any, *Xk6KafkaError) {
 	avroSchema := schema.Codec()
 	if avroSchema == nil {
 		return nil, NewXk6KafkaError(failedToDecodeFromBinary, "Failed to parse Avro schema", nil)
 	}
 
-	var decodedData interface{}
+	var decodedData any
 	err := avro.Unmarshal(avroSchema, data, &decodedData)
 	if err != nil {
 		return nil, NewXk6KafkaError(
 			failedToDecodeFromBinary, "Failed to decode data", err)
 	}
 
-	if data, ok := decodedData.(map[string]interface{}); ok {
+	if data, ok := decodedData.(map[string]any); ok {
 		return data, nil
-	} else {
-		return decodedData, nil
 	}
+	return decodedData, nil
 }

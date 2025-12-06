@@ -12,6 +12,11 @@ import (
 	"go.k6.io/k6/js/common"
 )
 
+const (
+	// filePermission is the permission used for writing certificate and key files.
+	filePermission = 0o600
+)
+
 type JKSConfig struct {
 	Path              string `json:"path"`
 	Password          string `json:"password"`
@@ -32,21 +37,22 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 		return nil, nil
 	}
 
-	if err := fileExists(jksConfig.Path); err != nil {
+	fileErr := fileExists(jksConfig.Path)
+	if fileErr != nil {
 		return nil, NewXk6KafkaError(
-			fileNotFound, fmt.Sprintf("File not found: %s", jksConfig.Path), err)
+			fileNotFound, "File not found: "+jksConfig.Path, fileErr)
 	}
 
 	jksFile, err := os.Open(jksConfig.Path)
 	if err != nil {
 		return nil, NewXk6KafkaError(
-			failedReadJKSFile, fmt.Sprintf("Failed to read JKS file: %s", jksConfig.Path), err)
+			failedReadJKSFile, "Failed to read JKS file: "+jksConfig.Path, err)
 	}
 
 	ks := keystore.New()
 	if err := ks.Load(jksFile, []byte(jksConfig.Password)); err != nil {
 		return nil, NewXk6KafkaError(
-			failedDecodeJKSFile, fmt.Sprintf("Failed to decode JKS file: %s", jksConfig.Path), err)
+			failedDecodeJKSFile, "Failed to decode JKS file: "+jksConfig.Path, err)
 	}
 
 	// Load server's CA certificate if an alias is provided.
@@ -59,7 +65,7 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 		if err != nil {
 			return nil, NewXk6KafkaError(
 				failedDecodeServerCa,
-				fmt.Sprintf("Failed to decode server's CA: %s", jksConfig.Path), err)
+				"Failed to decode server's CA: "+jksConfig.Path, err)
 		}
 	} else {
 		serverCa = keystore.TrustedCertificateEntry{}
@@ -86,7 +92,7 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 				ServerCaPem:    serverCaFilename,
 			}, NewXk6KafkaError(
 				failedDecodePrivateKey,
-				fmt.Sprintf("Failed to decode client's private key: %s", jksConfig.Path), err)
+				"Failed to decode client's private key: "+jksConfig.Path, err)
 	}
 
 	clientCertsFilenames := make([]string, 0, len(clientKey.CertificateChain))
@@ -125,7 +131,7 @@ func (k *Kafka) loadJKSFunction(call sobek.FunctionCall) sobek.Value {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+	if params, ok := call.Argument(0).Export().(map[string]any); ok {
 		if b, err := json.Marshal(params); err != nil {
 			common.Throw(runtime, err)
 		} else {
@@ -171,7 +177,7 @@ func saveServerCaFile(filename string, cert *keystore.TrustedCertificateEntry) *
 		Bytes: cert.Certificate.Content,
 	})
 
-	if err := os.WriteFile(filename, certPem, 0o644); err != nil {
+	if err := os.WriteFile(filename, certPem, filePermission); err != nil {
 		return NewXk6KafkaError(
 			failedWriteServerCaFile, "Failed to write CA file", err)
 	}
@@ -186,7 +192,7 @@ func saveClientKeyFile(filename string, key *keystore.PrivateKeyEntry) *Xk6Kafka
 		Bytes: key.PrivateKey,
 	})
 
-	if err := os.WriteFile(filename, keyPem, 0o644); err != nil {
+	if err := os.WriteFile(filename, keyPem, filePermission); err != nil {
 		return NewXk6KafkaError(
 			failedWriteKeyFile, "Failed to write key file", err)
 	}
@@ -200,7 +206,7 @@ func saveClientCertFile(filename string, cert *keystore.Certificate) *Xk6KafkaEr
 		Type:  "CERTIFICATE",
 		Bytes: cert.Content,
 	})
-	if err := os.WriteFile(filename, clientCertPem, 0o644); err != nil {
+	if err := os.WriteFile(filename, clientCertPem, filePermission); err != nil {
 		return NewXk6KafkaError(
 			failedWriteCertFile, "Failed to write cert file", err)
 	}

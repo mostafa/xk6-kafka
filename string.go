@@ -11,7 +11,7 @@ const (
 )
 
 // Serialize serializes a string to bytes.
-func (*StringSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError) {
+func (*StringSerde) Serialize(data any, _ *Schema) ([]byte, *Xk6KafkaError) {
 	switch data := data.(type) {
 	case string:
 		return []byte(data), nil
@@ -21,6 +21,6 @@ func (*StringSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kaf
 }
 
 // Deserialize deserializes a string from bytes.
-func (*StringSerde) Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError) {
+func (*StringSerde) Deserialize(data []byte, _ *Schema) (any, *Xk6KafkaError) {
 	return string(data), nil
 }

@@ -11,7 +11,7 @@ import (
 func TestSerializeJSON(t *testing.T) {
 	jsonSerde := &JSONSerde{}
 	expected := []byte(`{"key":"value"}`)
-	actual, err := jsonSerde.Serialize(map[string]interface{}{"key": "value"}, nil)
+	actual, err := jsonSerde.Serialize(map[string]any{"key": "value"}, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -33,7 +33,7 @@ func TestSerializeJSONWithSchema(t *testing.T) {
 		Version: 1,
 		Subject: "json-schema",
 	}
-	actual, err := jsonSerde.Serialize(map[string]interface{}{"key": "value"}, schema)
+	actual, err := jsonSerde.Serialize(map[string]any{"key": "value"}, schema)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -48,7 +48,7 @@ func TestSerializeJSONFailsOnInvalidSchema(t *testing.T) {
 		Version: 1,
 		Subject: "json-schema",
 	}
-	actual, err := jsonSerde.Serialize(map[string]interface{}{"value": "key"}, schema)
+	actual, err := jsonSerde.Serialize(map[string]any{"value": "key"}, schema)
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrInvalidSchema, err)
@@ -71,7 +71,7 @@ func TestSerializeJSONFailsOnValidation(t *testing.T) {
 		Version: 1,
 		Subject: "json-schema",
 	}
-	actual, err := jsonSerde.Serialize(map[string]interface{}{"value": "key"}, schema)
+	actual, err := jsonSerde.Serialize(map[string]any{"value": "key"}, schema)
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Failed to validate JSON against schema", err.Message)
@@ -82,7 +82,7 @@ func TestSerializeJSONFailsOnValidation(t *testing.T) {
 // and fails on nested invalid data type.
 func TestSerializeJSONFailsOnBadType(t *testing.T) {
 	jsonSerde := &JSONSerde{}
-	actual, err := jsonSerde.Serialize(map[string]interface{}{"key": unsafe.Pointer(nil)}, nil)
+	actual, err := jsonSerde.Serialize(map[string]any{"key": unsafe.Pointer(nil)}, nil) // #nosec G103
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrInvalidDataType, err)

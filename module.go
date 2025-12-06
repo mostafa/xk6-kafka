@@ -115,7 +115,7 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	// Export constants to the JS code.
 	moduleInstance.defineConstants()
 
-	mustExport := func(name string, value interface{}) {
+	mustExport := func(name string, value any) {
 		if err := moduleInstance.exports.Set(name, value); err != nil {
 			common.Throw(runtime, err)
 		}
@@ -141,7 +141,7 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 // that can be called from the JS code.
 func (m *Module) Exports() modules.Exports {
 	return modules.Exports{
-		Default: m.Kafka.exports,
+		Default: m.exports,
 	}
 }
 
@@ -149,7 +149,7 @@ func (m *Module) Exports() modules.Exports {
 // nolint: funlen
 func (m *Module) defineConstants() {
 	runtime := m.vu.Runtime()
-	mustAddProp := func(name string, val interface{}) {
+	mustAddProp := func(name string, val any) {
 		err := m.exports.DefineDataProperty(
 			name, runtime.ToValue(val), sobek.FLAG_FALSE, sobek.FLAG_FALSE, sobek.FLAG_TRUE,
 		)

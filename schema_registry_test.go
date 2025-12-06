@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var avroSchemaForSRTests = `{"type":"record","name":"Schema","fields":[{"name":"field","type":"string"}]}`
@@ -18,7 +17,7 @@ func TestDecodeWireFormat(t *testing.T) {
 	encoded := []byte{0, 1, 2, 3, 4, 5}
 	decoded := []byte{5}
 
-	result := test.module.Kafka.decodeWireFormat(encoded)
+	result := test.module.decodeWireFormat(encoded)
 	assert.Equal(t, decoded, result)
 }
 
@@ -31,12 +30,14 @@ func TestDecodeWireFormatFails(t *testing.T) {
 
 	defer func() {
 		err := recover()
+		errObj, ok := err.(*sobek.Object)
+		assert.True(t, ok)
 		assert.Equal(t,
-			err.(*sobek.Object).ToString().String(),
+			errObj.ToString().String(),
 			GoErrorPrefix+"Invalid message: message too short to contain schema id.")
 	}()
 
-	test.module.Kafka.decodeWireFormat(encoded)
+	test.module.decodeWireFormat(encoded)
 }
 
 // TestEncodeWireFormat tests the encoding of a message and adding wire-format to it.
@@ -47,7 +48,7 @@ func TestEncodeWireFormat(t *testing.T) {
 	schemaID := 5
 	encoded := []byte{0, 0, 0, 0, 5, 6}
 
-	result := test.module.Kafka.encodeWireFormat(data, schemaID)
+	result := test.module.encodeWireFormat(data, schemaID)
 	assert.Equal(t, encoded, result)
 }
 
@@ -63,7 +64,7 @@ func TestSchemaRegistryClient(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
@@ -84,7 +85,7 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 			ServerCaPem:   "fixtures/caroot.cer",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
 }
 
@@ -100,9 +101,9 @@ func TestGetLatestSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -122,9 +123,9 @@ func TestGetSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -144,9 +145,9 @@ func TestCreateSchemaFails(t *testing.T) {
 			Password: "password",
 		},
 	}
-	srClient := test.module.Kafka.schemaRegistryClient(&srConfig)
+	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.Panics(t, func() {
-		schema := test.module.Kafka.getSchema(srClient, &Schema{
+		schema := test.module.getSchema(srClient, &Schema{
 			Subject: "no-such-subject",
 			Version: 0,
 		})
@@ -158,7 +159,7 @@ func TestGetSubjectNameFailsIfInvalidSchema(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              `Bad Schema`,
 			Topic:               "test-topic",
 			SubjectNameStrategy: RecordNameStrategy,
@@ -172,7 +173,7 @@ func TestGetSubjectNameFailsIfSubjectNameStrategyUnknown(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	assert.Panics(t, func() {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: "Unknown",
@@ -186,7 +187,7 @@ func TestGetSubjectNameCanUseDefaultSubjectNameStrategy(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	for _, element := range []Element{Key, Value} {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: "",
@@ -200,7 +201,7 @@ func TestGetSubjectNameCanUseTopicNameStrategy(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	for _, element := range []Element{Key, Value} {
-		subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+		subjectName := test.module.getSubjectName(&SubjectNameConfig{
 			Schema:              avroSchemaForSRTests,
 			Topic:               "test-topic",
 			SubjectNameStrategy: TopicNameStrategy,
@@ -218,7 +219,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) 
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchema,
 		Topic:               "test-topic",
 		SubjectNameStrategy: TopicRecordNameStrategy,
@@ -230,7 +231,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithNamespace(t *testing.T) 
 func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchemaForSRTests,
 		Topic:               "test-topic",
 		SubjectNameStrategy: TopicRecordNameStrategy,
@@ -242,7 +243,7 @@ func TestGetSubjectNameCanUseTopicRecordNameStrategyWithoutNamespace(t *testing.
 func TestGetSubjectNameCanUseRecordNameStrategyWithoutNamespace(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	subject := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subject := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchemaForSRTests,
 		Topic:               "test-topic",
 		SubjectNameStrategy: RecordNameStrategy,
@@ -259,7 +260,7 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 		"namespace":"com.example.person",
 		"name":"Schema",
 		"fields":[{"name":"field","type":"string"}]}`
-	subjectName := test.module.Kafka.getSubjectName(&SubjectNameConfig{
+	subjectName := test.module.getSubjectName(&SubjectNameConfig{
 		Schema:              avroSchema,
 		Topic:               "test-topic",
 		SubjectNameStrategy: RecordNameStrategy,
@@ -271,15 +272,16 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 // TestSchemaRegistryClientClass tests the schema registry client class.
 func TestSchemaRegistryClientClass(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person","fields":[{"name":"field","type":"string"}]}`
+	avroSchema := `{"type":"record","name":"Schema","namespace":"com.example.person",` +
+		`"fields":[{"name":"field","type":"string"}]}`
 
-	require.NoError(t, test.moveToVUCode())
+	test.moveToVUCode()
 	assert.NotPanics(t, func() {
 		// Create a schema registry client.
 		client := test.module.schemaRegistryClientClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"url": "http://localhost:8081",
 					},
 				),
@@ -288,11 +290,13 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.NotNil(t, client)
 
 		// Create a schema and send it to the registry.
-		createSchema := client.Get("createSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		createSchemaVal := client.Get("createSchema").Export()
+		createSchema, ok := createSchemaVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
 		newSchema := createSchema(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"subject":    "test-subject",
 						"schema":     avroSchema,
 						"schemaType": srclient.Avro,
@@ -304,11 +308,13 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		assert.Equal(t, 0, newSchema.Version)
 
 		// Get the latest version of the schema from the registry.
-		getSchema := client.Get("getSchema").Export().(func(sobek.FunctionCall) sobek.Value)
+		getSchemaVal := client.Get("getSchema").Export()
+		getSchema, ok := getSchemaVal.(func(sobek.FunctionCall) sobek.Value)
+		assert.True(t, ok)
 		currentSchema := getSchema(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"subject": "test-subject",
 						"version": 0,
 					},
@@ -324,7 +330,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		subjectName := getSubjectName(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"schema":              avroSchema,
 						"topic":               "test-topic",
 						"subjectNameStrategy": TopicRecordNameStrategy,
@@ -340,8 +346,8 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		serialized := serialize(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
-						"data":       map[string]interface{}{"field": "value"},
+					map[string]any{
+						"data":       map[string]any{"field": "value"},
 						"schema":     currentSchema,
 						"schemaType": srclient.Avro,
 					},
@@ -355,14 +361,14 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 		deserialized := deserialize(sobek.FunctionCall{
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
-					map[string]interface{}{
+					map[string]any{
 						"data":       serialized,
 						"schema":     currentSchema,
 						"schemaType": srclient.Avro,
 					},
 				),
 			},
-		}).Export().(map[string]interface{})
+		}).Export().(map[string]any)
 		assert.Equal(t, "value", deserialized["field"])
 	})
 }

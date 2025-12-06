@@ -187,17 +187,19 @@ For example, if you have a union type schema like this:
 }
 ```
 
-Here `myField` can either be a string or null. When serializing data for this schema, you need to ensure that the value you provide matches one of the types in the union.
-Your object must respect the goavro serialization rules, which means you need to provide the correct type for `myField`:
+Here `myField` can either be a string or null. When serializing data for this schema with hamba/avro, you can provide the value directly:
 
 ```javascript
 export const productionOrder = {
-  myField: { string: "My awesome value" },
+  myField: "My awesome value", // For string value
+  // or
+  // myField: null, // For null value
 };
 ```
 
-Here you have to define the type explicitly as `string` to match the schema.
-**Be careful**, in your schema, you'll have to define the _null_ value first in the union type, otherwise the serialization will fail.
+With hamba/avro, you don't need to wrap union values in a type-specific object. Simply provide the value that matches one of the union types. For nullable fields, you can use `null` directly.
+
+**Note**: In your schema, you should define the `null` value first in the union type (e.g., `["null", "string"]` rather than `["string", "null"]`) to follow Avro best practices, though hamba/avro will handle both cases.
 
 In order to help you with complex schemas, you can use the [nested-avro-schema](https://github.com/mostafa/nested-avro-schema) project, which provides a way to define complex Avro schemas in a more structured way.
 

@@ -233,7 +233,7 @@ func TestTlsConfigFromContent(t *testing.T) {
 	files := make([]string, len(paths))
 
 	for i, path := range paths {
-		file, _ := os.ReadFile(path)
+		file, _ := os.ReadFile(path) // #nosec G304
 		files[i] = string(file)
 	}
 

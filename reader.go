@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"time"
@@ -33,7 +34,7 @@ var (
 	lastOffset  = "start_offsets_last_offset"
 	firstOffset = "start_offsets_first_offset"
 
-	// StartOffset determines from whence the consumer group should begin
+	// StartOffsets determines from whence the consumer group should begin
 	// consuming when it finds a partition without a committed offset.  If
 	// non-zero, it must be set to one of FirstOffset or LastOffset.
 	//
@@ -95,13 +96,17 @@ type Duration struct {
 }
 
 func (d Duration) MarshalJSON() ([]byte, error) {
-	return json.Marshal(d.String())
+	data, err := json.Marshal(d.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal duration: %w", err)
+	}
+	return data, nil
 }
 
 func (d *Duration) UnmarshalJSON(b []byte) error {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(b, &v); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal duration: %w", err)
 	}
 
 	switch value := v.(type) {
@@ -109,11 +114,11 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 		var err error
 		d.Duration, err = time.ParseDuration(value)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse duration: %w", err)
 		}
 		return nil
 	default:
-		return errors.New("invalid duration")
+		return ErrInvalidDuration
 	}
 }
 
@@ -127,7 +132,7 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+	if params, ok := call.Argument(0).Export().(map[string]any); ok {
 		if b, err := json.Marshal(params); err != nil {
 			common.Throw(runtime, err)
 		} else {
@@ -151,7 +156,7 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -168,7 +173,7 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	// This is unnecessary, but it's here for reference purposes
-	err = readerObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
+	err = readerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
 		if err := reader.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
@@ -204,7 +209,6 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 	}
 
 	if readerConfig.GroupID != "" &&
-		len(readerConfig.GroupTopics) >= 0 &&
 		readerConfig.HeartbeatInterval == 0 {
 		readerConfig.HeartbeatInterval = HeartbeatInterval
 	}
@@ -334,7 +338,7 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 // nolint: funlen
 func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig,
-) []map[string]interface{} {
+) []map[string]any {
 	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
@@ -351,11 +355,11 @@ func (k *Kafka) consume(
 		consumeConfig.Limit = 1
 	}
 
-	messages := make([]map[string]interface{}, 0)
+	messages := make([]map[string]any, 0)
 
 	maxWait := reader.Config().MaxWait
 
-	for i := int64(0); i < consumeConfig.Limit; i++ {
+	for range consumeConfig.Limit {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, maxWait)
 		msg, err := reader.ReadMessage(ctxWithTimeout)
 		cancel()
@@ -388,16 +392,16 @@ func (k *Kafka) consume(
 		}
 
 		// Rest of the fields of a given message
-		message := map[string]interface{}{
+		message := map[string]any{
 			"topic":         msg.Topic,
 			"partition":     msg.Partition,
 			"offset":        msg.Offset,
 			"time":          messageTime,
 			"highWaterMark": msg.HighWaterMark,
-			"headers":       make(map[string]interface{}),
+			"headers":       make(map[string]any),
 		}
 
-		if headers, ok := message["headers"].(map[string]interface{}); ok {
+		if headers, ok := message["headers"].(map[string]any); ok {
 			for _, header := range msg.Headers {
 				headers[header.Key] = header.Value
 			}
@@ -422,7 +426,8 @@ func (k *Kafka) consume(
 }
 
 // reportReaderStats reports the reader stats
-// nolint:funlen
+//
+//nolint:funlen
 func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 	state := k.vu.State()
 	if state == nil {

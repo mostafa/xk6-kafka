@@ -118,10 +118,10 @@ func TestJKS(t *testing.T) {
 func TestLoadJKS_Function(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	jks := test.module.Kafka.loadJKSFunction(sobek.FunctionCall{
+	jks := test.module.loadJKSFunction(sobek.FunctionCall{
 		Arguments: []sobek.Value{
 			test.module.vu.Runtime().ToValue(
-				map[string]interface{}{
+				map[string]any{
 					"path":              "fixtures/kafka-keystore.jks",
 					"password":          "password",
 					"clientCertAlias":   "localhost",

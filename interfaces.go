@@ -5,8 +5,8 @@ import (
 )
 
 type Serdes interface {
-	Serialize(data interface{}, schema *Schema) ([]byte, *Xk6KafkaError)
-	Deserialize(data []byte, schema *Schema) (interface{}, *Xk6KafkaError)
+	Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError)
+	Deserialize(data []byte, schema *Schema) (any, *Xk6KafkaError)
 }
 
 var TypesRegistry map[srclient.SchemaType]Serdes = map[srclient.SchemaType]Serdes{
@@ -19,7 +19,6 @@ var TypesRegistry map[srclient.SchemaType]Serdes = map[srclient.SchemaType]Serde
 func GetSerdes(schemaType srclient.SchemaType) (Serdes, *Xk6KafkaError) {
 	if serdes, ok := TypesRegistry[schemaType]; ok {
 		return serdes, nil
-	} else {
-		return nil, ErrUnknownSerdesType
 	}
+	return nil, ErrUnknownSerdesType
 }

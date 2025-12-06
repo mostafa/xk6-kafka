@@ -27,7 +27,7 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+	if params, ok := call.Argument(0).Export().(map[string]any); ok {
 		if b, err := json.Marshal(params); err != nil {
 			common.Throw(runtime, err)
 		} else {
@@ -51,7 +51,7 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]interface{}); ok {
+		if params, ok := call.Argument(0).Export().(map[string]any); ok {
 			if b, err := json.Marshal(params); err != nil {
 				common.Throw(runtime, err)
 			} else {
@@ -83,7 +83,7 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("listTopics", func(call sobek.FunctionCall) sobek.Value {
+	err = connectionObject.Set("listTopics", func(_ sobek.FunctionCall) sobek.Value {
 		topics := k.listTopics(connection)
 		return runtime.ToValue(topics)
 	})
@@ -91,7 +91,7 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("close", func(call sobek.FunctionCall) sobek.Value {
+	err = connectionObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
 		if err := connection.Close(); err != nil {
 			common.Throw(runtime, err)
 		}

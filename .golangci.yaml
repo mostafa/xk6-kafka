@@ -1,0 +1,38 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - exhaustruct
+    - forcetypeassert
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - gocyclo
+    - godox
+    - ireturn
+    - nestif
+    - nlreturn
+    - nolintlint
+    - noinlineerr
+    - paralleltest
+    - revive
+    - testpackage
+    - testifylint
+    - varnamelen
+    - wsl
+    - wsl_v5
+    - wrapcheck
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
