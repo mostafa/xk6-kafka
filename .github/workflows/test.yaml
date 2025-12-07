@@ -48,6 +48,8 @@ jobs:
 
       - name: Lint code issues 🚨
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: "2.3.1"
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
