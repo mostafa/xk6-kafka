@@ -74,7 +74,7 @@ export function setup() {
 
   // Register nested schemas first (these will be referenced by the main schema)
   // These schemas are registered as separate subjects in Schema Registry
-  
+
   // 1. Register UserStatus enum
   const userStatusSchema = `{
     "name": "UserStatus",
@@ -82,7 +82,7 @@ export function setup() {
     "namespace": "com.example.complex",
     "symbols": ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"]
   }`;
-  
+
   const userStatusSubject = "com.example.complex.UserStatus";
   const userStatusSchemaObject = schemaRegistry.createSchema({
     subject: userStatusSubject,
@@ -97,7 +97,7 @@ export function setup() {
     "namespace": "com.example.complex",
     "symbols": ["USD", "EUR", "GBP", "JPY"]
   }`;
-  
+
   const currencySubject = "com.example.complex.Currency";
   const currencySchemaObject = schemaRegistry.createSchema({
     subject: currencySubject,
@@ -112,7 +112,7 @@ export function setup() {
     "namespace": "com.example.complex",
     "symbols": ["CREDIT_CARD", "DEBIT_CARD", "PAYPAL", "BANK_TRANSFER"]
   }`;
-  
+
   const paymentMethodSubject = "com.example.complex.PaymentMethod";
   const paymentMethodSchemaObject = schemaRegistry.createSchema({
     subject: paymentMethodSubject,
@@ -145,7 +145,7 @@ export function setup() {
       }
     ]
   }`;
-  
+
   const userPreferencesSubject = "com.example.complex.UserPreferences";
   const userPreferencesSchemaObject = schemaRegistry.createSchema({
     subject: userPreferencesSubject,
@@ -196,7 +196,7 @@ export function setup() {
       }
     ]
   }`;
-  
+
   const userSubject = "com.example.complex.User";
   const userSchemaObject = schemaRegistry.createSchema({
     subject: userSubject,
@@ -241,7 +241,7 @@ export function setup() {
       }
     ]
   }`;
-  
+
   const orderItemSubject = "com.example.complex.OrderItem";
   const orderItemSchemaObject = schemaRegistry.createSchema({
     subject: orderItemSubject,
@@ -281,7 +281,7 @@ export function setup() {
       }
     ]
   }`;
-  
+
   const orderSubject = "com.example.complex.Order";
   const orderSchemaObject = schemaRegistry.createSchema({
     subject: orderSubject,
@@ -322,7 +322,7 @@ export function setup() {
       }
     ]
   }`;
-  
+
   const coordinatesSubject = "com.example.complex.Coordinates";
   const coordinatesSchemaObject = schemaRegistry.createSchema({
     subject: coordinatesSubject,
@@ -555,10 +555,7 @@ export default function (data) {
       version: 1 + index,
       // For Avro bytes, use array of numbers (0-255) representing byte values
       // In JSON encoding, bytes are typically base64 strings, but arrays work too
-      data:
-        index % 5 === 0
-          ? null
-          : [1, 2, 3, 4, 5, index], // Nullable bytes as array of numbers
+      data: index % 5 === 0 ? null : [1, 2, 3, 4, 5, index], // Nullable bytes as array of numbers
     };
 
     let messages = [
@@ -616,7 +613,7 @@ export default function (data) {
       });
       return (
         ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"].includes(
-          value.user.status
+          value.user.status,
         ) &&
         (value.order === null ||
           (value.order !== undefined &&
@@ -630,9 +627,7 @@ export default function (data) {
         schemaType: SCHEMA_TYPE_AVRO,
       });
       // email can be null or string
-      return (
-        value.user.email === null || typeof value.user.email === "string"
-      );
+      return value.user.email === null || typeof value.user.email === "string";
     },
     "value has arrays": (msgs) => {
       const value = schemaRegistry.deserialize({
@@ -710,4 +705,3 @@ export function teardown(data) {
   writer.close();
   reader.close();
 }
-
