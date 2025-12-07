@@ -12,7 +12,8 @@ jobs:
     name: Build xk6-kafka
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      security-events: write
       pull-requests: write
     steps:
       - name: Checkout 🛎️
