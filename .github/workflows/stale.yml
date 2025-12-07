@@ -3,9 +3,16 @@ on:
   schedule:
     - cron: "30 1 * * *"
 
+permissions: {}
+
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/stale@v8
         with:
@@ -21,4 +28,3 @@ jobs:
           exempt-issue-labels: "awaiting-approval,work-in-progress"
           stale-pr-label: "no-pr-activity"
           exempt-pr-labels: "awaiting-approval,work-in-progress"
-
