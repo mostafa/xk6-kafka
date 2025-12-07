@@ -10,6 +10,7 @@ import (
 	"github.com/hamba/avro/v2"
 	"github.com/riferrei/srclient"
 	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
 )
 
@@ -52,6 +53,9 @@ type Schema struct {
 	Subject       string               `json:"subject"`
 	avroSchema    avro.Schema
 	jsonSchema    *jsonschema.Schema
+
+	// resolver is a function that can resolve referenced schemas by name
+	resolver func(name string) (*Schema, error)
 }
 
 type SubjectNameConfig struct {
@@ -66,16 +70,297 @@ type WireFormat struct {
 	Data     []byte `json:"data"`
 }
 
+// createResolver creates a resolver function for a schema that can fetch referenced schemas.
+// The resolver is independent of any specific schema and can fetch any schema by name.
+func (k *Kafka) createResolver(
+	client *srclient.SchemaRegistryClient,
+	enableCaching bool,
+) func(name string) (*Schema, error) {
+	return func(name string) (*Schema, error) {
+		// Try to find the referenced schema in the cache first
+		if enableCaching {
+			for subject, cachedSchema := range k.schemaCache {
+				// Check if cached schema matches the reference name by subject
+				if subject == name {
+					return cachedSchema, nil
+				}
+				// Also check by parsed schema full name
+				if cachedSchema.avroSchema != nil {
+					if namedSchema, ok := cachedSchema.avroSchema.(avro.NamedSchema); ok {
+						if namedSchema.FullName() == name {
+							return cachedSchema, nil
+						}
+					}
+				}
+
+				// Also check by extracting name from schema JSON
+				var schemaMap map[string]any
+				if json.Unmarshal([]byte(cachedSchema.Schema), &schemaMap) == nil {
+					if ns, ok := schemaMap["namespace"].(string); ok {
+						if n, ok := schemaMap["name"].(string); ok {
+							fullName := n
+							if ns != "" {
+								fullName = ns + "." + n
+							}
+							if fullName == name {
+								return cachedSchema, nil
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Try to fetch by subject name (subject name often matches schema full name in RecordNameStrategy)
+		refSchemaInfo, refErr := client.GetLatestSchema(name)
+		if refErr == nil {
+			refSchema := &Schema{
+				EnableCaching: enableCaching,
+				ID:            refSchemaInfo.ID(),
+				Version:       refSchemaInfo.Version(),
+				Schema:        refSchemaInfo.Schema(),
+				SchemaType:    refSchemaInfo.SchemaType(),
+				References:    refSchemaInfo.References(),
+				Subject:       name,
+				resolver:      k.createResolver(client, enableCaching), // Recursive resolver setup
+			}
+			if refSchema.EnableCaching {
+				k.schemaCache[name] = refSchema
+			}
+			return refSchema, nil
+		}
+
+		// If GetLatestSchema failed, try to search through all cached schemas' references
+		// This handles the case where a nested reference is specified in a parent schema's references
+		if enableCaching {
+			for _, cachedSchema := range k.schemaCache {
+				for _, ref := range cachedSchema.References {
+					if ref.Name == name {
+						// Fetch the referenced schema from the registry using the reference info
+						refSchemaInfo, refErr := client.GetSchemaByVersion(ref.Subject, ref.Version)
+						if refErr != nil {
+							continue
+						}
+						refSchema := &Schema{
+							EnableCaching: enableCaching,
+							ID:            refSchemaInfo.ID(),
+							Version:       refSchemaInfo.Version(),
+							Schema:        refSchemaInfo.Schema(),
+							SchemaType:    refSchemaInfo.SchemaType(),
+							References:    refSchemaInfo.References(),
+							Subject:       ref.Subject,
+							resolver:      k.createResolver(client, enableCaching),
+						}
+						if refSchema.EnableCaching {
+							k.schemaCache[ref.Subject] = refSchema
+						}
+						return refSchema, nil
+					}
+				}
+			}
+		}
+
+		return nil, fmt.Errorf("%w: %s (GetLatestSchema error: %w)", ErrReferenceNotFound, name, refErr)
+	}
+}
+
 // Codec ensures access to parsed Avro Schema.
 // Will try to initialize a new one if it hasn't been initialized before.
 // Will return nil if it can't initialize a schema from the schema string.
+//
+//nolint:maintidx
 func (s *Schema) Codec() avro.Schema {
-	if s.avroSchema == nil {
-		schema, err := avro.Parse(s.Schema)
-		if err == nil {
-			s.avroSchema = schema
+	if s.avroSchema != nil {
+		return s.avroSchema
+	}
+
+	var (
+		schema avro.Schema
+		err    error
+		cache  *avro.SchemaCache
+	)
+
+	// Extract namespace from schema JSON
+	extractNamespace := func(schemaStr string) string {
+		var schemaMap map[string]any
+		if json.Unmarshal([]byte(schemaStr), &schemaMap) == nil {
+			if ns, ok := schemaMap["namespace"]; ok {
+				if ns, ok := ns.(string); ok {
+					return ns
+				}
+			}
+		}
+		return ""
+	}
+
+	if len(s.References) > 0 && s.resolver != nil {
+		// Build a schema cache with referenced schemas and all their nested references
+		cache = &avro.SchemaCache{}
+		var resolveErrors []error
+
+		// Helper function to recursively resolve all nested references FIRST, then parse schemas
+		var resolveAllReferences func(
+			refSchema *Schema,
+			refName string,
+			visited map[string]bool,
+		) error
+
+		resolveAllReferences = func(
+			refSchema *Schema,
+			refName string,
+			visited map[string]bool,
+		) error {
+			if refSchema == nil {
+				return nil
+			}
+
+			// Mark as visited to avoid infinite recursion
+			if visited == nil {
+				visited = make(map[string]bool)
+			}
+
+			// Get the schema's full name for visited tracking
+			var schemaFullName string
+			if refSchema.avroSchema != nil {
+				if namedSchema, ok := refSchema.avroSchema.(avro.NamedSchema); ok {
+					schemaFullName = namedSchema.FullName()
+				}
+			}
+
+			// If not parsed yet, try to extract from schema JSON
+			if schemaFullName == "" {
+				var schemaMap map[string]any
+				if json.Unmarshal([]byte(refSchema.Schema), &schemaMap) == nil {
+					if ns, ok := schemaMap["namespace"].(string); ok {
+						if n, ok := schemaMap["name"].(string); ok {
+							schemaFullName = n
+							if ns != "" {
+								schemaFullName = ns + "." + n
+							}
+						}
+					}
+				}
+			}
+
+			if schemaFullName != "" && visited[schemaFullName] {
+				return nil // Already processed
+			}
+
+			if schemaFullName != "" {
+				visited[schemaFullName] = true
+			}
+
+			// FIRST: Recursively resolve all nested references BEFORE parsing
+			for _, nestedRef := range refSchema.References {
+				if !visited[nestedRef.Name] {
+					nestedRefSchema, nestedErr := s.resolver(nestedRef.Name)
+					if nestedErr != nil {
+						// Log but don't fail - might be optional
+						continue
+					}
+					if nestedRefSchema != nil {
+						if err := resolveAllReferences(nestedRefSchema, nestedRef.Name, visited); err != nil {
+							// Log nested reference errors but continue
+							resolveErrors = append(resolveErrors, fmt.Errorf("nested reference %s: %w", nestedRef.Name, err))
+						}
+					}
+				}
+			}
+
+			// NOW parse the schema (all its dependencies should be resolved)
+			// Parse directly with ParseWithCache using the shared cache so dependencies are available
+			var (
+				refAvroSchema avro.Schema
+				parseErr      error
+			)
+
+			refNamespace := extractNamespace(refSchema.Schema)
+
+			// Parse with the shared cache (which should have all dependencies)
+			refAvroSchema, parseErr = avro.ParseWithCache(refSchema.Schema, refNamespace, cache)
+			if parseErr != nil {
+				return fmt.Errorf("failed to parse referenced schema %s: %w", refSchema.Subject, parseErr)
+			}
+			if refAvroSchema == nil {
+				return fmt.Errorf("%w: %s", ErrFailedParseReferencedSchema, refSchema.Subject)
+			}
+
+			// Add to cache with multiple keys for different lookup scenarios
+			if namedSchema, ok := refAvroSchema.(avro.NamedSchema); ok {
+				fullName := namedSchema.FullName()
+				namespace := namedSchema.Namespace()
+				name := namedSchema.Name()
+
+				// Add with full name (primary key)
+				cache.Add(fullName, refAvroSchema)
+
+				// Add with the reference name (as specified in the references array)
+				if refName != "" && refName != fullName {
+					cache.Add(refName, refAvroSchema)
+				}
+
+				// Add with namespace.name combination
+				if namespace != "" && name != "" {
+					namespaceName := namespace + "." + name
+					if namespaceName != fullName && namespaceName != refName {
+						cache.Add(namespaceName, refAvroSchema)
+					}
+					// Add with just the name - critical for namespace-relative lookups
+					cache.Add(name, refAvroSchema)
+				}
+			} else {
+				// For non-named schemas, just add with the reference name
+				cache.Add(refSchema.Subject, refAvroSchema)
+			}
+
+			return nil
+		}
+
+		// Helper function to add a schema to cache (now that all references are resolved)
+		addSchemaToCache := func(refSchema *Schema, refName string, visited map[string]bool) error {
+			return resolveAllReferences(refSchema, refName, visited)
+		}
+
+		// Resolve all direct references
+		for _, ref := range s.References {
+			refSchema, resolveErr := s.resolver(ref.Name)
+			if resolveErr != nil {
+				resolveErrors = append(
+					resolveErrors,
+					fmt.Errorf("failed to resolve reference %s: %w", ref.Name, resolveErr),
+				)
+				continue
+			}
+			if err := addSchemaToCache(refSchema, ref.Name, nil); err != nil {
+				resolveErrors = append(resolveErrors, err)
+			}
+		}
+
+		// If we had errors resolving references, set error and skip parsing
+		if len(resolveErrors) > 0 {
+			err = fmt.Errorf("%w: %d reference(s): %v", ErrFailedResolveReferences, len(resolveErrors), resolveErrors)
 		}
 	}
+
+	// Parse the schema (with or without cache depending on whether references were resolved)
+	if err == nil {
+		namespace := extractNamespace(s.Schema)
+		if cache != nil {
+			schema, err = avro.ParseWithCache(s.Schema, namespace, cache)
+		} else {
+			schema, err = avro.Parse(s.Schema)
+		}
+	}
+
+	if err == nil {
+		s.avroSchema = schema
+	} else {
+		logger.WithFields(logrus.Fields{
+			"subject": s.Subject,
+			"error":   err.Error(),
+		}).Error("Failed to parse Avro schema")
+	}
+
 	return s.avroSchema
 }
 
@@ -109,6 +394,9 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		schemaRegistryClient = k.schemaRegistryClient(configuration)
+
+		// Store the client in Kafka struct so we can use it to create resolvers later
+		k.currentSchemaRegistry = schemaRegistryClient
 	}
 
 	schemaRegistryClientObject := runtime.NewObject()
@@ -304,6 +592,7 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 			SchemaType:    schemaInfo.SchemaType(),
 			References:    schemaInfo.References(),
 			Subject:       schema.Subject,
+			resolver:      k.createResolver(client, schema.EnableCaching),
 		}
 		// If the Cache is set, cache the schema.
 		if wrappedSchema.EnableCaching {
@@ -339,6 +628,7 @@ func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Sche
 		SchemaType:    schemaInfo.SchemaType(),
 		References:    schemaInfo.References(),
 		Subject:       schema.Subject,
+		resolver:      k.createResolver(client, schema.EnableCaching),
 	}
 	if schema.EnableCaching {
 		k.schemaCache[schema.Subject] = wrappedSchema
@@ -396,6 +686,10 @@ func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func (k *Kafka) encodeWireFormat(data []byte, schemaID int) []byte {
 	schemaIDBytes := make([]byte, MagicPrefixSize-1)
+	// Validate schemaID is within uint32 range to prevent overflow
+	if schemaID < 0 || schemaID > int(^uint32(0)) {
+		panic(fmt.Sprintf("schemaID %d is out of uint32 range [0, %d]", schemaID, ^uint32(0)))
+	}
 	binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaID))
 	return append(append([]byte{0}, schemaIDBytes...), data...)
 }
