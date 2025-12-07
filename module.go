@@ -72,10 +72,11 @@ func init() {
 
 type (
 	Kafka struct {
-		vu          modules.VU
-		metrics     kafkaMetrics
-		exports     *sobek.Object
-		schemaCache map[string]*Schema
+		vu                    modules.VU
+		metrics               kafkaMetrics
+		exports               *sobek.Object
+		schemaCache           map[string]*Schema
+		currentSchemaRegistry *srclient.SchemaRegistryClient
 	}
 	RootModule struct{}
 	Module     struct {

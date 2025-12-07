@@ -35,6 +35,26 @@ func (k *Kafka) serialize(container *Container) []byte {
 	}
 	// we are dealing with binary data to be encoded with Avro, JSONSchema or Protocol Buffer
 
+	// If the schema was unmarshaled from JSON, it won't have the resolver function.
+	// Try to get the schema from cache if caching is enabled,
+	// as the cached version will have the resolver.
+	if container.Schema != nil {
+		if container.Schema.EnableCaching {
+			if cachedSchema, ok := k.schemaCache[container.Schema.Subject]; ok {
+				container.Schema = cachedSchema
+			}
+		}
+
+		// If schema doesn't have a resolver but has references,
+		// create one using the stored schema registry client
+		if container.Schema.resolver == nil && len(container.Schema.References) > 0 {
+			if k.currentSchemaRegistry != nil {
+				container.Schema.resolver = k.createResolver(
+					k.currentSchemaRegistry, container.Schema.EnableCaching)
+			}
+		}
+	}
+
 	switch container.SchemaType {
 	case srclient.Avro, srclient.Json:
 		serde, err := GetSerdes(container.SchemaType)
@@ -135,6 +155,27 @@ func (k *Kafka) deserialize(container *Container) any {
 
 		// Remove wire format prefix
 		jsonBytes = k.decodeWireFormat(jsonBytes)
+
+		// If the schema was unmarshaled from JSON, it won't have the resolver function.
+		// Try to get the schema from cache if caching is enabled,
+		// as the cached version will have the resolver.
+		if container.Schema != nil {
+			if container.Schema.EnableCaching {
+				if cachedSchema, ok := k.schemaCache[container.Schema.Subject]; ok {
+					// Use the cached schema which has the resolver set
+					container.Schema = cachedSchema
+				}
+			}
+
+			// If schema doesn't have a resolver but has references,
+			// create one using the stored schema registry client
+			if container.Schema.resolver == nil && len(container.Schema.References) > 0 {
+				if k.currentSchemaRegistry != nil {
+					container.Schema.resolver = k.createResolver(
+						k.currentSchemaRegistry, container.Schema.EnableCaching)
+				}
+			}
+		}
 
 		switch container.SchemaType {
 		case srclient.Avro, srclient.Json:
