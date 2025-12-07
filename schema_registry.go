@@ -686,6 +686,10 @@ func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 // https://docs.confluent.io/platform/current/schema-registry/serdes-develop/index.html#wire-format
 func (k *Kafka) encodeWireFormat(data []byte, schemaID int) []byte {
 	schemaIDBytes := make([]byte, MagicPrefixSize-1)
+	// Validate schemaID is within uint32 range to prevent overflow
+	if schemaID < 0 || schemaID > int(^uint32(0)) {
+		panic(fmt.Sprintf("schemaID %d is out of uint32 range [0, %d]", schemaID, ^uint32(0)))
+	}
 	binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaID))
 	return append(append([]byte{0}, schemaIDBytes...), data...)
 }
