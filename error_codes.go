@@ -59,6 +59,9 @@ const (
 	schemaNotFound                      errCode = 5001
 	schemaCreationFailed                errCode = 5002
 	failedConfigureSchemaRegistryClient errCode = 5003
+	referenceNotFound                   errCode = 5004
+	failedParseReferencedSchema         errCode = 5005
+	failedResolveReferences             errCode = 5006
 
 	// topics.
 	failedGetController  errCode = 6000
@@ -119,6 +122,13 @@ var (
 
 	// ErrAvroMissingRequiredField is used when Avro encoding fails due to missing required field.
 	ErrAvroMissingRequiredField = errors.New("avro: missing required field key")
+
+	// ErrReferenceNotFound is returned when a schema reference cannot be found.
+	ErrReferenceNotFound = errors.New("reference not found in registry")
+	// ErrFailedParseReferencedSchema is returned when parsing a referenced schema fails.
+	ErrFailedParseReferencedSchema = errors.New("failed to parse referenced schema: returned nil")
+	// ErrFailedResolveReferences is returned when resolving schema references fails.
+	ErrFailedResolveReferences = errors.New("failed to resolve references")
 )
 
 type Xk6KafkaError struct {

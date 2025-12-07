@@ -2,9 +2,19 @@ package kafka
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hamba/avro/v2"
+)
+
+var (
+	// ErrCannotConvertToByte is returned when a value cannot be converted to byte.
+	ErrCannotConvertToByte = errors.New("cannot convert value to byte")
+	// ErrCannotConvertToInt32 is returned when a float64 cannot be converted to int32.
+	ErrCannotConvertToInt32 = errors.New("cannot convert float64 to int32: not an integer")
+	// ErrCannotConvertToInt64 is returned when a float64 cannot be converted to int64.
+	ErrCannotConvertToInt64 = errors.New("cannot convert float64 to int64: not an integer")
 )
 
 type AvroSerde struct {
@@ -30,7 +40,7 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 				case int64:
 					bytes[i] = byte(val)
 				default:
-					return nil, fmt.Errorf("cannot convert %T to byte at index %d", v, i)
+					return nil, fmt.Errorf("%w at index %d: %T", ErrCannotConvertToByte, i, v)
 				}
 			}
 			return bytes, nil
@@ -42,7 +52,7 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 	case avro.Int:
 		if f, ok := data.(float64); ok {
 			if f != float64(int32(f)) {
-				return nil, fmt.Errorf("cannot convert float64 %f to int32: not an integer", f)
+				return nil, fmt.Errorf("%w: %f", ErrCannotConvertToInt32, f)
 			}
 			return int32(f), nil
 		}
@@ -50,12 +60,15 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 	case avro.Long:
 		if f, ok := data.(float64); ok {
 			if f != float64(int64(f)) {
-				return nil, fmt.Errorf("cannot convert float64 %f to int64: not an integer", f)
+				return nil, fmt.Errorf("%w: %f", ErrCannotConvertToInt64, f)
 			}
 			return int64(f), nil
 		}
 		return data, nil
-
+	case avro.Record, avro.Error, avro.Ref, avro.Enum, avro.Array, avro.Map,
+		avro.Union, avro.Fixed, avro.String, avro.Float, avro.Double,
+		avro.Boolean, avro.Null:
+		fallthrough
 	default:
 		return data, nil
 	}
@@ -64,6 +77,7 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 // convertUnionField converts a union field value, wrapping named schemas appropriately.
 func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, error) {
 	if fieldValue == nil {
+		//nolint: nilnil // nil is a valid union value
 		return nil, nil
 	}
 
@@ -167,50 +181,12 @@ func convertFloat64ToIntForIntegerFields(data any, schema avro.Schema) (any, err
 	case avro.Bytes, avro.Int, avro.Long:
 		return convertPrimitiveType(data, schema)
 	case avro.Record:
-		recordSchema, ok := schema.(*avro.RecordSchema)
-		if !ok {
-			return data, nil
-		}
-
-		dataMap, ok := data.(map[string]any)
-		if !ok {
-			return data, nil
-		}
-
-		convertedMap := make(map[string]any)
-		for _, field := range recordSchema.Fields() {
-			fieldName := field.Name()
-			fieldValue, exists := dataMap[fieldName]
-			if !exists {
-				continue
-			}
-
-			// Handle union types specially
-			fieldType := field.Type()
+		return convertRecordFields(data, schema, func(fieldValue any, fieldType avro.Schema) (any, error) {
 			if unionSchema, ok := fieldType.(*avro.UnionSchema); ok {
-				convertedValue, err := convertUnionField(fieldValue, unionSchema)
-				if err != nil {
-					return nil, fmt.Errorf("field %s: %w", fieldName, err)
-				}
-				convertedMap[fieldName] = convertedValue
-			} else {
-				// Normal field type, convert normally
-				convertedValue, err := convertFloat64ToIntForIntegerFields(fieldValue, fieldType)
-				if err != nil {
-					return nil, fmt.Errorf("field %s: %w", fieldName, err)
-				}
-				convertedMap[fieldName] = convertedValue
+				return convertUnionField(fieldValue, unionSchema)
 			}
-		}
-
-		// Copy any remaining fields that aren't in the schema
-		for k, v := range dataMap {
-			if _, exists := convertedMap[k]; !exists {
-				convertedMap[k] = v
-			}
-		}
-
-		return convertedMap, nil
+			return convertFloat64ToIntForIntegerFields(fieldValue, fieldType)
+		})
 	case avro.Array:
 		arraySchema, ok := schema.(*avro.ArraySchema)
 		if !ok {
@@ -255,9 +231,50 @@ func convertFloat64ToIntForIntegerFields(data any, schema avro.Schema) (any, err
 		return convertedMap, nil
 	case avro.Union:
 		fallthrough
+	case avro.Error, avro.Ref, avro.Enum, avro.Fixed, avro.String,
+		avro.Float, avro.Double, avro.Boolean, avro.Null:
+		fallthrough
 	default:
 		return data, nil
 	}
+}
+
+// convertRecordFields processes record fields using the provided field converter function.
+func convertRecordFields(data any, schema avro.Schema, convertField func(any, avro.Schema) (any, error)) (any, error) {
+	recordSchema, ok := schema.(*avro.RecordSchema)
+	if !ok {
+		return data, nil
+	}
+
+	dataMap, ok := data.(map[string]any)
+	if !ok {
+		return data, nil
+	}
+
+	resultMap := make(map[string]any)
+	for _, field := range recordSchema.Fields() {
+		fieldName := field.Name()
+		fieldValue, exists := dataMap[fieldName]
+		if !exists {
+			continue
+		}
+
+		fieldType := field.Type()
+		convertedValue, err := convertField(fieldValue, fieldType)
+		if err != nil {
+			return nil, fmt.Errorf("field %s: %w", fieldName, err)
+		}
+		resultMap[fieldName] = convertedValue
+	}
+
+	// Copy any remaining fields that aren't in the schema
+	for k, v := range dataMap {
+		if _, exists := resultMap[k]; !exists {
+			resultMap[k] = v
+		}
+	}
+
+	return resultMap, nil
 }
 
 // Serialize serializes a JSON object into Avro binary.
@@ -302,55 +319,18 @@ func (*AvroSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError) {
 // {"typeName": value} format returned by hamba/avro for named types in unions.
 func unwrapUnionValues(data any, schema avro.Schema) (any, error) {
 	if data == nil {
+		//nolint: nilnil // nil is a valid value
 		return nil, nil
 	}
 
 	switch schema.Type() {
 	case avro.Record:
-		recordSchema, ok := schema.(*avro.RecordSchema)
-		if !ok {
-			return data, nil
-		}
-
-		dataMap, ok := data.(map[string]any)
-		if !ok {
-			return data, nil
-		}
-
-		unwrappedMap := make(map[string]any)
-		for _, field := range recordSchema.Fields() {
-			fieldName := field.Name()
-			fieldValue, exists := dataMap[fieldName]
-			if !exists {
-				continue
-			}
-
-			fieldType := field.Type()
+		return convertRecordFields(data, schema, func(fieldValue any, fieldType avro.Schema) (any, error) {
 			if unionSchema, ok := fieldType.(*avro.UnionSchema); ok {
-				// Field is a union type - unwrap if needed
-				unwrappedValue, err := unwrapUnionValue(fieldValue, unionSchema)
-				if err != nil {
-					return nil, fmt.Errorf("field %s: %w", fieldName, err)
-				}
-				unwrappedMap[fieldName] = unwrappedValue
-			} else {
-				// Recursively unwrap nested structures
-				unwrappedValue, err := unwrapUnionValues(fieldValue, fieldType)
-				if err != nil {
-					return nil, fmt.Errorf("field %s: %w", fieldName, err)
-				}
-				unwrappedMap[fieldName] = unwrappedValue
+				return unwrapUnionValue(fieldValue, unionSchema)
 			}
-		}
-
-		// Copy any remaining fields that aren't in the schema
-		for k, v := range dataMap {
-			if _, exists := unwrappedMap[k]; !exists {
-				unwrappedMap[k] = v
-			}
-		}
-
-		return unwrappedMap, nil
+			return unwrapUnionValues(fieldValue, fieldType)
+		})
 	case avro.Array:
 		arraySchema, ok := schema.(*avro.ArraySchema)
 		if !ok {
@@ -393,6 +373,10 @@ func unwrapUnionValues(data any, schema avro.Schema) (any, error) {
 		}
 
 		return unwrappedMap, nil
+	case avro.Error, avro.Ref, avro.Enum, avro.Union, avro.Fixed,
+		avro.String, avro.Bytes, avro.Int, avro.Long, avro.Float,
+		avro.Double, avro.Boolean, avro.Null:
+		fallthrough
 	default:
 		return data, nil
 	}
@@ -401,6 +385,7 @@ func unwrapUnionValues(data any, schema avro.Schema) (any, error) {
 // unwrapUnionValue unwraps a single union value if it's wrapped in {"typeName": value} format.
 func unwrapUnionValue(value any, unionSchema *avro.UnionSchema) (any, error) {
 	if value == nil {
+		//nolint: nilnil // nil is a valid union value
 		return nil, nil
 	}
 

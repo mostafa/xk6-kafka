@@ -10,31 +10,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestResolver_FindInCacheBySubject(t *testing.T) {
-	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
-
-	// Add a schema to cache
-	userSchemaJSON := `{
+const (
+	testUserSchemaJSONSimple = `{
 		"type": "record",
 		"name": "User",
 		"namespace": "com.example",
 		"fields": [{"name": "id", "type": "int"}]
 	}`
+	testMainSchemaJSON = `{
+		"type": "record",
+		"name": "Main",
+		"namespace": "com.example",
+		"fields": [{"name": "user", "type": "com.example.User"}]
+	}`
+)
+
+func TestResolver_FindInCacheBySubject(t *testing.T) {
+	test := getTestModuleInstance(t)
+	avroType := srclient.Avro
+
+	// Add a schema to cache
 	cachedSchema := &Schema{
 		ID:            1,
-		Schema:        userSchemaJSON,
+		Schema:        testUserSchemaJSONSimple,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.User",
 		EnableCaching: true,
 	}
-	test.module.Kafka.schemaCache["com.example.User"] = cachedSchema
+	test.module.schemaCache["com.example.User"] = cachedSchema
 
 	// Create a resolver function manually to test cache lookup
 	resolver := func(name string) (*Schema, error) {
 		if enableCaching := true; enableCaching {
-			for subject, cachedSchema := range test.module.Kafka.schemaCache {
+			for subject, cachedSchema := range test.module.schemaCache {
 				if subject == name {
 					return cachedSchema, nil
 				}
@@ -55,30 +64,24 @@ func TestResolver_FindInCacheByFullName(t *testing.T) {
 	avroType := srclient.Avro
 
 	// Parse schema and add to cache
-	userSchemaJSON := `{
-		"type": "record",
-		"name": "User",
-		"namespace": "com.example",
-		"fields": [{"name": "id", "type": "int"}]
-	}`
-	avroSchema, err := avro.Parse(userSchemaJSON)
+	avroSchema, err := avro.Parse(testUserSchemaJSONSimple)
 	require.NoError(t, err)
 
 	cachedSchema := &Schema{
 		ID:            1,
-		Schema:        userSchemaJSON,
+		Schema:        testUserSchemaJSONSimple,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "different-subject",
 		EnableCaching: true,
 		avroSchema:    avroSchema,
 	}
-	test.module.Kafka.schemaCache["different-subject"] = cachedSchema
+	test.module.schemaCache["different-subject"] = cachedSchema
 
 	// Create a resolver function manually to test cache lookup by full name
 	resolver := func(name string) (*Schema, error) {
 		if enableCaching := true; enableCaching {
-			for _, cachedSchema := range test.module.Kafka.schemaCache {
+			for _, cachedSchema := range test.module.schemaCache {
 				if cachedSchema.avroSchema != nil {
 					if namedSchema, ok := cachedSchema.avroSchema.(avro.NamedSchema); ok {
 						if namedSchema.FullName() == name {
@@ -102,34 +105,22 @@ func TestResolver_FindInCacheByExtractedName(t *testing.T) {
 	avroType := srclient.Avro
 
 	// Add schema to cache without parsing it first
-	userSchemaJSON := `{
-		"type": "record",
-		"name": "User",
-		"namespace": "com.example",
-		"fields": [{"name": "id", "type": "int"}]
-	}`
 	cachedSchema := &Schema{
 		ID:            1,
-		Schema:        userSchemaJSON,
+		Schema:        testUserSchemaJSONSimple,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "different-subject",
 		EnableCaching: true,
 		avroSchema:    nil, // Not parsed yet
 	}
-	test.module.Kafka.schemaCache["different-subject"] = cachedSchema
+	test.module.schemaCache["different-subject"] = cachedSchema
 
 	// Test that Codec() can resolve references using cached schemas
 	// This indirectly tests the resolver finding schemas by extracted name
-	mainSchemaJSON := `{
-		"type": "record",
-		"name": "Main",
-		"namespace": "com.example",
-		"fields": [{"name": "user", "type": "com.example.User"}]
-	}`
 	mainSchema := &Schema{
 		ID:            2,
-		Schema:        mainSchemaJSON,
+		Schema:        testMainSchemaJSON,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.Main",
@@ -143,7 +134,7 @@ func TestResolver_FindInCacheByExtractedName(t *testing.T) {
 		},
 		resolver: func(name string) (*Schema, error) {
 			// Simulate resolver finding by extracted name
-			for _, cachedSchema := range test.module.Kafka.schemaCache {
+			for _, cachedSchema := range test.module.schemaCache {
 				var schemaMap map[string]any
 				if json.Unmarshal([]byte(cachedSchema.Schema), &schemaMap) == nil {
 					if ns, ok := schemaMap["namespace"].(string); ok {
@@ -173,32 +164,20 @@ func TestResolver_CodecWithReferences(t *testing.T) {
 	avroType := srclient.Avro
 
 	// Create referenced schema
-	userSchemaJSON := `{
-		"type": "record",
-		"name": "User",
-		"namespace": "com.example",
-		"fields": [{"name": "id", "type": "int"}]
-	}`
 	userSchema := &Schema{
 		ID:            1,
-		Schema:        userSchemaJSON,
+		Schema:        testUserSchemaJSONSimple,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.User",
 		EnableCaching: true,
 	}
-	test.module.Kafka.schemaCache["com.example.User"] = userSchema
+	test.module.schemaCache["com.example.User"] = userSchema
 
 	// Create main schema with reference
-	mainSchemaJSON := `{
-		"type": "record",
-		"name": "Main",
-		"namespace": "com.example",
-		"fields": [{"name": "user", "type": "com.example.User"}]
-	}`
 	mainSchema := &Schema{
 		ID:            2,
-		Schema:        mainSchemaJSON,
+		Schema:        testMainSchemaJSON,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.Main",
@@ -211,7 +190,7 @@ func TestResolver_CodecWithReferences(t *testing.T) {
 			},
 		},
 		resolver: func(name string) (*Schema, error) {
-			if cachedSchema, ok := test.module.Kafka.schemaCache[name]; ok {
+			if cachedSchema, ok := test.module.schemaCache[name]; ok {
 				return cachedSchema, nil
 			}
 			return nil, assert.AnError
@@ -248,7 +227,7 @@ func TestResolver_NestedReferences(t *testing.T) {
 		Subject:       "com.example.Address",
 		EnableCaching: true,
 	}
-	test.module.Kafka.schemaCache["com.example.Address"] = addressSchema
+	test.module.schemaCache["com.example.Address"] = addressSchema
 
 	userSchemaJSON := `{
 		"type": "record",
@@ -274,18 +253,12 @@ func TestResolver_NestedReferences(t *testing.T) {
 			},
 		},
 	}
-	test.module.Kafka.schemaCache["com.example.User"] = userSchema
+	test.module.schemaCache["com.example.User"] = userSchema
 
 	// Create main schema referencing User
-	mainSchemaJSON := `{
-		"type": "record",
-		"name": "Main",
-		"namespace": "com.example",
-		"fields": [{"name": "user", "type": "com.example.User"}]
-	}`
 	mainSchema := &Schema{
 		ID:            3,
-		Schema:        mainSchemaJSON,
+		Schema:        testMainSchemaJSON,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.Main",
@@ -298,7 +271,7 @@ func TestResolver_NestedReferences(t *testing.T) {
 			},
 		},
 		resolver: func(name string) (*Schema, error) {
-			if cachedSchema, ok := test.module.Kafka.schemaCache[name]; ok {
+			if cachedSchema, ok := test.module.schemaCache[name]; ok {
 				return cachedSchema, nil
 			}
 			return nil, assert.AnError
@@ -331,27 +304,21 @@ func TestResolver_CachingDisabled(t *testing.T) {
 	avroType := srclient.Avro
 
 	// Add schema to cache
-	userSchemaJSON := `{
-		"type": "record",
-		"name": "User",
-		"namespace": "com.example",
-		"fields": [{"name": "id", "type": "int"}]
-	}`
 	cachedSchema := &Schema{
 		ID:            1,
-		Schema:        userSchemaJSON,
+		Schema:        testUserSchemaJSONSimple,
 		SchemaType:    &avroType,
 		Version:       1,
 		Subject:       "com.example.User",
 		EnableCaching: true,
 	}
-	test.module.Kafka.schemaCache["com.example.User"] = cachedSchema
+	test.module.schemaCache["com.example.User"] = cachedSchema
 
 	// Create resolver with caching disabled
 	resolver := func(name string) (*Schema, error) {
 		enableCaching := false
 		if enableCaching {
-			for subject, cachedSchema := range test.module.Kafka.schemaCache {
+			for subject, cachedSchema := range test.module.schemaCache {
 				if subject == name {
 					return cachedSchema, nil
 				}
@@ -366,5 +333,5 @@ func TestResolver_CachingDisabled(t *testing.T) {
 	assert.Nil(t, resolved)
 
 	// Verify cache still has the schema (it just wasn't used)
-	assert.Contains(t, test.module.Kafka.schemaCache, "com.example.User")
+	assert.Contains(t, test.module.schemaCache, "com.example.User")
 }

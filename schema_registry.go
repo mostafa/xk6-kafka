@@ -70,8 +70,8 @@ type WireFormat struct {
 	Data     []byte `json:"data"`
 }
 
-// createResolver creates a resolver function for a schema that can fetch referenced schemas
-// The resolver is independent of any specific schema and can fetch any schema by name
+// createResolver creates a resolver function for a schema that can fetch referenced schemas.
+// The resolver is independent of any specific schema and can fetch any schema by name.
 func (k *Kafka) createResolver(
 	client *srclient.SchemaRegistryClient,
 	enableCaching bool,
@@ -160,14 +160,15 @@ func (k *Kafka) createResolver(
 			}
 		}
 
-		return nil, fmt.Errorf(
-			"reference %s not found in registry (GetLatestSchema error: %v)", name, refErr)
+		return nil, fmt.Errorf("%w: %s (GetLatestSchema error: %w)", ErrReferenceNotFound, name, refErr)
 	}
 }
 
 // Codec ensures access to parsed Avro Schema.
 // Will try to initialize a new one if it hasn't been initialized before.
 // Will return nil if it can't initialize a schema from the schema string.
+//
+//nolint:maintidx
 func (s *Schema) Codec() avro.Schema {
 	if s.avroSchema != nil {
 		return s.avroSchema
@@ -281,8 +282,7 @@ func (s *Schema) Codec() avro.Schema {
 				return fmt.Errorf("failed to parse referenced schema %s: %w", refSchema.Subject, parseErr)
 			}
 			if refAvroSchema == nil {
-				return fmt.Errorf(
-					"failed to parse referenced schema %s: returned nil", refSchema.Subject)
+				return fmt.Errorf("%w: %s", ErrFailedParseReferencedSchema, refSchema.Subject)
 			}
 
 			// Add to cache with multiple keys for different lookup scenarios
@@ -308,7 +308,6 @@ func (s *Schema) Codec() avro.Schema {
 					// Add with just the name - critical for namespace-relative lookups
 					cache.Add(name, refAvroSchema)
 				}
-
 			} else {
 				// For non-named schemas, just add with the reference name
 				cache.Add(refSchema.Subject, refAvroSchema)
@@ -339,9 +338,7 @@ func (s *Schema) Codec() avro.Schema {
 
 		// If we had errors resolving references, set error and skip parsing
 		if len(resolveErrors) > 0 {
-			err = fmt.Errorf(
-				"failed to resolve %d reference(s): %v", len(resolveErrors), resolveErrors,
-			)
+			err = fmt.Errorf("%w: %d reference(s): %v", ErrFailedResolveReferences, len(resolveErrors), resolveErrors)
 		}
 	}
 

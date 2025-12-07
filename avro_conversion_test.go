@@ -8,6 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testUserSchemaJSON = `{
+		"type": "record",
+		"name": "User",
+		"namespace": "com.example",
+		"fields": [
+			{"name": "id", "type": "int"},
+			{"name": "name", "type": "string"}
+		]
+	}`
+)
+
 func TestConvertPrimitiveType_Bytes(t *testing.T) {
 	schema, err := avro.Parse(`{"type": "bytes"}`)
 	require.NoError(t, err)
@@ -191,15 +203,7 @@ func TestConvertUnionField_Enum(t *testing.T) {
 }
 
 func TestConvertUnionField_Record(t *testing.T) {
-	recordSchema := `{
-		"type": "record",
-		"name": "User",
-		"namespace": "com.example",
-		"fields": [
-			{"name": "id", "type": "int"},
-			{"name": "name", "type": "string"}
-		]
-	}`
+	recordSchema := testUserSchemaJSON
 	unionSchemaJSON := `["null", ` + recordSchema + `]`
 	schema, err := avro.Parse(unionSchemaJSON)
 	require.NoError(t, err)
