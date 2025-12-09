@@ -548,10 +548,10 @@ func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if resp.Body != nil {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return resp, err
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		// Check for gzip magic number: 0x1f 0x8b
 		// This works even if Content-Encoding header is missing
@@ -560,7 +560,7 @@ func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			gzipReader, err := gzip.NewReader(bytes.NewReader(bodyBytes))
 			if err == nil {
 				decompressed, err := io.ReadAll(gzipReader)
-				gzipReader.Close()
+				_ = gzipReader.Close()
 				if err == nil {
 					bodyBytes = decompressed
 					// Remove Content-Encoding header if it was set incorrectly

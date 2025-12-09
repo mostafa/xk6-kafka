@@ -3,6 +3,7 @@ package kafka
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -196,13 +197,13 @@ func TestGzipTransportDirectly(t *testing.T) {
 	}
 
 	// Create a request
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	// Make the request through gzipTransport
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read the response body
 	bodyBytes, err := io.ReadAll(resp.Body)
