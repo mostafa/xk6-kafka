@@ -1,9 +1,12 @@
 package kafka
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/grafana/sobek"
@@ -526,6 +529,54 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 	return schemaRegistryClientObject
 }
 
+// gzipTransport wraps an http.RoundTripper to handle gzip decompression
+// even when the Content-Encoding header is missing or incorrect.
+type gzipTransport struct {
+	transport http.RoundTripper
+}
+
+func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Header.Get("Accept-Encoding") == "" {
+		req.Header.Set("Accept-Encoding", "gzip")
+	}
+
+	resp, err := gt.transport.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+
+	if resp.Body != nil {
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			_ = resp.Body.Close()
+			return resp, err
+		}
+		_ = resp.Body.Close()
+
+		// Check for gzip magic number: 0x1f 0x8b
+		// This works even if Content-Encoding header is missing
+		if len(bodyBytes) >= 2 && bodyBytes[0] == 0x1f && bodyBytes[1] == 0x8b {
+			// Decompress the gzipped response
+			gzipReader, err := gzip.NewReader(bytes.NewReader(bodyBytes))
+			if err == nil {
+				decompressed, err := io.ReadAll(gzipReader)
+				_ = gzipReader.Close()
+				if err == nil {
+					bodyBytes = decompressed
+					// Remove Content-Encoding header if it was set incorrectly
+					resp.Header.Del("Content-Encoding")
+					resp.ContentLength = int64(len(bodyBytes))
+				}
+			}
+		}
+
+		// Replace the response body with the (possibly decompressed) content
+		resp.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+	}
+
+	return resp, nil
+}
+
 // schemaRegistryClient creates a schemaRegistryClient instance
 // with the given configuration. It will also configure auth and TLS credentials if exists.
 func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.SchemaRegistryClient {
@@ -538,14 +589,20 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 		if err.Code != noTLSConfig {
 			common.Throw(runtime, err)
 		}
-		srClient = srclient.CreateSchemaRegistryClient(config.URL)
-	}
-
-	if tlsConfig != nil {
+		// Without TLS, use default client but wrap it to handle gzip compression
+		baseTransport := http.DefaultTransport
 		httpClient := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-			},
+			Transport: &gzipTransport{transport: baseTransport},
+		}
+		srClient = srclient.CreateSchemaRegistryClientWithOptions(
+			config.URL, httpClient, ConcurrentRequests)
+	} else {
+		// With TLS, create custom transport with TLS config and gzip support
+		baseTransport := &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
+		httpClient := &http.Client{
+			Transport: &gzipTransport{transport: baseTransport},
 		}
 		srClient = srclient.CreateSchemaRegistryClientWithOptions(
 			config.URL, httpClient, ConcurrentRequests)
