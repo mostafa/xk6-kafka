@@ -388,7 +388,7 @@ func (k *Kafka) consume(
 		if consumeConfig.NanoPrecision {
 			messageTime = msg.Time.Format(time.RFC3339Nano)
 		} else {
-			messageTime = time.Unix(msg.Time.Unix(), 0).Format(time.RFC3339)
+			messageTime = msg.Time.Format(time.RFC3339)
 		}
 
 		// Rest of the fields of a given message
