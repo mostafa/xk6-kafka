@@ -84,7 +84,7 @@ func (c *WriterConfig) GetBalancer() kafkago.Balancer {
 			if message.Key == nil {
 				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
 			}
-			return c.BalancerFunc(message.Key, partitions...)
+			return c.BalancerFunc(message.Key, len(partitions))
 		})
 	case c.Balancer != "":
 		return Balancers[c.Balancer]
