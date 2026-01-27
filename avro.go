@@ -94,6 +94,8 @@ func getPrimitiveTypeName(schemaType avro.Type) string {
 		return "bytes"
 	case avro.String:
 		return "string"
+	case avro.Record, avro.Error, avro.Ref, avro.Enum, avro.Array, avro.Map, avro.Union, avro.Fixed:
+		return ""
 	default:
 		return ""
 	}
@@ -116,7 +118,7 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 				// First, try to match as a primitive type name (e.g., "int", "string")
 				// Handle logical types like "int.date" by stripping the suffix
 				primitiveKey := key
-				for i := 0; i < len(key); i++ {
+				for i := range key {
 					if key[i] == '.' {
 						primitiveKey = key[:i]
 						break

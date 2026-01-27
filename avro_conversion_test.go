@@ -363,7 +363,7 @@ func TestConvertUnionField_WrappedPrimitiveMultipleTypes(t *testing.T) {
 }
 
 // TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType tests the exact scenario from issue #376
-// where a union type contains an int with logical type "date"
+// where a union type contains an int with logical type "date".
 func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) {
 	schemaJSON := `{
 		"type": "record",
@@ -416,7 +416,7 @@ func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) 
 // TestSerializeDeserializeRoundTrip_UnionWithLogicalType tests that wrapped primitives
 // are correctly unwrapped during conversion (the fix for issue #376).
 // Note: hamba/avro may have limitations with logical types in unions, but the conversion
-// itself works correctly as verified by TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType
+// itself works correctly as verified by TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType.
 func TestSerializeDeserializeRoundTrip_UnionWithLogicalType(t *testing.T) {
 	// This test verifies that the conversion works correctly.
 	// The actual serialization may fail due to hamba/avro limitations with logical types,
