@@ -31,7 +31,7 @@ const schemaRegistry = new SchemaRegistry({
   basicAuth: {
     username: __ENV.SCHEMA_REGISTRY_USERNAME, // 🔐 Replace with your actual username
     password: __ENV.SCHEMA_REGISTRY_PASSWORD, // 🔐 Replace with your actual password
-  }
+  },
 });
 
 // Define schemas
