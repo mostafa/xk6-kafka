@@ -74,6 +74,31 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 	}
 }
 
+// getPrimitiveTypeName returns the Avro primitive type name for a given schema type,
+// or empty string if it's not a primitive type.
+func getPrimitiveTypeName(schemaType avro.Type) string {
+	switch schemaType {
+	case avro.Null:
+		return "null"
+	case avro.Boolean:
+		return "boolean"
+	case avro.Int:
+		return "int"
+	case avro.Long:
+		return "long"
+	case avro.Float:
+		return "float"
+	case avro.Double:
+		return "double"
+	case avro.Bytes:
+		return "bytes"
+	case avro.String:
+		return "string"
+	default:
+		return ""
+	}
+}
+
 // convertUnionField converts a union field value, wrapping named schemas appropriately.
 func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, error) {
 	if fieldValue == nil {
@@ -88,7 +113,17 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 		// Check if it's already wrapped: {"typeName": value}
 		if len(fieldValueMap) == 1 {
 			for key, wrappedValue := range fieldValueMap {
-				// Try to find matching named schema
+				// First, try to match as a primitive type name (e.g., "int", "string")
+				// Handle logical types like "int.date" by stripping the suffix
+				primitiveKey := key
+				for i := 0; i < len(key); i++ {
+					if key[i] == '.' {
+						primitiveKey = key[:i]
+						break
+					}
+				}
+
+				// Try to find matching primitive type
 				for _, unionType := range types {
 					if unionType.Type() == avro.Null {
 						continue
@@ -97,6 +132,19 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 					if refSchema, ok := unionType.(*avro.RefSchema); ok {
 						actualType = refSchema.Schema()
 					}
+
+					// Check if this is a primitive type matching the key
+					if primitiveName := getPrimitiveTypeName(actualType.Type()); primitiveName != "" && primitiveName == primitiveKey {
+						// Found matching primitive type, unwrap and convert
+						converted, err := convertFloat64ToIntForIntegerFields(wrappedValue, actualType)
+						if err != nil {
+							return nil, err
+						}
+						// Return unwrapped value for primitives (hamba/avro expects unwrapped primitives)
+						return converted, nil
+					}
+
+					// Try to find matching named schema
 					if namedSchema, ok := actualType.(avro.NamedSchema); ok && namedSchema.FullName() == key {
 						// Already wrapped, convert nested value
 						converted, err := convertFloat64ToIntForIntegerFields(wrappedValue, actualType)
