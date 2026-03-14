@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+	"strings"
 
 	"github.com/hamba/avro/v2"
 )
@@ -21,6 +23,37 @@ type AvroSerde struct {
 	Serdes
 }
 
+func convertNumericValueToByte(value any) (byte, error) {
+	switch val := value.(type) {
+	case float64:
+		if val < 0 || val > math.MaxUint8 || math.Trunc(val) != val {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked and integral before narrowing conversion
+		return byte(val), nil
+	case int:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	case int32:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	case int64:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	default:
+		return 0, fmt.Errorf("%w: %T", ErrCannotConvertToByte, value)
+	}
+}
+
 // convertPrimitiveType converts a primitive value to the correct Avro type.
 // Handles float64->int32/int64 conversion and array->bytes conversion.
 func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
@@ -30,18 +63,11 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 		if arr, ok := data.([]any); ok {
 			bytes := make([]byte, len(arr))
 			for i, v := range arr {
-				switch val := v.(type) {
-				case float64:
-					bytes[i] = byte(val)
-				case int:
-					bytes[i] = byte(val)
-				case int32:
-					bytes[i] = byte(val)
-				case int64:
-					bytes[i] = byte(val)
-				default:
+				convertedByte, err := convertNumericValueToByte(v)
+				if err != nil {
 					return nil, fmt.Errorf("%w at index %d: %T", ErrCannotConvertToByte, i, v)
 				}
+				bytes[i] = convertedByte
 			}
 			return bytes, nil
 		}
@@ -74,6 +100,135 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 	}
 }
 
+// getPrimitiveTypeName returns the Avro primitive type name for a given schema type,
+// or empty string if it's not a primitive type.
+func getPrimitiveTypeName(schemaType avro.Type) string {
+	switch schemaType {
+	case avro.Null:
+		return "null"
+	case avro.Boolean:
+		return "boolean"
+	case avro.Int:
+		return "int"
+	case avro.Long:
+		return "long"
+	case avro.Float:
+		return "float"
+	case avro.Double:
+		return "double"
+	case avro.Bytes:
+		return "bytes"
+	case avro.String:
+		return "string"
+	case avro.Record, avro.Error, avro.Ref, avro.Enum, avro.Array, avro.Map, avro.Union, avro.Fixed:
+		return ""
+	default:
+		return ""
+	}
+}
+
+// getPrimitiveUnionDiscriminator returns the discriminator key expected by hamba/avro
+// for a primitive union branch. For logical primitive types, this is typically
+// "<primitive>.<logicalType>" (for example: "int.date").
+func getPrimitiveUnionDiscriminator(schema avro.Schema) string {
+	if schema == nil {
+		return ""
+	}
+
+	if refSchema, ok := schema.(*avro.RefSchema); ok {
+		schema = refSchema.Schema()
+	}
+
+	primitive := getPrimitiveTypeName(schema.Type())
+	if primitive == "" {
+		return ""
+	}
+
+	schemaString := schema.String()
+	if !strings.HasPrefix(schemaString, "{") {
+		return primitive
+	}
+
+	var schemaMap map[string]any
+	if err := json.Unmarshal([]byte(schemaString), &schemaMap); err != nil {
+		return primitive
+	}
+
+	logicalType, ok := schemaMap["logicalType"].(string)
+	if !ok || logicalType == "" {
+		return primitive
+	}
+
+	return primitive + "." + logicalType
+}
+
+// isValueCompatibleWithSchema checks whether value has a Go type compatible with the Avro schema.
+// It is used by union matching to avoid accepting a branch when conversion didn't actually produce
+// a value that can be encoded for that branch.
+func isValueCompatibleWithSchema(value any, schema avro.Schema) bool {
+	if schema == nil {
+		return false
+	}
+
+	if refSchema, ok := schema.(*avro.RefSchema); ok {
+		schema = refSchema.Schema()
+	}
+
+	switch schema.Type() {
+	case avro.Null:
+		return value == nil
+	case avro.Boolean:
+		_, ok := value.(bool)
+		return ok
+	case avro.Int:
+		switch value.(type) {
+		case int32, int16, int8, int:
+			return true
+		default:
+			return false
+		}
+	case avro.Long:
+		switch value.(type) {
+		case int64, int32, int16, int8, int:
+			return true
+		default:
+			return false
+		}
+	case avro.Float:
+		switch value.(type) {
+		case float32, float64:
+			return true
+		default:
+			return false
+		}
+	case avro.Double:
+		switch value.(type) {
+		case float64, float32:
+			return true
+		default:
+			return false
+		}
+	case avro.Bytes:
+		_, ok := value.([]byte)
+		return ok
+	case avro.String, avro.Enum:
+		_, ok := value.(string)
+		return ok
+	case avro.Array:
+		_, ok := value.([]any)
+		return ok
+	case avro.Map, avro.Record:
+		_, ok := value.(map[string]any)
+		return ok
+	case avro.Union:
+		return true
+	case avro.Fixed, avro.Error, avro.Ref:
+		return true
+	default:
+		return true
+	}
+}
+
 // convertUnionField converts a union field value, wrapping named schemas appropriately.
 func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, error) {
 	if fieldValue == nil {
@@ -88,7 +243,17 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 		// Check if it's already wrapped: {"typeName": value}
 		if len(fieldValueMap) == 1 {
 			for key, wrappedValue := range fieldValueMap {
-				// Try to find matching named schema
+				// First, try to match as a primitive type name (e.g., "int", "string")
+				// Handle logical types like "int.date" by stripping the suffix
+				primitiveKey := key
+				for i := range key {
+					if key[i] == '.' {
+						primitiveKey = key[:i]
+						break
+					}
+				}
+
+				// Try to find matching primitive type
 				for _, unionType := range types {
 					if unionType.Type() == avro.Null {
 						continue
@@ -97,6 +262,26 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 					if refSchema, ok := unionType.(*avro.RefSchema); ok {
 						actualType = refSchema.Schema()
 					}
+
+					// Check if this is a primitive type matching the key
+					if primitiveName := getPrimitiveTypeName(actualType.Type()); primitiveName != "" && primitiveName == primitiveKey {
+						// Found matching primitive type, unwrap and convert
+						converted, err := convertFloat64ToIntForIntegerFields(wrappedValue, actualType)
+						if err != nil {
+							return nil, err
+						}
+						if !isValueCompatibleWithSchema(converted, actualType) {
+							continue
+						}
+						discriminator := getPrimitiveUnionDiscriminator(actualType)
+						if discriminator != "" && discriminator != primitiveName {
+							return map[string]any{discriminator: converted}, nil
+						}
+						// Return unwrapped value for non-logical primitives.
+						return converted, nil
+					}
+
+					// Try to find matching named schema
 					if namedSchema, ok := actualType.(avro.NamedSchema); ok && namedSchema.FullName() == key {
 						// Already wrapped, convert nested value
 						converted, err := convertFloat64ToIntForIntegerFields(wrappedValue, actualType)
@@ -140,7 +325,20 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			actualType = refSchema.Schema()
 		}
 
-		// Named schemas (enums, fixed) need wrapping
+		// Primitive types should stay unwrapped.
+		if primitiveName := getPrimitiveTypeName(actualType.Type()); primitiveName != "" {
+			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
+			if err == nil && isValueCompatibleWithSchema(converted, actualType) {
+				discriminator := getPrimitiveUnionDiscriminator(actualType)
+				if discriminator != "" && discriminator != primitiveName {
+					return map[string]any{discriminator: converted}, nil
+				}
+				return converted, nil
+			}
+			continue
+		}
+
+		// Named schemas (enums, fixed, records) need wrapping.
 		if namedSchema, ok := actualType.(avro.NamedSchema); ok {
 			if actualType.Type() == avro.Enum {
 				// Enums are strings, wrap directly
@@ -150,12 +348,6 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
 			if err == nil {
 				return map[string]any{namedSchema.FullName(): converted}, nil
-			}
-		} else {
-			// Primitive types, convert and return directly
-			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
-			if err == nil {
-				return converted, nil
 			}
 		}
 	}
@@ -230,7 +422,11 @@ func convertFloat64ToIntForIntegerFields(data any, schema avro.Schema) (any, err
 
 		return convertedMap, nil
 	case avro.Union:
-		fallthrough
+		unionSchema, ok := schema.(*avro.UnionSchema)
+		if !ok {
+			return data, nil
+		}
+		return convertUnionField(data, unionSchema)
 	case avro.Error, avro.Ref, avro.Enum, avro.Fixed, avro.String,
 		avro.Float, avro.Double, avro.Boolean, avro.Null:
 		fallthrough

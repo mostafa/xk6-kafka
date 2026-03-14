@@ -197,7 +197,15 @@ export const productionOrder = {
 };
 ```
 
-With hamba/avro, you don't need to wrap union values in a type-specific object. Simply provide the value that matches one of the union types. For nullable fields, you can use `null` directly.
+With hamba/avro, you usually don't need to wrap union values in a type-specific object. Simply provide the value that matches one of the union types. For nullable fields, you can use `null` directly.
+
+For unions with logical primitive types (for example `["null", {"type":"int","logicalType":"date"}]`), xk6-kafka accepts:
+
+- direct values (for example `documentValidTo: 20474`)
+- wrapped primitive values (for example `documentValidTo: { "int": 20474 }`)
+- wrapped logical discriminator values (for example `documentValidTo: { "int.date": 20474 }`)
+
+xk6-kafka normalizes these inputs before Avro encoding so they match the discriminator format expected by `hamba/avro`.
 
 **Note**: In your schema, you should define the `null` value first in the union type (e.g., `["null", "string"]` rather than `["string", "null"]`) to follow Avro best practices, though hamba/avro will handle both cases.
 
