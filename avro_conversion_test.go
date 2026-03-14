@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"testing"
+	"time"
 
 	"github.com/hamba/avro/v2"
 	"github.com/stretchr/testify/assert"
@@ -530,16 +531,58 @@ func TestConvertFloat64ToIntForIntegerFields_NestedUnionWithLogicalTypeIssue376(
 	}
 }
 
-// TestSerializeDeserializeRoundTrip_UnionWithLogicalType tests that wrapped primitives
-// are correctly unwrapped during conversion (the fix for issue #376).
-// Note: hamba/avro may have limitations with logical types in unions, but the conversion
-// itself works correctly as verified by TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType.
+// TestSerializeDeserializeRoundTrip_UnionWithLogicalType verifies that after
+// roundtrip the logical union date field is deserialized as an unwrapped value.
 func TestSerializeDeserializeRoundTrip_UnionWithLogicalType(t *testing.T) {
-	// This test verifies that the conversion works correctly.
-	// The actual serialization may fail due to hamba/avro limitations with logical types,
-	// but the conversion fix (unwrapping wrapped primitives) is tested separately.
-	// The key fix is that {"int": 20474} gets converted to int32(20474) correctly.
-	t.Skip("hamba/avro may have limitations with logical types in unions - conversion is tested separately")
+	avroSerde := &AvroSerde{}
+	schemaJSON := `{
+		"type": "record",
+		"name": "Document",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "documentValidTo",
+				"type": [
+					"null",
+					{
+						"type": "int",
+						"logicalType": "date"
+					}
+				]
+			}
+		]
+	}`
+	schema := &Schema{
+		ID:      376,
+		Schema:  schemaJSON,
+		Version: 1,
+		Subject: "issue-376-roundtrip",
+	}
+
+	originalData := map[string]any{
+		"documentValidTo": map[string]any{"int.date": float64(20474)},
+	}
+
+	serialized, serdeErr := avroSerde.Serialize(originalData, schema)
+	require.Nil(t, serdeErr, "Serialize should not return error")
+	require.NotNil(t, serialized, "Serialized data should not be nil")
+
+	deserialized, deserErr := avroSerde.Deserialize(serialized, schema)
+	require.Nil(t, deserErr, "Deserialize should not return error")
+	require.NotNil(t, deserialized, "Deserialized data should not be nil")
+
+	result := deserialized.(map[string]any)
+	value := result["documentValidTo"]
+	switch typedValue := value.(type) {
+	case int:
+		assert.Equal(t, 20474, typedValue)
+	case int32:
+		assert.Equal(t, int32(20474), typedValue)
+	case time.Time:
+		assert.Equal(t, int64(20474*86400), typedValue.Unix())
+	default:
+		t.Fatalf("unexpected type for documentValidTo: %T", value)
+	}
 }
 
 func TestConvertFloat64ToIntForIntegerFields_RecordWithUnions(t *testing.T) {
