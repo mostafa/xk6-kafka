@@ -19,6 +19,23 @@ const (
 			{"name": "name", "type": "string"}
 		]
 	}`
+	testDocumentLogicalDateSchemaJSON = `{
+		"type": "record",
+		"name": "Document",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "documentValidTo",
+				"type": [
+					"null",
+					{
+						"type": "int",
+						"logicalType": "date"
+					}
+				]
+			}
+		]
+	}`
 )
 
 func TestConvertPrimitiveType_Bytes(t *testing.T) {
@@ -378,24 +395,7 @@ func TestConvertUnionField_UnknownWrappedPrimitiveKey(t *testing.T) {
 // TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType tests the exact scenario from issue #376
 // where a union type contains an int with logical type "date".
 func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) {
-	schemaJSON := `{
-		"type": "record",
-		"name": "Document",
-		"namespace": "com.example",
-		"fields": [
-			{
-				"name": "documentValidTo",
-				"type": [
-					"null",
-					{
-						"type": "int",
-						"logicalType": "date"
-					}
-				]
-			}
-		]
-	}`
-	schema, err := avro.Parse(schemaJSON)
+	schema, err := avro.Parse(testDocumentLogicalDateSchemaJSON)
 	require.NoError(t, err)
 
 	// Test case 1: wrapped as {"int": value} - should work
@@ -535,26 +535,9 @@ func TestConvertFloat64ToIntForIntegerFields_NestedUnionWithLogicalTypeIssue376(
 // roundtrip the logical union date field is deserialized as an unwrapped value.
 func TestSerializeDeserializeRoundTrip_UnionWithLogicalType(t *testing.T) {
 	avroSerde := &AvroSerde{}
-	schemaJSON := `{
-		"type": "record",
-		"name": "Document",
-		"namespace": "com.example",
-		"fields": [
-			{
-				"name": "documentValidTo",
-				"type": [
-					"null",
-					{
-						"type": "int",
-						"logicalType": "date"
-					}
-				]
-			}
-		]
-	}`
 	schema := &Schema{
 		ID:      376,
-		Schema:  schemaJSON,
+		Schema:  testDocumentLogicalDateSchemaJSON,
 		Version: 1,
 		Subject: "issue-376-roundtrip",
 	}
@@ -903,24 +886,7 @@ func TestSerializeDeserializeRoundTrip_WithUnions(t *testing.T) {
 }
 
 func TestAvroMarshal_UnionLogicalTypeDateAcceptedShapes(t *testing.T) {
-	schemaJSON := `{
-		"type": "record",
-		"name": "Document",
-		"namespace": "com.example",
-		"fields": [
-			{
-				"name": "documentValidTo",
-				"type": [
-					"null",
-					{
-						"type": "int",
-						"logicalType": "date"
-					}
-				]
-			}
-		]
-	}`
-	schema, err := avro.Parse(schemaJSON)
+	schema, err := avro.Parse(testDocumentLogicalDateSchemaJSON)
 	require.NoError(t, err)
 
 	// Direct int32 value is rejected by hamba/avro for this logical union shape.

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/hamba/avro/v2"
@@ -22,6 +23,37 @@ type AvroSerde struct {
 	Serdes
 }
 
+func convertNumericValueToByte(value any) (byte, error) {
+	switch val := value.(type) {
+	case float64:
+		if val < 0 || val > math.MaxUint8 || math.Trunc(val) != val {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked and integral before narrowing conversion
+		return byte(val), nil
+	case int:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	case int32:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	case int64:
+		if val < 0 || val > math.MaxUint8 {
+			return 0, fmt.Errorf("%w: %v", ErrCannotConvertToByte, value)
+		}
+		//nolint:gosec // value is range-checked before narrowing conversion
+		return byte(val), nil
+	default:
+		return 0, fmt.Errorf("%w: %T", ErrCannotConvertToByte, value)
+	}
+}
+
 // convertPrimitiveType converts a primitive value to the correct Avro type.
 // Handles float64->int32/int64 conversion and array->bytes conversion.
 func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
@@ -31,18 +63,11 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 		if arr, ok := data.([]any); ok {
 			bytes := make([]byte, len(arr))
 			for i, v := range arr {
-				switch val := v.(type) {
-				case float64:
-					bytes[i] = byte(val)
-				case int:
-					bytes[i] = byte(val)
-				case int32:
-					bytes[i] = byte(val)
-				case int64:
-					bytes[i] = byte(val)
-				default:
+				convertedByte, err := convertNumericValueToByte(v)
+				if err != nil {
 					return nil, fmt.Errorf("%w at index %d: %T", ErrCannotConvertToByte, i, v)
 				}
+				bytes[i] = convertedByte
 			}
 			return bytes, nil
 		}
