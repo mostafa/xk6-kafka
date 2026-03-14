@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestSerdes tests serialization and deserialization of messages with different schemas.
@@ -243,6 +244,112 @@ func TestSerializeFails(t *testing.T) {
 
 			err := test.module.serialize(testData.container)
 			assert.Equal(t, err, testData.err)
+		})
+	}
+}
+
+func TestSerialize_AvroNestedUnionWithLogicalTypeIssue376(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	schema := &Schema{
+		ID: 376,
+		Schema: `{
+			"type": "record",
+			"name": "Set",
+			"namespace": "com.example",
+			"fields": [
+				{
+					"name": "document",
+					"type": [
+						"null",
+						{
+							"type": "record",
+							"name": "Document",
+							"fields": [
+								{
+									"name": "documentId",
+									"type": {
+										"type": "string",
+										"avro.java.string": "String"
+									}
+								},
+								{
+									"name": "documentType",
+									"type": [
+										"null",
+										{
+											"type": "string",
+											"avro.java.string": "String"
+										}
+									],
+									"default": null
+								},
+								{
+									"name": "documentValidTo",
+									"type": [
+										"null",
+										{
+											"type": "int",
+											"logicalType": "date"
+										}
+									],
+									"default": null
+								}
+							]
+						}
+					],
+					"default": null
+				}
+			]
+		}`,
+		Version: 1,
+		Subject: "issue-376",
+	}
+
+	testCases := []struct {
+		name          string
+		documentType  any
+		documentValid any
+	}{
+		{
+			name:          "wrapped int.date",
+			documentType:  map[string]any{"string": "OP"},
+			documentValid: map[string]any{"int.date": float64(20474)},
+		},
+		{
+			name:          "wrapped int",
+			documentType:  map[string]any{"string": "OP"},
+			documentValid: map[string]any{"int": float64(20475)},
+		},
+		{
+			name:          "direct scalar",
+			documentType:  "OP",
+			documentValid: float64(20476),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			container := &Container{
+				Data: map[string]any{
+					"document": map[string]any{
+						"com.example.Document": map[string]any{
+							"documentId":      "BR9876543",
+							"documentType":    testCase.documentType,
+							"documentValidTo": testCase.documentValid,
+						},
+					},
+				},
+				Schema:     schema,
+				SchemaType: srclient.Avro,
+			}
+
+			assert.NotPanics(t, func() {
+				serialized := test.module.serialize(container)
+				require.NotNil(t, serialized)
+				require.GreaterOrEqual(t, len(serialized), 5)
+			})
 		})
 	}
 }

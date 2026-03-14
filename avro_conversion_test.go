@@ -303,17 +303,17 @@ func TestConvertUnionField_WrappedPrimitive(t *testing.T) {
 		{
 			name: "wrapped int value",
 			data: map[string]any{"int": float64(20474)},
-			want: int32(20474),
+			want: map[string]any{"int.date": int32(20474)},
 		},
 		{
 			name: "wrapped int with logical type suffix",
 			data: map[string]any{"int.date": float64(20474)},
-			want: int32(20474),
+			want: map[string]any{"int.date": int32(20474)},
 		},
 		{
 			name: "wrapped int with float64 value",
 			data: map[string]any{"int": float64(42)},
-			want: int32(42),
+			want: map[string]any{"int.date": int32(42)},
 		},
 	}
 
@@ -362,6 +362,18 @@ func TestConvertUnionField_WrappedPrimitiveMultipleTypes(t *testing.T) {
 	}
 }
 
+func TestConvertUnionField_UnknownWrappedPrimitiveKey(t *testing.T) {
+	schema, err := avro.Parse(`["null", "int", "string"]`)
+	require.NoError(t, err)
+	unionSchema := schema.(*avro.UnionSchema)
+
+	data := map[string]any{"unknown": float64(42)}
+	got, err := convertUnionField(data, unionSchema)
+	assert.NoError(t, err)
+	// Unknown wrapper keys must not be treated as successful primitive matches.
+	assert.Equal(t, data, got)
+}
+
 // TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType tests the exact scenario from issue #376
 // where a union type contains an int with logical type "date".
 func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) {
@@ -392,7 +404,7 @@ func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) 
 	got1, err := convertFloat64ToIntForIntegerFields(data1, schema)
 	assert.NoError(t, err)
 	result1 := got1.(map[string]any)
-	assert.Equal(t, int32(20474), result1["documentValidTo"])
+	assert.Equal(t, map[string]any{"int.date": int32(20474)}, result1["documentValidTo"])
 
 	// Test case 2: wrapped as {"int.date": value} - should also work (strips logical type suffix)
 	data2 := map[string]any{
@@ -401,7 +413,7 @@ func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) 
 	got2, err := convertFloat64ToIntForIntegerFields(data2, schema)
 	assert.NoError(t, err)
 	result2 := got2.(map[string]any)
-	assert.Equal(t, int32(20474), result2["documentValidTo"])
+	assert.Equal(t, map[string]any{"int.date": int32(20474)}, result2["documentValidTo"])
 
 	// Test case 3: null value - should work
 	data3 := map[string]any{
@@ -411,6 +423,111 @@ func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) 
 	assert.NoError(t, err)
 	result3 := got3.(map[string]any)
 	assert.Nil(t, result3["documentValidTo"])
+}
+
+func TestConvertFloat64ToIntForIntegerFields_NestedUnionWithLogicalTypeIssue376(t *testing.T) {
+	schemaJSON := `{
+		"type": "record",
+		"name": "Set",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "document",
+				"type": [
+					"null",
+					{
+						"type": "record",
+						"name": "Document",
+						"fields": [
+							{
+								"name": "documentId",
+								"type": {
+									"type": "string",
+									"avro.java.string": "String"
+								}
+							},
+							{
+								"name": "documentType",
+								"type": [
+									"null",
+									{
+										"type": "string",
+										"avro.java.string": "String"
+									}
+								],
+								"default": null
+							},
+							{
+								"name": "documentValidTo",
+								"type": [
+									"null",
+									{
+										"type": "int",
+										"logicalType": "date"
+									}
+								],
+								"default": null
+							}
+						]
+					}
+				],
+				"default": null
+			}
+		]
+	}`
+	schema, err := avro.Parse(schemaJSON)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name          string
+		documentType  any
+		documentValid any
+		expectedDay   int32
+	}{
+		{
+			name:          "wrapped int.date",
+			documentType:  map[string]any{"string": "OP"},
+			documentValid: map[string]any{"int.date": float64(20474)},
+			expectedDay:   int32(20474),
+		},
+		{
+			name:          "wrapped int",
+			documentType:  map[string]any{"string": "OP"},
+			documentValid: map[string]any{"int": float64(20475)},
+			expectedDay:   int32(20475),
+		},
+		{
+			name:          "direct scalar",
+			documentType:  "OP",
+			documentValid: float64(20476),
+			expectedDay:   int32(20476),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			data := map[string]any{
+				"document": map[string]any{
+					"com.example.Document": map[string]any{
+						"documentId":      "BR9876543",
+						"documentType":    testCase.documentType,
+						"documentValidTo": testCase.documentValid,
+					},
+				},
+			}
+
+			got, convErr := convertFloat64ToIntForIntegerFields(data, schema)
+			require.NoError(t, convErr)
+
+			result := got.(map[string]any)
+			documentUnion := result["document"].(map[string]any)
+			document := documentUnion["com.example.Document"].(map[string]any)
+
+			documentValidTo, ok := document["documentValidTo"].(map[string]any)
+			require.True(t, ok, "documentValidTo should be wrapped with logical discriminator")
+			assert.Equal(t, map[string]any{"int.date": testCase.expectedDay}, documentValidTo)
+		})
+	}
 }
 
 // TestSerializeDeserializeRoundTrip_UnionWithLogicalType tests that wrapped primitives
@@ -740,4 +857,38 @@ func TestSerializeDeserializeRoundTrip_WithUnions(t *testing.T) {
 	assert.Equal(t, "test", result["optional"])
 	assert.Equal(t, "ACTIVE", result["enumField"])
 	assert.Equal(t, []byte{1, 2, 3}, result["bytesField"])
+}
+
+func TestAvroMarshal_UnionLogicalTypeDateAcceptedShapes(t *testing.T) {
+	schemaJSON := `{
+		"type": "record",
+		"name": "Document",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "documentValidTo",
+				"type": [
+					"null",
+					{
+						"type": "int",
+						"logicalType": "date"
+					}
+				]
+			}
+		]
+	}`
+	schema, err := avro.Parse(schemaJSON)
+	require.NoError(t, err)
+
+	// Direct int32 value is rejected by hamba/avro for this logical union shape.
+	_, err = avro.Marshal(schema, map[string]any{"documentValidTo": int32(20474)})
+	assert.Error(t, err)
+
+	// Wrapped using primitive type name is also rejected.
+	_, err = avro.Marshal(schema, map[string]any{"documentValidTo": map[string]any{"int": int32(20474)}})
+	assert.Error(t, err)
+
+	// Wrapped using logical union type discriminator works.
+	_, err = avro.Marshal(schema, map[string]any{"documentValidTo": map[string]any{"int.date": int32(20474)}})
+	assert.NoError(t, err)
 }
