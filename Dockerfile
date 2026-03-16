@@ -4,7 +4,7 @@ ARG VERSION_TAG
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN apk add --no-cache ca-certificates=20251003-r0 openssl=3.5.4-r0 && \
+RUN apk add --no-cache ca-certificates openssl && \
     adduser -D -u 12345 -g 12345 k6
 COPY ./dist/xk6-kafka_${VERSION_TAG}_${TARGETOS}_${TARGETARCH} /usr/bin/k6
 
