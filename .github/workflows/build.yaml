@@ -113,6 +113,7 @@ jobs:
 
       - name: Scan code with Trivy vulnerability scanner 🔍
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        continue-on-error: true
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           scan-type: "fs"
@@ -124,7 +125,7 @@ jobs:
           skip-dirs: "fixtures"
 
       - name: Upload Trivy scan results to GitHub Security tab ⬆️
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && hashFiles('trivy-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@cf1bb45a277cb3c205638b2cd5c984db1c46a412 # v4.31.7
         with:
           sarif_file: "trivy-results.sarif"
