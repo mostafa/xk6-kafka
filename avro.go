@@ -368,9 +368,10 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			}
 			// Other named types, try converting first
 			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
-			if err == nil {
-				return map[string]any{namedSchema.FullName(): converted}, nil
+			if err != nil {
+				continue
 			}
+			return map[string]any{namedSchema.FullName(): converted}, nil
 		}
 	}
 
