@@ -69,7 +69,7 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 			if len(arr) != size {
 				return nil, fmt.Errorf("%w: expected %d elements, got %d", ErrCannotConvertToByte, size, len(arr))
 			}
-			fixedBytes := reflect.New(reflect.ArrayOf(size, reflect.TypeOf(uint8(0)))).Elem()
+			fixedBytes := reflect.New(reflect.ArrayOf(size, reflect.TypeFor[uint8]())).Elem()
 			for i, v := range arr {
 				convertedByte, err := convertNumericValueToByte(v)
 				if err != nil {

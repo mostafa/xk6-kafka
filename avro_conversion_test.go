@@ -203,8 +203,13 @@ func TestConvertPrimitiveType_Fixed(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "array of float64",
-			data:    []any{float64(1), float64(2), float64(3), float64(4), float64(5), float64(6), float64(7), float64(8), float64(9), float64(10), float64(11), float64(12), float64(13), float64(14), float64(15), float64(16)},
+			name: "array of float64",
+			data: []any{
+				float64(1), float64(2), float64(3), float64(4),
+				float64(5), float64(6), float64(7), float64(8),
+				float64(9), float64(10), float64(11), float64(12),
+				float64(13), float64(14), float64(15), float64(16),
+			},
 			wantErr: false,
 		},
 		{
@@ -218,8 +223,14 @@ func TestConvertPrimitiveType_Fixed(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "wrong size - too many",
-			data:    []any{float64(1), float64(2), float64(3), float64(4), float64(5), float64(6), float64(7), float64(8), float64(9), float64(10), float64(11), float64(12), float64(13), float64(14), float64(15), float64(16), float64(17), float64(18)},
+			name: "wrong size - too many",
+			data: []any{
+				float64(1), float64(2), float64(3), float64(4),
+				float64(5), float64(6), float64(7), float64(8),
+				float64(9), float64(10), float64(11), float64(12),
+				float64(13), float64(14), float64(15), float64(16),
+				float64(17), float64(18),
+			},
 			wantErr: true,
 		},
 		{
