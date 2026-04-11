@@ -2,7 +2,7 @@
 
 ---
 
-# Type Alias: BalancerFunction()
+# Type Alias: BalancerFunction
 
 > **BalancerFunction** = (`key`, `partitionCount`) => `number`
 
