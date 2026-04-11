@@ -120,7 +120,22 @@ export function setup() {
     schemaType: SCHEMA_TYPE_AVRO,
   });
 
-  // 4. Register UserPreferences record
+  // 4. Register SHA256 fixed type (for testing fixed type serialization)
+  const sha256Schema = `{
+    "name": "SHA256",
+    "type": "fixed",
+    "namespace": "com.example.complex",
+    "size": 32
+  }`;
+
+  const sha256Subject = "com.example.complex.SHA256";
+  const sha256SchemaObject = schemaRegistry.createSchema({
+    subject: sha256Subject,
+    schema: sha256Schema,
+    schemaType: SCHEMA_TYPE_AVRO,
+  });
+
+  // 5. Register UserPreferences record
   const userPreferencesSchema = `{
     "name": "UserPreferences",
     "type": "record",
@@ -372,6 +387,11 @@ export function setup() {
         subject: coordinatesSubject,
         version: coordinatesSchemaObject.version || 1, // Use version 1 if version is 0
       },
+      {
+        name: "com.example.complex.SHA256",
+        subject: sha256Subject,
+        version: sha256SchemaObject.version || 1, // Use version 1 if version is 0
+      },
     ],
   });
 
@@ -462,6 +482,11 @@ const valueSchema = `{
     {
       "name": "data",
       "type": ["null", "bytes"],
+      "default": null
+    },
+    {
+      "name": "hash",
+      "type": ["null", "com.example.complex.SHA256"],
       "default": null
     }
   ]
@@ -556,6 +581,8 @@ export default function (data) {
       // For Avro bytes, use array of numbers (0-255) representing byte values
       // In JSON encoding, bytes are typically base64 strings, but arrays work too
       data: index % 5 === 0 ? null : [1, 2, 3, 4, 5, index], // Nullable bytes as array of numbers
+      // For Fixed type (SHA256), use array of 32 numbers representing byte values
+      hash: index % 3 === 0 ? null : Array.from({ length: 32 }, (_, i) => (i + index) % 256),
     };
 
     let messages = [
