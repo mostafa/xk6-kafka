@@ -582,7 +582,10 @@ export default function (data) {
       // In JSON encoding, bytes are typically base64 strings, but arrays work too
       data: index % 5 === 0 ? null : [1, 2, 3, 4, 5, index], // Nullable bytes as array of numbers
       // For Fixed type (SHA256), use array of 32 numbers representing byte values
-      hash: index % 3 === 0 ? null : Array.from({ length: 32 }, (_, i) => (i + index) % 256),
+      hash:
+        index % 3 === 0
+          ? null
+          : Array.from({ length: 32 }, (_, i) => (i + index) % 256),
     };
 
     let messages = [
