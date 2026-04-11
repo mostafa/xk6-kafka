@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 
 	"github.com/hamba/avro/v2"
@@ -58,6 +59,27 @@ func convertNumericValueToByte(value any) (byte, error) {
 // Handles float64->int32/int64 conversion and array->bytes conversion.
 func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 	switch schema.Type() {
+	case avro.Fixed:
+		fixedSchema, ok := schema.(*avro.FixedSchema)
+		if !ok {
+			return data, nil
+		}
+		size := fixedSchema.Size()
+		if arr, ok := data.([]any); ok {
+			if len(arr) != size {
+				return nil, fmt.Errorf("%w: expected %d elements, got %d", ErrCannotConvertToByte, size, len(arr))
+			}
+			fixedBytes := reflect.New(reflect.ArrayOf(size, reflect.TypeFor[uint8]())).Elem()
+			for i, v := range arr {
+				convertedByte, err := convertNumericValueToByte(v)
+				if err != nil {
+					return nil, fmt.Errorf("%w at index %d: %T", ErrCannotConvertToByte, i, v)
+				}
+				fixedBytes.Index(i).SetUint(uint64(convertedByte))
+			}
+			return fixedBytes.Interface(), nil
+		}
+		return data, nil
 	case avro.Bytes:
 		// Convert array of numbers to []byte for bytes fields
 		if arr, ok := data.([]any); ok {
@@ -92,7 +114,7 @@ func convertPrimitiveType(data any, schema avro.Schema) (any, error) {
 		}
 		return data, nil
 	case avro.Record, avro.Error, avro.Ref, avro.Enum, avro.Array, avro.Map,
-		avro.Union, avro.Fixed, avro.String, avro.Float, avro.Double,
+		avro.Union, avro.String, avro.Float, avro.Double,
 		avro.Boolean, avro.Null:
 		fallthrough
 	default:
@@ -346,9 +368,10 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			}
 			// Other named types, try converting first
 			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
-			if err == nil {
-				return map[string]any{namedSchema.FullName(): converted}, nil
+			if err != nil {
+				continue
 			}
+			return map[string]any{namedSchema.FullName(): converted}, nil
 		}
 	}
 
@@ -370,7 +393,7 @@ func convertFloat64ToIntForIntegerFields(data any, schema avro.Schema) (any, err
 	}
 
 	switch schema.Type() {
-	case avro.Bytes, avro.Int, avro.Long:
+	case avro.Bytes, avro.Int, avro.Long, avro.Fixed:
 		return convertPrimitiveType(data, schema)
 	case avro.Record:
 		return convertRecordFields(data, schema, func(fieldValue any, fieldType avro.Schema) (any, error) {
@@ -427,7 +450,7 @@ func convertFloat64ToIntForIntegerFields(data any, schema avro.Schema) (any, err
 			return data, nil
 		}
 		return convertUnionField(data, unionSchema)
-	case avro.Error, avro.Ref, avro.Enum, avro.Fixed, avro.String,
+	case avro.Error, avro.Ref, avro.Enum, avro.String,
 		avro.Float, avro.Double, avro.Boolean, avro.Null:
 		fallthrough
 	default:
