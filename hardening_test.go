@@ -1,9 +1,11 @@
 package kafka
 
 import (
+	"encoding/binary"
 	"testing"
 
 	"github.com/grafana/sobek"
+	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -95,4 +97,45 @@ func TestProduceRejectsBalancerFuncWithoutKeys(t *testing.T) {
 			Messages: []Message{{Value: []byte("value")}},
 		})
 	}, "Balancer function requires message keys")
+}
+
+func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
+	test := getTestModuleInstance(t)
+	avroType := srclient.Avro
+
+	globalSchema := &Schema{
+		ID:            99,
+		Schema:        avroSchemaForSRTests,
+		SchemaType:    &avroType,
+		Version:       1,
+		Subject:       "shared-subject",
+		EnableCaching: true,
+	}
+	localSchema := &Schema{
+		ID:            7,
+		Schema:        avroSchemaForSRTests,
+		SchemaType:    &avroType,
+		Version:       1,
+		Subject:       "shared-subject",
+		EnableCaching: true,
+	}
+
+	test.module.schemaCache["shared-subject"] = globalSchema
+	registry := &schemaRegistryState{
+		cache: map[string]*Schema{
+			"shared-subject": localSchema,
+		},
+	}
+
+	serialized := test.module.serializeWithRegistry(&Container{
+		Data: map[string]any{"field": "value"},
+		Schema: &Schema{
+			Subject:       "shared-subject",
+			EnableCaching: true,
+		},
+		SchemaType: srclient.Avro,
+	}, registry)
+
+	require.GreaterOrEqual(t, len(serialized), MagicPrefixSize)
+	assert.Equal(t, uint32(localSchema.ID), binary.BigEndian.Uint32(serialized[1:5]))
 }

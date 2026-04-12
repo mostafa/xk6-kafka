@@ -74,16 +74,29 @@ type WireFormat struct {
 	Data     []byte `json:"data"`
 }
 
+type schemaRegistryState struct {
+	client *srclient.SchemaRegistryClient
+	cache  map[string]*Schema
+}
+
 // createResolver creates a resolver function for a schema that can fetch referenced schemas.
 // The resolver is independent of any specific schema and can fetch any schema by name.
 func (k *Kafka) createResolver(
 	client *srclient.SchemaRegistryClient,
 	enableCaching bool,
 ) func(name string) (*Schema, error) {
+	return k.createResolverWithCache(client, k.schemaCache, enableCaching)
+}
+
+func (k *Kafka) createResolverWithCache(
+	client *srclient.SchemaRegistryClient,
+	cache map[string]*Schema,
+	enableCaching bool,
+) func(name string) (*Schema, error) {
 	return func(name string) (*Schema, error) {
 		// Try to find the referenced schema in the cache first
 		if enableCaching {
-			for subject, cachedSchema := range k.schemaCache {
+			for subject, cachedSchema := range cache {
 				// Check if cached schema matches the reference name by subject
 				if subject == name {
 					return cachedSchema, nil
@@ -126,10 +139,10 @@ func (k *Kafka) createResolver(
 				SchemaType:    refSchemaInfo.SchemaType(),
 				References:    refSchemaInfo.References(),
 				Subject:       name,
-				resolver:      k.createResolver(client, enableCaching), // Recursive resolver setup
+				resolver:      k.createResolverWithCache(client, cache, enableCaching), // Recursive resolver setup
 			}
 			if refSchema.EnableCaching {
-				k.schemaCache[name] = refSchema
+				cache[name] = refSchema
 			}
 			return refSchema, nil
 		}
@@ -137,7 +150,7 @@ func (k *Kafka) createResolver(
 		// If GetLatestSchema failed, try to search through all cached schemas' references
 		// This handles the case where a nested reference is specified in a parent schema's references
 		if enableCaching {
-			for _, cachedSchema := range k.schemaCache {
+			for _, cachedSchema := range cache {
 				for _, ref := range cachedSchema.References {
 					if ref.Name == name {
 						// Fetch the referenced schema from the registry using the reference info
@@ -153,10 +166,10 @@ func (k *Kafka) createResolver(
 							SchemaType:    refSchemaInfo.SchemaType(),
 							References:    refSchemaInfo.References(),
 							Subject:       ref.Subject,
-							resolver:      k.createResolver(client, enableCaching),
+							resolver:      k.createResolverWithCache(client, cache, enableCaching),
 						}
 						if refSchema.EnableCaching {
-							k.schemaCache[ref.Subject] = refSchema
+							cache[ref.Subject] = refSchema
 						}
 						return refSchema, nil
 					}
@@ -385,14 +398,13 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 	runtime := k.vu.Runtime()
 	var configuration SchemaRegistryConfig
 	var schemaRegistryClient *srclient.SchemaRegistryClient
+	registryState := &schemaRegistryState{cache: make(map[string]*Schema)}
 
 	if len(call.Arguments) == 1 {
 		decodeArgument(runtime, call.Argument(0), &configuration, "schema registry config")
 
 		schemaRegistryClient = k.schemaRegistryClient(&configuration)
-
-		// Store the client in Kafka struct so we can use it to create resolvers later
-		k.currentSchemaRegistry = schemaRegistryClient
+		registryState.client = schemaRegistryClient
 	}
 
 	schemaRegistryClientObject := runtime.NewObject()
@@ -406,14 +418,14 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if schemaRegistryClient == nil {
+		if registryState.client == nil {
 			common.Throw(runtime, ErrNoSchemaRegistryClient)
 		}
 
 		var schema *Schema
 		decodeArgument(runtime, call.Argument(0), &schema, "schema metadata")
 
-		return runtime.ToValue(k.getSchema(schemaRegistryClient, schema))
+		return runtime.ToValue(k.getSchemaWithCache(registryState.client, registryState.cache, schema))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
@@ -424,14 +436,14 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if schemaRegistryClient == nil {
+		if registryState.client == nil {
 			common.Throw(runtime, ErrNoSchemaRegistryClient)
 		}
 
 		var schema *Schema
 		decodeArgument(runtime, call.Argument(0), &schema, "schema metadata")
 
-		return runtime.ToValue(k.createSchema(schemaRegistryClient, schema))
+		return runtime.ToValue(k.createSchemaWithCache(registryState.client, registryState.cache, schema))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
@@ -459,7 +471,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		var metadata *Container
 		decodeArgument(runtime, call.Argument(0), &metadata, "serialize metadata")
 
-		return runtime.ToValue(k.serialize(metadata))
+		return runtime.ToValue(k.serializeWithRegistry(metadata, registryState))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
@@ -473,7 +485,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		var metadata *Container
 		decodeArgument(runtime, call.Argument(0), &metadata, "deserialize metadata")
 
-		return runtime.ToValue(k.deserialize(metadata))
+		return runtime.ToValue(k.deserializeWithRegistry(metadata, registryState))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
@@ -585,6 +597,14 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 
 // getSchema returns the schema for the given subject and schema ID and version.
 func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
+	return k.getSchemaWithCache(client, k.schemaCache, schema)
+}
+
+func (k *Kafka) getSchemaWithCache(
+	client *srclient.SchemaRegistryClient,
+	cache map[string]*Schema,
+	schema *Schema,
+) *Schema {
 	if client == nil {
 		throwConfigError(k.vu.Runtime(), newMissingConfigError("schema registry client"))
 		return nil
@@ -603,7 +623,7 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 
 	// If EnableCache is set, check if the schema is in the cache.
 	if schema.EnableCaching {
-		if schema, ok := k.schemaCache[schema.Subject]; ok {
+		if schema, ok := cache[schema.Subject]; ok {
 			return schema
 		}
 	}
@@ -629,11 +649,11 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 			SchemaType:    schemaInfo.SchemaType(),
 			References:    schemaInfo.References(),
 			Subject:       schema.Subject,
-			resolver:      k.createResolver(client, schema.EnableCaching),
+			resolver:      k.createResolverWithCache(client, cache, schema.EnableCaching),
 		}
 		// If the Cache is set, cache the schema.
 		if wrappedSchema.EnableCaching {
-			k.schemaCache[wrappedSchema.Subject] = wrappedSchema
+			cache[wrappedSchema.Subject] = wrappedSchema
 		}
 		return wrappedSchema
 	} else {
@@ -645,6 +665,14 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 
 // createSchema creates a new schema in the schema registry.
 func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
+	return k.createSchemaWithCache(client, k.schemaCache, schema)
+}
+
+func (k *Kafka) createSchemaWithCache(
+	client *srclient.SchemaRegistryClient,
+	cache map[string]*Schema,
+	schema *Schema,
+) *Schema {
 	runtime := k.vu.Runtime()
 	if client == nil {
 		throwConfigError(runtime, newMissingConfigError("schema registry client"))
@@ -686,10 +714,10 @@ func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Sche
 		SchemaType:    schemaInfo.SchemaType(),
 		References:    schemaInfo.References(),
 		Subject:       schema.Subject,
-		resolver:      k.createResolver(client, schema.EnableCaching),
+		resolver:      k.createResolverWithCache(client, cache, schema.EnableCaching),
 	}
 	if schema.EnableCaching {
-		k.schemaCache[schema.Subject] = wrappedSchema
+		cache[schema.Subject] = wrappedSchema
 	}
 	return wrappedSchema
 }
