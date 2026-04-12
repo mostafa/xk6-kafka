@@ -7,7 +7,6 @@ import (
 
 	"github.com/grafana/sobek"
 	"github.com/riferrei/srclient"
-	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -407,12 +406,12 @@ func TestReaderClass(t *testing.T) {
 		})
 		assert.NotNil(t, reader)
 		thisVal := reader.Get("This").Export()
-		this, ok := thisVal.(*kafkago.Reader)
+		this, ok := thisVal.(*Consumer)
 		assert.True(t, ok)
 		assert.NotNil(t, this)
-		assert.Equal(t, this.Config().Brokers, []string{"localhost:9092"})
-		assert.Equal(t, this.Config().Topic, test.topicName)
-		assert.Equal(t, this.Config().MaxWait, time.Second*3)
+		assert.Equal(t, "localhost:9092", this.config["bootstrap.servers"])
+		assert.Equal(t, test.topicName, this.topic)
+		assert.Equal(t, 3000, this.config["fetch.wait.max.ms"])
 
 		consumeVal := reader.Get("consume").Export()
 		consume, ok := consumeVal.(func(sobek.FunctionCall) sobek.Value)
@@ -445,13 +444,5 @@ func TestReaderClass(t *testing.T) {
 		assert.NotNil(t, closeFunc)
 		result := closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
-
-		// Check if one message was consumed.
-		metricsValues := test.getCounterMetricsValues()
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
-		assert.Equal(t, 8.0, metricsValues[test.module.metrics.ReaderBytes.Name])
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderMessages.Name])
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 	})
 }

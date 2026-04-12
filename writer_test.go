@@ -305,12 +305,13 @@ func TestWriterClass(t *testing.T) {
 		result = closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
-		// Check if one message was produced.
-		metricsValues := test.getCounterMetricsValues()
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
-		assert.Equal(t, 31, int(metricsValues[test.module.metrics.WriterBytes.Name]))
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
+		reader := test.newReader()
+		defer func() {
+			_ = reader.Close()
+		}()
+
+		messages := test.module.consume(reader, &ConsumeConfig{Limit: 1, ExpectTimeout: true})
+		assert.Len(t, messages, 1)
 	})
 }
 

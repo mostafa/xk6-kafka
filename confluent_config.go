@@ -290,11 +290,18 @@ func connectionConfigToConfluentConfigMap(connectionConfig *ConnectionConfig) (c
 	if connectionConfig == nil {
 		return nil, newMissingConfigError("connection config")
 	}
-	if connectionConfig.Address == "" {
+	brokers := append([]string(nil), connectionConfig.Brokers...)
+	if len(brokers) == 0 {
+		if connectionConfig.Address == "" {
+			return nil, newInvalidConfigError("connection config", errors.New("address must not be empty"))
+		}
+		brokers = []string{connectionConfig.Address}
+	}
+	if len(brokers) == 0 {
 		return nil, newInvalidConfigError("connection config", errors.New("address must not be empty"))
 	}
 
-	config, err := newConfluentConfigMap([]string{connectionConfig.Address})
+	config, err := newConfluentConfigMap(brokers)
 	if err != nil {
 		return nil, err
 	}
