@@ -5,6 +5,7 @@ go 1.26
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.14
+	github.com/confluentinc/confluent-kafka-go/v2 v2.14.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/grafana/sobek v0.0.0-20260219184149-bdae4a158e94
 	github.com/hamba/avro/v2 v2.31.0
