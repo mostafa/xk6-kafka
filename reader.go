@@ -87,6 +87,7 @@ type ReaderConfig struct {
 
 type ConsumeConfig struct {
 	Limit         int64 `json:"limit"`
+	MaxMessages   int64 `json:"maxMessages"`
 	NanoPrecision bool  `json:"nanoPrecision"`
 	ExpectTimeout bool  `json:"expectTimeout"`
 }
@@ -126,6 +127,14 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 // for this extension, thus it must be called with new operator, e.g. new Reader(...).
 // nolint: funlen
 func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatConsumerClass(call)
+}
+
+func (k *Kafka) consumerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatConsumerClass(call)
+}
+
+func (k *Kafka) compatConsumerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var readerConfig ReaderConfig
 	if len(call.Arguments) == 0 {
@@ -134,15 +143,17 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 
 	decodeArgument(runtime, call.Argument(0), &readerConfig, "reader config")
 
-	reader := k.reader(&readerConfig)
-
-	readerObject := runtime.NewObject()
-	// This is the reader object itself
-	if err := readerObject.Set("This", reader); err != nil {
+	consumer, err := NewConsumerFromReaderConfig(&readerConfig)
+	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err := readerObject.Set("consume", func(call sobek.FunctionCall) sobek.Value {
+	consumerObject := runtime.NewObject()
+	if err := consumerObject.Set("This", consumer); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("consume", func(call sobek.FunctionCall) sobek.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -150,15 +161,74 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 
 		decodeArgument(runtime, call.Argument(0), &consumeConfig, "consume config")
 
-		return runtime.ToValue(k.consume(reader, consumeConfig))
+		return runtime.ToValue(k.consumeWithConsumer(consumer, consumeConfig))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	// This is unnecessary, but it's here for reference purposes
-	err = readerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
-		if err := reader.Close(); err != nil {
+	err = consumerObject.Set("seek", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) < 2 {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		var partition int
+		var offset int64
+		if err := runtime.ExportTo(call.Argument(0), &partition); err != nil {
+			common.Throw(runtime, newInvalidConfigError("partition", err))
+		}
+		if err := runtime.ExportTo(call.Argument(1), &offset); err != nil {
+			common.Throw(runtime, newInvalidConfigError("offset", err))
+		}
+
+		if err := consumer.Seek(partition, offset); err != nil {
+			common.Throw(runtime, err)
+		}
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("position", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) == 0 {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		var partition int
+		if err := runtime.ExportTo(call.Argument(0), &partition); err != nil {
+			common.Throw(runtime, newInvalidConfigError("partition", err))
+		}
+
+		position, err := consumer.Position(partition)
+		if err != nil {
+			common.Throw(runtime, err)
+		}
+		return runtime.ToValue(position)
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("commitOffsets", func(_ sobek.FunctionCall) sobek.Value {
+		if err := consumer.CommitOffsets(ensureContext(k.vu.Context())); err != nil {
+			common.Throw(runtime, err)
+		}
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
+		return runtime.ToValue(consumer.Stats())
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
+		if err := consumer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
@@ -168,11 +238,126 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	if err := freeze(readerObject); err != nil {
+	if err := freeze(consumerObject); err != nil {
 		common.Throw(runtime, err)
 	}
 
-	return runtime.ToValue(readerObject).ToObject(runtime)
+	return runtime.ToValue(consumerObject).ToObject(runtime)
+}
+
+func (c *ConsumeConfig) effectiveLimit() int {
+	if c == nil {
+		return 1
+	}
+	switch {
+	case c.MaxMessages > 0:
+		return int(c.MaxMessages)
+	case c.Limit > 0:
+		return int(c.Limit)
+	default:
+		return 1
+	}
+}
+
+func (k *Kafka) consumeWithConsumer(
+	consumer *Consumer,
+	consumeConfig *ConsumeConfig,
+) []map[string]any {
+	if consumer == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("consumer"))
+		return nil
+	}
+	if consumeConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("consume config"))
+		return nil
+	}
+
+	if state := k.vu.State(); state == nil {
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
+	}
+
+	ctx := k.vu.Context()
+	if ctx == nil {
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
+		logger.WithField("error", err).Info(err)
+		common.Throw(k.vu.Runtime(), err)
+	}
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
+	defer cancel()
+
+	messages, err := consumer.Consume(ctxWithTimeout, consumeConfig.effectiveLimit())
+	if err != nil {
+		if consumeConfig.ExpectTimeout && errors.Is(err, context.DeadlineExceeded) {
+			return []map[string]any{}
+		}
+
+		logger.WithField("error", err).Error(err)
+		common.Throw(k.vu.Runtime(), err)
+	}
+
+	return messagesToJS(messages, consumeConfig.NanoPrecision)
+}
+
+func confluentConsumerMaxWait(consumer *Consumer) time.Duration {
+	if consumer == nil {
+		return defaultConfluentTimeout
+	}
+
+	raw, ok := consumer.config["fetch.wait.max.ms"]
+	if !ok {
+		return defaultConfluentTimeout
+	}
+
+	switch value := raw.(type) {
+	case int:
+		return time.Duration(value) * time.Millisecond
+	case int32:
+		return time.Duration(value) * time.Millisecond
+	case int64:
+		return time.Duration(value) * time.Millisecond
+	case float64:
+		return time.Duration(value) * time.Millisecond
+	default:
+		return defaultConfluentTimeout
+	}
+}
+
+func messagesToJS(messages []Message, nanoPrecision bool) []map[string]any {
+	converted := make([]map[string]any, 0, len(messages))
+	for _, msg := range messages {
+		messageTime := msg.Time.Format(time.RFC3339)
+		if nanoPrecision {
+			messageTime = msg.Time.Format(time.RFC3339Nano)
+		}
+
+		message := map[string]any{
+			"topic":         msg.Topic,
+			"partition":     msg.Partition,
+			"offset":        msg.Offset,
+			"time":          messageTime,
+			"highWaterMark": msg.HighWaterMark,
+			"headers":       map[string]any{},
+		}
+
+		if headers, ok := message["headers"].(map[string]any); ok {
+			for key, value := range msg.Headers {
+				headers[key] = value
+			}
+		}
+
+		if len(msg.Key) > 0 {
+			message["key"] = msg.Key
+		}
+		if len(msg.Value) > 0 {
+			message["value"] = msg.Value
+		}
+
+		converted = append(converted, message)
+	}
+
+	return converted
 }
 
 // reader creates a Kafka reader with the given configuration

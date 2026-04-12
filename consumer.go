@@ -3,6 +3,8 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -21,6 +23,18 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 	config, err := readerConfigToConfluentConfigMap(readerConfig)
 	if err != nil {
 		return nil, err
+	}
+	if readerConfig != nil && readerConfig.GroupID == "" {
+		if err := setConfluentConfigValue(
+			config,
+			"group.id",
+			fmt.Sprintf("xk6-kafka-reader-%d", time.Now().UnixNano()),
+		); err != nil {
+			return nil, err
+		}
+		if err := setConfluentConfigValue(config, "enable.auto.commit", false); err != nil {
+			return nil, err
+		}
 	}
 
 	client, err := ckafka.NewConsumer(&config)

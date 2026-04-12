@@ -38,11 +38,31 @@ func TestWriterClassRejectsNonObjectConfig(t *testing.T) {
 	}, "Invalid writer config, OriginalError: expected object, got string")
 }
 
+func TestProducerClassRejectsNonObjectConfig(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.producerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{test.rt.ToValue("invalid")},
+		})
+	}, "Invalid writer config, OriginalError: expected object, got string")
+}
+
 func TestReaderClassRejectsNonObjectConfig(t *testing.T) {
 	test := getTestModuleInstance(t)
 
 	requireGoErrorMessage(t, func() {
 		test.module.readerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{test.rt.ToValue("invalid")},
+		})
+	}, "Invalid reader config, OriginalError: expected object, got string")
+}
+
+func TestConsumerClassRejectsNonObjectConfig(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.consumerClass(sobek.ConstructorCall{
 			Arguments: []sobek.Value{test.rt.ToValue("invalid")},
 		})
 	}, "Invalid reader config, OriginalError: expected object, got string")
@@ -56,6 +76,30 @@ func TestConnectionClassRejectsMissingAddress(t *testing.T) {
 			Arguments: []sobek.Value{test.rt.ToValue(map[string]any{})},
 		})
 	}, "Invalid connection config, OriginalError: address must not be empty")
+}
+
+func TestAdminClientClassRejectsMissingAddress(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.adminClientClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{test.rt.ToValue(map[string]any{})},
+		})
+	}, "Invalid connection config, OriginalError: address must not be empty")
+}
+
+func TestWriterClassRejectsBalancerOnConfluentCompatibilityPath(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.writerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{test.rt.ToValue(map[string]any{
+				"brokers":  []string{"localhost:9092"},
+				"topic":    "test-topic",
+				"balancer": balancerRoundRobin,
+			})},
+		})
+	}, "Writer balancer configuration is not supported on the Confluent compatibility path.")
 }
 
 func TestSchemaRegistryClientClassRejectsMissingURL(t *testing.T) {

@@ -121,10 +121,18 @@ type ProduceConfig struct {
 	Messages []Message `json:"messages"`
 }
 
+func (k *Kafka) producerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatProducerClass(call)
+}
+
 // writerClass is a wrapper around kafkago.writer and acts as a JS constructor
 // for this extension, thus it must be called with new operator, e.g. new Writer(...).
 // nolint: funlen
 func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatProducerClass(call)
+}
+
+func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
@@ -137,15 +145,20 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 	if err != nil {
 		throwConfigError(runtime, newInvalidConfigError("writer config", err))
 	}
-	writer := k.writer(&writerConfig)
-
-	writerObject := runtime.NewObject()
-	// This is the writer object itself.
-	if err := writerObject.Set("This", writer); err != nil {
+	if err := validateConfluentWriterCompatibility(&writerConfig); err != nil {
+		common.Throw(runtime, err)
+	}
+	producer, err := NewProducerFromWriterConfig(&writerConfig)
+	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err = writerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
+	producerObject := runtime.NewObject()
+	if err := producerObject.Set("This", producer); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
@@ -153,16 +166,35 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 
 		decodeArgument(runtime, call.Argument(0), &producerConfig, "produce config")
 
-		k.produce(writer, producerConfig)
+		k.produceWithProducer(producer, producerConfig)
 		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	// This is unnecessary, but it's here for reference purposes.
-	err = writerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
-		if err := writer.Close(); err != nil {
+	err = producerObject.Set("flush", func(_ sobek.FunctionCall) sobek.Value {
+		if ctx := k.vu.Context(); ctx != nil {
+			if err := producer.Flush(ctx); err != nil {
+				common.Throw(runtime, err)
+			}
+		}
+
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
+		return runtime.ToValue(producer.Stats())
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
+		if err := producer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
@@ -172,11 +204,54 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	if err := freeze(writerObject); err != nil {
+	if err := freeze(producerObject); err != nil {
 		common.Throw(runtime, err)
 	}
 
-	return runtime.ToValue(writerObject).ToObject(runtime)
+	return runtime.ToValue(producerObject).ToObject(runtime)
+}
+
+func validateConfluentWriterCompatibility(writerConfig *WriterConfig) *Xk6KafkaError {
+	if writerConfig == nil {
+		return newMissingConfigError("writer config")
+	}
+	if writerConfig.Balancer != "" || writerConfig.BalancerFunc != nil {
+		return NewXk6KafkaError(
+			unsupportedOperation,
+			"Writer balancer configuration is not supported on the Confluent compatibility path.",
+			nil,
+		)
+	}
+
+	return nil
+}
+
+func (k *Kafka) produceWithProducer(producer *Producer, produceConfig *ProduceConfig) {
+	if producer == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("producer"))
+		return
+	}
+	if produceConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("produce config"))
+		return
+	}
+
+	if state := k.vu.State(); state == nil {
+		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
+		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
+	}
+
+	ctx := k.vu.Context()
+	if ctx == nil {
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
+		logger.WithField("error", err).Info(err)
+		common.Throw(k.vu.Runtime(), err)
+	}
+
+	if err := producer.Produce(ctx, produceConfig.Messages); err != nil {
+		logger.WithField("error", err).Error(err)
+		common.Throw(k.vu.Runtime(), err)
+	}
 }
 
 // writer creates a new Kafka writer.
