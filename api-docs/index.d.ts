@@ -210,7 +210,9 @@ export interface ReaderConfig {
 /** Configuration for Consume method. */
 export interface ConsumeConfig {
   /** collect this many messages before returning. */
-  limit: number;
+  limit?: number;
+  /** preferred v2 alias for limit. */
+  maxMessages?: number;
   /** If true, returned message RFC3339 timestamps carry nanosecond precision. */
   nanoPrecision: boolean;
   /**
@@ -222,7 +224,8 @@ export interface ConsumeConfig {
 
 /* Configuration for creating a Connector instance for working with topics. */
 export interface ConnectionConfig {
-  address: string;
+  address?: string;
+  brokers?: string[];
   sasl: SASLConfig;
   tls: TLSConfig;
 }
@@ -246,6 +249,34 @@ export interface TopicConfig {
   replicationFactor: number;
   replicaAssignments: ReplicaAssignment[];
   configEntries: ConfigEntry[];
+}
+
+export interface ProducerStats {
+  pending: number;
+}
+
+export interface ConsumerStats {
+  assignments: number;
+}
+
+export interface TopicInfo {
+  topic: string;
+  partitions: number;
+  error: any | null;
+}
+
+export interface PartitionInfo {
+  id: number;
+  leader: number;
+  replicas: number[];
+  isrs: number[];
+  error: any | null;
+}
+
+export interface TopicMetadata {
+  topic: string;
+  partitions: PartitionInfo[];
+  error: any | null;
 }
 
 /* Reference uses the import statement of Protobuf
@@ -322,6 +353,17 @@ export interface JKS {
  * writer.close();
  * ```
  */
+export class Producer {
+  constructor(writerConfig: WriterConfig);
+  produce(produceConfig: ProduceConfig): void;
+  flush(): void;
+  stats(): ProducerStats;
+  close(): void;
+}
+
+/**
+ * @deprecated Use `Producer` instead. `Writer` remains as a compatibility alias in v2.x.
+ */
 export class Writer {
   /**
    * @constructor
@@ -364,6 +406,19 @@ export class Writer {
  * reader.close();
  * ```
  */
+export class Consumer {
+  constructor(readerConfig: ReaderConfig);
+  consume(consumeConfig: ConsumeConfig): Message[];
+  seek(partition: number, offset: number): void;
+  position(partition: number): number;
+  commitOffsets(): void;
+  stats(): ConsumerStats;
+  close(): void;
+}
+
+/**
+ * @deprecated Use `Consumer` instead. `Reader` remains as a compatibility alias in v2.x.
+ */
 export class Reader {
   /**
    * @constructor
@@ -404,6 +459,18 @@ export class Reader {
  * // In teardown function
  * connection.close();
  * ```
+ */
+export class AdminClient {
+  constructor(connectionConfig: ConnectionConfig);
+  createTopic(topicConfig: TopicConfig): void;
+  deleteTopic(topic: string): void;
+  listTopics(): TopicInfo[];
+  getMetadata(topic: string): TopicMetadata;
+  close(): void;
+}
+
+/**
+ * @deprecated Use `AdminClient` instead. `Connection` remains as a compatibility alias in v2.x.
  */
 export class Connection {
   /**

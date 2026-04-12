@@ -153,6 +153,23 @@ All the exported functions are available by importing the module object from `k6
 > [!NOTE]
 > The JavaScript API is stable as of version 1.0.0 and is not subject to major changes in future versions unless a new major version is released.
 
+## v2 API Migration
+
+`v2.0.0` introduces three new JavaScript constructors:
+
+- `Producer` replaces `Writer`
+- `Consumer` replaces `Reader`
+- `AdminClient` replaces `Connection`
+
+The v1 names are still exported in `v2.x` as deprecated compatibility aliases over the same Confluent-backed runtime path. See [MIGRATION.md](./MIGRATION.md) for the current parity matrix and deprecation notes.
+
+Current compatibility notes:
+
+- `Writer`, `Reader`, and `Connection` continue to work in `v2.x`, but new examples should prefer `Producer`, `Consumer`, and `AdminClient`.
+- `ConnectionConfig` now also accepts `brokers` for the new `AdminClient` constructor, while the legacy `Connection` constructor still accepts `address`.
+- `consumer.consume({ maxMessages })` is the new spelling; `reader.consume({ limit })` remains supported.
+- Custom writer balancer configuration is not supported on the Confluent compatibility path and should be treated as a migration blocker for now.
+
 ### k6 Test Scripts
 
 The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. Since this project extends the functionality of k6, it has four stages in the [test life cycle](https://grafana.com/docs/k6/latest/using-k6/test-lifecycle/).
@@ -169,9 +186,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    // Or individual classes and constants
    import { sleep } from "k6";
    import {
-     Writer,
-     Reader,
-     Connection,
+     Producer,
+     Consumer,
+     AdminClient,
      SchemaRegistry,
      SCHEMA_TYPE_STRING,
    } from "k6/x/kafka";
@@ -180,22 +197,22 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 2. You need to instantiate the classes in the `init` context. All the [k6 options](https://k6.io/docs/using-k6/k6-options/) are also configured here:
 
    ```javascript
-   // Creates a new Writer object to produce messages to Kafka
-   const writer = new Writer({
-     // WriterConfig object
+   // Creates a new Producer object to produce messages to Kafka
+   const producer = new Producer({
+     // WriterConfig-compatible object
      brokers: ["localhost:9092"],
      topic: "my-topic",
    });
 
-   const reader = new Reader({
-     // ReaderConfig object
+   const consumer = new Consumer({
+     // ReaderConfig-compatible object
      brokers: ["localhost:9092"],
      topic: "my-topic",
    });
 
-   const connection = new Connection({
-     // ConnectionConfig object
-     address: "localhost:9092",
+   const admin = new AdminClient({
+     // ConnectionConfig-compatible object
+     brokers: ["localhost:9092"],
    });
 
    const schemaRegistry = new SchemaRegistry({
@@ -205,11 +222,11 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
    // Create topic in setup() to avoid race conditions with multiple VUs
    export function setup() {
-     // Connection must be created inside setup() to ensure proper VU context
-     const setupConnection = new Connection({
-       address: "localhost:9092",
+     // AdminClient must be created inside setup() to ensure proper VU context
+     const setupAdmin = new AdminClient({
+       brokers: ["localhost:9092"],
      });
-     setupConnection.createTopic({
+     setupAdmin.createTopic({
        // TopicConfig object
        topic: "my-topic",
        numPartitions: 10, // optional, defaults to 1
@@ -217,28 +234,28 @@ The example scripts are available as `test_<format/feature>.js` with more code a
      });
 
      // Verify topic was created
-     const topics = setupConnection.listTopics();
-     if (!topics.includes("my-topic")) {
+     const topics = setupAdmin.listTopics();
+     if (!topics.some((topic) => topic.topic === "my-topic")) {
        throw new Error("Topic was not created successfully");
      }
 
-     setupConnection.close();
+     setupAdmin.close();
 
      // Wait for Kafka metadata to propagate to all brokers
-     // This ensures Writer/Reader can see all partitions
+     // This ensures Producer/Consumer can see all partitions
      sleep(2);
    }
    ```
 
-   **⚠️ Important**: Do NOT use `if (__VU == 0)` at module level for topic creation. This causes race conditions where other VUs start before the topic is created. Always use the `setup()` function or set `autoCreateTopic: true` on the Writer.
+   **⚠️ Important**: Do NOT use `if (__VU == 0)` at module level for topic creation. This causes race conditions where other VUs start before the topic is created. Always use the `setup()` function or set `autoCreateTopic: true` on the Writer/Producer config.
 
    **Alternative**: If you don't need to control partition count, use `autoCreateTopic`:
 
    ```javascript
-   const writer = new Writer({
+   const producer = new Producer({
      brokers: ["localhost:9092"],
      topic: "my-topic",
-     autoCreateTopic: true, // Let Writer auto-create the topic
+     autoCreateTopic: true, // Let Producer auto-create the topic
    });
    ```
 
@@ -247,11 +264,11 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    ```javascript
    export default function () {
      // Fetch the list of all topics
-     const topics = connection.listTopics();
+     const topics = admin.listTopics();
      console.log(topics); // list of topics
 
      // Produces message to Kafka
-     writer.produce({
+     producer.produce({
        // ProduceConfig object
        messages: [
          // Message object(s)
@@ -269,9 +286,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
      });
 
      // Consume messages from Kafka
-     let messages = reader.consume({
+     let messages = consumer.consume({
        // ConsumeConfig object
-       limit: 10,
+       maxMessages: 10,
      });
 
      // your messages
