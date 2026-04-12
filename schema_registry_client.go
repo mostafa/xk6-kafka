@@ -75,14 +75,14 @@ func (a *confluentSchemaRegistryAdapter) CreateSchema(
 ) (*RegisteredSchema, error) {
 	defer a.clearCachesIfDisabled()
 
-	metadata, err := a.client.RegisterFullResponse(subject, cschemaregistry.SchemaInfo{
-		Schema:     schema,
-		SchemaType: string(normalizeSchemaType(string(schemaType))),
-		References: references,
-	}, false)
+	schemaInfo := newConfluentSchemaInfo(schema, schemaType, references)
+
+	metadata, err := a.client.RegisterFullResponse(subject, schemaInfo, false)
 	if err != nil {
 		return nil, err
 	}
+
+	metadata = a.hydrateRegisteredMetadata(subject, schemaInfo, metadata)
 
 	return newRegisteredSchema(
 		metadata.ID,
@@ -103,4 +103,71 @@ func (a *confluentSchemaRegistryAdapter) clearCachesIfDisabled() {
 	}
 
 	_ = a.client.ClearCaches()
+}
+
+func newConfluentSchemaInfo(
+	schema string,
+	schemaType SchemaType,
+	references []Reference,
+) cschemaregistry.SchemaInfo {
+	return cschemaregistry.SchemaInfo{
+		Schema:     schema,
+		SchemaType: string(normalizeSchemaType(string(schemaType))),
+		References: references,
+	}
+}
+
+func (a *confluentSchemaRegistryAdapter) hydrateRegisteredMetadata(
+	subject string,
+	schemaInfo cschemaregistry.SchemaInfo,
+	metadata cschemaregistry.SchemaMetadata,
+) cschemaregistry.SchemaMetadata {
+	if metadata.Subject == "" {
+		metadata.Subject = subject
+	}
+	if metadata.Schema == "" {
+		metadata.Schema = schemaInfo.Schema
+	}
+	if metadata.SchemaType == "" {
+		metadata.SchemaType = schemaInfo.SchemaType
+	}
+	if len(metadata.References) == 0 && len(schemaInfo.References) > 0 {
+		metadata.References = schemaInfo.References
+	}
+	if metadata.Version > 0 {
+		return metadata
+	}
+
+	version, err := a.client.GetVersion(subject, schemaInfo, false)
+	if err != nil || version <= 0 {
+		return metadata
+	}
+
+	metadata.Version = version
+
+	hydrated, err := a.client.GetSchemaMetadata(subject, version)
+	if err != nil {
+		return metadata
+	}
+
+	if hydrated.Subject == "" {
+		hydrated.Subject = subject
+	}
+	if hydrated.ID == 0 {
+		hydrated.ID = metadata.ID
+	}
+	if hydrated.Schema == "" {
+		hydrated.Schema = schemaInfo.Schema
+	}
+	if hydrated.SchemaType == "" {
+		hydrated.SchemaType = schemaInfo.SchemaType
+	}
+	if hydrated.Version == 0 {
+		hydrated.Version = version
+	}
+	if len(hydrated.References) == 0 && len(schemaInfo.References) > 0 {
+		hydrated.References = schemaInfo.References
+	}
+
+	return hydrated
 }
