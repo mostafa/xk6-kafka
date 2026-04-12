@@ -3,18 +3,29 @@ package kafka
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 
 	"github.com/grafana/sobek"
 )
 
 // freeze disallows resetting or changing the properties of the object.
-func freeze(o *sobek.Object) {
+func freeze(o *sobek.Object) *Xk6KafkaError {
+	if o == nil {
+		return NewXk6KafkaError(
+			failedFreezeObject,
+			"Failed to freeze JS object.",
+			errors.New("object must not be nil"),
+		)
+	}
+
 	for _, key := range o.Keys() {
 		if err := o.DefineDataProperty(
 			key, o.Get(key), sobek.FLAG_FALSE, sobek.FLAG_FALSE, sobek.FLAG_TRUE); err != nil {
-			panic(err)
+			return NewXk6KafkaError(failedFreezeObject, "Failed to freeze JS object.", err)
 		}
 	}
+
+	return nil
 }
 
 // base64ToBytes converts the base64 encoded data to bytes.

@@ -168,7 +168,9 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	freeze(readerObject)
+	if err := freeze(readerObject); err != nil {
+		common.Throw(runtime, err)
+	}
 
 	return runtime.ToValue(readerObject).ToObject(runtime)
 }
