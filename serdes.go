@@ -1,14 +1,13 @@
 package kafka
 
 import (
-	"github.com/riferrei/srclient"
 	"go.k6.io/k6/js/common"
 )
 
 type Container struct {
-	Data       any                 `json:"data"`
-	Schema     *Schema             `json:"schema"`
-	SchemaType srclient.SchemaType `json:"schemaType"`
+	Data       any        `json:"data"`
+	Schema     *Schema    `json:"schema"`
+	SchemaType SchemaType `json:"schemaType"`
 }
 
 // serialize checks whether the incoming data has a schema or not.
@@ -72,7 +71,7 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 	}
 
 	switch container.SchemaType {
-	case srclient.Avro, srclient.Json:
+	case Avro, Json:
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
 			common.Throw(k.vu.Runtime(), err)
@@ -86,7 +85,7 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 		}
 
 		return k.encodeWireFormat(bytesData, container.Schema.ID)
-	case srclient.Protobuf:
+	case Protobuf:
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
 		return nil
 	default:
@@ -124,7 +123,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 			switch container.SchemaType {
 			case String:
 				return string(data)
-			case srclient.Avro, srclient.Json:
+			case Avro, Json:
 				if isJSON(data) {
 					js, err := toMap(data)
 					if err != nil {
@@ -134,7 +133,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 					return js
 				}
 				return data
-			case srclient.Protobuf:
+			case Protobuf:
 				return data
 			default:
 				return data
@@ -210,7 +209,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 		}
 
 		switch container.SchemaType {
-		case srclient.Avro, srclient.Json:
+		case Avro, Json:
 			serde, err := GetSerdes(container.SchemaType)
 			if err != nil {
 				common.Throw(k.vu.Runtime(), err)
@@ -228,7 +227,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 			}
 			common.Throw(k.vu.Runtime(), ErrInvalidDataType)
 			return nil
-		case srclient.Protobuf:
+		case Protobuf:
 			common.Throw(runtime, ErrUnsupportedOperation)
 			return nil
 		default:

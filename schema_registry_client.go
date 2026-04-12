@@ -1,48 +1,106 @@
 package kafka
 
-import "github.com/riferrei/srclient"
+import cschemaregistry "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 
 type SchemaRegistryClient interface {
-	GetLatestSchema(subject string) (*srclient.Schema, error)
-	GetSchemaByVersion(subject string, version int) (*srclient.Schema, error)
+	GetLatestSchema(subject string) (*RegisteredSchema, error)
+	GetSchemaByVersion(subject string, version int) (*RegisteredSchema, error)
 	CreateSchema(
 		subject string,
 		schema string,
-		schemaType srclient.SchemaType,
-		references ...srclient.Reference,
-	) (*srclient.Schema, error)
+		schemaType SchemaType,
+		references ...Reference,
+	) (*RegisteredSchema, error)
 	Close() error
 }
 
-type srclientSchemaRegistryAdapter struct {
-	client *srclient.SchemaRegistryClient
+type confluentSchemaRegistryAdapter struct {
+	cacheEnabled bool
+	client       cschemaregistry.Client
 }
 
-func newSRClientAdapter(client *srclient.SchemaRegistryClient) SchemaRegistryClient {
+func newConfluentSchemaRegistryAdapter(
+	client cschemaregistry.Client,
+	cacheEnabled bool,
+) SchemaRegistryClient {
 	if client == nil {
 		return nil
 	}
 
-	return &srclientSchemaRegistryAdapter{client: client}
+	return &confluentSchemaRegistryAdapter{
+		cacheEnabled: cacheEnabled,
+		client:       client,
+	}
 }
 
-func (a *srclientSchemaRegistryAdapter) GetLatestSchema(subject string) (*srclient.Schema, error) {
-	return a.client.GetLatestSchema(subject)
+func (a *confluentSchemaRegistryAdapter) GetLatestSchema(subject string) (*RegisteredSchema, error) {
+	defer a.clearCachesIfDisabled()
+
+	metadata, err := a.client.GetLatestSchemaMetadata(subject)
+	if err != nil {
+		return nil, err
+	}
+
+	return newRegisteredSchema(
+		metadata.ID,
+		metadata.Version,
+		metadata.Schema,
+		metadata.SchemaType,
+		metadata.References,
+	), nil
 }
 
-func (a *srclientSchemaRegistryAdapter) GetSchemaByVersion(subject string, version int) (*srclient.Schema, error) {
-	return a.client.GetSchemaByVersion(subject, version)
+func (a *confluentSchemaRegistryAdapter) GetSchemaByVersion(subject string, version int) (*RegisteredSchema, error) {
+	defer a.clearCachesIfDisabled()
+
+	metadata, err := a.client.GetSchemaMetadata(subject, version)
+	if err != nil {
+		return nil, err
+	}
+
+	return newRegisteredSchema(
+		metadata.ID,
+		metadata.Version,
+		metadata.Schema,
+		metadata.SchemaType,
+		metadata.References,
+	), nil
 }
 
-func (a *srclientSchemaRegistryAdapter) CreateSchema(
+func (a *confluentSchemaRegistryAdapter) CreateSchema(
 	subject string,
 	schema string,
-	schemaType srclient.SchemaType,
-	references ...srclient.Reference,
-) (*srclient.Schema, error) {
-	return a.client.CreateSchema(subject, schema, schemaType, references...)
+	schemaType SchemaType,
+	references ...Reference,
+) (*RegisteredSchema, error) {
+	defer a.clearCachesIfDisabled()
+
+	metadata, err := a.client.RegisterFullResponse(subject, cschemaregistry.SchemaInfo{
+		Schema:     schema,
+		SchemaType: string(normalizeSchemaType(string(schemaType))),
+		References: references,
+	}, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return newRegisteredSchema(
+		metadata.ID,
+		metadata.Version,
+		metadata.Schema,
+		metadata.SchemaType,
+		metadata.References,
+	), nil
 }
 
-func (a *srclientSchemaRegistryAdapter) Close() error {
-	return nil
+func (a *confluentSchemaRegistryAdapter) Close() error {
+	return a.client.Close()
+}
+
+func (a *confluentSchemaRegistryAdapter) clearCachesIfDisabled() {
+	if a.cacheEnabled || a.client == nil {
+		return
+	}
+
+	_ = a.client.ClearCaches()
 }

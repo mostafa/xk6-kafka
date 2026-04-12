@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -237,7 +236,7 @@ func TestProduceJSON(t *testing.T) {
 					{
 						Value: test.module.serialize(&Container{
 							Data:       map[string]any{"field": "value"},
-							SchemaType: srclient.Json,
+							SchemaType: Json,
 						}),
 					},
 				},

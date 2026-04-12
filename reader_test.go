@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -349,7 +348,7 @@ func TestConsumeJSON(t *testing.T) {
 
 			result := test.module.deserialize(&Container{
 				Data:       messages[0]["value"],
-				SchemaType: srclient.Json,
+				SchemaType: Json,
 			})
 			if data, ok := result.(map[string]any); ok {
 				assert.Equal(t, "value", data["field"])

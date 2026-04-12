@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -282,7 +281,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]any{
-						"url": "http://localhost:8081",
+						"url": "mock://schema-registry-client-class",
 					},
 				),
 			},
@@ -299,7 +298,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]any{
 						"subject":    "test-subject",
 						"schema":     avroSchema,
-						"schemaType": srclient.Avro,
+						"schemaType": Avro,
 					},
 				),
 			},
@@ -349,7 +348,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]any{
 						"data":       map[string]any{"field": "value"},
 						"schema":     currentSchema,
-						"schemaType": srclient.Avro,
+						"schemaType": Avro,
 					},
 				),
 			},
@@ -364,7 +363,7 @@ func TestSchemaRegistryClientClass(t *testing.T) {
 					map[string]any{
 						"data":       serialized,
 						"schema":     currentSchema,
-						"schemaType": srclient.Avro,
+						"schemaType": Avro,
 					},
 				),
 			},

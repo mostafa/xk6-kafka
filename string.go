@@ -1,13 +1,11 @@
 package kafka
 
-import "github.com/riferrei/srclient"
-
 type StringSerde struct {
 	Serdes
 }
 
 const (
-	String srclient.SchemaType = "STRING"
+	String SchemaType = "STRING"
 )
 
 // Serialize serializes a string to bytes.

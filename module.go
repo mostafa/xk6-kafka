@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
@@ -221,9 +220,9 @@ func (m *Module) defineConstants() {
 	// Schema types
 	mustAddProp("SCHEMA_TYPE_STRING", String)
 	mustAddProp("SCHEMA_TYPE_BYTES", Bytes)
-	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro)
-	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json)
-	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf)
+	mustAddProp("SCHEMA_TYPE_AVRO", Avro)
+	mustAddProp("SCHEMA_TYPE_JSON", Json)
+	mustAddProp("SCHEMA_TYPE_PROTOBUF", Protobuf)
 
 	// Time constants
 	mustAddProp("NANOSECOND", int64(time.Nanosecond))
