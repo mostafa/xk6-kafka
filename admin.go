@@ -73,11 +73,19 @@ func (a *AdminClient) CreateTopic(ctx context.Context, config TopicConfig) error
 		config.ReplicationFactor = 1
 	}
 
+	// Only set ReplicaAssignment if explicitly configured (non-empty),
+	// otherwise librdkafka uses ReplicationFactor for replica placement.
+	// These fields are mutually exclusive - setting both causes an error.
+	var replicaAssignment [][]int32
+	if len(config.ReplicaAssignment) > 0 {
+		replicaAssignment = config.ReplicaAssignment
+	}
+
 	results, err := a.client.CreateTopics(ctx, []ckafka.TopicSpecification{{
 		Topic:             config.Topic,
 		NumPartitions:     config.NumPartitions,
 		ReplicationFactor: config.ReplicationFactor,
-		ReplicaAssignment: config.ReplicaAssignment,
+		ReplicaAssignment: replicaAssignment,
 		Config:            config.Config,
 	}})
 	if err != nil {
