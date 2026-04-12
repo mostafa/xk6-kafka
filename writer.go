@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -57,7 +56,11 @@ type WriterConfig struct {
 }
 
 func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &c})
+	if c == nil {
+		return newMissingConfigError("writer config")
+	}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: c})
 	if err != nil {
 		return err
 	}
@@ -73,6 +76,9 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 	}
 	if err := decoder.Decode(m); err != nil {
 		return fmt.Errorf("failed to decode writer config: %w", err)
+	}
+	if c.Balancer != "" && Balancers[c.Balancer] == nil {
+		return fmt.Errorf("unknown balancer %q", c.Balancer)
 	}
 	return nil
 }
@@ -123,14 +129,11 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	m := map[string]any{}
-	err := runtime.ExportTo(call.Arguments[0], &m)
-	if err != nil {
-		common.Throw(runtime, fmt.Errorf("can't export: %w", err))
-	}
+	m = exportArgumentMap(runtime, call.Arguments[0], "writer config")
 	var writerConfig WriterConfig
-	err = writerConfig.Parse(m, runtime)
+	err := writerConfig.Parse(m, runtime)
 	if err != nil {
-		common.Throw(runtime, fmt.Errorf("can't parse writerConfig: %w", err))
+		throwConfigError(runtime, newInvalidConfigError("writer config", err))
 	}
 	writer := k.writer(&writerConfig)
 
@@ -146,16 +149,7 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
-				common.Throw(runtime, err)
-			}
-			err = json.Unmarshal(b, &producerConfig)
-			if err != nil {
-				common.Throw(runtime, err)
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &producerConfig, "produce config")
 
 		k.produce(writer, producerConfig)
 		return sobek.Undefined()
@@ -183,6 +177,18 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 
 // writer creates a new Kafka writer.
 func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
+	if writerConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("writer config"))
+		return nil
+	}
+	if len(writerConfig.Brokers) == 0 {
+		throwConfigError(
+			k.vu.Runtime(),
+			newInvalidConfigError("writer config", errors.New("brokers must not be empty")),
+		)
+		return nil
+	}
+
 	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
@@ -230,6 +236,15 @@ func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
 // produce sends messages to Kafka with the given configuration.
 // nolint: funlen
 func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
+	if writer == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("writer"))
+		return
+	}
+	if produceConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("produce config"))
+		return
+	}
+
 	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
@@ -244,6 +259,12 @@ func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
 
 	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
 	for index, message := range produceConfig.Messages {
+		if _, ok := writer.Balancer.(kafkago.BalancerFunc); ok && message.Key == nil {
+			err := NewXk6KafkaError(writerError, "Balancer function requires message keys", nil)
+			logger.WithField("error", err).Error(err)
+			common.Throw(k.vu.Runtime(), err)
+		}
+
 		kafkaMessages[index] = kafkago.Message{
 			Offset: message.Offset,
 		}

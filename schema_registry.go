@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -382,21 +383,13 @@ func (s *Schema) JSONSchema() *jsonschema.Schema {
 
 func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var configuration *SchemaRegistryConfig
+	var configuration SchemaRegistryConfig
 	var schemaRegistryClient *srclient.SchemaRegistryClient
 
 	if len(call.Arguments) == 1 {
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &configuration); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &configuration, "schema registry config")
 
-		schemaRegistryClient = k.schemaRegistryClient(configuration)
+		schemaRegistryClient = k.schemaRegistryClient(&configuration)
 
 		// Store the client in Kafka struct so we can use it to create resolvers later
 		k.currentSchemaRegistry = schemaRegistryClient
@@ -418,15 +411,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var schema *Schema
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &schema); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &schema, "schema metadata")
 
 		return runtime.ToValue(k.getSchema(schemaRegistryClient, schema))
 	})
@@ -444,15 +429,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var schema *Schema
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &schema); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &schema, "schema metadata")
 
 		return runtime.ToValue(k.createSchema(schemaRegistryClient, schema))
 	})
@@ -466,15 +443,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &subjectNameConfig); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &subjectNameConfig, "subject name config")
 
 		return runtime.ToValue(k.getSubjectName(subjectNameConfig))
 	})
@@ -488,15 +457,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &metadata); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &metadata, "serialize metadata")
 
 		return runtime.ToValue(k.serialize(metadata))
 	})
@@ -510,15 +471,7 @@ func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Obj
 		}
 
 		var metadata *Container
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &metadata); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &metadata, "deserialize metadata")
 
 		return runtime.ToValue(k.deserialize(metadata))
 	})
@@ -582,6 +535,17 @@ func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.SchemaRegistryClient {
 	runtime := k.vu.Runtime()
 	var srClient *srclient.SchemaRegistryClient
+	if config == nil {
+		throwConfigError(runtime, newMissingConfigError("schema registry config"))
+		return nil
+	}
+	if config.URL == "" {
+		throwConfigError(
+			runtime,
+			newInvalidConfigError("schema registry config", errors.New("url must not be empty")),
+		)
+		return nil
+	}
 
 	tlsConfig, err := GetTLSConfig(config.TLS)
 	if err != nil {
@@ -621,6 +585,22 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 
 // getSchema returns the schema for the given subject and schema ID and version.
 func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
+	if client == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("schema registry client"))
+		return nil
+	}
+	if schema == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("schema metadata"))
+		return nil
+	}
+	if schema.Subject == "" {
+		throwConfigError(
+			k.vu.Runtime(),
+			newInvalidConfigError("schema metadata", errors.New("subject must not be empty")),
+		)
+		return nil
+	}
+
 	// If EnableCache is set, check if the schema is in the cache.
 	if schema.EnableCaching {
 		if schema, ok := k.schemaCache[schema.Subject]; ok {
@@ -666,6 +646,27 @@ func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema)
 // createSchema creates a new schema in the schema registry.
 func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
 	runtime := k.vu.Runtime()
+	if client == nil {
+		throwConfigError(runtime, newMissingConfigError("schema registry client"))
+		return nil
+	}
+	if schema == nil {
+		throwConfigError(runtime, newMissingConfigError("schema metadata"))
+		return nil
+	}
+	if schema.Subject == "" {
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("subject must not be empty")))
+		return nil
+	}
+	if schema.Schema == "" {
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("schema must not be empty")))
+		return nil
+	}
+	if schema.SchemaType == nil {
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("schemaType must not be empty")))
+		return nil
+	}
+
 	schemaInfo, err := client.CreateSchema(
 		schema.Subject,
 		schema.Schema,
@@ -695,6 +696,10 @@ func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Sche
 
 // getSubjectName returns the subject name for the given schema and topic.
 func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
+	if subjectNameConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("subject name config"))
+		return ""
+	}
 	if subjectNameConfig.SubjectNameStrategy == "" ||
 		subjectNameConfig.SubjectNameStrategy == TopicNameStrategy {
 		return subjectNameConfig.Topic + "-" + string(subjectNameConfig.Element)
@@ -745,7 +750,14 @@ func (k *Kafka) encodeWireFormat(data []byte, schemaID int) []byte {
 	schemaIDBytes := make([]byte, MagicPrefixSize-1)
 	// Validate schemaID is within uint32 range to prevent overflow
 	if schemaID < 0 || schemaID > int(^uint32(0)) {
-		panic(fmt.Sprintf("schemaID %d is out of uint32 range [0, %d]", schemaID, ^uint32(0)))
+		err := NewXk6KafkaError(
+			invalidSchemaID,
+			fmt.Sprintf("Invalid schema id %d: must be within uint32 range", schemaID),
+			nil,
+		)
+		logger.WithField("error", err).Error(err)
+		common.Throw(k.vu.Runtime(), err)
+		return nil
 	}
 	binary.BigEndian.PutUint32(schemaIDBytes, uint32(schemaID))
 	return append(append([]byte{0}, schemaIDBytes...), data...)

@@ -71,7 +71,7 @@ func TestConnectionClass(t *testing.T) {
 			Arguments: []sobek.Value{
 				test.module.vu.Runtime().ToValue(
 					map[string]any{
-						"url": "localhost:9092",
+						"address": "localhost:9092",
 					},
 				),
 			},

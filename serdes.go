@@ -18,6 +18,11 @@ type Container struct {
 // a JSONSchema. Then, it returns the data as a byte array.
 // nolint: funlen
 func (k *Kafka) serialize(container *Container) []byte {
+	if container == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("serialize metadata"))
+		return nil
+	}
+
 	if container.Schema == nil {
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
@@ -86,6 +91,11 @@ func (k *Kafka) serialize(container *Container) []byte {
 // a JSONSchema. Then, it returns the data based on how it can decode it.
 // nolint: funlen
 func (k *Kafka) deserialize(container *Container) any {
+	if container == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("deserialize metadata"))
+		return nil
+	}
+
 	if container.Schema == nil {
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
