@@ -127,22 +127,14 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 // nolint: funlen
 func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var readerConfig *ReaderConfig
+	var readerConfig ReaderConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]any); ok {
-		if b, err := json.Marshal(params); err != nil {
-			common.Throw(runtime, err)
-		} else {
-			if err = json.Unmarshal(b, &readerConfig); err != nil {
-				common.Throw(runtime, err)
-			}
-		}
-	}
+	decodeArgument(runtime, call.Argument(0), &readerConfig, "reader config")
 
-	reader := k.reader(readerConfig)
+	reader := k.reader(&readerConfig)
 
 	readerObject := runtime.NewObject()
 	// This is the reader object itself
@@ -156,15 +148,7 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &consumeConfig); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &consumeConfig, "consume config")
 
 		return runtime.ToValue(k.consume(reader, consumeConfig))
 	})
@@ -192,6 +176,18 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 // reader creates a Kafka reader with the given configuration
 // nolint: funlen
 func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
+	if readerConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("reader config"))
+		return nil
+	}
+	if len(readerConfig.Brokers) == 0 {
+		throwConfigError(
+			k.vu.Runtime(),
+			newInvalidConfigError("reader config", errors.New("brokers must not be empty")),
+		)
+		return nil
+	}
+
 	dialer, err := GetDialer(readerConfig.SASL, readerConfig.TLS)
 	if err != nil {
 		if err.Unwrap() != nil {
@@ -339,6 +335,15 @@ func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
 func (k *Kafka) consume(
 	reader *kafkago.Reader, consumeConfig *ConsumeConfig,
 ) []map[string]any {
+	if reader == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("reader"))
+		return nil
+	}
+	if consumeConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("consume config"))
+		return nil
+	}
+
 	if state := k.vu.State(); state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)

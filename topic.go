@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	"encoding/json"
+	"errors"
 	"net"
 	"strconv"
 
@@ -22,22 +22,14 @@ type ConnectionConfig struct {
 // nolint: funlen
 func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var connectionConfig *ConnectionConfig
+	var connectionConfig ConnectionConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]any); ok {
-		if b, err := json.Marshal(params); err != nil {
-			common.Throw(runtime, err)
-		} else {
-			if err = json.Unmarshal(b, &connectionConfig); err != nil {
-				common.Throw(runtime, err)
-			}
-		}
-	}
+	decodeArgument(runtime, call.Argument(0), &connectionConfig, "connection config")
 
-	connection := k.getKafkaControllerConnection(connectionConfig)
+	connection := k.getKafkaControllerConnection(&connectionConfig)
 
 	connectionObject := runtime.NewObject()
 	// This is the connection object itself
@@ -51,15 +43,7 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &topicConfig); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &topicConfig, "topic config")
 
 		k.createTopic(connection, topicConfig)
 		return sobek.Undefined()
@@ -109,6 +93,18 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 // It will also try to use the auth and TLS settings to create a secure connection. The connection
 // should be closed after use.
 func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig) *kafkago.Conn {
+	if connectionConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("connection config"))
+		return nil
+	}
+	if connectionConfig.Address == "" {
+		throwConfigError(
+			k.vu.Runtime(),
+			newInvalidConfigError("connection config", errors.New("address must not be empty")),
+		)
+		return nil
+	}
+
 	dialer, wrappedError := GetDialer(connectionConfig.SASL, connectionConfig.TLS)
 	if wrappedError != nil {
 		logger.WithField("error", wrappedError).Error(wrappedError)
@@ -136,11 +132,13 @@ func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig)
 
 	controller, err := conn.Controller()
 	if err != nil {
+		_ = conn.Close()
 		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
 		logger.WithField("error", wrappedError).Error(wrappedError)
 		common.Throw(k.vu.Runtime(), wrappedError)
 		return nil
 	}
+	_ = conn.Close()
 
 	controllerConn, err := dialer.DialContext(
 		ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
@@ -158,6 +156,22 @@ func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig)
 // It will also try to use the auth and TLS settings to create a secure connection. If the topic
 // already exists, it will do no-op.
 func (k *Kafka) createTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig) {
+	if conn == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("connection"))
+		return
+	}
+	if topicConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("topic config"))
+		return
+	}
+	if topicConfig.Topic == "" {
+		throwConfigError(
+			k.vu.Runtime(),
+			newInvalidConfigError("topic config", errors.New("topic must not be empty")),
+		)
+		return
+	}
+
 	if topicConfig.NumPartitions <= 0 {
 		topicConfig.NumPartitions = 1
 	}
@@ -178,6 +192,11 @@ func (k *Kafka) createTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
 func (k *Kafka) deleteTopic(conn *kafkago.Conn, topic string) {
+	if conn == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("connection"))
+		return
+	}
+
 	err := conn.DeleteTopics([]string{topic}...)
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedDeleteTopic, "Failed to delete topic.", err)
@@ -190,6 +209,11 @@ func (k *Kafka) deleteTopic(conn *kafkago.Conn, topic string) {
 // use the auth and TLS settings to create a secure connection. If the topic
 // does not exist, it will raise an error.
 func (k *Kafka) listTopics(conn *kafkago.Conn) []string {
+	if conn == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("connection"))
+		return nil
+	}
+
 	partitions, err := conn.ReadPartitions()
 	if err != nil {
 		wrappedError := NewXk6KafkaError(failedReadPartitions, "Failed to read partitions.", err)

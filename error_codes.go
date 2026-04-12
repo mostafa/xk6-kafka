@@ -17,6 +17,7 @@ const (
 	failedTypeCast              errCode = 1006
 	unsupportedOperation        errCode = 1007
 	writerError                 errCode = 1008
+	invalidConfiguration        errCode = 1009
 
 	// serdes errors.
 	invalidDataType            errCode = 2000
@@ -62,6 +63,7 @@ const (
 	referenceNotFound                   errCode = 5004
 	failedParseReferencedSchema         errCode = 5005
 	failedResolveReferences             errCode = 5006
+	invalidSchemaID                     errCode = 5007
 
 	// topics.
 	failedGetController  errCode = 6000
