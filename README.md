@@ -173,6 +173,7 @@ Current compatibility notes:
 - `consumer.consume({ maxMessages })` is the new spelling; `reader.consume({ limit })` remains supported.
 - `Producer`/`Consumer` continue to emit the legacy `kafka_writer_*` and `kafka_reader_*` custom metric names in `v2.0.0` for dashboard and threshold compatibility.
 - Custom writer balancer configuration is not supported on the Confluent compatibility path and should be treated as a migration blocker for now.
+- The versioned example suites for the new constructors now live under [`scripts/v2`](./scripts/v2/README.md).
 
 ### k6 Test Scripts
 
