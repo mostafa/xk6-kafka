@@ -84,7 +84,9 @@ export enum GROUP_BALANCERS {
   GROUP_BALANCER_RACK_AFFINITY = "group_balancer_rack_affinity",
 }
 
-/* Schema types used in identifying schema and data type in serdes. */
+/* Schema types used in identifying schema and data type in serdes.
+SCHEMA_TYPE_PROTOBUF remains exported, but Schema Registry Protobuf serdes
+are planned for v2.1 and are not available in v2.0.0. */
 export enum SCHEMA_TYPES {
   SCHEMA_TYPE_STRING = "STRING",
   SCHEMA_TYPE_BYTES = "BYTES",

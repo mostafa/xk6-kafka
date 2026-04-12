@@ -28,6 +28,9 @@ If you want to learn more about the extension, read the [article](https://grafan
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
 - Lots of exported metrics, as shown in the list of [emitted metrics](https://github.com/mostafa/xk6-kafka/blob/main/README.md#emitted-metrics)
 
+> [!NOTE]
+> `SCHEMA_TYPE_PROTOBUF` remains exported for the planned v2 Schema Registry API, but Protobuf Schema Registry serdes are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
+
 ## Download Binaries
 
 ### The Official Docker Image

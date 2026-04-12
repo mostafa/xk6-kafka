@@ -83,6 +83,13 @@ var (
 	// ErrUnsupportedOperation is the error returned when the operation is not supported.
 	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
 
+	// ErrProtobufSerdesPlanned is returned when Protobuf Schema Registry serdes are requested in v2.0.0.
+	ErrProtobufSerdesPlanned = NewXk6KafkaError(
+		unsupportedOperation,
+		"Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.",
+		nil,
+	)
+
 	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
 	ErrForbiddenInInitContext = NewXk6KafkaError(
 		kafkaForbiddenInInitContext,

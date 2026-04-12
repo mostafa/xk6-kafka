@@ -28,6 +28,7 @@
 
 - Custom writer balancer configuration is not supported on the Confluent compatibility path. Scripts that rely on `balancer` or a custom balancer callback should stay on the v1 surface until a replacement is implemented.
 - `AdminClient.listTopics()` returns structured topic metadata. The deprecated `Connection.listTopics()` alias keeps the old `string[]` shape.
+- `SCHEMA_TYPE_PROTOBUF` remains exported, but Protobuf Schema Registry serialization and deserialization are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
 
 ## Deprecation Policy
 

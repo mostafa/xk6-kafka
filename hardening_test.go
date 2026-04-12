@@ -119,6 +119,38 @@ func TestSerializeRejectsMissingMetadata(t *testing.T) {
 	}, "serialize metadata is required")
 }
 
+func TestSerializeRejectsProtobufSerdesInV2(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.serialize(&Container{
+			Data: []byte("value"),
+			Schema: &Schema{
+				ID:      1,
+				Schema:  `syntax = "proto3"; message Value { string field = 1; }`,
+				Subject: "test-subject",
+			},
+			SchemaType: Protobuf,
+		})
+	}, "Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.")
+}
+
+func TestDeserializeRejectsProtobufSerdesInV2(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.deserialize(&Container{
+			Data: test.module.encodeWireFormat([]byte("value"), 1),
+			Schema: &Schema{
+				ID:      1,
+				Schema:  `syntax = "proto3"; message Value { string field = 1; }`,
+				Subject: "test-subject",
+			},
+			SchemaType: Protobuf,
+		})
+	}, "Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.")
+}
+
 func TestEncodeWireFormatRejectsOutOfRangeSchemaID(t *testing.T) {
 	test := getTestModuleInstance(t)
 
