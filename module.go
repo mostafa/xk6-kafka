@@ -76,7 +76,7 @@ type (
 		metrics               kafkaMetrics
 		exports               *sobek.Object
 		schemaCache           map[string]*Schema
-		currentSchemaRegistry *srclient.SchemaRegistryClient
+		currentSchemaRegistry SchemaRegistryClient
 	}
 	RootModule struct{}
 	Module     struct {
