@@ -27,6 +27,11 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 	}
 
 	if container.Schema == nil {
+		if container.SchemaType == Protobuf {
+			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			return nil
+		}
+
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
@@ -86,7 +91,7 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 
 		return k.encodeWireFormat(bytesData, container.Schema.ID)
 	case Protobuf:
-		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+		common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
 		return nil
 	default:
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
@@ -111,6 +116,11 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 	}
 
 	if container.Schema == nil {
+		if container.SchemaType == Protobuf {
+			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			return nil
+		}
+
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
@@ -228,7 +238,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 			common.Throw(k.vu.Runtime(), ErrInvalidDataType)
 			return nil
 		case Protobuf:
-			common.Throw(runtime, ErrUnsupportedOperation)
+			common.Throw(runtime, ErrProtobufSerdesPlanned)
 			return nil
 		default:
 			common.Throw(runtime, ErrUnsupportedOperation)
