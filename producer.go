@@ -50,7 +50,6 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 	ctx = ensureContext(ctx)
 
 	deliveryChan := make(chan ckafka.Event, len(msgs))
-	defer close(deliveryChan)
 
 	for _, msg := range msgs {
 		topic := msg.Topic

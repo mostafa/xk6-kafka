@@ -202,14 +202,12 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if writerConfig.RequiredAcks != 0 {
-		acksValue, err := confluentRequiredAcks(writerConfig.RequiredAcks)
-		if err != nil {
-			return nil, err
-		}
-		if err := setConfluentConfigValue(config, "acks", acksValue); err != nil {
-			return nil, err
-		}
+	acksValue, err := confluentRequiredAcks(writerConfig.RequiredAcks)
+	if err != nil {
+		return nil, err
+	}
+	if err := setConfluentConfigValue(config, "acks", acksValue); err != nil {
+		return nil, err
 	}
 
 	return config, nil

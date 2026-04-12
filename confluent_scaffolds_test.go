@@ -50,6 +50,14 @@ func TestWriterConfigToConfluentConfigMap(t *testing.T) {
 	assert.Equal(t, false, config["enable.ssl.certificate.verification"])
 }
 
+func TestWriterConfigToConfluentConfigMapPreservesZeroRequiredAcks(t *testing.T) {
+	config, err := writerConfigToConfluentConfigMap(&WriterConfig{
+		Brokers: []string{"localhost:9092"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "0", config["acks"])
+}
+
 func TestConfluentScaffoldsWithMockCluster(t *testing.T) {
 	mockCluster, err := ckafka.NewMockCluster(3)
 	require.NoError(t, err)
@@ -67,6 +75,7 @@ func TestConfluentScaffoldsWithMockCluster(t *testing.T) {
 	}()
 
 	topicName := "confluent-scaffold-topic"
+	// MockCluster topic creation is more reliable than Admin API create in this smoke path.
 	require.NoError(t, mockCluster.CreateTopic(topicName, 1, 1))
 
 	topics, err := adminClient.ListTopics(ctx)
