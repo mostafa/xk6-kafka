@@ -20,6 +20,7 @@ const (
 	invalidConfiguration        errCode = 1009
 	failedCreateProducer        errCode = 1010
 	failedFlushProducer         errCode = 1011
+	failedFreezeObject          errCode = 1012
 
 	// serdes errors.
 	invalidDataType            errCode = 2000

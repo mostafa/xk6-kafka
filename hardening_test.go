@@ -99,6 +99,18 @@ func TestProduceRejectsBalancerFuncWithoutKeys(t *testing.T) {
 	}, "Balancer function requires message keys")
 }
 
+func TestWriterConfigBalancerDoesNotPanicWithoutKeys(t *testing.T) {
+	writerConfig := WriterConfig{
+		BalancerFunc: func(_ []byte, _ ...int) int { return 1 },
+	}
+
+	balancer := writerConfig.GetBalancer()
+
+	assert.NotPanics(t, func() {
+		assert.Equal(t, 0, balancer.Balance(kafkago.Message{}, 0, 1, 2))
+	})
+}
+
 func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 	test := getTestModuleInstance(t)
 	avroType := srclient.Avro

@@ -88,7 +88,9 @@ func (c *WriterConfig) GetBalancer() kafkago.Balancer {
 	case c.BalancerFunc != nil:
 		return kafkago.BalancerFunc(func(message kafkago.Message, partitions ...int) int {
 			if message.Key == nil {
-				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
+				err := NewXk6KafkaError(writerError, "Balancer function requires message keys", nil)
+				logger.WithField("error", err).Error(err)
+				return 0
 			}
 			return c.BalancerFunc(message.Key, len(partitions))
 		})
@@ -170,7 +172,9 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	freeze(writerObject)
+	if err := freeze(writerObject); err != nil {
+		common.Throw(runtime, err)
+	}
 
 	return runtime.ToValue(writerObject).ToObject(runtime)
 }
