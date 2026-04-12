@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -157,7 +156,7 @@ func TestWriterConfigBalancerDoesNotPanicWithoutKeys(t *testing.T) {
 
 func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	globalSchema := &Schema{
 		ID:            99,
@@ -189,7 +188,7 @@ func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 			Subject:       "shared-subject",
 			EnableCaching: true,
 		},
-		SchemaType: srclient.Avro,
+		SchemaType: Avro,
 	}, registry)
 
 	require.GreaterOrEqual(t, len(serialized), MagicPrefixSize)

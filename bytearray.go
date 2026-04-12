@@ -1,13 +1,11 @@
 package kafka
 
-import "github.com/riferrei/srclient"
-
 type ByteArraySerde struct {
 	Serdes
 }
 
 const (
-	Bytes srclient.SchemaType = "BYTES"
+	Bytes SchemaType = "BYTES"
 )
 
 // Serialize serializes the given data into a byte array.

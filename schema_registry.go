@@ -3,6 +3,7 @@ package kafka
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/tls"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -10,9 +11,9 @@ import (
 	"io"
 	"net/http"
 
+	cschemaregistry "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/grafana/sobek"
 	"github.com/hamba/avro/v2"
-	"github.com/riferrei/srclient"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
@@ -48,13 +49,13 @@ const (
 // Schema is a wrapper around the schema registry schema.
 // The Codec() and JsonSchema() methods will return the respective codecs (duck-typing).
 type Schema struct {
-	EnableCaching bool                 `json:"enableCaching"`
-	ID            int                  `json:"id"`
-	Schema        string               `json:"schema"`
-	SchemaType    *srclient.SchemaType `json:"schemaType"`
-	Version       int                  `json:"version"`
-	References    []srclient.Reference `json:"references"`
-	Subject       string               `json:"subject"`
+	EnableCaching bool        `json:"enableCaching"`
+	ID            int         `json:"id"`
+	Schema        string      `json:"schema"`
+	SchemaType    *SchemaType `json:"schemaType"`
+	Version       int         `json:"version"`
+	References    []Reference `json:"references"`
+	Subject       string      `json:"subject"`
 	avroSchema    avro.Schema
 	jsonSchema    *jsonschema.Schema
 
@@ -546,7 +547,6 @@ func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 // with the given configuration. It will also configure auth and TLS credentials if exists.
 func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) SchemaRegistryClient {
 	runtime := k.vu.Runtime()
-	var srClient *srclient.SchemaRegistryClient
 	if config == nil {
 		throwConfigError(runtime, newMissingConfigError("schema registry config"))
 		return nil
@@ -560,39 +560,52 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) SchemaRegistr
 	}
 
 	tlsConfig, err := GetTLSConfig(config.TLS)
-	if err != nil {
-		// Ignore the error if we're not using TLS
-		if err.Code != noTLSConfig {
-			common.Throw(runtime, err)
-		}
-		// Without TLS, use default client but wrap it to handle gzip compression
-		baseTransport := http.DefaultTransport
-		httpClient := &http.Client{
-			Transport: &gzipTransport{transport: baseTransport},
-		}
-		srClient = srclient.CreateSchemaRegistryClientWithOptions(
-			config.URL, httpClient, ConcurrentRequests)
-	} else {
-		// With TLS, create custom transport with TLS config and gzip support
-		baseTransport := &http.Transport{
-			TLSClientConfig: tlsConfig,
-		}
-		httpClient := &http.Client{
-			Transport: &gzipTransport{transport: baseTransport},
-		}
-		srClient = srclient.CreateSchemaRegistryClientWithOptions(
-			config.URL, httpClient, ConcurrentRequests)
+	if err != nil && err.Code != noTLSConfig {
+		common.Throw(runtime, err)
+		return nil
 	}
 
+	httpClient := &http.Client{
+		Transport: &gzipTransport{transport: newSchemaRegistryTransport(tlsConfig)},
+	}
+
+	clientConfig := cschemaregistry.NewConfig(config.URL)
+	clientConfig.HTTPClient = httpClient
 	if config.BasicAuth.Username != "" && config.BasicAuth.Password != "" {
-		srClient.SetCredentials(config.BasicAuth.Username, config.BasicAuth.Password)
+		clientConfig.BasicAuthUserInfo = fmt.Sprintf(
+			"%s:%s",
+			config.BasicAuth.Username,
+			config.BasicAuth.Password,
+		)
+		clientConfig.BasicAuthCredentialsSource = "USER_INFO"
 	}
 
-	// The default value for a boolean is false, so the caching
-	// feature of the srclient package will be disabled.
-	srClient.CachingEnabled(config.EnableCaching)
+	srClient, clientErr := cschemaregistry.NewClient(clientConfig)
+	if clientErr != nil {
+		common.Throw(runtime, NewXk6KafkaError(
+			failedConfigureSchemaRegistryClient,
+			"Failed to configure the schema registry client",
+			clientErr,
+		))
+		return nil
+	}
 
-	return newSRClientAdapter(srClient)
+	return newConfluentSchemaRegistryAdapter(srClient, config.EnableCaching)
+}
+
+func newSchemaRegistryTransport(tlsConfig *tls.Config) http.RoundTripper {
+	baseTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		if tlsConfig == nil {
+			return http.DefaultTransport
+		}
+
+		return &http.Transport{TLSClientConfig: tlsConfig}
+	}
+
+	transport := baseTransport.Clone()
+	transport.TLSClientConfig = tlsConfig
+	return transport
 }
 
 // getSchema returns the schema for the given subject and schema ID and version.
@@ -630,7 +643,7 @@ func (k *Kafka) getSchemaWithCache(
 
 	runtime := k.vu.Runtime()
 	// The client always caches the schema.
-	var schemaInfo *srclient.Schema
+	var schemaInfo *RegisteredSchema
 	var err error
 	// Default version of the schema is the latest version.
 	if schema.Version == 0 {

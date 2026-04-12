@@ -5,7 +5,6 @@ import (
 	"unsafe"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -55,7 +54,7 @@ func TestSerdes(t *testing.T) {
 					"array":  []any{1.0, 2.0, 3.0},
 				},
 			},
-			SchemaType: srclient.Json,
+			SchemaType: Json,
 		},
 		{
 			Data: map[string]any{"key": "value"},
@@ -72,7 +71,7 @@ func TestSerdes(t *testing.T) {
 				Version: 1,
 				Subject: "json-schema",
 			},
-			SchemaType: srclient.Json,
+			SchemaType: Json,
 		},
 		{
 			Data: map[string]any{"key": "value"},
@@ -86,7 +85,7 @@ func TestSerdes(t *testing.T) {
 				Version: 1,
 				Subject: "avro-schema",
 			},
-			SchemaType: srclient.Avro,
+			SchemaType: Avro,
 		},
 	}
 
@@ -164,14 +163,14 @@ func TestSerializeFails(t *testing.T) {
 		{
 			container: &Container{
 				Data:       map[string]any{"key": unsafe.Pointer(nil)}, // #nosec G103
-				SchemaType: srclient.Json,
+				SchemaType: Json,
 			},
 			err: ErrInvalidDataType,
 		},
 		{
 			container: &Container{
 				Data:       "test",
-				SchemaType: srclient.Json,
+				SchemaType: Json,
 			},
 			err: ErrInvalidDataType,
 		},
@@ -184,14 +183,14 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "json-schema",
 				},
-				SchemaType: srclient.Json,
+				SchemaType: Json,
 			},
 			err: ErrInvalidSchema,
 		},
 		{
 			container: &Container{
 				Data:       `{"key": "value"}`,
-				SchemaType: srclient.Avro,
+				SchemaType: Avro,
 			},
 			err: ErrInvalidDataType,
 		},
@@ -208,7 +207,7 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "avro-schema",
 				},
-				SchemaType: srclient.Avro,
+				SchemaType: Avro,
 			},
 			err: NewXk6KafkaError(failedToEncodeToBinary, "Failed to encode data into binary", ErrAvroMissingRequiredField),
 		},
@@ -225,7 +224,7 @@ func TestSerializeFails(t *testing.T) {
 					Version: 1,
 					Subject: "avro-schema",
 				},
-				SchemaType: srclient.Avro,
+				SchemaType: Avro,
 			},
 			err: ErrInvalidDataType,
 		},
@@ -342,7 +341,7 @@ func TestSerialize_AvroNestedUnionWithLogicalTypeIssue376(t *testing.T) {
 					},
 				},
 				Schema:     schema,
-				SchemaType: srclient.Avro,
+				SchemaType: Avro,
 			}
 
 			assert.NotPanics(t, func() {
