@@ -30,6 +30,36 @@
 - `AdminClient.listTopics()` returns structured topic metadata. The deprecated `Connection.listTopics()` alias keeps the old `string[]` shape.
 - `SCHEMA_TYPE_PROTOBUF` remains exported, but Protobuf Schema Registry serialization and deserialization are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
 
+## Metric Compatibility Appendix
+
+`v2.0.0` keeps the existing `kafka_writer_*` and `kafka_reader_*` metric names even when scripts move to `Producer` and `Consumer`. The runtime is now Confluent-backed, so some series are compatibility-derived from produce/consume operations or effective client config instead of `kafka-go`'s internal stats structs.
+
+### Unchanged Metric Names
+
+| Metric family | Metrics | Notes |
+| --- | --- | --- |
+| Reader metrics | `kafka_reader_dial_count`, `kafka_reader_fetches_count`, `kafka_reader_message_count`, `kafka_reader_message_bytes`, `kafka_reader_rebalance_count`, `kafka_reader_timeouts_count`, `kafka_reader_error_count`, `kafka_reader_dial_seconds`, `kafka_reader_read_seconds`, `kafka_reader_wait_seconds`, `kafka_reader_fetch_size`, `kafka_reader_fetch_bytes`, `kafka_reader_offset`, `kafka_reader_lag`, `kafka_reader_fetch_bytes_min`, `kafka_reader_fetch_bytes_max`, `kafka_reader_fetch_wait_max`, `kafka_reader_queue_length`, `kafka_reader_queue_capacity` | Names are unchanged in `v2.0.0`. |
+| Writer metrics | `kafka_writer_write_count`, `kafka_writer_message_count`, `kafka_writer_message_bytes`, `kafka_writer_error_count`, `kafka_writer_batch_seconds`, `kafka_writer_batch_queue_seconds`, `kafka_writer_write_seconds`, `kafka_writer_wait_seconds`, `kafka_writer_retries_count`, `kafka_writer_batch_size`, `kafka_writer_batch_bytes`, `kafka_writer_attempts_max`, `kafka_writer_batch_max`, `kafka_writer_batch_timeout`, `kafka_writer_read_timeout`, `kafka_writer_write_timeout`, `kafka_writer_acks_required`, `kafka_writer_async` | Names are unchanged in `v2.0.0`. |
+
+### Compatibility-Derived Semantics
+
+| Metrics | Current v2.0.0 source |
+| --- | --- |
+| `kafka_reader_dial_count`, `kafka_reader_fetches_count`, `kafka_reader_message_count`, `kafka_reader_message_bytes`, `kafka_reader_read_seconds`, `kafka_reader_fetch_size`, `kafka_reader_fetch_bytes`, `kafka_reader_offset` | Derived from the Confluent-backed `Consumer.consume()` path and the messages returned by that poll cycle. |
+| `kafka_reader_fetch_bytes_min`, `kafka_reader_fetch_bytes_max`, `kafka_reader_fetch_wait_max` | Compatibility gauges now reflect the effective Confluent consumer config (`fetch.min.bytes`, `fetch.max.bytes`, `fetch.wait.max.ms`) when available. |
+| `kafka_reader_rebalance_count`, `kafka_reader_queue_length`, `kafka_reader_queue_capacity` | Retained for dashboard compatibility. They remain limited-signal placeholders on the Confluent path in `v2.0.0`. |
+| `kafka_writer_write_count`, `kafka_writer_message_count`, `kafka_writer_message_bytes`, `kafka_writer_batch_seconds`, `kafka_writer_write_seconds`, `kafka_writer_batch_size`, `kafka_writer_batch_bytes` | Derived from the Confluent-backed `Producer.produce()` path and the resolved topics/messages in that call. |
+| `kafka_writer_batch_timeout`, `kafka_writer_read_timeout`, `kafka_writer_write_timeout`, `kafka_writer_acks_required`, `kafka_writer_batch_max` | Compatibility gauges now reflect the effective Confluent producer config (`linger.ms`, `socket.timeout.ms`, `message.timeout.ms`, `acks`, `batch.num.messages`) when available. |
+| `kafka_writer_retries_count`, `kafka_writer_attempts_max`, `kafka_writer_async` | Retained for dashboard compatibility. They remain compatibility placeholders or config-derived signals on the Confluent path in `v2.0.0`. |
+
+### Renamed Metrics
+
+None in `v2.0.0`.
+
+### Removed Metrics
+
+None in `v2.0.0`.
+
 ## Deprecation Policy
 
 - `Writer`, `Reader`, and `Connection` remain available throughout `v2.x`.

@@ -171,6 +171,7 @@ Current compatibility notes:
 - `Writer`, `Reader`, and `Connection` continue to work in `v2.x`, but new examples should prefer `Producer`, `Consumer`, and `AdminClient`.
 - `ConnectionConfig` now also accepts `brokers` for the new `AdminClient` constructor, while the legacy `Connection` constructor still accepts `address`.
 - `consumer.consume({ maxMessages })` is the new spelling; `reader.consume({ limit })` remains supported.
+- `Producer`/`Consumer` continue to emit the legacy `kafka_writer_*` and `kafka_reader_*` custom metric names in `v2.0.0` for dashboard and threshold compatibility.
 - Custom writer balancer configuration is not supported on the Confluent compatibility path and should be treated as a migration blocker for now.
 
 ### k6 Test Scripts
@@ -436,6 +437,8 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 <details>
 <summary>Click to expand full metrics table</summary>
+
+`v2.0.0` keeps the existing metric names on the Confluent-backed runtime path. See [MIGRATION.md](./MIGRATION.md#metric-compatibility-appendix) for the compatibility appendix, including the current compatibility-derived semantics and the explicit renamed/removed status (`none` in `v2.0.0`).
 
 | Metric                           | Type    | Description                                                             |
 | -------------------------------- | ------- | ----------------------------------------------------------------------- |
