@@ -287,15 +287,20 @@ func (k *Kafka) consumeWithConsumer(
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 	defer cancel()
 
+	startedAt := time.Now()
 	messages, err := consumer.Consume(ctxWithTimeout, consumeConfig.effectiveLimit())
 	if err != nil {
+		k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err)
+
 		if consumeConfig.ExpectTimeout && errors.Is(err, context.DeadlineExceeded) {
-			return []map[string]any{}
+			return messagesToJS(messages, consumeConfig.NanoPrecision)
 		}
 
 		logger.WithField("error", err).Error(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
+
+	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil)
 
 	return messagesToJS(messages, consumeConfig.NanoPrecision)
 }

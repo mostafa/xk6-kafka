@@ -248,10 +248,14 @@ func (k *Kafka) produceWithProducer(producer *Producer, produceConfig *ProduceCo
 		common.Throw(k.vu.Runtime(), err)
 	}
 
+	startedAt := time.Now()
 	if err := producer.Produce(ctx, produceConfig.Messages); err != nil {
+		k.reportProducerCompatibilityMetrics(producer, produceConfig.Messages, time.Since(startedAt), err)
 		logger.WithField("error", err).Error(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
+
+	k.reportProducerCompatibilityMetrics(producer, produceConfig.Messages, time.Since(startedAt), nil)
 }
 
 // writer creates a new Kafka writer.

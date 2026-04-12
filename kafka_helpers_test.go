@@ -103,6 +103,18 @@ func (k *kafkaTest) getCounterMetricsValues() map[string]float64 {
 	return metricsValues
 }
 
+func (k *kafkaTest) getMetricValues() map[string]float64 {
+	metricsValues := make(map[string]float64)
+
+	for _, sampleContainer := range metrics.GetBufferedSamples(k.samples) {
+		for _, sample := range sampleContainer.GetSamples() {
+			metricsValues[sample.Metric.Name] = sample.Value
+		}
+	}
+
+	return metricsValues
+}
+
 // newWriter creates a Kafka writer for the reader tests.
 func (k *kafkaTest) newWriter() *kafkago.Writer {
 	// Create a writer to produce messages.
