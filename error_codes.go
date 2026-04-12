@@ -18,6 +18,8 @@ const (
 	unsupportedOperation        errCode = 1007
 	writerError                 errCode = 1008
 	invalidConfiguration        errCode = 1009
+	failedCreateProducer        errCode = 1010
+	failedFlushProducer         errCode = 1011
 
 	// serdes errors.
 	invalidDataType            errCode = 2000
@@ -38,6 +40,8 @@ const (
 	partitionAndGroupID    errCode = 3003
 	topicAndGroupID        errCode = 3004
 	failedParseStartOffset errCode = 3005
+	failedCreateConsumer   errCode = 3006
+	failedCommitConsumer   errCode = 3007
 
 	// authentication.
 	failedCreateDialerWithScram   errCode = 4000
@@ -66,10 +70,12 @@ const (
 	invalidSchemaID                     errCode = 5007
 
 	// topics.
-	failedGetController  errCode = 6000
-	failedCreateTopic    errCode = 6001
-	failedDeleteTopic    errCode = 6002
-	failedReadPartitions errCode = 6003
+	failedGetController     errCode = 6000
+	failedCreateTopic       errCode = 6001
+	failedDeleteTopic       errCode = 6002
+	failedReadPartitions    errCode = 6003
+	failedCreateAdminClient errCode = 6004
+	failedGetMetadata       errCode = 6005
 )
 
 var (
