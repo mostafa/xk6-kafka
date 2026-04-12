@@ -35,3 +35,21 @@ func TestConfluentSchemaRegistryAdapterClearsCachesWhenDisabled(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 2, second.Version())
 }
+
+func TestConfluentSchemaRegistryAdapterCreateSchemaReturnsRegisteredVersion(t *testing.T) {
+	client, err := cschemaregistry.NewClient(
+		cschemaregistry.NewConfig("mock://schema-registry-create-version"),
+	)
+	require.NoError(t, err)
+
+	adapter := newConfluentSchemaRegistryAdapter(client, true)
+	require.NotNil(t, adapter)
+
+	created, err := adapter.CreateSchema("test-subject", avroSchemaForSRTests, Avro)
+	require.NoError(t, err)
+	require.NotNil(t, created)
+
+	assert.Equal(t, 1, created.Version())
+	assert.Equal(t, avroSchemaForSRTests, created.Schema())
+	assert.Equal(t, Avro, *created.SchemaType())
+}

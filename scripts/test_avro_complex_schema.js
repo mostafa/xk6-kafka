@@ -221,12 +221,12 @@ export function setup() {
       {
         name: "com.example.complex.UserStatus",
         subject: userStatusSubject,
-        version: userStatusSchemaObject.version || 1, // Use version 1 if version is 0
+        version: userStatusSchemaObject.version,
       },
       {
         name: "com.example.complex.UserPreferences",
         subject: userPreferencesSubject,
-        version: userPreferencesSchemaObject.version || 1, // Use version 1 if version is 0
+        version: userPreferencesSchemaObject.version,
       },
     ],
   });
@@ -306,17 +306,17 @@ export function setup() {
       {
         name: "com.example.complex.Currency",
         subject: currencySubject,
-        version: currencySchemaObject.version || 1, // Use version 1 if version is 0
+        version: currencySchemaObject.version,
       },
       {
         name: "com.example.complex.PaymentMethod",
         subject: paymentMethodSubject,
-        version: paymentMethodSchemaObject.version || 1, // Use version 1 if version is 0
+        version: paymentMethodSchemaObject.version,
       },
       {
         name: "com.example.complex.OrderItem",
         subject: orderItemSubject,
-        version: orderItemSchemaObject.version || 1, // Use version 1 if version is 0
+        version: orderItemSchemaObject.version,
       },
     ],
   });
@@ -375,22 +375,22 @@ export function setup() {
       {
         name: "com.example.complex.User",
         subject: userSubject,
-        version: userSchemaObject.version || 1, // Use version 1 if version is 0
+        version: userSchemaObject.version,
       },
       {
         name: "com.example.complex.Order",
         subject: orderSubject,
-        version: orderSchemaObject.version || 1, // Use version 1 if version is 0
+        version: orderSchemaObject.version,
       },
       {
         name: "com.example.complex.Coordinates",
         subject: coordinatesSubject,
-        version: coordinatesSchemaObject.version || 1, // Use version 1 if version is 0
+        version: coordinatesSchemaObject.version,
       },
       {
         name: "com.example.complex.SHA256",
         subject: sha256Subject,
-        version: sha256SchemaObject.version || 1, // Use version 1 if version is 0
+        version: sha256SchemaObject.version,
       },
     ],
   });
