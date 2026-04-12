@@ -75,21 +75,21 @@ type WireFormat struct {
 }
 
 type schemaRegistryState struct {
-	client *srclient.SchemaRegistryClient
+	client SchemaRegistryClient
 	cache  map[string]*Schema
 }
 
 // createResolver creates a resolver function for a schema that can fetch referenced schemas.
 // The resolver is independent of any specific schema and can fetch any schema by name.
 func (k *Kafka) createResolver(
-	client *srclient.SchemaRegistryClient,
+	client SchemaRegistryClient,
 	enableCaching bool,
 ) func(name string) (*Schema, error) {
 	return k.createResolverWithCache(client, k.schemaCache, enableCaching)
 }
 
 func (k *Kafka) createResolverWithCache(
-	client *srclient.SchemaRegistryClient,
+	client SchemaRegistryClient,
 	cache map[string]*Schema,
 	enableCaching bool,
 ) func(name string) (*Schema, error) {
@@ -397,7 +397,7 @@ func (s *Schema) JSONSchema() *jsonschema.Schema {
 func (k *Kafka) schemaRegistryClientClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	var configuration SchemaRegistryConfig
-	var schemaRegistryClient *srclient.SchemaRegistryClient
+	var schemaRegistryClient SchemaRegistryClient
 	registryState := &schemaRegistryState{cache: make(map[string]*Schema)}
 
 	if len(call.Arguments) == 1 {
@@ -544,7 +544,7 @@ func (gt *gzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // schemaRegistryClient creates a schemaRegistryClient instance
 // with the given configuration. It will also configure auth and TLS credentials if exists.
-func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.SchemaRegistryClient {
+func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) SchemaRegistryClient {
 	runtime := k.vu.Runtime()
 	var srClient *srclient.SchemaRegistryClient
 	if config == nil {
@@ -592,16 +592,16 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) *srclient.Sch
 	// feature of the srclient package will be disabled.
 	srClient.CachingEnabled(config.EnableCaching)
 
-	return srClient
+	return newSRClientAdapter(srClient)
 }
 
 // getSchema returns the schema for the given subject and schema ID and version.
-func (k *Kafka) getSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
+func (k *Kafka) getSchema(client SchemaRegistryClient, schema *Schema) *Schema {
 	return k.getSchemaWithCache(client, k.schemaCache, schema)
 }
 
 func (k *Kafka) getSchemaWithCache(
-	client *srclient.SchemaRegistryClient,
+	client SchemaRegistryClient,
 	cache map[string]*Schema,
 	schema *Schema,
 ) *Schema {
@@ -664,12 +664,12 @@ func (k *Kafka) getSchemaWithCache(
 }
 
 // createSchema creates a new schema in the schema registry.
-func (k *Kafka) createSchema(client *srclient.SchemaRegistryClient, schema *Schema) *Schema {
+func (k *Kafka) createSchema(client SchemaRegistryClient, schema *Schema) *Schema {
 	return k.createSchemaWithCache(client, k.schemaCache, schema)
 }
 
 func (k *Kafka) createSchemaWithCache(
-	client *srclient.SchemaRegistryClient,
+	client SchemaRegistryClient,
 	cache map[string]*Schema,
 	schema *Schema,
 ) *Schema {
