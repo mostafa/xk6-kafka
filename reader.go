@@ -270,9 +270,10 @@ func (k *Kafka) consumeWithConsumer(
 	startedAt := time.Now()
 	messages, err := consumer.Consume(ctxWithTimeout, consumeConfig.effectiveLimit())
 	if err != nil {
-		k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err)
+		timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
+		k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
 
-		if consumeConfig.ExpectTimeout && errors.Is(err, context.DeadlineExceeded) {
+		if consumeConfig.ExpectTimeout && timedOut {
 			return messagesToJS(messages, consumeConfig.NanoPrecision)
 		}
 
@@ -280,9 +281,25 @@ func (k *Kafka) consumeWithConsumer(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil)
+	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
 
 	return messagesToJS(messages, consumeConfig.NanoPrecision)
+}
+
+func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+
+	if parentCtx != nil && errors.Is(parentCtx.Err(), context.DeadlineExceeded) {
+		return true
+	}
+
+	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.DeadlineExceeded)
 }
 
 func confluentConsumerMaxWait(consumer *Consumer) time.Duration {

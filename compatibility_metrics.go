@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -263,6 +261,7 @@ func (k *Kafka) reportConsumerCompatibilityMetrics(
 	messages []Message,
 	elapsed time.Duration,
 	consumeErr error,
+	timedOut bool,
 ) {
 	state := k.vu.State()
 	if state == nil {
@@ -289,7 +288,7 @@ func (k *Kafka) reportConsumerCompatibilityMetrics(
 	timeoutValue := 0.0
 	errorValue := 0.0
 	if consumeErr != nil {
-		if errors.Is(consumeErr, context.DeadlineExceeded) {
+		if timedOut {
 			timeoutValue = 1 / float64(len(groups))
 		} else {
 			errorValue = 1 / float64(len(groups))
