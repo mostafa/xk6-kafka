@@ -72,6 +72,9 @@ jobs:
         with:
           path-to-profile: profile.cov
 
+      - name: Run v2 smoke script 🧪
+        run: ./k6 run --quiet -d 2s scripts/v2/smoke/basic.js
+
       - name: Run all xk6-kafka test scripts 🧪
         run: |
           for f in $(ls scripts/); do
