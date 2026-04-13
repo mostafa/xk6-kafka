@@ -9,11 +9,21 @@ import (
 )
 
 type TopicConfig struct {
-	Topic             string
-	NumPartitions     int
-	ReplicationFactor int
-	ReplicaAssignment [][]int32
-	Config            map[string]string
+	Topic              string              `json:"topic"`
+	NumPartitions      int                 `json:"numPartitions"`
+	ReplicationFactor  int                 `json:"replicationFactor"`
+	ReplicaAssignments []ReplicaAssignment `json:"replicaAssignments"`
+	ConfigEntries      []ConfigEntry       `json:"configEntries"`
+}
+
+type ReplicaAssignment struct {
+	Partition int     `json:"partition"`
+	Replicas  []int32 `json:"replicas"`
+}
+
+type ConfigEntry struct {
+	ConfigName  string `json:"configName"`
+	ConfigValue string `json:"configValue"`
 }
 
 type TopicInfo struct {
@@ -63,31 +73,12 @@ func (a *AdminClient) CreateTopic(ctx context.Context, config TopicConfig) error
 		return newMissingConfigError("admin client")
 	}
 	ctx = ensureContext(ctx)
-	if config.Topic == "" {
-		return newInvalidConfigError("topic config", errors.New("topic must not be empty"))
-	}
-	if config.NumPartitions <= 0 {
-		config.NumPartitions = 1
-	}
-	if config.ReplicationFactor <= 0 {
-		config.ReplicationFactor = 1
+	spec, err := topicConfigToConfluentSpec(config)
+	if err != nil {
+		return err
 	}
 
-	// Only set ReplicaAssignment if explicitly configured (non-empty),
-	// otherwise librdkafka uses ReplicationFactor for replica placement.
-	// These fields are mutually exclusive - setting both causes an error.
-	var replicaAssignment [][]int32
-	if len(config.ReplicaAssignment) > 0 {
-		replicaAssignment = config.ReplicaAssignment
-	}
-
-	results, err := a.client.CreateTopics(ctx, []ckafka.TopicSpecification{{
-		Topic:             config.Topic,
-		NumPartitions:     config.NumPartitions,
-		ReplicationFactor: config.ReplicationFactor,
-		ReplicaAssignment: replicaAssignment,
-		Config:            config.Config,
-	}})
+	results, err := a.client.CreateTopics(ctx, []ckafka.TopicSpecification{spec})
 	if err != nil {
 		return NewXk6KafkaError(failedCreateTopic, "Failed to create topic.", err)
 	}
@@ -205,4 +196,62 @@ func normalizeConfluentError(err ckafka.Error) error {
 	}
 
 	return err
+}
+
+func topicConfigToConfluentSpec(config TopicConfig) (ckafka.TopicSpecification, error) {
+	if config.Topic == "" {
+		return ckafka.TopicSpecification{}, newInvalidConfigError("topic config", errors.New("topic must not be empty"))
+	}
+	if config.NumPartitions <= 0 {
+		config.NumPartitions = 1
+	}
+	if config.ReplicationFactor <= 0 {
+		config.ReplicationFactor = 1
+	}
+
+	configMap := make(map[string]string, len(config.ConfigEntries))
+	for _, entry := range config.ConfigEntries {
+		configMap[entry.ConfigName] = entry.ConfigValue
+	}
+
+	var replicaAssignment [][]int32
+	if len(config.ReplicaAssignments) > 0 {
+		maxPartition := -1
+		seenPartitions := make(map[int]struct{}, len(config.ReplicaAssignments))
+		for _, assignment := range config.ReplicaAssignments {
+			if assignment.Partition < 0 {
+				return ckafka.TopicSpecification{}, newInvalidConfigError(
+					"topic config",
+					errors.New("replica assignment partition must not be negative"),
+				)
+			}
+			if _, exists := seenPartitions[assignment.Partition]; exists {
+				return ckafka.TopicSpecification{}, newInvalidConfigError(
+					"topic config",
+					errors.New("replica assignment partition must be unique"),
+				)
+			}
+			seenPartitions[assignment.Partition] = struct{}{}
+			if assignment.Partition > maxPartition {
+				maxPartition = assignment.Partition
+			}
+		}
+
+		replicaAssignment = make([][]int32, maxPartition+1)
+		for _, assignment := range config.ReplicaAssignments {
+			replicaAssignment[assignment.Partition] = append([]int32(nil), assignment.Replicas...)
+		}
+		config.ReplicationFactor = 0
+		if config.NumPartitions < len(replicaAssignment) {
+			config.NumPartitions = len(replicaAssignment)
+		}
+	}
+
+	return ckafka.TopicSpecification{
+		Topic:             config.Topic,
+		NumPartitions:     config.NumPartitions,
+		ReplicationFactor: config.ReplicationFactor,
+		ReplicaAssignment: replicaAssignment,
+		Config:            configMap,
+	}, nil
 }

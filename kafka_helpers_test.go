@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modulestest"
@@ -23,6 +22,7 @@ const (
 
 // struct to keep all the things test need in one place.
 type kafkaTest struct {
+	tb            testing.TB
 	topicName     string
 	rt            *sobek.Runtime
 	module        *Module
@@ -59,6 +59,7 @@ func getTestModuleInstance(tb testing.TB) *kafkaTest {
 	topicName := fmt.Sprintf("%s-%d", tb.Name(), time.Now().UnixMilli())
 
 	return &kafkaTest{
+		tb:            tb,
 		topicName:     topicName,
 		rt:            runtime,
 		module:        moduleInstance,
@@ -116,48 +117,58 @@ func (k *kafkaTest) getMetricValues() map[string]float64 {
 }
 
 // newWriter creates a Kafka writer for the reader tests.
-func (k *kafkaTest) newWriter() *kafkago.Writer {
-	// Create a writer to produce messages.
-	return k.module.writer(&WriterConfig{
+func (k *kafkaTest) newWriter() *Producer {
+	producer, err := NewProducerFromWriterConfig(&WriterConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   k.topicName,
 	})
+	require.NoError(k.t(), err)
+	return producer
 }
 
 // newReader creates a Kafka reader for the reader tests.
-func (k *kafkaTest) newReader() *kafkago.Reader {
-	// Create a reader to consume messages.
-	return k.module.reader(&ReaderConfig{
+func (k *kafkaTest) newReader() *Consumer {
+	consumer, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   k.topicName,
 	})
+	require.NoError(k.t(), err)
+	return consumer
+}
+
+func (k *kafkaTest) newAdminClient() *AdminClient {
+	adminClient, err := NewAdminClientFromConnectionConfig(&ConnectionConfig{
+		Address: "localhost:9092",
+	})
+	require.NoError(k.t(), err)
+	return adminClient
+}
+
+func (k *kafkaTest) t() testing.TB {
+	return k.tb
 }
 
 // createTopic creates a topic.
 func (k *kafkaTest) createTopic() {
-	// Create a connection to Kafka.
-	connection := k.module.getKafkaControllerConnection(&ConnectionConfig{
-		Address: "localhost:9092",
-	})
+	adminClient := k.newAdminClient()
 	defer func() {
-		_ = connection.Close()
+		_ = adminClient.Close()
 	}()
 
-	// Create a topic.
-	k.module.createTopic(connection, &kafkago.TopicConfig{Topic: k.topicName})
+	require.NoError(k.t(), adminClient.CreateTopic(context.Background(), TopicConfig{Topic: k.topicName}))
 }
 
 // topicExists checks if a topic exists.
 func (k *kafkaTest) topicExists() bool {
-	// Create a connection to Kafka.
-	connection := k.module.getKafkaControllerConnection(&ConnectionConfig{
-		Address: "localhost:9092",
-	})
+	adminClient := k.newAdminClient()
 	defer func() {
-		_ = connection.Close()
+		_ = adminClient.Close()
 	}()
 
-	// Create a topic.
-	topics := k.module.listTopics(connection)
-	return slices.Contains(topics, k.topicName)
+	topics, err := adminClient.ListTopics(context.Background())
+	require.NoError(k.t(), err)
+
+	return slices.ContainsFunc(topics, func(topic TopicInfo) bool {
+		return topic.Topic == k.topicName
+	})
 }

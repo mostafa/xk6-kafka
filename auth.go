@@ -1,20 +1,10 @@
 package kafka
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"os"
-	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	kafkago "github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/sasl"
-	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
-	"github.com/segmentio/kafka-go/sasl/plain"
-	"github.com/segmentio/kafka-go/sasl/scram"
 )
 
 // TLSVersions is a map of TLS versions to their numeric values.
@@ -27,8 +17,6 @@ const (
 	saslScramSha512 = "sasl_scram_sha512"
 	saslSsl         = "sasl_ssl"
 	saslAwsIam      = "sasl_aws_iam"
-
-	Timeout = time.Second * 10
 )
 
 type SASLConfig struct {
@@ -45,96 +33,6 @@ type TLSConfig struct {
 	ClientCertPem         string `json:"clientCertPem"`
 	ClientKeyPem          string `json:"clientKeyPem"`
 	ServerCaPem           string `json:"serverCaPem"`
-}
-
-// GetDialer creates a kafka dialer from the given auth string or an unauthenticated dialer if the auth string is empty.
-func GetDialer(saslConfig SASLConfig, tlsConfig TLSConfig) (*kafkago.Dialer, *Xk6KafkaError) {
-	// Create a unauthenticated dialer with no TLS
-	dialer := &kafkago.Dialer{
-		Timeout:   Timeout,
-		DualStack: false,
-	}
-
-	// Create a SASL-authenticated dialer with no TLS
-	saslMechanism, err := GetSASLMechanism(saslConfig)
-	if err != nil {
-		return nil, err
-	}
-	if saslMechanism != nil {
-		dialer.DualStack = true
-		dialer.SASLMechanism = saslMechanism
-	}
-
-	// Create a TLS dialer, either with or without SASL authentication
-	tlsObject, err := GetTLSConfig(tlsConfig)
-	if err != nil {
-		// Ignore the error if we're not using TLS
-		if err.Code != noTLSConfig {
-			logger.WithField("error", err).Error("Cannot process TLS config")
-		}
-	}
-	if tlsObject == nil && saslConfig.Algorithm == saslSsl {
-		return nil, NewXk6KafkaError(
-			failedCreateDialerWithSaslSSL, "You must enable TLS to use SASL_SSL", nil)
-	}
-	dialer.TLS = tlsObject
-	dialer.DualStack = (tlsObject != nil)
-
-	return dialer, nil
-}
-
-// GetSASLMechanism returns a kafka SASL config from the given credentials.
-func GetSASLMechanism(saslConfig SASLConfig) (sasl.Mechanism, *Xk6KafkaError) {
-	if saslConfig.Algorithm == "" {
-		saslConfig.Algorithm = none
-	}
-
-	switch saslConfig.Algorithm {
-	case none:
-		return nil, nil
-	case saslPlain, saslSsl:
-		mechanism := plain.Mechanism{
-			Username: saslConfig.Username,
-			Password: saslConfig.Password,
-		}
-		return mechanism, nil
-	case saslScramSha256, saslScramSha512:
-		hashes := make(map[string]scram.Algorithm)
-		hashes[saslScramSha256] = scram.SHA256
-		hashes[saslScramSha512] = scram.SHA512
-
-		mechanism, err := scram.Mechanism(
-			hashes[saslConfig.Algorithm],
-			saslConfig.Username,
-			saslConfig.Password,
-		)
-		if err != nil {
-			return nil, NewXk6KafkaError(
-				failedCreateDialerWithScram, "Unable to create SCRAM mechanism", err)
-		}
-		return mechanism, nil
-	case saslAwsIam:
-		var (
-			cfg aws.Config
-			err error
-		)
-		if saslConfig.AWSProfile != "" {
-			cfg, err = config.LoadDefaultConfig(
-				context.TODO(),
-				config.WithSharedConfigProfile(saslConfig.AWSProfile),
-			)
-		} else {
-			cfg, err = config.LoadDefaultConfig(context.TODO())
-		}
-		if err != nil {
-			return nil, NewXk6KafkaError(
-				failedCreateDialerWithAwsIam, "Unable to load AWS IAM config for AWS MSK", err)
-		}
-		return aws_msk_iam_v2.NewMechanism(cfg), nil
-	default:
-		// Should we fail silently?
-		return nil, nil
-	}
 }
 
 // GetTLSConfig creates a TLS config from the given TLS config struct and checks for errors.

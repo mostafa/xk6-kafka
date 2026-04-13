@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -157,33 +156,6 @@ func TestEncodeWireFormatRejectsOutOfRangeSchemaID(t *testing.T) {
 	requireGoErrorMessage(t, func() {
 		test.module.encodeWireFormat([]byte("value"), -1)
 	}, "Invalid schema id -1: must be within uint32 range")
-}
-
-func TestProduceRejectsBalancerFuncWithoutKeys(t *testing.T) {
-	test := getTestModuleInstance(t)
-	test.moveToVUCode()
-
-	writer := &kafkago.Writer{
-		Balancer: kafkago.BalancerFunc(func(_ kafkago.Message, _ ...int) int { return 0 }),
-	}
-
-	requireGoErrorMessage(t, func() {
-		test.module.produce(writer, &ProduceConfig{
-			Messages: []Message{{Value: []byte("value")}},
-		})
-	}, "Balancer function requires message keys")
-}
-
-func TestWriterConfigBalancerDoesNotPanicWithoutKeys(t *testing.T) {
-	writerConfig := WriterConfig{
-		BalancerFunc: func(_ []byte, _ ...int) int { return 1 },
-	}
-
-	balancer := writerConfig.GetBalancer()
-
-	assert.NotPanics(t, func() {
-		assert.Equal(t, 0, balancer.Balance(kafkago.Message{}, 0, 1, 2))
-	})
 }
 
 func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {

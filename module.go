@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modules"
@@ -27,42 +25,6 @@ func init() {
 		netext.TLS_1_1: tls.VersionTLS11,
 		netext.TLS_1_2: tls.VersionTLS12,
 		netext.TLS_1_3: tls.VersionTLS13,
-	}
-
-	// Initialize the compression types map.
-	CompressionCodecs = map[string]compress.Compression{
-		codecGzip:   compress.Gzip,
-		codecSnappy: compress.Snappy,
-		codecLz4:    compress.Lz4,
-		codecZstd:   compress.Zstd,
-	}
-
-	// Initialize the balancer types map.
-	Balancers = map[string]kafkago.Balancer{
-		balancerRoundRobin: &kafkago.RoundRobin{},
-		balancerLeastBytes: &kafkago.LeastBytes{},
-		balancerHash:       &kafkago.Hash{},
-		balancerCrc32:      &kafkago.CRC32Balancer{},
-		balancerMurmur2:    &kafkago.Murmur2Balancer{},
-	}
-
-	// Initialize the group balancer types map.
-	GroupBalancers = map[string]kafkago.GroupBalancer{
-		groupBalancerRange:        &kafkago.RangeGroupBalancer{},
-		groupBalancerRoundRobin:   &kafkago.RoundRobinGroupBalancer{},
-		groupBalancerRackAffinity: &kafkago.RackAffinityGroupBalancer{},
-	}
-
-	// Initialize the isolation levels map.
-	IsolationLevels = map[string]kafkago.IsolationLevel{
-		isolationLevelReadUncommitted: kafkago.ReadUncommitted,
-		isolationLevelReadCommitted:   kafkago.ReadCommitted,
-	}
-
-	// Initialize the start offsets map.
-	StartOffsets = map[string]int64{
-		lastOffset:  kafkago.LastOffset,  // The most recent offset available for a partition.
-		firstOffset: kafkago.FirstOffset, // The least recent offset available for a partition.
 	}
 
 	// Register the module namespace (aka. JS import path).
