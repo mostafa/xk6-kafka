@@ -43,3 +43,31 @@ func TestConsumerReadTimeoutNormalizationPreservesBrokerErrorWhileContextActive(
 	assert.ErrorIs(t, normalizedErr, originalErr)
 	assert.NotErrorIs(t, normalizedErr, context.DeadlineExceeded)
 }
+
+func TestConsumerCompatibilityTimeoutDetectsExpiredChildDeadline(t *testing.T) {
+	parentCtx := context.Background()
+	consumeCtx, cancel := context.WithTimeout(parentCtx, time.Nanosecond)
+	defer cancel()
+
+	time.Sleep(time.Millisecond)
+
+	assert.True(t, isConsumerCompatibilityTimeout(
+		parentCtx,
+		consumeCtx,
+		consumerContextError(context.Canceled),
+	))
+}
+
+func TestConsumerCompatibilityTimeoutIgnoresExternalCancellation(t *testing.T) {
+	parentCtx, cancelParent := context.WithCancel(context.Background())
+	consumeCtx, cancelConsume := context.WithTimeout(parentCtx, time.Second)
+	defer cancelConsume()
+
+	cancelParent()
+
+	assert.False(t, isConsumerCompatibilityTimeout(
+		parentCtx,
+		consumeCtx,
+		consumerContextError(context.Canceled),
+	))
+}
