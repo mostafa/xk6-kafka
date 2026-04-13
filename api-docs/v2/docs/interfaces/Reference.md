@@ -4,7 +4,7 @@
 
 # Interface: Reference
 
-Defined in: index.d.ts:286
+Defined in: [index.d.ts:286](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L286)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:286
 
 > **name**: `string`
 
-Defined in: index.d.ts:287
+Defined in: [index.d.ts:287](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L287)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:287
 
 > **subject**: `string`
 
-Defined in: index.d.ts:288
+Defined in: [index.d.ts:288](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L288)
 
 ---
 
@@ -28,4 +28,4 @@ Defined in: index.d.ts:288
 
 > **version**: `number`
 
-Defined in: index.d.ts:289
+Defined in: [index.d.ts:289](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L289)

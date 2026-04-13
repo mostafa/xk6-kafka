@@ -4,7 +4,7 @@
 
 # ~~Class: Reader~~
 
-Defined in: index.d.ts:424
+Defined in: [index.d.ts:424](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L424)
 
 ## Deprecated
 
@@ -16,7 +16,7 @@ Use `Consumer` instead. `Reader` remains as a compatibility alias in v2.x.
 
 > **new Reader**(`readerConfig`): `Reader`
 
-Defined in: index.d.ts:431
+Defined in: [index.d.ts:431](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L431)
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Reader configuration.
 
 > **close**(): `void`
 
-Defined in: index.d.ts:444
+Defined in: [index.d.ts:444](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L444)
 
 #### Returns
 
@@ -58,7 +58,7 @@ Close the reader.
 
 > **consume**(`consumeConfig`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: index.d.ts:438
+Defined in: [index.d.ts:438](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L438)
 
 #### Parameters
 

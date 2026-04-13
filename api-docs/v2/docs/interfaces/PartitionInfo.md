@@ -4,7 +4,7 @@
 
 # Interface: PartitionInfo
 
-Defined in: index.d.ts:270
+Defined in: [index.d.ts:270](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L270)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:270
 
 > **error**: `any`
 
-Defined in: index.d.ts:275
+Defined in: [index.d.ts:275](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L275)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:275
 
 > **id**: `number`
 
-Defined in: index.d.ts:271
+Defined in: [index.d.ts:271](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L271)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:271
 
 > **isrs**: `number`[]
 
-Defined in: index.d.ts:274
+Defined in: [index.d.ts:274](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L274)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:274
 
 > **leader**: `number`
 
-Defined in: index.d.ts:272
+Defined in: [index.d.ts:272](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L272)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: index.d.ts:272
 
 > **replicas**: `number`[]
 
-Defined in: index.d.ts:273
+Defined in: [index.d.ts:273](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L273)

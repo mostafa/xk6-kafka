@@ -4,7 +4,7 @@
 
 # Class: Producer
 
-Defined in: index.d.ts:358
+Defined in: [index.d.ts:358](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L358)
 
 ## Classdesc
 
@@ -40,7 +40,7 @@ producer.close();
 
 > **new Producer**(`writerConfig`): `Producer`
 
-Defined in: index.d.ts:359
+Defined in: [index.d.ts:359](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L359)
 
 #### Parameters
 
@@ -58,7 +58,7 @@ Defined in: index.d.ts:359
 
 > **close**(): `void`
 
-Defined in: index.d.ts:363
+Defined in: [index.d.ts:363](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L363)
 
 #### Returns
 
@@ -70,7 +70,7 @@ Defined in: index.d.ts:363
 
 > **flush**(): `void`
 
-Defined in: index.d.ts:361
+Defined in: [index.d.ts:361](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L361)
 
 #### Returns
 
@@ -82,7 +82,7 @@ Defined in: index.d.ts:361
 
 > **produce**(`produceConfig`): `void`
 
-Defined in: index.d.ts:360
+Defined in: [index.d.ts:360](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L360)
 
 #### Parameters
 
@@ -100,7 +100,7 @@ Defined in: index.d.ts:360
 
 > **stats**(): [`ProducerStats`](../interfaces/ProducerStats.md)
 
-Defined in: index.d.ts:362
+Defined in: [index.d.ts:362](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L362)
 
 #### Returns
 

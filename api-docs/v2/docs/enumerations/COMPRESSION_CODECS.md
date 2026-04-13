@@ -4,7 +4,7 @@
 
 # Enumeration: COMPRESSION_CODECS
 
-Defined in: index.d.ts:15
+Defined in: [index.d.ts:15](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L15)
 
 Compression codecs for compressing messages when producing to a topic or reading from it.
 
@@ -14,7 +14,7 @@ Compression codecs for compressing messages when producing to a topic or reading
 
 > **CODEC_GZIP**: `"gzip"`
 
-Defined in: index.d.ts:16
+Defined in: [index.d.ts:16](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L16)
 
 ---
 
@@ -22,7 +22,7 @@ Defined in: index.d.ts:16
 
 > **CODEC_LZ4**: `"lz4"`
 
-Defined in: index.d.ts:18
+Defined in: [index.d.ts:18](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L18)
 
 ---
 
@@ -30,7 +30,7 @@ Defined in: index.d.ts:18
 
 > **CODEC_SNAPPY**: `"snappy"`
 
-Defined in: index.d.ts:17
+Defined in: [index.d.ts:17](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L17)
 
 ---
 
@@ -38,4 +38,4 @@ Defined in: index.d.ts:17
 
 > **CODEC_ZSTD**: `"zstd"`
 
-Defined in: index.d.ts:19
+Defined in: [index.d.ts:19](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L19)

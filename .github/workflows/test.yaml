@@ -42,6 +42,11 @@ jobs:
           check-latest: true
           cache: false
 
+      - name: Install API docs dependencies 📚
+        working-directory: api-docs
+        run: |
+          corepack yarn install --frozen-lockfile
+
       - name: Run prettier for linting scripts, configs and docs 🧹
         uses: creyD/prettier_action@8c18391fdc98ed0d884c6345f03975edac71b8f0 # v4.6
         with:
@@ -49,6 +54,10 @@ jobs:
 
       - name: Lint code issues 🚨
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+
+      - name: Verify versioned API docs 📖
+        working-directory: api-docs
+        run: corepack yarn run check-docs:v2
 
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |

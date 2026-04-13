@@ -4,7 +4,7 @@
 
 # Enumeration: TIME
 
-Defined in: index.d.ts:99
+Defined in: [index.d.ts:99](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L99)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:99
 
 > **HOUR**: `3600000000000`
 
-Defined in: index.d.ts:105
+Defined in: [index.d.ts:105](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L105)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:105
 
 > **MICROSECOND**: `1000`
 
-Defined in: index.d.ts:101
+Defined in: [index.d.ts:101](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L101)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:101
 
 > **MILLISECOND**: `1000000`
 
-Defined in: index.d.ts:102
+Defined in: [index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L102)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:102
 
 > **MINUTE**: `60000000000`
 
-Defined in: index.d.ts:104
+Defined in: [index.d.ts:104](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L104)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: index.d.ts:104
 
 > **NANOSECOND**: `1`
 
-Defined in: index.d.ts:100
+Defined in: [index.d.ts:100](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L100)
 
 ---
 
@@ -52,4 +52,4 @@ Defined in: index.d.ts:100
 
 > **SECOND**: `1000000000`
 
-Defined in: index.d.ts:103
+Defined in: [index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L103)

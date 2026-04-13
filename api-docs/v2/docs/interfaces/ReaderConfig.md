@@ -4,7 +4,7 @@
 
 # Interface: ReaderConfig
 
-Defined in: index.d.ts:180
+Defined in: [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L180)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:180
 
 > **brokers**: `string`[]
 
-Defined in: index.d.ts:181
+Defined in: [index.d.ts:181](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L181)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:181
 
 > **commitInterval**: `number`
 
-Defined in: index.d.ts:194
+Defined in: [index.d.ts:194](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L194)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:194
 
 > **connectLogger**: `boolean`
 
-Defined in: index.d.ts:204
+Defined in: [index.d.ts:204](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L204)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:204
 
 > **groupBalancers**: [`GROUP_BALANCERS`](../enumerations/GROUP_BALANCERS.md)[]
 
-Defined in: index.d.ts:192
+Defined in: [index.d.ts:192](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L192)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: index.d.ts:192
 
 > **groupID**: `string`
 
-Defined in: index.d.ts:182
+Defined in: [index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L182)
 
 ---
 
@@ -52,7 +52,7 @@ Defined in: index.d.ts:182
 
 > **groupTopics**: `string`[]
 
-Defined in: index.d.ts:183
+Defined in: [index.d.ts:183](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L183)
 
 ---
 
@@ -60,7 +60,7 @@ Defined in: index.d.ts:183
 
 > **heartbeatInterval**: `number`
 
-Defined in: index.d.ts:193
+Defined in: [index.d.ts:193](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L193)
 
 ---
 
@@ -68,7 +68,7 @@ Defined in: index.d.ts:193
 
 > **isolationLevel**: [`ISOLATION_LEVEL`](../enumerations/ISOLATION_LEVEL.md)
 
-Defined in: index.d.ts:206
+Defined in: [index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L206)
 
 ---
 
@@ -76,7 +76,7 @@ Defined in: index.d.ts:206
 
 > **joinGroupBackoff**: `number`
 
-Defined in: index.d.ts:199
+Defined in: [index.d.ts:199](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L199)
 
 ---
 
@@ -84,7 +84,7 @@ Defined in: index.d.ts:199
 
 > **maxAttempts**: `number`
 
-Defined in: index.d.ts:205
+Defined in: [index.d.ts:205](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L205)
 
 ---
 
@@ -92,7 +92,7 @@ Defined in: index.d.ts:205
 
 > **maxBytes**: `number`
 
-Defined in: index.d.ts:188
+Defined in: [index.d.ts:188](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L188)
 
 ---
 
@@ -100,7 +100,7 @@ Defined in: index.d.ts:188
 
 > **maxWait**: `string`
 
-Defined in: index.d.ts:190
+Defined in: [index.d.ts:190](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L190)
 
 ---
 
@@ -108,7 +108,7 @@ Defined in: index.d.ts:190
 
 > **minBytes**: `number`
 
-Defined in: index.d.ts:187
+Defined in: [index.d.ts:187](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L187)
 
 ---
 
@@ -116,7 +116,7 @@ Defined in: index.d.ts:187
 
 > **offset**: `number`
 
-Defined in: index.d.ts:207
+Defined in: [index.d.ts:207](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L207)
 
 ---
 
@@ -124,7 +124,7 @@ Defined in: index.d.ts:207
 
 > **partition**: `number`
 
-Defined in: index.d.ts:185
+Defined in: [index.d.ts:185](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L185)
 
 ---
 
@@ -132,7 +132,7 @@ Defined in: index.d.ts:185
 
 > **partitionWatchInterval**: `number`
 
-Defined in: index.d.ts:195
+Defined in: [index.d.ts:195](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L195)
 
 ---
 
@@ -140,7 +140,7 @@ Defined in: index.d.ts:195
 
 > **queueCapacity**: `number`
 
-Defined in: index.d.ts:186
+Defined in: [index.d.ts:186](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L186)
 
 ---
 
@@ -148,7 +148,7 @@ Defined in: index.d.ts:186
 
 > **readBackoffMax**: `number`
 
-Defined in: index.d.ts:203
+Defined in: [index.d.ts:203](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L203)
 
 ---
 
@@ -156,7 +156,7 @@ Defined in: index.d.ts:203
 
 > **readBackoffMin**: `number`
 
-Defined in: index.d.ts:202
+Defined in: [index.d.ts:202](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L202)
 
 ---
 
@@ -164,7 +164,7 @@ Defined in: index.d.ts:202
 
 > **readBatchTimeout**: `number`
 
-Defined in: index.d.ts:189
+Defined in: [index.d.ts:189](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L189)
 
 ---
 
@@ -172,7 +172,7 @@ Defined in: index.d.ts:189
 
 > **readLagInterval**: `number`
 
-Defined in: index.d.ts:191
+Defined in: [index.d.ts:191](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L191)
 
 ---
 
@@ -180,7 +180,7 @@ Defined in: index.d.ts:191
 
 > **rebalanceTimeout**: `number`
 
-Defined in: index.d.ts:198
+Defined in: [index.d.ts:198](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L198)
 
 ---
 
@@ -188,7 +188,7 @@ Defined in: index.d.ts:198
 
 > **retentionTime**: `number`
 
-Defined in: index.d.ts:200
+Defined in: [index.d.ts:200](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L200)
 
 ---
 
@@ -196,7 +196,7 @@ Defined in: index.d.ts:200
 
 > **sasl**: [`SASLConfig`](SASLConfig.md)
 
-Defined in: index.d.ts:208
+Defined in: [index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L208)
 
 ---
 
@@ -204,7 +204,7 @@ Defined in: index.d.ts:208
 
 > **sessionTimeout**: `number`
 
-Defined in: index.d.ts:197
+Defined in: [index.d.ts:197](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L197)
 
 ---
 
@@ -212,7 +212,7 @@ Defined in: index.d.ts:197
 
 > **startOffset**: [`START_OFFSETS`](../enumerations/START_OFFSETS.md)
 
-Defined in: index.d.ts:201
+Defined in: [index.d.ts:201](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L201)
 
 ---
 
@@ -220,7 +220,7 @@ Defined in: index.d.ts:201
 
 > **tls**: [`TLSConfig`](TLSConfig.md)
 
-Defined in: index.d.ts:209
+Defined in: [index.d.ts:209](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L209)
 
 ---
 
@@ -228,7 +228,7 @@ Defined in: index.d.ts:209
 
 > **topic**: `string`
 
-Defined in: index.d.ts:184
+Defined in: [index.d.ts:184](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L184)
 
 ---
 
@@ -236,4 +236,4 @@ Defined in: index.d.ts:184
 
 > **watchPartitionChanges**: `boolean`
 
-Defined in: index.d.ts:196
+Defined in: [index.d.ts:196](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L196)

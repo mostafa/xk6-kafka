@@ -4,7 +4,7 @@
 
 # Enumeration: ELEMENT_TYPES
 
-Defined in: index.d.ts:41
+Defined in: [index.d.ts:41](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L41)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:41
 
 > **KEY**: `"KEY"`
 
-Defined in: index.d.ts:42
+Defined in: [index.d.ts:42](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L42)
 
 ---
 
@@ -20,4 +20,4 @@ Defined in: index.d.ts:42
 
 > **VALUE**: `"VALUE"`
 
-Defined in: index.d.ts:43
+Defined in: [index.d.ts:43](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L43)

@@ -4,7 +4,7 @@
 
 # Enumeration: BALANCERS
 
-Defined in: index.d.ts:70
+Defined in: [index.d.ts:70](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L70)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:70
 
 > **BALANCER_CRC32**: `"balancer_crc32"`
 
-Defined in: index.d.ts:74
+Defined in: [index.d.ts:74](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L74)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:74
 
 > **BALANCER_HASH**: `"balancer_hash"`
 
-Defined in: index.d.ts:73
+Defined in: [index.d.ts:73](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L73)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:73
 
 > **BALANCER_LEAST_BYTES**: `"balancer_leastbytes"`
 
-Defined in: index.d.ts:72
+Defined in: [index.d.ts:72](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L72)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:72
 
 > **BALANCER_MURMUR2**: `"balancer_murmur2"`
 
-Defined in: index.d.ts:75
+Defined in: [index.d.ts:75](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L75)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: index.d.ts:75
 
 > **BALANCER_ROUND_ROBIN**: `"balancer_roundrobin"`
 
-Defined in: index.d.ts:71
+Defined in: [index.d.ts:71](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L71)

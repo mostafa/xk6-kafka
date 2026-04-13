@@ -4,7 +4,7 @@
 
 # Interface: TopicConfig
 
-Defined in: index.d.ts:248
+Defined in: [index.d.ts:248](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L248)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:248
 
 > **configEntries**: [`ConfigEntry`](ConfigEntry.md)[]
 
-Defined in: index.d.ts:253
+Defined in: [index.d.ts:253](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L253)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:253
 
 > **numPartitions**: `number`
 
-Defined in: index.d.ts:250
+Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L250)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:250
 
 > **replicaAssignments**: [`ReplicaAssignment`](ReplicaAssignment.md)[]
 
-Defined in: index.d.ts:252
+Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L252)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:252
 
 > **replicationFactor**: `number`
 
-Defined in: index.d.ts:251
+Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L251)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: index.d.ts:251
 
 > **topic**: `string`
 
-Defined in: index.d.ts:249
+Defined in: [index.d.ts:249](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L249)
