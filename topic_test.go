@@ -3,119 +3,106 @@ package kafka
 import (
 	"testing"
 
-	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestGetKafkaControllerConnection tests whether a connection can be established to a kafka broker.
-func TestGetKafkaControllerConnection(t *testing.T) {
+func TestTopicConfigDecodesFromJSShape(t *testing.T) {
 	test := getTestModuleInstance(t)
-	assert.NotPanics(t, func() {
-		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
-			Address: "localhost:9092",
-		})
-		assert.NotNil(t, connection)
-		_ = connection.Close()
-	})
+
+	var topicConfig TopicConfig
+	decodeArgumentMap(test.rt, map[string]any{
+		"topic":             "test-topic",
+		"numPartitions":     3,
+		"replicationFactor": 2,
+		"replicaAssignments": []map[string]any{
+			{
+				"partition": 0,
+				"replicas":  []int{1, 2},
+			},
+		},
+		"configEntries": []map[string]any{
+			{
+				"configName":  "cleanup.policy",
+				"configValue": "compact",
+			},
+		},
+	}, &topicConfig, "topic config")
+
+	assert.Equal(t, TopicConfig{
+		Topic:             "test-topic",
+		NumPartitions:     3,
+		ReplicationFactor: 2,
+		ReplicaAssignments: []ReplicaAssignment{{
+			Partition: 0,
+			Replicas:  []int32{1, 2},
+		}},
+		ConfigEntries: []ConfigEntry{{
+			ConfigName:  "cleanup.policy",
+			ConfigValue: "compact",
+		}},
+	}, topicConfig)
 }
 
-// TestGetKafkaControllerConnectionFails tests whether a connection can be established
-// to a kafka broker and fails if the given broker is not reachable.
-func TestGetKafkaControllerConnectionFails(t *testing.T) {
-	test := getTestModuleInstance(t)
-
-	assert.Panics(t, func() {
-		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
-			Address: "localhost:9094",
-		})
-		assert.Nil(t, connection)
+func TestTopicConfigToConfluentSpec(t *testing.T) {
+	spec, err := topicConfigToConfluentSpec(TopicConfig{
+		Topic:             "test-topic",
+		NumPartitions:     1,
+		ReplicationFactor: 3,
+		ReplicaAssignments: []ReplicaAssignment{
+			{
+				Partition: 0,
+				Replicas:  []int32{1, 2, 3},
+			},
+			{
+				Partition: 2,
+				Replicas:  []int32{2, 3, 4},
+			},
+		},
+		ConfigEntries: []ConfigEntry{
+			{
+				ConfigName:  "cleanup.policy",
+				ConfigValue: "compact",
+			},
+		},
 	})
+	require.NoError(t, err)
+
+	assert.Equal(t, "test-topic", spec.Topic)
+	assert.Equal(t, 3, spec.NumPartitions)
+	assert.Equal(t, 0, spec.ReplicationFactor)
+	assert.Equal(t, [][]int32{
+		{1, 2, 3},
+		nil,
+		{2, 3, 4},
+	}, spec.ReplicaAssignment)
+	assert.Equal(t, map[string]string{
+		"cleanup.policy": "compact",
+	}, spec.Config)
 }
 
-// TestTopics tests various functions to create, delete and list topics.
-func TestTopics(t *testing.T) {
-	test := getTestModuleInstance(t)
-
-	test.moveToVUCode()
-	assert.NotPanics(t, func() {
-		topic := "test-topics"
-		connection := test.module.getKafkaControllerConnection(&ConnectionConfig{
-			Address: "localhost:9092",
+func TestTopicConfigToConfluentSpecRejectsInvalidReplicaAssignments(t *testing.T) {
+	t.Run("negative partition", func(t *testing.T) {
+		_, err := topicConfigToConfluentSpec(TopicConfig{
+			Topic: "test-topic",
+			ReplicaAssignments: []ReplicaAssignment{{
+				Partition: -1,
+				Replicas:  []int32{1},
+			}},
 		})
-
-		test.module.createTopic(connection, &kafkago.TopicConfig{
-			Topic: topic,
-		})
-
-		topics := test.module.listTopics(connection)
-		assert.Contains(t, topics, topic)
-
-		test.module.deleteTopic(connection, topic)
-
-		topics = test.module.listTopics(connection)
-		assert.NotContains(t, topics, topic)
-
-		_ = connection.Close()
+		require.Error(t, err)
+		assert.EqualError(t, err, "Invalid topic config, OriginalError: replica assignment partition must not be negative")
 	})
-}
 
-// TestConnectionClass tests the connection class that is exported to JS.
-func TestConnectionClass(t *testing.T) {
-	test := getTestModuleInstance(t)
-
-	test.moveToVUCode()
-	assert.NotPanics(t, func() {
-		// Create a connection
-		connection := test.module.connectionClass(sobek.ConstructorCall{
-			Arguments: []sobek.Value{
-				test.module.vu.Runtime().ToValue(
-					map[string]any{
-						"address": "localhost:9092",
-					},
-				),
+	t.Run("duplicate partition", func(t *testing.T) {
+		_, err := topicConfigToConfluentSpec(TopicConfig{
+			Topic: "test-topic",
+			ReplicaAssignments: []ReplicaAssignment{
+				{Partition: 0, Replicas: []int32{1}},
+				{Partition: 0, Replicas: []int32{2}},
 			},
 		})
-		assert.NotNil(t, connection)
-
-		// Create a topic
-		createTopic := connection.Get("createTopic").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, createTopic)
-		result := createTopic(sobek.FunctionCall{
-			Arguments: []sobek.Value{
-				test.module.vu.Runtime().ToValue(
-					map[string]any{
-						"topic": "test-connection-class",
-					},
-				),
-			},
-		}).Export()
-		assert.Nil(t, result)
-
-		// List all topics
-		listTopics := connection.Get("listTopics").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, listTopics)
-		allTopics := listTopics(sobek.FunctionCall{}).Export().([]string)
-		assert.Contains(t, allTopics, "test-connection-class")
-
-		// Delete the topic
-		deleteTopic := connection.Get("deleteTopic").Export().(func(sobek.FunctionCall) sobek.Value)
-		assert.NotNil(t, deleteTopic)
-		result = deleteTopic(sobek.FunctionCall{
-			Arguments: []sobek.Value{
-				test.module.vu.Runtime().ToValue("test-connection-class"),
-			},
-		}).Export()
-		assert.Nil(t, result)
-		allTopics = listTopics(sobek.FunctionCall{}).Export().([]string)
-		assert.NotContains(t, allTopics, "test-connection-class")
-
-		// Close the connection
-		closeVal := connection.Get("close").Export()
-		closeFunc, ok := closeVal.(func(sobek.FunctionCall) sobek.Value)
-		assert.True(t, ok)
-		assert.NotNil(t, closeFunc)
-		result = closeFunc(sobek.FunctionCall{}).Export()
-		assert.Nil(t, result)
+		require.Error(t, err)
+		assert.EqualError(t, err, "Invalid topic config, OriginalError: replica assignment partition must be unique")
 	})
 }

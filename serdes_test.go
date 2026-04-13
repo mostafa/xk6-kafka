@@ -97,7 +97,7 @@ func TestSerdes(t *testing.T) {
 		assert.GreaterOrEqual(t, len(serialized), 5)
 
 		// Send data to Kafka.
-		test.module.produce(writer, &ProduceConfig{
+		test.module.produceWithProducer(writer, &ProduceConfig{
 			Messages: []Message{
 				{
 					Value: serialized,
@@ -106,7 +106,7 @@ func TestSerdes(t *testing.T) {
 		})
 
 		// Read data from Kafka.
-		messages := test.module.consume(reader, &ConsumeConfig{
+		messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{
 			Limit: 1,
 		})
 		assert.Equal(t, 1, len(messages))
