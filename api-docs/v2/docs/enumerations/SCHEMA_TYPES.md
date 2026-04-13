@@ -1,0 +1,47 @@
+[**xk6-kafka**](../README.md)
+
+---
+
+# Enumeration: SCHEMA_TYPES
+
+Defined in: index.d.ts:90
+
+## Enumeration Members
+
+### SCHEMA_TYPE_AVRO
+
+> **SCHEMA_TYPE_AVRO**: `"AVRO"`
+
+Defined in: index.d.ts:93
+
+---
+
+### SCHEMA_TYPE_BYTES
+
+> **SCHEMA_TYPE_BYTES**: `"BYTES"`
+
+Defined in: index.d.ts:92
+
+---
+
+### SCHEMA_TYPE_JSON
+
+> **SCHEMA_TYPE_JSON**: `"JSON"`
+
+Defined in: index.d.ts:94
+
+---
+
+### SCHEMA_TYPE_PROTOBUF
+
+> **SCHEMA_TYPE_PROTOBUF**: `"PROTOBUF"`
+
+Defined in: index.d.ts:95
+
+---
+
+### SCHEMA_TYPE_STRING
+
+> **SCHEMA_TYPE_STRING**: `"STRING"`
+
+Defined in: index.d.ts:91

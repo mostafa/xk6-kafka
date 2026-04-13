@@ -7,7 +7,10 @@
   "author": "Mostafa Moradian <mostafamoradian0@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "generate-docs": "yarn exec typedoc index.d.ts && prettier -w .",
+    "sync-docs:v2": "node -e \"const fs=require('fs');fs.mkdirSync('v2',{recursive:true});fs.copyFileSync('index.d.ts','v2/index.d.ts');\"",
+    "generate-docs:v2": "yarn run sync-docs:v2 && yarn exec typedoc --options typedoc.json && prettier -w README.md index.d.ts typedoc.json v2",
+    "generate-docs": "yarn run generate-docs:v2",
+    "check-docs:v2": "yarn run generate-docs:v2 && git diff --exit-code -- v2/index.d.ts v2/docs",
     "validate-d-ts": "tsc --lib es2015 --noEmit index.d.ts",
     "prettify": "prettier -w ."
   },

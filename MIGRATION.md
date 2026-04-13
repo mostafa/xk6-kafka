@@ -18,6 +18,12 @@
 | `connection.createTopic()` | `adminClient.createTopic()` | Same topic payload shape |
 | `connection.deleteTopic()` | `adminClient.deleteTopic()` | Same topic-name argument |
 
+## API Reference
+
+- Legacy unversioned reference snapshot: [api-docs/docs/README.md](./api-docs/docs/README.md)
+- Versioned v2 reference: [api-docs/v2/docs/README.md](./api-docs/v2/docs/README.md)
+- Versioned v2 declarations: [api-docs/v2/index.d.ts](./api-docs/v2/index.d.ts)
+
 ## Config Notes
 
 - `WriterConfig` and `ReaderConfig` remain the input shapes for `Producer` and `Consumer` in `v2.0.0`.

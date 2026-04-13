@@ -151,7 +151,7 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) file, and they always reflect the _latest_ changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
+All the exported functions are available by importing the module object from `k6/x/kafka`. Versioned declarations and generated references live under [`api-docs/`](https://github.com/mostafa/xk6-kafka/tree/main/api-docs). For the current v2 surface, use [`api-docs/v2/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts) and [`api-docs/v2/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/docs/README.md). The legacy unversioned snapshot remains available at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
 
 > [!NOTE]
 > The JavaScript API is stable as of version 1.0.0 and is not subject to major changes in future versions unless a new major version is released.
@@ -571,7 +571,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 9.  How can I use autocompletion in IDEs?
 
-    Copy [`api-docs/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
+    Copy [`api-docs/v2/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
 
     ```javascript
     /// <reference path="index.d.ts" />
@@ -654,7 +654,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 16. What if I want to use a custom profile for the SASL authentication with AWS IAM instead of the default profile?
 
-    You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/docs/interfaces/SASLConfig.md).
+    You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/v2/docs/interfaces/SASLConfig.md).
 
 </details>
 
