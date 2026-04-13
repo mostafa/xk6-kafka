@@ -11,6 +11,10 @@ The suite is organized as:
 - `smoke/`: fast single-run checks for core topic lifecycle and produce/consume flow
 - `integration/`: richer flows for consumer groups and Schema Registry happy paths
 
+Reference:
+
+- v2 API docs: [`api-docs/v2/docs/README.md`](../../api-docs/v2/docs/README.md)
+
 ## Local Environment
 
 These scripts assume a local Kafka + Schema Registry environment, such as the existing Lenses.io Fast Data Dev container.
