@@ -106,12 +106,12 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 	messages := make([]Message, 0, limit)
 	for len(messages) < limit {
 		if err := ctx.Err(); err != nil {
-			return messages, NewXk6KafkaError(failedReadMessage, "Consumer context cancelled.", err)
+			return messages, consumerContextError(err)
 		}
 
 		timeout := confluentPollTimeout(ctx)
 		if timeout == 0 {
-			return messages, NewXk6KafkaError(failedReadMessage, "Consumer context cancelled.", ctx.Err())
+			return messages, consumerContextError(ctx.Err())
 		}
 
 		msg, err := c.client.ReadMessage(timeout)
@@ -120,13 +120,31 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
 				continue
 			}
-			return messages, NewXk6KafkaError(failedReadMessage, "Failed to consume message.", err)
+			return messages, normalizeConsumerReadError(ctx, err)
 		}
 
 		messages = append(messages, confluentMessageToMessage(msg))
 	}
 
 	return messages, nil
+}
+
+func consumerContextError(err error) error {
+	return NewXk6KafkaError(failedReadMessage, "Consumer context cancelled.", err)
+}
+
+func consumerReadError(err error) error {
+	return NewXk6KafkaError(failedReadMessage, "Failed to consume message.", err)
+}
+
+func normalizeConsumerReadError(ctx context.Context, err error) error {
+	if ctx != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return consumerContextError(ctxErr)
+		}
+	}
+
+	return consumerReadError(err)
 }
 
 func (c *Consumer) Seek(partition int, offset int64) error {
