@@ -4,7 +4,7 @@
 
 # Interface: ConnectionConfig
 
-Defined in: index.d.ts:228
+Defined in: [index.d.ts:228](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L228)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:228
 
 > `optional` **address?**: `string`
 
-Defined in: index.d.ts:229
+Defined in: [index.d.ts:229](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L229)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:229
 
 > `optional` **brokers?**: `string`[]
 
-Defined in: index.d.ts:230
+Defined in: [index.d.ts:230](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L230)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:230
 
 > **sasl**: [`SASLConfig`](SASLConfig.md)
 
-Defined in: index.d.ts:231
+Defined in: [index.d.ts:231](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L231)
 
 ---
 
@@ -36,4 +36,4 @@ Defined in: index.d.ts:231
 
 > **tls**: [`TLSConfig`](TLSConfig.md)
 
-Defined in: index.d.ts:232
+Defined in: [index.d.ts:232](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L232)

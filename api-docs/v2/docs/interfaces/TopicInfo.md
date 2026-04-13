@@ -4,7 +4,7 @@
 
 # Interface: TopicInfo
 
-Defined in: index.d.ts:264
+Defined in: [index.d.ts:264](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L264)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:264
 
 > **error**: `any`
 
-Defined in: index.d.ts:267
+Defined in: [index.d.ts:267](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L267)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:267
 
 > **partitions**: `number`
 
-Defined in: index.d.ts:266
+Defined in: [index.d.ts:266](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L266)
 
 ---
 
@@ -28,4 +28,4 @@ Defined in: index.d.ts:266
 
 > **topic**: `string`
 
-Defined in: index.d.ts:265
+Defined in: [index.d.ts:265](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L265)

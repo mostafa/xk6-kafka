@@ -4,7 +4,7 @@
 
 # Enumeration: SCHEMA_TYPES
 
-Defined in: index.d.ts:90
+Defined in: [index.d.ts:90](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L90)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:90
 
 > **SCHEMA_TYPE_AVRO**: `"AVRO"`
 
-Defined in: index.d.ts:93
+Defined in: [index.d.ts:93](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L93)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:93
 
 > **SCHEMA_TYPE_BYTES**: `"BYTES"`
 
-Defined in: index.d.ts:92
+Defined in: [index.d.ts:92](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L92)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:92
 
 > **SCHEMA_TYPE_JSON**: `"JSON"`
 
-Defined in: index.d.ts:94
+Defined in: [index.d.ts:94](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L94)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:94
 
 > **SCHEMA_TYPE_PROTOBUF**: `"PROTOBUF"`
 
-Defined in: index.d.ts:95
+Defined in: [index.d.ts:95](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L95)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: index.d.ts:95
 
 > **SCHEMA_TYPE_STRING**: `"STRING"`
 
-Defined in: index.d.ts:91
+Defined in: [index.d.ts:91](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L91)

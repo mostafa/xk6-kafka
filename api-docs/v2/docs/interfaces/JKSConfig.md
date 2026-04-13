@@ -4,7 +4,7 @@
 
 # Interface: JKSConfig
 
-Defined in: index.d.ts:316
+Defined in: [index.d.ts:316](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L316)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:316
 
 > **clientCertAlias**: `string`
 
-Defined in: index.d.ts:319
+Defined in: [index.d.ts:319](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L319)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:319
 
 > **clientKeyAlias**: `string`
 
-Defined in: index.d.ts:320
+Defined in: [index.d.ts:320](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L320)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:320
 
 > **clientKeyPassword**: `string`
 
-Defined in: index.d.ts:321
+Defined in: [index.d.ts:321](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L321)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:321
 
 > **password**: `string`
 
-Defined in: index.d.ts:318
+Defined in: [index.d.ts:318](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L318)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: index.d.ts:318
 
 > **path**: `string`
 
-Defined in: index.d.ts:317
+Defined in: [index.d.ts:317](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L317)
 
 ---
 
@@ -52,4 +52,4 @@ Defined in: index.d.ts:317
 
 > **serverCaAlias**: `string`
 
-Defined in: index.d.ts:322
+Defined in: [index.d.ts:322](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L322)

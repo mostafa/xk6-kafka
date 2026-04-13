@@ -6,4 +6,4 @@
 
 > `const` **LAST_OFFSET**: `"start_offsets_last_offset"` = `"start_offsets_last_offset"`
 
-Defined in: index.d.ts:60
+Defined in: [index.d.ts:60](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L60)

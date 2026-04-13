@@ -4,7 +4,7 @@
 
 # Interface: TLSConfig
 
-Defined in: index.d.ts:117
+Defined in: [index.d.ts:117](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L117)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: index.d.ts:117
 
 > **clientCertPem**: `string`
 
-Defined in: index.d.ts:121
+Defined in: [index.d.ts:121](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L121)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: index.d.ts:121
 
 > **clientKeyPem**: `string`
 
-Defined in: index.d.ts:122
+Defined in: [index.d.ts:122](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L122)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: index.d.ts:122
 
 > **enableTls**: `boolean`
 
-Defined in: index.d.ts:118
+Defined in: [index.d.ts:118](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L118)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: index.d.ts:118
 
 > **insecureSkipTlsVerify**: `boolean`
 
-Defined in: index.d.ts:119
+Defined in: [index.d.ts:119](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L119)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: index.d.ts:119
 
 > **minVersion**: [`TLS_VERSIONS`](../enumerations/TLS_VERSIONS.md)
 
-Defined in: index.d.ts:120
+Defined in: [index.d.ts:120](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L120)
 
 ---
 
@@ -52,4 +52,4 @@ Defined in: index.d.ts:120
 
 > **serverCaPem**: `string`
 
-Defined in: index.d.ts:123
+Defined in: [index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L123)
