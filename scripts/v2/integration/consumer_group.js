@@ -14,11 +14,6 @@ const groupId = `${topic}-group`;
 
 const adminClient = new AdminClient({ brokers });
 const producer = new Producer({ brokers, topic });
-const consumer = new Consumer({
-  brokers,
-  groupId,
-  groupTopics: [topic],
-});
 const schemaRegistry = new SchemaRegistry();
 
 export const options = {
@@ -38,6 +33,11 @@ export function setup() {
 }
 
 export default function () {
+  const consumer = new Consumer({
+    brokers,
+    groupId,
+    groupTopics: [topic],
+  });
   const messages = [];
   for (let index = 0; index < 6; index++) {
     messages.push({
@@ -52,36 +52,40 @@ export default function () {
     });
   }
 
-  producer.produce({ messages });
+  try {
+    producer.produce({ messages });
 
-  const consumed = consumer.consume({ maxMessages: 6 });
+    const consumed = consumer.consume({ maxMessages: 6 });
 
-  check(consumed, {
-    "consumer group receives six messages": (received) => received.length === 6,
-    "consumer group topic matches": (received) =>
-      received.every((message) => message.topic === topic),
-    "consumer group payloads deserialize": (received) =>
-      received.length === 6 &&
-      received.every((message) => {
-        const key = schemaRegistry.deserialize({
-          data: message.key,
-          schemaType: SCHEMA_TYPE_JSON,
-        });
-        const value = schemaRegistry.deserialize({
-          data: message.value,
-          schemaType: SCHEMA_TYPE_JSON,
-        });
-        return (
-          key.correlationId.startsWith("group-key-") &&
-          value.kind === "consumer-group"
-        );
-      }),
-  });
+    check(consumed, {
+      "consumer group receives six messages": (received) =>
+        received.length === 6,
+      "consumer group topic matches": (received) =>
+        received.every((message) => message.topic === topic),
+      "consumer group payloads deserialize": (received) =>
+        received.length === 6 &&
+        received.every((message) => {
+          const key = schemaRegistry.deserialize({
+            data: message.key,
+            schemaType: SCHEMA_TYPE_JSON,
+          });
+          const value = schemaRegistry.deserialize({
+            data: message.value,
+            schemaType: SCHEMA_TYPE_JSON,
+          });
+          return (
+            key.correlationId.startsWith("group-key-") &&
+            value.kind === "consumer-group"
+          );
+        }),
+    });
+  } finally {
+    consumer.close();
+  }
 }
 
 export function teardown() {
-  deleteTopic(adminClient, topic);
   producer.close();
-  consumer.close();
+  deleteTopic(adminClient, topic);
   adminClient.close();
 }

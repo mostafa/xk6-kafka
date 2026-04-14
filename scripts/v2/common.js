@@ -28,8 +28,25 @@ export function createTopic(adminClient, topic, overrides = {}) {
 }
 
 export function deleteTopic(adminClient, topic) {
-  adminClient.deleteTopic(topic);
-  waitForTopicDeletion(adminClient, topic);
+  const deadline = Date.now() + 10 * 1000;
+
+  while (Date.now() < deadline) {
+    try {
+      adminClient.deleteTopic(topic);
+    } catch (error) {
+      if (!isUnknownTopicError(error)) {
+        throw error;
+      }
+    }
+
+    if (!topicExists(adminClient, topic)) {
+      return;
+    }
+
+    sleep(0.25);
+  }
+
+  throw new Error(`Timed out waiting for topic deletion ${topic}`);
 }
 
 export function decodeBytes(bytes) {
@@ -51,27 +68,21 @@ function waitForTopic(adminClient, topic, timeoutSeconds = 10) {
   throw new Error(`Timed out waiting for topic ${topic}`);
 }
 
-function waitForTopicDeletion(adminClient, topic, timeoutSeconds = 10) {
-  const deadline = Date.now() + timeoutSeconds * 1000;
-
-  while (Date.now() < deadline) {
-    const topics = adminClient.listTopics();
-    if (!topics.some((entry) => topicEntryName(entry) === topic)) {
-      return;
-    }
-
-    sleep(0.25);
-  }
-
-  throw new Error(`Timed out waiting for topic deletion ${topic}`);
-}
-
 function topicEntryName(entry) {
   if (typeof entry === "string") {
     return entry;
   }
 
   return entry.topic || entry.Topic || entry.name || entry.Name || "";
+}
+
+function topicExists(adminClient, topic) {
+  const topics = adminClient.listTopics();
+  return topics.some((entry) => topicEntryName(entry) === topic);
+}
+
+function isUnknownTopicError(error) {
+  return /unknown topic|unknown topic or partition/i.test(String(error));
 }
 
 function sanitizeName(value) {
