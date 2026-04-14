@@ -2,7 +2,10 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -15,6 +18,12 @@ type Producer struct {
 	client       *ckafka.Producer
 	config       ckafka.ConfigMap
 	defaultTopic string
+	waitForAck   bool
+	drainMu      sync.Mutex
+	draining     bool
+	drainDone    chan struct{}
+	closeOnce    sync.Once
+	closeErr     error
 }
 
 func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) {
@@ -37,6 +46,7 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 		client:       client,
 		config:       cloneConfluentConfigMap(config),
 		defaultTopic: defaultTopic,
+		waitForAck:   producerWaitsForAck(writerConfig),
 	}, nil
 }
 
@@ -49,7 +59,12 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 	}
 	ctx = ensureContext(ctx)
 
-	deliveryChan := make(chan ckafka.Event, len(msgs))
+	p.startEventDrainer()
+
+	var deliveryChan chan ckafka.Event
+	if p.waitForAck {
+		deliveryChan = make(chan ckafka.Event, len(msgs))
+	}
 
 	for _, msg := range msgs {
 		topic := msg.Topic
@@ -71,9 +86,13 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 			Headers:   confluentHeaders(msg.Headers),
 		}
 
-		if err := p.client.Produce(kafkaMsg, deliveryChan); err != nil {
+		if err := p.produceMessage(ctx, kafkaMsg, deliveryChan); err != nil {
 			return NewXk6KafkaError(writerError, "Failed to produce message.", err)
 		}
+	}
+
+	if !p.waitForAck {
+		return nil
 	}
 
 	for pending := len(msgs); pending > 0; pending-- {
@@ -93,6 +112,30 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 	}
 
 	return nil
+}
+
+func (p *Producer) produceMessage(
+	ctx context.Context,
+	msg *ckafka.Message,
+	deliveryChan chan ckafka.Event,
+) error {
+	for {
+		err := p.client.Produce(msg, deliveryChan)
+		if err == nil {
+			return nil
+		}
+
+		var kafkaErr ckafka.Error
+		if !errors.As(err, &kafkaErr) || kafkaErr.Code() != ckafka.ErrQueueFull {
+			return err
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(1 * time.Millisecond):
+		}
+	}
 }
 
 func (p *Producer) Flush(ctx context.Context) error {
@@ -119,8 +162,23 @@ func (p *Producer) Close() error {
 		return nil
 	}
 
-	p.client.Close()
-	return nil
+	p.closeOnce.Do(func() {
+		client := p.client
+		p.client = nil
+		if client == nil {
+			return
+		}
+
+		if !p.waitForAck {
+			ctx, cancel := context.WithTimeout(context.Background(), defaultConfluentTimeout)
+			p.closeErr = p.Flush(ctx)
+			cancel()
+		}
+		client.Close()
+		p.stopEventDrainer()
+	})
+
+	return p.closeErr
 }
 
 func (p *Producer) Stats() ProducerStats {
@@ -145,4 +203,71 @@ func confluentHeaders(headers map[string]any) []ckafka.Header {
 	}
 
 	return kafkaHeaders
+}
+
+func producerWaitsForAck(writerConfig *WriterConfig) bool {
+	return writerConfig == nil || writerConfig.RequiredAcks != 0
+}
+
+func (p *Producer) startEventDrainer() {
+	if p == nil || p.client == nil || p.waitForAck {
+		return
+	}
+	p.drainMu.Lock()
+	if p.draining {
+		p.drainMu.Unlock()
+		return
+	}
+	p.draining = true
+	p.drainDone = make(chan struct{})
+	client := p.client
+	done := p.drainDone
+	p.drainMu.Unlock()
+
+	go func() {
+		defer func() {
+			p.drainMu.Lock()
+			p.draining = false
+			close(done)
+			p.drainMu.Unlock()
+		}()
+
+		events := client.Events()
+		idleTimer := time.NewTimer(250 * time.Millisecond)
+		defer idleTimer.Stop()
+
+		for {
+			select {
+			case _, ok := <-events:
+				if !ok {
+					return
+				}
+				if !idleTimer.Stop() {
+					select {
+					case <-idleTimer.C:
+					default:
+					}
+				}
+				idleTimer.Reset(250 * time.Millisecond)
+			case <-idleTimer.C:
+				if client.Len() == 0 {
+					return
+				}
+				idleTimer.Reset(250 * time.Millisecond)
+			}
+		}
+	}()
+}
+
+func (p *Producer) stopEventDrainer() {
+	if p == nil || p.waitForAck {
+		return
+	}
+	p.drainMu.Lock()
+	done := p.drainDone
+	p.drainMu.Unlock()
+	if done == nil {
+		return
+	}
+	<-done
 }

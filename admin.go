@@ -173,7 +173,9 @@ func (a *AdminClient) Close() error {
 		return nil
 	}
 
-	a.client.Close()
+	client := a.client
+	a.client = nil
+	client.Close()
 	return nil
 }
 
