@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -25,8 +26,58 @@ func TestCompatibilityConsumerFetchesAddsTrailingFetch(t *testing.T) {
 }
 
 func TestShouldRetryConsumerCompatibilityRead(t *testing.T) {
-	assert.True(t, shouldRetryConsumerCompatibilityRead(true, 0, true))
-	assert.False(t, shouldRetryConsumerCompatibilityRead(false, 0, true))
-	assert.False(t, shouldRetryConsumerCompatibilityRead(true, 1, true))
-	assert.False(t, shouldRetryConsumerCompatibilityRead(true, 0, false))
+	parentCtx := context.Background()
+	timeoutCtx, cancelTimeout := context.WithCancel(parentCtx)
+	cancelTimeout()
+
+	assert.True(t, shouldRetryConsumerCompatibilityRead(
+		parentCtx,
+		timeoutCtx,
+		context.DeadlineExceeded,
+		0,
+		true,
+	))
+
+	activeParent, cancelParent := context.WithCancel(context.Background())
+	canceledChild, cancelChild := context.WithCancel(activeParent)
+	cancelChild()
+
+	assert.True(t, shouldRetryConsumerCompatibilityRead(
+		activeParent,
+		canceledChild,
+		context.Canceled,
+		0,
+		true,
+	))
+
+	cancelParent()
+
+	assert.False(t, shouldRetryConsumerCompatibilityRead(
+		activeParent,
+		canceledChild,
+		context.Canceled,
+		0,
+		true,
+	))
+	assert.False(t, shouldRetryConsumerCompatibilityRead(
+		parentCtx,
+		context.Background(),
+		nil,
+		0,
+		true,
+	))
+	assert.False(t, shouldRetryConsumerCompatibilityRead(
+		parentCtx,
+		context.Background(),
+		context.DeadlineExceeded,
+		1,
+		true,
+	))
+	assert.False(t, shouldRetryConsumerCompatibilityRead(
+		parentCtx,
+		context.Background(),
+		context.DeadlineExceeded,
+		0,
+		false,
+	))
 }
