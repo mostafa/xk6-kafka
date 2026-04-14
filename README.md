@@ -14,7 +14,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 
 ## Supported Features
 
-- **v2.0.0 Performance**: Up to ~1,900 msgs/sec with 50 VUs, 89 MB/s throughput using new `Producer`/`Consumer` constructors with Confluent client
+- **v2.0.0 Performance**: Up to ~1,900 msgs/sec with 50 VUs, 89 MB/s throughput using new `Producer`/`Consumer` constructors with Confluent client (~2-3x faster than v1 which used the segmentio/kafka-go client)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
@@ -32,6 +32,9 @@ If you want to learn more about the extension, read the [article](https://grafan
 
 > [!NOTE]
 > `SCHEMA_TYPE_PROTOBUF` remains exported for the planned v2 Schema Registry API, but Protobuf Schema Registry serdes are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
+
+> [!WARNING]
+> The v2 API is going to take over the v1 API in the future. So, please migrate to the v2 API as soon as possible, as the v1 API will be deprecated soon.
 
 ## Quick Start (v2.0.0+)
 
