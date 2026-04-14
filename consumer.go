@@ -126,13 +126,13 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 		if c.closeRequested() {
 			return messages, consumerReadError(errConsumerClosing)
 		}
-		if err := ctx.Err(); err != nil {
+		if err := consumerContextCause(ctx); err != nil {
 			return messages, consumerContextError(err)
 		}
 
 		timeout := confluentPollTimeout(ctx)
 		if timeout == 0 {
-			return messages, consumerContextError(ctx.Err())
+			return messages, consumerContextError(consumerContextCause(ctx))
 		}
 
 		msg, err := client.ReadMessage(timeout)
@@ -159,13 +159,27 @@ func consumerReadError(err error) error {
 }
 
 func normalizeConsumerReadError(ctx context.Context, err error) error {
-	if ctx != nil {
-		if ctxErr := ctx.Err(); ctxErr != nil {
-			return consumerContextError(ctxErr)
-		}
+	if ctxErr := consumerContextCause(ctx); ctxErr != nil {
+		return consumerContextError(ctxErr)
 	}
 
 	return consumerReadError(err)
+}
+
+func consumerContextCause(ctx context.Context) error {
+	if ctx == nil {
+		return nil
+	}
+
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	if deadline, ok := ctx.Deadline(); ok && !time.Now().Before(deadline) {
+		return context.DeadlineExceeded
+	}
+
+	return nil
 }
 
 func (c *Consumer) Seek(partition int, offset int64) error {

@@ -71,3 +71,35 @@ func TestConsumerCompatibilityTimeoutIgnoresExternalCancellation(t *testing.T) {
 		consumerContextError(context.Canceled),
 	))
 }
+
+func TestConsumerContextCauseUsesExpiredDeadlineWhenErrIsNil(t *testing.T) {
+	ctx := deadlineOnlyContext{deadline: time.Now().Add(-time.Millisecond)}
+	assert.ErrorIs(t, consumerContextCause(ctx), context.DeadlineExceeded)
+}
+
+func TestConsumerReadTimeoutNormalizationPrefersExpiredDeadlineWhenErrIsNil(t *testing.T) {
+	ctx := deadlineOnlyContext{deadline: time.Now().Add(-time.Millisecond)}
+	normalizedErr := normalizeConsumerReadError(ctx, errors.New("connection closed by peer"))
+	require.Error(t, normalizedErr)
+	assert.ErrorIs(t, normalizedErr, context.DeadlineExceeded)
+}
+
+type deadlineOnlyContext struct {
+	deadline time.Time
+}
+
+func (c deadlineOnlyContext) Deadline() (time.Time, bool) {
+	return c.deadline, true
+}
+
+func (deadlineOnlyContext) Done() <-chan struct{} {
+	return nil
+}
+
+func (deadlineOnlyContext) Err() error {
+	return nil
+}
+
+func (deadlineOnlyContext) Value(any) any {
+	return nil
+}
