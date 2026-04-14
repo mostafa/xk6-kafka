@@ -28,6 +28,8 @@ type consumerMetricGroup struct {
 	highWaterMark int64
 }
 
+const legacyWriterMessageOverheadBytes = 23
+
 // The legacy k6 metric names are preserved in v2, but their values are now
 // derived from the Confluent-backed compatibility path rather than kafka-go's
 // internal stats structs.
@@ -512,7 +514,7 @@ func collectProducerMetricGroups(producer *Producer, messages []Message) map[str
 		group := groups[topic]
 		group.messages++
 		group.writes++
-		group.bytes += compatibilityProducerMessageBytes(topic, msg)
+		group.bytes += compatibilityProducerMessageBytes(msg)
 		groups[topic] = group
 	}
 
@@ -562,8 +564,8 @@ func compatibilityMessageBytes(msg Message) int {
 	return size
 }
 
-func compatibilityProducerMessageBytes(topic string, msg Message) int {
-	return len(topic) + compatibilityMessageBytes(msg)
+func compatibilityProducerMessageBytes(msg Message) int {
+	return legacyWriterMessageOverheadBytes + compatibilityMessageBytes(msg)
 }
 
 func compatibilityConsumerFetches(messageCount int, groupCount int, consumeErr error) float64 {

@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +14,7 @@ func TestCompatibilityProducerMessageBytesIncludesTopic(t *testing.T) {
 		Value: []byte("value1"),
 	}
 
-	assert.Equal(t, 33, compatibilityProducerMessageBytes(strings.Repeat("t", 23), msg))
+	assert.Equal(t, 33, compatibilityProducerMessageBytes(msg))
 }
 
 func TestCompatibilityConsumerFetchesAddsTrailingFetch(t *testing.T) {
