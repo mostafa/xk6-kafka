@@ -58,6 +58,21 @@ func TestWriterConfigToConfluentConfigMapPreservesZeroRequiredAcks(t *testing.T)
 	assert.Equal(t, "0", config["acks"])
 }
 
+func TestWriterConfigToConfluentConfigMapDisablesDeliveryReportPayloads(t *testing.T) {
+	config, err := writerConfigToConfluentConfigMap(&WriterConfig{
+		Brokers: []string{"localhost:9092"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "none", config["go.delivery.report.fields"])
+}
+
+func TestProducerWaitsForAck(t *testing.T) {
+	assert.False(t, producerWaitsForAck(&WriterConfig{}))
+	assert.True(t, producerWaitsForAck(&WriterConfig{RequiredAcks: 1}))
+	assert.True(t, producerWaitsForAck(&WriterConfig{RequiredAcks: -1}))
+	assert.True(t, producerWaitsForAck(nil))
+}
+
 func TestConfluentScaffoldsWithMockCluster(t *testing.T) {
 	mockCluster, err := ckafka.NewMockCluster(3)
 	require.NoError(t, err)

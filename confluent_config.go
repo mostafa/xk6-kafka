@@ -171,6 +171,9 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 	if err := applyConfluentSecurityConfig(config, writerConfig.SASL, writerConfig.TLS); err != nil {
 		return nil, err
 	}
+	if err := setConfluentConfigValue(config, "go.delivery.report.fields", "none"); err != nil {
+		return nil, err
+	}
 
 	if writerConfig.BatchSize > 0 {
 		if err := setConfluentConfigValue(config, "batch.num.messages", writerConfig.BatchSize); err != nil {
