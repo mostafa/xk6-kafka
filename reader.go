@@ -265,21 +265,34 @@ func (k *Kafka) consumeWithConsumer(
 	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
-	defer cancel()
-
 	startedAt := time.Now()
-	messages, err := consumer.Consume(ctxWithTimeout, consumeConfig.effectiveLimit())
-	if err != nil {
-		timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
-		k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
+	limit := consumeConfig.effectiveLimit()
+	messages := make([]Message, 0, limit)
+	for len(messages) < limit {
+		nextMessages, err := consumer.Consume(ctxWithTimeout, 1)
+		messages = append(messages, nextMessages...)
+		if err != nil {
+			timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
+			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
 
-		if consumeConfig.ExpectTimeout && timedOut {
-			return messagesToJS(messages, consumeConfig.NanoPrecision)
+			if consumeConfig.ExpectTimeout && timedOut {
+				cancel()
+				return messagesToJS(messages, consumeConfig.NanoPrecision)
+			}
+
+			cancel()
+			logger.WithField("error", err).Error(err)
+			common.Throw(k.vu.Runtime(), err)
 		}
 
-		logger.WithField("error", err).Error(err)
-		common.Throw(k.vu.Runtime(), err)
+		cancel()
+		if len(messages) == limit {
+			break
+		}
+
+		ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 	}
+	cancel()
 
 	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
 
