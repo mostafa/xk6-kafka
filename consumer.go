@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -17,7 +18,14 @@ type Consumer struct {
 	client *ckafka.Consumer
 	config ckafka.ConfigMap
 	topic  string
+
+	mu          sync.Mutex
+	closeCond   *sync.Cond
+	activeCalls int
+	closing     bool
 }
+
+var errConsumerClosing = errors.New("consumer is closing")
 
 func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) {
 	config, err := readerConfigToConfluentConfigMap(readerConfig)
@@ -46,6 +54,7 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 		client: client,
 		config: cloneConfluentConfigMap(config),
 	}
+	consumer.closeCond = sync.NewCond(&consumer.mu)
 
 	if readerConfig == nil {
 		return nil, newMissingConfigError("reader config")
@@ -95,9 +104,18 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 }
 
 func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return nil, newMissingConfigError("consumer")
 	}
+	client, err := c.beginOperation()
+	if err != nil {
+		if errors.Is(err, errConsumerClosing) {
+			return nil, consumerReadError(err)
+		}
+		return nil, err
+	}
+	defer c.endOperation()
+
 	if limit <= 0 {
 		limit = 1
 	}
@@ -105,6 +123,9 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 
 	messages := make([]Message, 0, limit)
 	for len(messages) < limit {
+		if c.closeRequested() {
+			return messages, consumerReadError(errConsumerClosing)
+		}
 		if err := ctx.Err(); err != nil {
 			return messages, consumerContextError(err)
 		}
@@ -114,7 +135,7 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			return messages, consumerContextError(ctx.Err())
 		}
 
-		msg, err := c.client.ReadMessage(timeout)
+		msg, err := client.ReadMessage(timeout)
 		if err != nil {
 			var kafkaErr ckafka.Error
 			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
@@ -148,14 +169,22 @@ func normalizeConsumerReadError(ctx context.Context, err error) error {
 }
 
 func (c *Consumer) Seek(partition int, offset int64) error {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return newMissingConfigError("consumer")
 	}
 	if c.topic == "" {
 		return newInvalidConfigError("consumer", errors.New("seek requires a single configured topic"))
 	}
+	client, err := c.beginOperation()
+	if err != nil {
+		if errors.Is(err, errConsumerClosing) {
+			return NewXk6KafkaError(failedSetOffset, "Failed to seek consumer offset.", err)
+		}
+		return err
+	}
+	defer c.endOperation()
 
-	err := c.client.Seek(ckafka.TopicPartition{
+	err = client.Seek(ckafka.TopicPartition{
 		Topic:     &c.topic,
 		Partition: int32(partition),
 		Offset:    ckafka.Offset(offset),
@@ -168,14 +197,22 @@ func (c *Consumer) Seek(partition int, offset int64) error {
 }
 
 func (c *Consumer) Position(partition int) (int64, error) {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return 0, newMissingConfigError("consumer")
 	}
 	if c.topic == "" {
 		return 0, newInvalidConfigError("consumer", errors.New("position requires a single configured topic"))
 	}
+	client, err := c.beginOperation()
+	if err != nil {
+		if errors.Is(err, errConsumerClosing) {
+			return 0, NewXk6KafkaError(failedSetOffset, "Failed to query consumer position.", err)
+		}
+		return 0, err
+	}
+	defer c.endOperation()
 
-	positions, err := c.client.Position([]ckafka.TopicPartition{{
+	positions, err := client.Position([]ckafka.TopicPartition{{
 		Topic:     &c.topic,
 		Partition: int32(partition),
 	}})
@@ -190,15 +227,24 @@ func (c *Consumer) Position(partition int) (int64, error) {
 }
 
 func (c *Consumer) CommitOffsets(ctx context.Context) error {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return newMissingConfigError("consumer")
 	}
+	client, err := c.beginOperation()
+	if err != nil {
+		if errors.Is(err, errConsumerClosing) {
+			return NewXk6KafkaError(failedCommitConsumer, "Failed to commit consumer offsets.", err)
+		}
+		return err
+	}
+	defer c.endOperation()
+
 	ctx = ensureContext(ctx)
 	if err := ctx.Err(); err != nil {
 		return NewXk6KafkaError(failedCommitConsumer, "Consumer context cancelled.", err)
 	}
 
-	if _, err := c.client.Commit(); err != nil {
+	if _, err := client.Commit(); err != nil {
 		return NewXk6KafkaError(failedCommitConsumer, "Failed to commit consumer offsets.", err)
 	}
 
@@ -206,27 +252,93 @@ func (c *Consumer) CommitOffsets(ctx context.Context) error {
 }
 
 func (c *Consumer) Close() error {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return nil
 	}
 
-	if err := c.client.Close(); err != nil {
+	c.mu.Lock()
+	if c.client == nil {
+		c.mu.Unlock()
+		return nil
+	}
+
+	c.closing = true
+	for c.activeCalls > 0 {
+		c.closeCond.Wait()
+	}
+
+	client := c.client
+	c.client = nil
+	c.mu.Unlock()
+
+	if err := client.Close(); err != nil {
 		return NewXk6KafkaError(failedCreateConsumer, "Failed to close consumer.", err)
 	}
 	return nil
 }
 
 func (c *Consumer) Stats() ConsumerStats {
-	if c == nil || c.client == nil {
+	if c == nil {
 		return ConsumerStats{}
 	}
+	client, err := c.beginOperation()
+	if err != nil {
+		return ConsumerStats{}
+	}
+	defer c.endOperation()
 
-	assignments, err := c.client.Assignment()
+	assignments, err := client.Assignment()
 	if err != nil {
 		return ConsumerStats{}
 	}
 
 	return ConsumerStats{Assignments: len(assignments)}
+}
+
+func (c *Consumer) beginOperation() (*ckafka.Consumer, error) {
+	if c == nil {
+		return nil, newMissingConfigError("consumer")
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.client == nil {
+		return nil, newMissingConfigError("consumer")
+	}
+	if c.closing {
+		return nil, errConsumerClosing
+	}
+
+	c.activeCalls++
+	return c.client, nil
+}
+
+func (c *Consumer) endOperation() {
+	if c == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.activeCalls > 0 {
+		c.activeCalls--
+	}
+	if c.activeCalls == 0 && c.closeCond != nil {
+		c.closeCond.Broadcast()
+	}
+}
+
+func (c *Consumer) closeRequested() bool {
+	if c == nil {
+		return false
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.closing
 }
 
 func confluentMessageToMessage(msg *ckafka.Message) Message {
