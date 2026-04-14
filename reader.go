@@ -274,7 +274,7 @@ func (k *Kafka) consumeWithConsumer(
 		messages = append(messages, nextMessages...)
 		if err != nil {
 			timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
-			if shouldRetryConsumerCompatibilityRead(timedOut, len(messages), startupGraceAvailable) {
+			if shouldRetryConsumerCompatibilityRead(ctx, ctxWithTimeout, err, len(messages), startupGraceAvailable) {
 				startupGraceAvailable = false
 				cancel()
 				ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
@@ -323,8 +323,26 @@ func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err e
 	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.DeadlineExceeded)
 }
 
-func shouldRetryConsumerCompatibilityRead(timedOut bool, messageCount int, startupGraceAvailable bool) bool {
-	return timedOut && messageCount == 0 && startupGraceAvailable
+func shouldRetryConsumerCompatibilityRead(
+	parentCtx context.Context,
+	consumeCtx context.Context,
+	err error,
+	messageCount int,
+	startupGraceAvailable bool,
+) bool {
+	if !startupGraceAvailable || messageCount != 0 || err == nil {
+		return false
+	}
+
+	if isConsumerCompatibilityTimeout(parentCtx, consumeCtx, err) {
+		return true
+	}
+
+	if parentCtx != nil && parentCtx.Err() != nil {
+		return false
+	}
+
+	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.Canceled) && errors.Is(err, context.Canceled)
 }
 
 func confluentConsumerMaxWait(consumer *Consumer) time.Duration {
