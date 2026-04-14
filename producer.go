@@ -19,9 +19,6 @@ type Producer struct {
 	config       ckafka.ConfigMap
 	defaultTopic string
 	waitForAck   bool
-	drainMu      sync.Mutex
-	draining     bool
-	drainDone    chan struct{}
 	closeOnce    sync.Once
 	closeErr     error
 }
@@ -58,8 +55,6 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 		return nil
 	}
 	ctx = ensureContext(ctx)
-
-	p.startEventDrainer()
 
 	var deliveryChan chan ckafka.Event
 	if p.waitForAck {
@@ -164,7 +159,6 @@ func (p *Producer) Close() error {
 
 	p.closeOnce.Do(func() {
 		client := p.client
-		p.client = nil
 		if client == nil {
 			return
 		}
@@ -174,8 +168,8 @@ func (p *Producer) Close() error {
 			p.closeErr = p.Flush(ctx)
 			cancel()
 		}
+		p.client = nil
 		client.Close()
-		p.stopEventDrainer()
 	})
 
 	return p.closeErr
@@ -207,67 +201,4 @@ func confluentHeaders(headers map[string]any) []ckafka.Header {
 
 func producerWaitsForAck(writerConfig *WriterConfig) bool {
 	return writerConfig == nil || writerConfig.RequiredAcks != 0
-}
-
-func (p *Producer) startEventDrainer() {
-	if p == nil || p.client == nil || p.waitForAck {
-		return
-	}
-	p.drainMu.Lock()
-	if p.draining {
-		p.drainMu.Unlock()
-		return
-	}
-	p.draining = true
-	p.drainDone = make(chan struct{})
-	client := p.client
-	done := p.drainDone
-	p.drainMu.Unlock()
-
-	go func() {
-		defer func() {
-			p.drainMu.Lock()
-			p.draining = false
-			close(done)
-			p.drainMu.Unlock()
-		}()
-
-		events := client.Events()
-		idleTimer := time.NewTimer(250 * time.Millisecond)
-		defer idleTimer.Stop()
-
-		for {
-			select {
-			case _, ok := <-events:
-				if !ok {
-					return
-				}
-				if !idleTimer.Stop() {
-					select {
-					case <-idleTimer.C:
-					default:
-					}
-				}
-				idleTimer.Reset(250 * time.Millisecond)
-			case <-idleTimer.C:
-				if client.Len() == 0 {
-					return
-				}
-				idleTimer.Reset(250 * time.Millisecond)
-			}
-		}
-	}()
-}
-
-func (p *Producer) stopEventDrainer() {
-	if p == nil || p.waitForAck {
-		return
-	}
-	p.drainMu.Lock()
-	done := p.drainDone
-	p.drainMu.Unlock()
-	if done == nil {
-		return
-	}
-	<-done
 }

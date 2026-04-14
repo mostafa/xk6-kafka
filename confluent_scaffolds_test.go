@@ -63,6 +63,7 @@ func TestWriterConfigToConfluentConfigMapDisablesDeliveryReportPayloads(t *testi
 		Brokers: []string{"localhost:9092"},
 	})
 	require.NoError(t, err)
+	assert.Equal(t, false, config["go.delivery.reports"])
 	assert.Equal(t, "none", config["go.delivery.report.fields"])
 }
 
