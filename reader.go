@@ -268,11 +268,18 @@ func (k *Kafka) consumeWithConsumer(
 	startedAt := time.Now()
 	limit := consumeConfig.effectiveLimit()
 	messages := make([]Message, 0, limit)
+	startupGraceAvailable := true
 	for len(messages) < limit {
 		nextMessages, err := consumer.Consume(ctxWithTimeout, 1)
 		messages = append(messages, nextMessages...)
 		if err != nil {
 			timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
+			if shouldRetryConsumerCompatibilityRead(timedOut, len(messages), startupGraceAvailable) {
+				startupGraceAvailable = false
+				cancel()
+				ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
+				continue
+			}
 			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
 
 			if consumeConfig.ExpectTimeout && timedOut {
@@ -290,6 +297,7 @@ func (k *Kafka) consumeWithConsumer(
 			break
 		}
 
+		startupGraceAvailable = false
 		ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 	}
 	cancel()
@@ -313,6 +321,10 @@ func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err e
 	}
 
 	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.DeadlineExceeded)
+}
+
+func shouldRetryConsumerCompatibilityRead(timedOut bool, messageCount int, startupGraceAvailable bool) bool {
+	return timedOut && messageCount == 0 && startupGraceAvailable
 }
 
 func confluentConsumerMaxWait(consumer *Consumer) time.Duration {

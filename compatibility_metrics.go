@@ -312,7 +312,7 @@ func (k *Kafka) reportConsumerCompatibilityMetrics(
 
 		if len(messages) > 0 || consumeErr != nil {
 			dials = 1 / float64(len(groups))
-			fetches = maxFloat64(1/float64(len(groups)), float64(group.messages))
+			fetches = compatibilityConsumerFetches(group.messages, len(groups), consumeErr)
 			readTime = elapsed
 		}
 
@@ -512,7 +512,7 @@ func collectProducerMetricGroups(producer *Producer, messages []Message) map[str
 		group := groups[topic]
 		group.messages++
 		group.writes++
-		group.bytes += compatibilityMessageBytes(msg)
+		group.bytes += compatibilityProducerMessageBytes(topic, msg)
 		groups[topic] = group
 	}
 
@@ -560,6 +560,21 @@ func compatibilityMessageBytes(msg Message) int {
 	}
 
 	return size
+}
+
+func compatibilityProducerMessageBytes(topic string, msg Message) int {
+	return len(topic) + compatibilityMessageBytes(msg)
+}
+
+func compatibilityConsumerFetches(messageCount int, groupCount int, consumeErr error) float64 {
+	if groupCount <= 0 {
+		return 0
+	}
+	if messageCount == 0 && consumeErr == nil {
+		return 0
+	}
+
+	return float64(messageCount) + 1/float64(groupCount)
 }
 
 func compatibilityConfigFloat(config ckafka.ConfigMap, key string) float64 {
