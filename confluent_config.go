@@ -171,6 +171,9 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 	if err := applyConfluentSecurityConfig(config, writerConfig.SASL, writerConfig.TLS); err != nil {
 		return nil, err
 	}
+	if err := setConfluentConfigValue(config, "go.delivery.reports", false); err != nil {
+		return nil, err
+	}
 	if err := setConfluentConfigValue(config, "go.delivery.report.fields", "none"); err != nil {
 		return nil, err
 	}
