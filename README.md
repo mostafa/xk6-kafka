@@ -59,6 +59,7 @@ You must have the latest Go version installed to build the k6 binary. The latest
 - [gvm](https://github.com/moovweb/gvm) for easier installation and management of Go versions on your machine
 - [Git](https://git-scm.com/) for cloning the project
 - [xk6](https://github.com/grafana/xk6) for building k6 binary with extensions
+- CGO enabled builds with a working native toolchain
 
 ### Install and build the latest tagged version
 
@@ -72,14 +73,22 @@ Feel free to skip the first two steps if you already have Go installed.
    go install go.k6.io/xk6/cmd/xk6@latest
    ```
 
-4. Build the binary:
+4. Build the binary with CGO enabled:
 
    ```shell
-   xk6 build --with github.com/mostafa/xk6-kafka@latest
+   CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka@latest
    ```
 
 > [!NOTE]
 > You can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
+
+### Native build requirements
+
+`xk6-kafka` uses `confluent-kafka-go` and therefore requires `CGO_ENABLED=1` for local builds and tests.
+
+- Linux: use a working C toolchain. If your environment cannot use the bundled `librdkafka`, install `pkg-config` and `librdkafka-dev`.
+- macOS: install the Xcode Command Line Tools first. If `pkg-config` cannot resolve `librdkafka`, install `pkg-config` and `librdkafka` with Homebrew.
+- Windows: use a Go environment with CGO enabled and a working C toolchain on `PATH`. The GitHub Actions baseline only uses Windows for smoke-build coverage; Kafka-backed tests still run on Linux.
 
 ### Build for development
 
@@ -87,12 +96,19 @@ If you want to add a feature or make a fix, clone the project and build it using
 
 ```bash
 git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
-xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+```
+
+For local validation, run:
+
+```bash
+CGO_ENABLED=1 go test ./...
+CGO_ENABLED=1 go test ./... -race
 ```
 
 ## Build using docker
 
-The Grafana xk6 also supports [using docker to build a k6 custom binary with extensions](https://grafana.com/docs/k6/latest/extensions/run/build-k6-binary-using-docker/).
+The Grafana xk6 also supports [using docker to build a k6 custom binary with extensions](https://grafana.com/docs/k6/latest/extensions/run/build-k6-binary-using-docker/). This is the simplest way to avoid local CGO and native `librdkafka` setup on development machines.
 
 1. Install the latest xk6 docker image.
 
