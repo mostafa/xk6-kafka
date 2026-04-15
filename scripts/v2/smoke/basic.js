@@ -1,7 +1,13 @@
 import { check } from "k6";
 import { AdminClient, Consumer, Producer } from "k6/x/kafka";
 
-import { brokers, createTopic, decodeBytes, deleteTopic, topicName } from "../common.js";
+import {
+  brokers,
+  createTopic,
+  decodeBytes,
+  deleteTopic,
+  topicName,
+} from "../common.js";
 
 const topic = topicName("smoke-basic");
 
