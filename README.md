@@ -14,7 +14,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 
 ## Supported Features
 
-- **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~6x faster than v1** which used the `segmentio/kafka-go` client at ~60,000 msgs/sec)
+- **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
@@ -372,7 +372,9 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
    ./k6 run --vus 50 --duration 60s scripts/test_json.js
    ```
 
-6. And here's the test result output:
+6. On the same machine and with the same `scripts/test_json.js` workload, the current `v1.x.x/main` branch reaches `115,637.233495 msg/s`, while `v2.0.0` reaches `383,331.650997 msg/s`, which is about `3.3x` higher throughput.
+
+7. And here's the `v2.0.0` test result output:
 
    ```bash
                /\      Grafana   /‾‾/
