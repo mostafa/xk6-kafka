@@ -95,6 +95,16 @@ jobs:
           check-latest: true
           cache: false
 
+      - name: Install Windows MinGW-w64 toolchain 🧰
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@cafece8e6baf9247cf9b1bf95097b0b983cc558d # v2.31.0
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+
       - name: Install Linux native build prerequisites 🧰
         if: runner.os == 'Linux'
         run: |
@@ -109,13 +119,33 @@ jobs:
         if: runner.os != 'Windows'
         run: go test ./... -run=^$
 
-      - name: Skip package-graph compile on Windows 🪟
+      - name: Verify Windows GCC toolchain 🪟
         if: runner.os == 'Windows'
+        shell: msys2 {0}
         run: |
-          echo "Windows is smoke-build coverage only in this matrix."
-          echo "Full CGO compile/test coverage stays on Linux."
+          which gcc
+          gcc --version
+
+      - name: Compile package graph on Windows 🔬
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          CC: gcc
+          CXX: g++
+        run: go test ./... -run=^$
 
       - name: Install xk6 and smoke build xk6-kafka 🏗️
+        if: runner.os != 'Windows'
+        run: |
+          go install go.k6.io/xk6/cmd/xk6@latest
+          xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka@latest=.
+
+      - name: Install xk6 and smoke build xk6-kafka on Windows 🏗️
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          CC: gcc
+          CXX: g++
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
           xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka@latest=.
