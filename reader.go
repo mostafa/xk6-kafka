@@ -267,48 +267,38 @@ func (k *Kafka) consumeWithConsumer(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	ctxWithTimeout, cancel := newConsumerCompatibilityTimeoutContext(ctx, consumer)
 	startedAt := time.Now()
 	startupGraceDeadline := startedAt.Add(consumerCompatibilityStartupGrace)
 	limit := consumeConfig.effectiveLimit()
 	messages := make([]Message, 0, limit)
 	for len(messages) < limit {
-		nextMessages, err := consumer.Consume(ctxWithTimeout, 1)
+		nextMessages, timedOut, shouldRetry, err := consumeConsumerCompatibilityBatch(
+			ctx,
+			consumer,
+			len(messages),
+			startupGraceDeadline,
+		)
 		messages = append(messages, nextMessages...)
 		if err != nil {
-			timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
-			if shouldRetryConsumerCompatibilityRead(
-				ctx,
-				ctxWithTimeout,
-				err,
-				len(messages),
-				time.Now().Before(startupGraceDeadline),
-			) {
-				cancel()
-				ctxWithTimeout, cancel = newConsumerCompatibilityTimeoutContext(ctx, consumer)
+			if shouldRetry {
 				continue
 			}
 			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
 
 			if consumeConfig.ExpectTimeout && timedOut {
-				cancel()
 				return messagesToJS(messages, consumeConfig.NanoPrecision)
 			}
 
-			cancel()
 			logger.WithField("error", err).Error(err)
 			common.Throw(k.vu.Runtime(), err)
 		}
 
-		cancel()
 		if len(messages) == limit {
 			break
 		}
 
 		startupGraceDeadline = time.Time{}
-		ctxWithTimeout, cancel = newConsumerCompatibilityTimeoutContext(ctx, consumer)
 	}
-	cancel()
 
 	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
 
@@ -322,6 +312,32 @@ func newConsumerCompatibilityTimeoutContext(
 	consumer *Consumer,
 ) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(parent, confluentConsumerMaxWait(consumer))
+}
+
+func consumeConsumerCompatibilityBatch(
+	parent context.Context,
+	consumer *Consumer,
+	messageCount int,
+	startupGraceDeadline time.Time,
+) ([]Message, bool, bool, error) {
+	consumeCtx, cancel := newConsumerCompatibilityTimeoutContext(parent, consumer)
+	defer cancel()
+
+	nextMessages, err := consumer.Consume(consumeCtx, 1)
+	if err == nil {
+		return nextMessages, false, false, nil
+	}
+
+	timedOut := isConsumerCompatibilityTimeout(parent, consumeCtx, err)
+	shouldRetry := shouldRetryConsumerCompatibilityRead(
+		parent,
+		consumeCtx,
+		err,
+		messageCount,
+		time.Now().Before(startupGraceDeadline),
+	)
+
+	return nextMessages, timedOut, shouldRetry, err
 }
 
 func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err error) bool {
