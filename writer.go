@@ -75,7 +75,7 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 	}
 	if c.Balancer != "" {
 		if _, ok := supportedBalancers[c.Balancer]; !ok {
-			return fmt.Errorf("unknown balancer %q", c.Balancer)
+			return fmt.Errorf("%w %q", errUnknownBalancer, c.Balancer)
 		}
 	}
 	return nil
@@ -117,8 +117,7 @@ func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	m := map[string]any{}
-	m = exportArgumentMap(runtime, call.Arguments[0], "writer config")
+	m := exportArgumentMap(runtime, call.Arguments[0], "writer config")
 	var writerConfig WriterConfig
 	err := writerConfig.Parse(m, runtime)
 	if err != nil {

@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"context"
-	"errors"
+	"maps"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +11,11 @@ import (
 )
 
 const defaultConfluentTimeout = 5 * time.Second
+
+const (
+	confluentAutoOffsetResetEarliest = "earliest"
+	confluentAutoOffsetResetLatest   = "latest"
+)
 
 func ensureContext(ctx context.Context) context.Context {
 	if ctx == nil {
@@ -22,15 +27,13 @@ func ensureContext(ctx context.Context) context.Context {
 
 func cloneConfluentConfigMap(src ckafka.ConfigMap) ckafka.ConfigMap {
 	dst := make(ckafka.ConfigMap, len(src))
-	for key, value := range src {
-		dst[key] = value
-	}
+	maps.Copy(dst, src)
 	return dst
 }
 
 func newConfluentConfigMap(brokers []string) (ckafka.ConfigMap, error) {
 	if len(brokers) == 0 {
-		return nil, newInvalidConfigError("confluent config", errors.New("brokers must not be empty"))
+		return nil, newInvalidConfigError("confluent config", errBrokersMustNotBeEmpty)
 	}
 
 	return ckafka.ConfigMap{
@@ -189,17 +192,29 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 		}
 	}
 	if writerConfig.BatchTimeout > 0 {
-		if err := setConfluentConfigValue(config, "linger.ms", int(writerConfig.BatchTimeout.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"linger.ms",
+			int(writerConfig.BatchTimeout.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
 	if writerConfig.WriteTimeout > 0 {
-		if err := setConfluentConfigValue(config, "message.timeout.ms", int(writerConfig.WriteTimeout.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"message.timeout.ms",
+			int(writerConfig.WriteTimeout.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
 	if writerConfig.ReadTimeout > 0 {
-		if err := setConfluentConfigValue(config, "socket.timeout.ms", int(writerConfig.ReadTimeout.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"socket.timeout.ms",
+			int(writerConfig.ReadTimeout.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
@@ -244,22 +259,38 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 		}
 	}
 	if readerConfig.MaxWait.Duration > 0 {
-		if err := setConfluentConfigValue(config, "fetch.wait.max.ms", int(readerConfig.MaxWait.Duration.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"fetch.wait.max.ms",
+			int(readerConfig.MaxWait.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
 	if readerConfig.SessionTimeout > 0 {
-		if err := setConfluentConfigValue(config, "session.timeout.ms", int(readerConfig.SessionTimeout.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"session.timeout.ms",
+			int(readerConfig.SessionTimeout.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
 	if readerConfig.HeartbeatInterval > 0 {
-		if err := setConfluentConfigValue(config, "heartbeat.interval.ms", int(readerConfig.HeartbeatInterval.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"heartbeat.interval.ms",
+			int(readerConfig.HeartbeatInterval.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
 	if readerConfig.CommitInterval > 0 {
-		if err := setConfluentConfigValue(config, "auto.commit.interval.ms", int(readerConfig.CommitInterval.Milliseconds())); err != nil {
+		if err := setConfluentConfigValue(
+			config,
+			"auto.commit.interval.ms",
+			int(readerConfig.CommitInterval.Milliseconds()),
+		); err != nil {
 			return nil, err
 		}
 	}
@@ -272,15 +303,15 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 			return nil, err
 		}
 
-		autoOffsetReset := "earliest"
+		autoOffsetReset := confluentAutoOffsetResetEarliest
 		switch readerConfig.StartOffset {
 		case "", firstOffset:
-			autoOffsetReset = "earliest"
+			autoOffsetReset = confluentAutoOffsetResetEarliest
 		case lastOffset:
-			autoOffsetReset = "latest"
+			autoOffsetReset = confluentAutoOffsetResetLatest
 		default:
 			if _, parseErr := strconv.ParseInt(readerConfig.StartOffset, 10, 64); parseErr == nil {
-				autoOffsetReset = "earliest"
+				autoOffsetReset = confluentAutoOffsetResetEarliest
 			}
 		}
 
@@ -299,12 +330,12 @@ func connectionConfigToConfluentConfigMap(connectionConfig *ConnectionConfig) (c
 	brokers := append([]string(nil), connectionConfig.Brokers...)
 	if len(brokers) == 0 {
 		if connectionConfig.Address == "" {
-			return nil, newInvalidConfigError("connection config", errors.New("address must not be empty"))
+			return nil, newInvalidConfigError("connection config", errAddressMustNotBeEmpty)
 		}
 		brokers = []string{connectionConfig.Address}
 	}
 	if len(brokers) == 0 {
-		return nil, newInvalidConfigError("connection config", errors.New("address must not be empty"))
+		return nil, newInvalidConfigError("connection config", errAddressMustNotBeEmpty)
 	}
 
 	config, err := newConfluentConfigMap(brokers)
@@ -330,7 +361,7 @@ func confluentRequiredAcks(requiredAcks int) (string, error) {
 	default:
 		return "", newInvalidConfigError(
 			"writer config",
-			errors.New("requiredAcks must be one of -1, 0, or 1"),
+			errRequiredAcksInvalid,
 		)
 	}
 }
@@ -350,7 +381,7 @@ func confluentOffset(startOffset string, explicitOffset int64) (ckafka.Offset, e
 		if err != nil {
 			return ckafka.OffsetBeginning, newInvalidConfigError(
 				"reader config",
-				errors.New("startOffset must be FIRST_OFFSET, LAST_OFFSET, or a numeric offset"),
+				errStartOffsetInvalid,
 			)
 		}
 		return ckafka.Offset(offset), nil

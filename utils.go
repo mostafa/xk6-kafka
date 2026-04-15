@@ -3,7 +3,6 @@ package kafka
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 
 	"github.com/grafana/sobek"
 )
@@ -14,7 +13,7 @@ func freeze(o *sobek.Object) *Xk6KafkaError {
 		return NewXk6KafkaError(
 			failedFreezeObject,
 			"Failed to freeze JS object.",
-			errors.New("object must not be nil"),
+			errObjectMustNotBeNil,
 		)
 	}
 

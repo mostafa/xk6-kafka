@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"errors"
 
 	"github.com/grafana/sobek"
 	"go.k6.io/k6/js/common"
@@ -108,7 +107,7 @@ func (k *Kafka) compatAdminClientClass(
 
 		topic, ok := call.Argument(0).Export().(string)
 		if !ok {
-			common.Throw(runtime, newInvalidConfigError("topic config", errors.New("topic must not be empty")))
+			common.Throw(runtime, newInvalidConfigError("topic config", errTopicMustNotBeEmpty))
 		}
 
 		metadata, err := adminClient.GetMetadata(k.adminContext(), topic)

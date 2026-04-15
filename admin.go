@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"errors"
 	"sort"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -92,7 +91,7 @@ func (a *AdminClient) DeleteTopic(ctx context.Context, name string) error {
 	}
 	ctx = ensureContext(ctx)
 	if name == "" {
-		return newInvalidConfigError("topic config", errors.New("topic must not be empty"))
+		return newInvalidConfigError("topic config", errTopicMustNotBeEmpty)
 	}
 
 	results, err := a.client.DeleteTopics(ctx, []string{name})
@@ -136,7 +135,7 @@ func (a *AdminClient) GetMetadata(ctx context.Context, topic string) (*TopicMeta
 	}
 	ctx = ensureContext(ctx)
 	if topic == "" {
-		return nil, newInvalidConfigError("topic config", errors.New("topic must not be empty"))
+		return nil, newInvalidConfigError("topic config", errTopicMustNotBeEmpty)
 	}
 
 	metadata, err := a.client.GetMetadata(&topic, false, confluentMetadataTimeoutMs(ctx))
@@ -146,7 +145,11 @@ func (a *AdminClient) GetMetadata(ctx context.Context, topic string) (*TopicMeta
 
 	topicMetadata, ok := metadata.Topics[topic]
 	if !ok {
-		return nil, NewXk6KafkaError(failedGetMetadata, "Topic metadata was not returned.", errors.New("topic metadata not found"))
+		return nil, NewXk6KafkaError(
+			failedGetMetadata,
+			"Topic metadata was not returned.",
+			errTopicMetadataNotFound,
+		)
 	}
 
 	converted := &TopicMetadata{
@@ -181,7 +184,7 @@ func (a *AdminClient) Close() error {
 
 func adminTopicResultError(results []ckafka.TopicResult, code errCode) error {
 	if len(results) == 0 {
-		return NewXk6KafkaError(code, "Admin operation returned no topic results.", errors.New("empty topic result set"))
+		return NewXk6KafkaError(code, "Admin operation returned no topic results.", errEmptyTopicResultSet)
 	}
 
 	result := results[0]
@@ -202,7 +205,7 @@ func normalizeConfluentError(err ckafka.Error) error {
 
 func topicConfigToConfluentSpec(config TopicConfig) (ckafka.TopicSpecification, error) {
 	if config.Topic == "" {
-		return ckafka.TopicSpecification{}, newInvalidConfigError("topic config", errors.New("topic must not be empty"))
+		return ckafka.TopicSpecification{}, newInvalidConfigError("topic config", errTopicMustNotBeEmpty)
 	}
 	if config.NumPartitions <= 0 {
 		config.NumPartitions = 1
@@ -224,13 +227,13 @@ func topicConfigToConfluentSpec(config TopicConfig) (ckafka.TopicSpecification, 
 			if assignment.Partition < 0 {
 				return ckafka.TopicSpecification{}, newInvalidConfigError(
 					"topic config",
-					errors.New("replica assignment partition must not be negative"),
+					errReplicaAssignmentPartitionNegative,
 				)
 			}
 			if _, exists := seenPartitions[assignment.Partition]; exists {
 				return ckafka.TopicSpecification{}, newInvalidConfigError(
 					"topic config",
-					errors.New("replica assignment partition must be unique"),
+					errReplicaAssignmentPartitionUnique,
 				)
 			}
 			seenPartitions[assignment.Partition] = struct{}{}

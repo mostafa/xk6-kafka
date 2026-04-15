@@ -14,6 +14,8 @@ type ProducerStats struct {
 	Pending int
 }
 
+const producerFlushPollTimeoutMs = 100
+
 type Producer struct {
 	client       *ckafka.Producer
 	config       ckafka.ConfigMap
@@ -67,7 +69,7 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 			topic = p.defaultTopic
 		}
 		if topic == "" {
-			return newInvalidConfigError("producer message", fmt.Errorf("topic must not be empty"))
+			return newInvalidConfigError("producer message", errTopicMustNotBeEmpty)
 		}
 
 		kafkaMsg := &ckafka.Message{
@@ -109,30 +111,6 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 	return nil
 }
 
-func (p *Producer) produceMessage(
-	ctx context.Context,
-	msg *ckafka.Message,
-	deliveryChan chan ckafka.Event,
-) error {
-	for {
-		err := p.client.Produce(msg, deliveryChan)
-		if err == nil {
-			return nil
-		}
-
-		var kafkaErr ckafka.Error
-		if !errors.As(err, &kafkaErr) || kafkaErr.Code() != ckafka.ErrQueueFull {
-			return err
-		}
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(1 * time.Millisecond):
-		}
-	}
-}
-
 func (p *Producer) Flush(ctx context.Context) error {
 	if p == nil || p.client == nil {
 		return newMissingConfigError("producer")
@@ -146,7 +124,7 @@ func (p *Producer) Flush(ctx context.Context) error {
 		default:
 		}
 
-		if remaining := p.client.Flush(100); remaining == 0 {
+		if remaining := p.client.Flush(producerFlushPollTimeoutMs); remaining == 0 {
 			return nil
 		}
 	}
@@ -181,6 +159,30 @@ func (p *Producer) Stats() ProducerStats {
 	}
 
 	return ProducerStats{Pending: p.client.Len()}
+}
+
+func (p *Producer) produceMessage(
+	ctx context.Context,
+	msg *ckafka.Message,
+	deliveryChan chan ckafka.Event,
+) error {
+	for {
+		err := p.client.Produce(msg, deliveryChan)
+		if err == nil {
+			return nil
+		}
+
+		var kafkaErr ckafka.Error
+		if !errors.As(err, &kafkaErr) || kafkaErr.Code() != ckafka.ErrQueueFull {
+			return err
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Millisecond):
+		}
+	}
 }
 
 func confluentHeaders(headers map[string]any) []ckafka.Header {

@@ -90,6 +90,9 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 		}
 
 		return k.encodeWireFormat(bytesData, container.Schema.ID)
+	case Bytes, String:
+		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+		return nil
 	case Protobuf:
 		common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
 		return nil
@@ -133,6 +136,8 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 			switch container.SchemaType {
 			case String:
 				return string(data)
+			case Bytes:
+				return data
 			case Avro, Json:
 				if isJSON(data) {
 					js, err := toMap(data)
@@ -236,6 +241,9 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 				return jsonObj
 			}
 			common.Throw(k.vu.Runtime(), ErrInvalidDataType)
+			return nil
+		case Bytes, String:
+			common.Throw(runtime, ErrUnsupportedOperation)
 			return nil
 		case Protobuf:
 			common.Throw(runtime, ErrProtobufSerdesPlanned)
