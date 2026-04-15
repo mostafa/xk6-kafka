@@ -267,19 +267,25 @@ func (k *Kafka) consumeWithConsumer(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
+	ctxWithTimeout, cancel := newConsumerCompatibilityTimeoutContext(ctx, consumer)
 	startedAt := time.Now()
+	startupGraceDeadline := startedAt.Add(consumerCompatibilityStartupGrace)
 	limit := consumeConfig.effectiveLimit()
 	messages := make([]Message, 0, limit)
-	startupGraceAvailable := true
 	for len(messages) < limit {
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 		nextMessages, err := consumer.Consume(ctxWithTimeout, 1)
 		messages = append(messages, nextMessages...)
 		if err != nil {
 			timedOut := isConsumerCompatibilityTimeout(ctx, ctxWithTimeout, err)
-			if shouldRetryConsumerCompatibilityRead(ctx, ctxWithTimeout, err, len(messages), startupGraceAvailable) {
-				startupGraceAvailable = false
+			if shouldRetryConsumerCompatibilityRead(
+				ctx,
+				ctxWithTimeout,
+				err,
+				len(messages),
+				time.Now().Before(startupGraceDeadline),
+			) {
 				cancel()
+				ctxWithTimeout, cancel = newConsumerCompatibilityTimeoutContext(ctx, consumer)
 				continue
 			}
 			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
@@ -295,12 +301,27 @@ func (k *Kafka) consumeWithConsumer(
 		}
 
 		cancel()
-		startupGraceAvailable = false
+		if len(messages) == limit {
+			break
+		}
+
+		startupGraceDeadline = time.Time{}
+		ctxWithTimeout, cancel = newConsumerCompatibilityTimeoutContext(ctx, consumer)
 	}
+	cancel()
 
 	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
 
 	return messagesToJS(messages, consumeConfig.NanoPrecision)
+}
+
+const consumerCompatibilityStartupGrace = 1500 * time.Millisecond
+
+func newConsumerCompatibilityTimeoutContext(
+	parent context.Context,
+	consumer *Consumer,
+) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(parent, confluentConsumerMaxWait(consumer))
 }
 
 func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err error) bool {
