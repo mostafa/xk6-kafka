@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	errTestBrokerDisconnect     = errors.New("broker disconnect")
+	errTestConnectionClosedPeer = errors.New("connection closed by peer")
+)
+
 func TestConsumerContextErrorWrapsDeadlineExceeded(t *testing.T) {
 	err := consumerContextError(context.DeadlineExceeded)
 	require.Error(t, err)
@@ -18,10 +23,9 @@ func TestConsumerContextErrorWrapsDeadlineExceeded(t *testing.T) {
 }
 
 func TestConsumerReadErrorWrapsOriginalError(t *testing.T) {
-	originalErr := errors.New("broker disconnect")
-	err := consumerReadError(originalErr)
+	err := consumerReadError(errTestBrokerDisconnect)
 	require.Error(t, err)
-	assert.ErrorIs(t, err, originalErr)
+	assert.ErrorIs(t, err, errTestBrokerDisconnect)
 	assert.EqualError(t, err, "Failed to consume message., OriginalError: broker disconnect")
 }
 
@@ -31,16 +35,15 @@ func TestConsumerReadTimeoutNormalizationPrefersExpiredContext(t *testing.T) {
 
 	time.Sleep(time.Millisecond)
 
-	normalizedErr := normalizeConsumerReadError(ctx, errors.New("connection closed by peer"))
+	normalizedErr := normalizeConsumerReadError(ctx, errTestConnectionClosedPeer)
 	require.Error(t, normalizedErr)
 	assert.ErrorIs(t, normalizedErr, context.DeadlineExceeded)
 }
 
 func TestConsumerReadTimeoutNormalizationPreservesBrokerErrorWhileContextActive(t *testing.T) {
-	originalErr := errors.New("connection closed by peer")
-	normalizedErr := normalizeConsumerReadError(context.Background(), originalErr)
+	normalizedErr := normalizeConsumerReadError(context.Background(), errTestConnectionClosedPeer)
 	require.Error(t, normalizedErr)
-	assert.ErrorIs(t, normalizedErr, originalErr)
+	assert.ErrorIs(t, normalizedErr, errTestConnectionClosedPeer)
 	assert.NotErrorIs(t, normalizedErr, context.DeadlineExceeded)
 }
 
@@ -79,7 +82,7 @@ func TestConsumerContextCauseUsesExpiredDeadlineWhenErrIsNil(t *testing.T) {
 
 func TestConsumerReadTimeoutNormalizationPrefersExpiredDeadlineWhenErrIsNil(t *testing.T) {
 	ctx := deadlineOnlyContext{deadline: time.Now().Add(-time.Millisecond)}
-	normalizedErr := normalizeConsumerReadError(ctx, errors.New("connection closed by peer"))
+	normalizedErr := normalizeConsumerReadError(ctx, errTestConnectionClosedPeer)
 	require.Error(t, normalizedErr)
 	assert.ErrorIs(t, normalizedErr, context.DeadlineExceeded)
 }

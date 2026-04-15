@@ -161,6 +161,7 @@ func TestEncodeWireFormatRejectsOutOfRangeSchemaID(t *testing.T) {
 func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 	test := getTestModuleInstance(t)
 	avroType := Avro
+	const localSchemaID = 7
 
 	globalSchema := &Schema{
 		ID:            99,
@@ -171,7 +172,7 @@ func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 		EnableCaching: true,
 	}
 	localSchema := &Schema{
-		ID:            7,
+		ID:            localSchemaID,
 		Schema:        avroSchemaForSRTests,
 		SchemaType:    &avroType,
 		Version:       1,
@@ -196,5 +197,5 @@ func TestSerializeWithRegistryUsesScopedCache(t *testing.T) {
 	}, registry)
 
 	require.GreaterOrEqual(t, len(serialized), MagicPrefixSize)
-	assert.Equal(t, uint32(localSchema.ID), binary.BigEndian.Uint32(serialized[1:5]))
+	assert.EqualValues(t, localSchemaID, binary.BigEndian.Uint32(serialized[1:5]))
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/grafana/sobek"
@@ -32,6 +33,8 @@ var (
 	JoinGroupBackoff       = time.Second * 5
 	RetentionTime          = time.Hour * 24
 )
+
+const consumerSeekArgumentCount = 2
 
 type ReaderConfig struct {
 	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
@@ -148,7 +151,7 @@ func (k *Kafka) compatConsumerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	err = consumerObject.Set("seek", func(call sobek.FunctionCall) sobek.Value {
-		if len(call.Arguments) < 2 {
+		if len(call.Arguments) < consumerSeekArgumentCount {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
@@ -264,12 +267,12 @@ func (k *Kafka) consumeWithConsumer(
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 	startedAt := time.Now()
 	limit := consumeConfig.effectiveLimit()
 	messages := make([]Message, 0, limit)
 	startupGraceAvailable := true
 	for len(messages) < limit {
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 		nextMessages, err := consumer.Consume(ctxWithTimeout, 1)
 		messages = append(messages, nextMessages...)
 		if err != nil {
@@ -277,7 +280,6 @@ func (k *Kafka) consumeWithConsumer(
 			if shouldRetryConsumerCompatibilityRead(ctx, ctxWithTimeout, err, len(messages), startupGraceAvailable) {
 				startupGraceAvailable = false
 				cancel()
-				ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 				continue
 			}
 			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
@@ -293,14 +295,8 @@ func (k *Kafka) consumeWithConsumer(
 		}
 
 		cancel()
-		if len(messages) == limit {
-			break
-		}
-
 		startupGraceAvailable = false
-		ctxWithTimeout, cancel = context.WithTimeout(ctx, confluentConsumerMaxWait(consumer))
 	}
-	cancel()
 
 	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
 
@@ -387,9 +383,7 @@ func messagesToJS(messages []Message, nanoPrecision bool) []map[string]any {
 		}
 
 		if headers, ok := message["headers"].(map[string]any); ok {
-			for key, value := range msg.Headers {
-				headers[key] = value
-			}
+			maps.Copy(headers, msg.Headers)
 		}
 
 		if len(msg.Key) > 0 {

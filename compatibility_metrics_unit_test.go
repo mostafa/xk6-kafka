@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var errTestTimeout = errors.New("timeout")
+
 func TestCompatibilityProducerMessageBytesIncludesTopic(t *testing.T) {
 	msg := Message{
 		Key:   []byte("key1"),
@@ -19,8 +21,8 @@ func TestCompatibilityProducerMessageBytesIncludesTopic(t *testing.T) {
 
 func TestCompatibilityConsumerFetchesAddsTrailingFetch(t *testing.T) {
 	assert.Equal(t, 2.0, compatibilityConsumerFetches(1, 1, nil))
-	assert.Equal(t, 2.0, compatibilityConsumerFetches(1, 1, errors.New("timeout")))
-	assert.Equal(t, 1.0, compatibilityConsumerFetches(0, 1, errors.New("timeout")))
+	assert.Equal(t, 2.0, compatibilityConsumerFetches(1, 1, errTestTimeout))
+	assert.Equal(t, 1.0, compatibilityConsumerFetches(0, 1, errTestTimeout))
 	assert.Equal(t, 0.0, compatibilityConsumerFetches(0, 1, nil))
 }
 

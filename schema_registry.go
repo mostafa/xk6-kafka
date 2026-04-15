@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -78,15 +77,6 @@ type WireFormat struct {
 type schemaRegistryState struct {
 	client SchemaRegistryClient
 	cache  map[string]*Schema
-}
-
-// createResolver creates a resolver function for a schema that can fetch referenced schemas.
-// The resolver is independent of any specific schema and can fetch any schema by name.
-func (k *Kafka) createResolver(
-	client SchemaRegistryClient,
-	enableCaching bool,
-) func(name string) (*Schema, error) {
-	return k.createResolverWithCache(client, k.schemaCache, enableCaching)
 }
 
 func (k *Kafka) createResolverWithCache(
@@ -552,10 +542,7 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) SchemaRegistr
 		return nil
 	}
 	if config.URL == "" {
-		throwConfigError(
-			runtime,
-			newInvalidConfigError("schema registry config", errors.New("url must not be empty")),
-		)
+		throwConfigError(runtime, newInvalidConfigError("schema registry config", errURLMustNotBeEmpty))
 		return nil
 	}
 
@@ -627,10 +614,7 @@ func (k *Kafka) getSchemaWithCache(
 		return nil
 	}
 	if schema.Subject == "" {
-		throwConfigError(
-			k.vu.Runtime(),
-			newInvalidConfigError("schema metadata", errors.New("subject must not be empty")),
-		)
+		throwConfigError(k.vu.Runtime(), newInvalidConfigError("schema metadata", errSubjectMustNotBeEmpty))
 		return nil
 	}
 
@@ -676,11 +660,6 @@ func (k *Kafka) getSchemaWithCache(
 	}
 }
 
-// createSchema creates a new schema in the schema registry.
-func (k *Kafka) createSchema(client SchemaRegistryClient, schema *Schema) *Schema {
-	return k.createSchemaWithCache(client, k.schemaCache, schema)
-}
-
 func (k *Kafka) createSchemaWithCache(
 	client SchemaRegistryClient,
 	cache map[string]*Schema,
@@ -696,15 +675,15 @@ func (k *Kafka) createSchemaWithCache(
 		return nil
 	}
 	if schema.Subject == "" {
-		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("subject must not be empty")))
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errSubjectMustNotBeEmpty))
 		return nil
 	}
 	if schema.Schema == "" {
-		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("schema must not be empty")))
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errSchemaMustNotBeEmpty))
 		return nil
 	}
 	if schema.SchemaType == nil {
-		throwConfigError(runtime, newInvalidConfigError("schema metadata", errors.New("schemaType must not be empty")))
+		throwConfigError(runtime, newInvalidConfigError("schema metadata", errSchemaTypeMustNotBeEmpty))
 		return nil
 	}
 

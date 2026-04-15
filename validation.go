@@ -9,11 +9,11 @@ import (
 )
 
 func newInvalidConfigError(component string, originalErr error) *Xk6KafkaError {
-	return NewXk6KafkaError(invalidConfiguration, fmt.Sprintf("Invalid %s", component), originalErr)
+	return NewXk6KafkaError(invalidConfiguration, "Invalid "+component, originalErr)
 }
 
 func newMissingConfigError(component string) *Xk6KafkaError {
-	return NewXk6KafkaError(invalidConfiguration, fmt.Sprintf("%s is required", component), nil)
+	return NewXk6KafkaError(invalidConfiguration, component+" is required", nil)
 }
 
 func throwConfigError(runtime *sobek.Runtime, err *Xk6KafkaError) {
@@ -32,7 +32,7 @@ func exportArgumentMap(runtime *sobek.Runtime, value sobek.Value, component stri
 	if !ok {
 		throwConfigError(runtime, newInvalidConfigError(
 			component,
-			fmt.Errorf("expected object, got %T", exported),
+			fmt.Errorf("%w, got %T", errExpectedObject, exported),
 		))
 		return nil
 	}

@@ -686,11 +686,3 @@ func compatibilityValueToInt(value any) (int, bool) {
 		return 0, false
 	}
 }
-
-func maxFloat64(left, right float64) float64 {
-	if left > right {
-		return left
-	}
-
-	return right
-}

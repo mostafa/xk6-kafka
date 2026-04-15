@@ -14,6 +14,11 @@ type ConsumerStats struct {
 	Assignments int
 }
 
+const (
+	maxInt32Value = 1<<31 - 1
+	minInt32Value = -1 << 31
+)
+
 type Consumer struct {
 	client *ckafka.Consumer
 	config ckafka.ConfigMap
@@ -68,7 +73,7 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 		}
 		if len(topics) == 0 {
 			_ = client.Close()
-			return nil, newInvalidConfigError("reader config", errors.New("groupTopics must not be empty"))
+			return nil, newInvalidConfigError("reader config", errGroupTopicsMustNotBeEmpty)
 		}
 		if len(topics) == 1 {
 			consumer.topic = topics[0]
@@ -80,7 +85,7 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 	default:
 		if readerConfig.Topic == "" {
 			_ = client.Close()
-			return nil, newInvalidConfigError("reader config", errors.New("topic must not be empty"))
+			return nil, newInvalidConfigError("reader config", errTopicMustNotBeEmpty)
 		}
 
 		offset, err := confluentOffset(readerConfig.StartOffset, readerConfig.Offset)
@@ -90,9 +95,14 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 		}
 
 		consumer.topic = readerConfig.Topic
+		partition, err := consumerPartition(readerConfig.Partition, "reader config")
+		if err != nil {
+			_ = client.Close()
+			return nil, err
+		}
 		if err := client.Assign([]ckafka.TopicPartition{{
 			Topic:     &consumer.topic,
-			Partition: int32(readerConfig.Partition),
+			Partition: partition,
 			Offset:    offset,
 		}}); err != nil {
 			_ = client.Close()
@@ -187,7 +197,7 @@ func (c *Consumer) Seek(partition int, offset int64) error {
 		return newMissingConfigError("consumer")
 	}
 	if c.topic == "" {
-		return newInvalidConfigError("consumer", errors.New("seek requires a single configured topic"))
+		return newInvalidConfigError("consumer", errSeekRequiresSingleConfiguredTopic)
 	}
 	client, err := c.beginOperation()
 	if err != nil {
@@ -198,9 +208,14 @@ func (c *Consumer) Seek(partition int, offset int64) error {
 	}
 	defer c.endOperation()
 
+	partitionValue, err := consumerPartition(partition, "partition")
+	if err != nil {
+		return err
+	}
+
 	err = client.Seek(ckafka.TopicPartition{
 		Topic:     &c.topic,
-		Partition: int32(partition),
+		Partition: partitionValue,
 		Offset:    ckafka.Offset(offset),
 	}, -1)
 	if err != nil {
@@ -215,7 +230,7 @@ func (c *Consumer) Position(partition int) (int64, error) {
 		return 0, newMissingConfigError("consumer")
 	}
 	if c.topic == "" {
-		return 0, newInvalidConfigError("consumer", errors.New("position requires a single configured topic"))
+		return 0, newInvalidConfigError("consumer", errPositionRequiresSingleConfiguredTopic)
 	}
 	client, err := c.beginOperation()
 	if err != nil {
@@ -226,15 +241,20 @@ func (c *Consumer) Position(partition int) (int64, error) {
 	}
 	defer c.endOperation()
 
+	partitionValue, err := consumerPartition(partition, "partition")
+	if err != nil {
+		return 0, err
+	}
+
 	positions, err := client.Position([]ckafka.TopicPartition{{
 		Topic:     &c.topic,
-		Partition: int32(partition),
+		Partition: partitionValue,
 	}})
 	if err != nil {
 		return 0, NewXk6KafkaError(failedSetOffset, "Failed to query consumer position.", err)
 	}
 	if len(positions) == 0 {
-		return 0, NewXk6KafkaError(failedSetOffset, "Failed to query consumer position.", errors.New("no positions returned"))
+		return 0, NewXk6KafkaError(failedSetOffset, "Failed to query consumer position.", errNoPositionsReturned)
 	}
 
 	return int64(positions[0].Offset), nil
@@ -326,6 +346,14 @@ func (c *Consumer) beginOperation() (*ckafka.Consumer, error) {
 
 	c.activeCalls++
 	return c.client, nil
+}
+
+func consumerPartition(partition int, component string) (int32, error) {
+	if partition < minInt32Value || partition > maxInt32Value {
+		return 0, newInvalidConfigError(component, fmt.Errorf("%w: %d", errPartitionOutOfRange, partition))
+	}
+
+	return int32(partition), nil
 }
 
 func (c *Consumer) endOperation() {

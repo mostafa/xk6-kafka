@@ -58,44 +58,190 @@ type kafkaMetricDefinition struct {
 	assign       func(*kafkaMetrics, *metrics.Metric)
 }
 
+func metricDef(
+	name string,
+	metricType metrics.MetricType,
+	assign func(*kafkaMetrics, *metrics.Metric),
+) kafkaMetricDefinition {
+	return kafkaMetricDefinition{
+		name:       name,
+		metricType: metricType,
+		assign:     assign,
+	}
+}
+
+func typedMetricDef(
+	name string,
+	metricType metrics.MetricType,
+	valueType metrics.ValueType,
+	assign func(*kafkaMetrics, *metrics.Metric),
+) kafkaMetricDefinition {
+	return kafkaMetricDefinition{
+		name:         name,
+		metricType:   metricType,
+		valueType:    valueType,
+		hasValueType: true,
+		assign:       assign,
+	}
+}
+
 var kafkaMetricDefinitions = []kafkaMetricDefinition{
-	{name: "kafka_reader_dial_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderDials = metric }},
-	{name: "kafka_reader_fetches_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderFetches = metric }},
-	{name: "kafka_reader_message_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderMessages = metric }},
-	{name: "kafka_reader_message_bytes", metricType: metrics.Counter, valueType: metrics.Data, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderBytes = metric }},
-	{name: "kafka_reader_rebalance_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderRebalances = metric }},
-	{name: "kafka_reader_timeouts_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderTimeouts = metric }},
-	{name: "kafka_reader_error_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderErrors = metric }},
-	{name: "kafka_reader_dial_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderDialTime = metric }},
-	{name: "kafka_reader_read_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderReadTime = metric }},
-	{name: "kafka_reader_wait_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderWaitTime = metric }},
-	{name: "kafka_reader_fetch_size", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderFetchSize = metric }},
-	{name: "kafka_reader_fetch_bytes", metricType: metrics.Counter, valueType: metrics.Data, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderFetchBytes = metric }},
-	{name: "kafka_reader_offset", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderOffset = metric }},
-	{name: "kafka_reader_lag", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderLag = metric }},
-	{name: "kafka_reader_fetch_bytes_min", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderMinBytes = metric }},
-	{name: "kafka_reader_fetch_bytes_max", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderMaxBytes = metric }},
-	{name: "kafka_reader_fetch_wait_max", metricType: metrics.Gauge, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderMaxWait = metric }},
-	{name: "kafka_reader_queue_length", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderQueueLength = metric }},
-	{name: "kafka_reader_queue_capacity", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.ReaderQueueCapacity = metric }},
-	{name: "kafka_writer_write_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterWrites = metric }},
-	{name: "kafka_writer_message_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterMessages = metric }},
-	{name: "kafka_writer_message_bytes", metricType: metrics.Counter, valueType: metrics.Data, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBytes = metric }},
-	{name: "kafka_writer_error_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterErrors = metric }},
-	{name: "kafka_writer_batch_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBatchTime = metric }},
-	{name: "kafka_writer_batch_queue_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBatchQueueTime = metric }},
-	{name: "kafka_writer_write_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterWriteTime = metric }},
-	{name: "kafka_writer_wait_seconds", metricType: metrics.Trend, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterWaitTime = metric }},
-	{name: "kafka_writer_retries_count", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterRetries = metric }},
-	{name: "kafka_writer_batch_size", metricType: metrics.Counter, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBatchSize = metric }},
-	{name: "kafka_writer_batch_bytes", metricType: metrics.Counter, valueType: metrics.Data, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBatchBytes = metric }},
-	{name: "kafka_writer_attempts_max", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterMaxAttempts = metric }},
-	{name: "kafka_writer_batch_max", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterMaxBatchSize = metric }},
-	{name: "kafka_writer_batch_timeout", metricType: metrics.Gauge, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterBatchTimeout = metric }},
-	{name: "kafka_writer_read_timeout", metricType: metrics.Gauge, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterReadTimeout = metric }},
-	{name: "kafka_writer_write_timeout", metricType: metrics.Gauge, valueType: metrics.Time, hasValueType: true, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterWriteTimeout = metric }},
-	{name: "kafka_writer_acks_required", metricType: metrics.Gauge, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterRequiredAcks = metric }},
-	{name: "kafka_writer_async", metricType: metrics.Rate, assign: func(km *kafkaMetrics, metric *metrics.Metric) { km.WriterAsync = metric }},
+	metricDef("kafka_reader_dial_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderDials = metric
+	}),
+	metricDef("kafka_reader_fetches_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderFetches = metric
+	}),
+	metricDef("kafka_reader_message_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMessages = metric
+	}),
+	typedMetricDef("kafka_reader_message_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderBytes = metric
+	}),
+	metricDef("kafka_reader_rebalance_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderRebalances = metric
+	}),
+	metricDef("kafka_reader_timeouts_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderTimeouts = metric
+	}),
+	metricDef("kafka_reader_error_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderErrors = metric
+	}),
+	typedMetricDef("kafka_reader_dial_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderDialTime = metric
+	}),
+	typedMetricDef("kafka_reader_read_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderReadTime = metric
+	}),
+	typedMetricDef("kafka_reader_wait_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderWaitTime = metric
+	}),
+	metricDef("kafka_reader_fetch_size", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderFetchSize = metric
+	}),
+	typedMetricDef("kafka_reader_fetch_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderFetchBytes = metric
+	}),
+	metricDef("kafka_reader_offset", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderOffset = metric
+	}),
+	metricDef("kafka_reader_lag", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderLag = metric
+	}),
+	metricDef("kafka_reader_fetch_bytes_min", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMinBytes = metric
+	}),
+	metricDef("kafka_reader_fetch_bytes_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMaxBytes = metric
+	}),
+	typedMetricDef("kafka_reader_fetch_wait_max", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderMaxWait = metric
+	}),
+	metricDef("kafka_reader_queue_length", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderQueueLength = metric
+	}),
+	metricDef("kafka_reader_queue_capacity", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderQueueCapacity = metric
+	}),
+	metricDef("kafka_writer_write_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterWrites = metric
+	}),
+	metricDef("kafka_writer_message_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMessages = metric
+	}),
+	typedMetricDef("kafka_writer_message_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBytes = metric
+	}),
+	metricDef("kafka_writer_error_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterErrors = metric
+	}),
+	typedMetricDef("kafka_writer_batch_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchTime = metric
+	}),
+	typedMetricDef("kafka_writer_batch_queue_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchQueueTime = metric
+	}),
+	typedMetricDef("kafka_writer_write_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWriteTime = metric
+	}),
+	typedMetricDef("kafka_writer_wait_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWaitTime = metric
+	}),
+	metricDef("kafka_writer_retries_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterRetries = metric
+	}),
+	metricDef("kafka_writer_batch_size", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterBatchSize = metric
+	}),
+	typedMetricDef("kafka_writer_batch_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchBytes = metric
+	}),
+	metricDef("kafka_writer_attempts_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMaxAttempts = metric
+	}),
+	metricDef("kafka_writer_batch_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMaxBatchSize = metric
+	}),
+	typedMetricDef("kafka_writer_batch_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchTimeout = metric
+	}),
+	typedMetricDef("kafka_writer_read_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterReadTimeout = metric
+	}),
+	typedMetricDef("kafka_writer_write_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWriteTimeout = metric
+	}),
+	metricDef("kafka_writer_acks_required", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterRequiredAcks = metric
+	}),
+	metricDef("kafka_writer_async", metrics.Rate, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterAsync = metric
+	}),
 }
 
 func registeredKafkaMetricNames() []string {
