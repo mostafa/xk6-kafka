@@ -57,6 +57,9 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 		return nil
 	}
 	ctx = ensureContext(ctx)
+	if err := ctx.Err(); err != nil {
+		return NewXk6KafkaError(writerError, "Producer context cancelled.", err)
+	}
 
 	var deliveryChan chan ckafka.Event
 	if p.waitForAck {
@@ -64,6 +67,10 @@ func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
 	}
 
 	for _, msg := range msgs {
+		if err := ctx.Err(); err != nil {
+			return NewXk6KafkaError(writerError, "Producer context cancelled.", err)
+		}
+
 		topic := msg.Topic
 		if topic == "" {
 			topic = p.defaultTopic
