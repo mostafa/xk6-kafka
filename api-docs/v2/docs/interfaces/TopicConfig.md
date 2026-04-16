@@ -4,7 +4,7 @@
 
 # Interface: TopicConfig
 
-Defined in: [index.d.ts:248](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L248)
+Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L250)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:248](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **configEntries**: [`ConfigEntry`](ConfigEntry.md)[]
 
-Defined in: [index.d.ts:253](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L253)
+Defined in: [index.d.ts:255](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L255)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:253](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **numPartitions**: `number`
 
-Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L250)
+Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L252)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **replicaAssignments**: [`ReplicaAssignment`](ReplicaAssignment.md)[]
 
-Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L252)
+Defined in: [index.d.ts:254](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L254)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **replicationFactor**: `number`
 
-Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L251)
+Defined in: [index.d.ts:253](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L253)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **topic**: `string`
 
-Defined in: [index.d.ts:249](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L249)
+Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L251)

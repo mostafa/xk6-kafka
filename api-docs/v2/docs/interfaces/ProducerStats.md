@@ -4,7 +4,7 @@
 
 # Interface: ProducerStats
 
-Defined in: [index.d.ts:256](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L256)
+Defined in: [index.d.ts:258](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L258)
 
 ## Properties
 
@@ -12,4 +12,4 @@ Defined in: [index.d.ts:256](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **pending**: `number`
 
-Defined in: [index.d.ts:257](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L257)
+Defined in: [index.d.ts:259](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L259)

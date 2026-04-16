@@ -591,7 +591,7 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
 6. Can I consume messages from a consumer group in a topic with multiple partitions?
 
-    Yes, you can. Just pass the `groupID` to your `Reader` object. You must not specify the partition anymore. Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
+    Yes, you can. Just pass the `groupId` to your `Reader` object. You must not specify the partition anymore. (`groupID` remains accepted as a legacy alias.) Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
 
     Remember that you must set `sessionTimeout` on your `Reader` object if the consume function terminates abruptly, thus failing to consume messages.
 
@@ -609,7 +609,7 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
 8. How can I consume from multiple partitions on a single topic?
 
-    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieved by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
+    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieved by setting `groupTopics`, `groupId` and a few other options for timeouts, intervals and lags. (`groupID` remains accepted as a legacy alias.) Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
 9. How can I use autocompletion in IDEs?
 
@@ -670,7 +670,7 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
           const reader = new Reader({
             brokers: ["localhost:9092"], // Replace with your broker(s)
-            groupID: "example-group", // Specify your consumer group ID
+            groupId: "example-group", // Specify your consumer group ID
             groupTopics: ["example-topic"], // List of topics for the group
             startOffset: START_OFFSETS_LAST_OFFSET, // Use the most recent offset
           });

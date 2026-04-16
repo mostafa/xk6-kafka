@@ -4,7 +4,7 @@
 
 # Class: AdminClient
 
-Defined in: [index.d.ts:465](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L465)
+Defined in: [index.d.ts:467](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L467)
 
 ## Classdesc
 
@@ -31,7 +31,7 @@ adminClient.close();
 
 > **new AdminClient**(`connectionConfig`): `AdminClient`
 
-Defined in: [index.d.ts:466](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L466)
+Defined in: [index.d.ts:468](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L468)
 
 #### Parameters
 
@@ -49,7 +49,7 @@ Defined in: [index.d.ts:466](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:471](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L471)
+Defined in: [index.d.ts:473](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L473)
 
 #### Returns
 
@@ -61,7 +61,7 @@ Defined in: [index.d.ts:471](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **createTopic**(`topicConfig`): `void`
 
-Defined in: [index.d.ts:467](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L467)
+Defined in: [index.d.ts:469](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L469)
 
 #### Parameters
 
@@ -79,7 +79,7 @@ Defined in: [index.d.ts:467](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **deleteTopic**(`topic`): `void`
 
-Defined in: [index.d.ts:468](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L468)
+Defined in: [index.d.ts:470](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L470)
 
 #### Parameters
 
@@ -97,7 +97,7 @@ Defined in: [index.d.ts:468](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **getMetadata**(`topic`): [`TopicMetadata`](../interfaces/TopicMetadata.md)
 
-Defined in: [index.d.ts:470](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L470)
+Defined in: [index.d.ts:472](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L472)
 
 #### Parameters
 
@@ -115,7 +115,7 @@ Defined in: [index.d.ts:470](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **listTopics**(): [`TopicInfo`](../interfaces/TopicInfo.md)[]
 
-Defined in: [index.d.ts:469](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L469)
+Defined in: [index.d.ts:471](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L471)
 
 #### Returns
 

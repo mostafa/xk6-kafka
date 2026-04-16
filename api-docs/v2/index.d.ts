@@ -39,8 +39,8 @@ export enum TLS_VERSIONS {
 
 /* Element types for publishing schemas to Schema Registry. */
 export enum ELEMENT_TYPES {
-  KEY = "KEY",
-  VALUE = "VALUE",
+  KEY = "key",
+  VALUE = "value",
 }
 
 /* Isolation levels controls the visibility of transactional records. */
@@ -179,7 +179,9 @@ export interface ProduceConfig {
 /* Configuration for creating a Reader instance. */
 export interface ReaderConfig {
   brokers: string[];
-  groupID: string;
+  groupId: string;
+  /** @deprecated Use `groupId` instead. */
+  groupID?: string;
   groupTopics: string[];
   topic: string;
   partition: number;

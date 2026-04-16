@@ -165,7 +165,12 @@ func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	err = producerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
-		return runtime.ToValue(producer.Stats())
+		stats := producer.Stats()
+		return runtime.ToValue(map[string]any{
+			"pending": stats.Pending,
+			// Backward-compatible alias.
+			"Pending": stats.Pending,
+		})
 	})
 	if err != nil {
 		common.Throw(runtime, err)

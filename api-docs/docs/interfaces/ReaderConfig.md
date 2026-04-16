@@ -40,11 +40,21 @@ Defined in: [index.d.ts:190](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ---
 
-### groupID
+### groupId
 
-> **groupID**: `string`
+> **groupId**: `string`
 
 Defined in: [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L180)
+
+---
+
+### groupID
+
+> `optional` **groupID**: `string`
+
+Deprecated. Use `groupId` instead.
+
+Defined in: [index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L182)
 
 ---
 

@@ -124,7 +124,13 @@ func (k *Kafka) compatConsumerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	decodeArgument(runtime, call.Argument(0), &readerConfig, "reader config")
+	readerConfigParams := exportArgumentMap(runtime, call.Argument(0), "reader config")
+	if groupID, ok := readerConfigParams["groupID"]; ok {
+		if _, hasGroupId := readerConfigParams["groupId"]; !hasGroupId {
+			readerConfigParams["groupId"] = groupID
+		}
+	}
+	decodeArgumentMap(runtime, readerConfigParams, &readerConfig, "reader config")
 
 	consumer, err := NewConsumerFromReaderConfig(&readerConfig)
 	if err != nil {
@@ -204,7 +210,12 @@ func (k *Kafka) compatConsumerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	err = consumerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
-		return runtime.ToValue(consumer.Stats())
+		stats := consumer.Stats()
+		return runtime.ToValue(map[string]any{
+			"assignments": stats.Assignments,
+			// Backward-compatible alias.
+			"Assignments": stats.Assignments,
+		})
 	})
 	if err != nil {
 		common.Throw(runtime, err)

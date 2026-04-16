@@ -128,18 +128,55 @@ func TestJSCompatibilityConstructorsWithMockCluster(t *testing.T) {
 	require.NotNil(t, adminClient)
 
 	listTopics := adminClient.Get("listTopics").Export().(func(sobek.FunctionCall) sobek.Value)
-	topics := listTopics(sobek.FunctionCall{}).Export().([]TopicInfo)
-	assert.Contains(t, topics, TopicInfo{Topic: producerTopic, Partitions: 1})
+	topics := listTopics(sobek.FunctionCall{}).Export().([]map[string]any)
+	require.NotEmpty(t, topics)
+	var producerTopicInfo map[string]any
+	for _, topicInfo := range topics {
+		if topicInfo["topic"] == producerTopic {
+			producerTopicInfo = topicInfo
+			break
+		}
+	}
+	require.NotNil(t, producerTopicInfo)
+	assert.Equal(t, producerTopic, producerTopicInfo["topic"])
+	assert.Equal(t, producerTopic, producerTopicInfo["Topic"])
+	assert.Equal(t, 1, producerTopicInfo["partitions"])
+	assert.Equal(t, 1, producerTopicInfo["Partitions"])
 
 	getMetadata := adminClient.Get("getMetadata").Export().(func(sobek.FunctionCall) sobek.Value)
 	metadata := getMetadata(sobek.FunctionCall{
 		Arguments: []sobek.Value{
 			test.rt.ToValue(producerTopic),
 		},
-	}).Export().(*TopicMetadata)
+	}).Export().(map[string]any)
 	require.NotNil(t, metadata)
-	assert.Equal(t, producerTopic, metadata.Topic)
-	assert.Len(t, metadata.Partitions, 1)
+	assert.Equal(t, producerTopic, metadata["topic"])
+	assert.Equal(t, producerTopic, metadata["Topic"])
+
+	partitions, ok := metadata["partitions"].([]map[string]any)
+	require.True(t, ok)
+	require.Len(t, partitions, 1)
+	assert.Equal(t, partitions, metadata["Partitions"])
+	assert.Equal(t, int32(0), partitions[0]["id"])
+	assert.Equal(t, int32(0), partitions[0]["ID"])
+
+	producerStats := producer.Get("stats").Export().(func(sobek.FunctionCall) sobek.Value)
+	producerStatsValue := producerStats(sobek.FunctionCall{}).Export().(map[string]any)
+	assert.Equal(t, producerStatsValue["pending"], producerStatsValue["Pending"])
+
+	consumerStats := consumer.Get("stats").Export().(func(sobek.FunctionCall) sobek.Value)
+	consumerStatsValue := consumerStats(sobek.FunctionCall{}).Export().(map[string]any)
+	assert.Equal(t, consumerStatsValue["assignments"], consumerStatsValue["Assignments"])
+
+	deleteTopic := adminClient.Get("deleteTopic").Export().(func(sobek.FunctionCall) sobek.Value)
+	assert.Panics(t, func() {
+		deleteTopic(sobek.FunctionCall{})
+	})
+	assert.Panics(t, func() {
+		deleteTopic(sobek.FunctionCall{
+			Arguments: []sobek.Value{test.rt.ToValue(123)},
+		})
+	})
 
 	connection := test.module.connectionClass(sobek.ConstructorCall{
 		Arguments: []sobek.Value{
@@ -154,4 +191,39 @@ func TestJSCompatibilityConstructorsWithMockCluster(t *testing.T) {
 	connectionTopics := connectionListTopics(sobek.FunctionCall{}).Export().([]string)
 	assert.Contains(t, connectionTopics, producerTopic)
 	assert.Contains(t, connectionTopics, writerTopic)
+}
+
+func TestJSCompatibilityGroupIDAliasAndElementConstants(t *testing.T) {
+	mockCluster, err := ckafka.NewMockCluster(3)
+	require.NoError(t, err)
+	defer mockCluster.Close()
+
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	test.vu.CtxField = ctx
+
+	groupTopic := "compat-group-id-alias-topic"
+	require.NoError(t, mockCluster.CreateTopic(groupTopic, 1, 1))
+
+	assert.NotPanics(t, func() {
+		consumer := test.module.consumerClass(sobek.ConstructorCall{
+			Arguments: []sobek.Value{
+				test.rt.ToValue(map[string]any{
+					"brokers":     []string{mockCluster.BootstrapServers()},
+					"groupID":     "compat-group",
+					"groupTopics": []string{groupTopic},
+					"startOffset": firstOffset,
+				}),
+			},
+		})
+		require.NotNil(t, consumer)
+		closeFn := consumer.Get("close").Export().(func(sobek.FunctionCall) sobek.Value)
+		_ = closeFn(sobek.FunctionCall{})
+	})
+
+	assert.Equal(t, "key", test.module.exports.Get("KEY").Export())
+	assert.Equal(t, "value", test.module.exports.Get("VALUE").Export())
 }
