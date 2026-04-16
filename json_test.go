@@ -5,6 +5,7 @@ import (
 	"unsafe"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestSerializeJSON tests the serialization of a JSON object.
@@ -96,4 +97,41 @@ func TestSerializeJSONFailsOnInvalidDataType(t *testing.T) {
 	assert.Nil(t, actual)
 	assert.NotNil(t, err)
 	assert.Equal(t, ErrInvalidDataType, err)
+}
+
+func TestDeserializeJSONWithoutSchema(t *testing.T) {
+	jsonSerde := &JSONSerde{}
+	out, err := jsonSerde.Deserialize([]byte(`{"a":1,"b":"x"}`), nil)
+	assert.Nil(t, err)
+	m, ok := out.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, float64(1), m["a"])
+	assert.Equal(t, "x", m["b"])
+}
+
+func TestDeserializeJSONInvalidBytes(t *testing.T) {
+	jsonSerde := &JSONSerde{}
+	out, err := jsonSerde.Deserialize([]byte(`{`), nil)
+	assert.Nil(t, out)
+	require.NotNil(t, err)
+	assert.Equal(t, failedUnmarshalJSON, err.Code)
+}
+
+func TestDeserializeJSONValidationFailure(t *testing.T) {
+	jsonSerde := &JSONSerde{}
+	schema := &Schema{
+		ID: 1,
+		Schema: `{
+			"$schema": "http://json-schema.org/draft-04/schema#",
+			"type": "object",
+			"properties": {"key": {"type": "string"}},
+			"required": ["key"]
+		}`,
+		Version: 1,
+		Subject: "s",
+	}
+	out, err := jsonSerde.Deserialize([]byte(`{"key":1}`), schema)
+	assert.Nil(t, out)
+	require.NotNil(t, err)
+	assert.Equal(t, failedDecodeJSONFromBinary, err.Code)
 }

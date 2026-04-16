@@ -76,6 +76,25 @@ func TestConnectionClassRejectsMissingAddress(t *testing.T) {
 	}, "Invalid connection config, OriginalError: address must not be empty")
 }
 
+func TestConnectionDeleteTopicRejectsNonStringTopic(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	admin := test.module.connectionClass(sobek.ConstructorCall{
+		Arguments: []sobek.Value{test.rt.ToValue(map[string]any{
+			"address": "localhost:9092",
+		})},
+	})
+	require.NotNil(t, admin)
+
+	deleteTopic := admin.Get("deleteTopic").Export().(func(sobek.FunctionCall) sobek.Value)
+	requireGoErrorMessage(t, func() {
+		deleteTopic(sobek.FunctionCall{
+			Arguments: []sobek.Value{test.rt.ToValue(42)},
+		})
+	}, "Invalid topic config, OriginalError: topic must not be empty")
+}
+
 func TestAdminClientClassRejectsMissingAddress(t *testing.T) {
 	test := getTestModuleInstance(t)
 
@@ -116,6 +135,14 @@ func TestSerializeRejectsMissingMetadata(t *testing.T) {
 	requireGoErrorMessage(t, func() {
 		test.module.serialize(nil)
 	}, "serialize metadata is required")
+}
+
+func TestDeserializeRejectsMissingMetadata(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	requireGoErrorMessage(t, func() {
+		test.module.deserialize(nil)
+	}, "deserialize metadata is required")
 }
 
 func TestSerializeRejectsProtobufSerdesInV2(t *testing.T) {

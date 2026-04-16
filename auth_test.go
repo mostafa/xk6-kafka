@@ -1,11 +1,13 @@
 package kafka
 
 import (
+	"crypto/tls"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.k6.io/k6/lib/netext"
 )
 
 func TestConfluentSecurityProtocol(t *testing.T) {
@@ -80,6 +82,17 @@ func TestConfluentSASLMechanism(t *testing.T) {
 		require.Error(t, err)
 		assert.EqualError(t, err, "Unsupported SASL mechanism for Confluent scaffold")
 	})
+}
+
+func TestNewTLSObjectMinVersionFromTLSVersions(t *testing.T) {
+	t.Parallel()
+	require.NotNil(t, TLSVersions)
+	cfg := newTLSObject(TLSConfig{
+		EnableTLS:             true,
+		MinVersion:            netext.TLS_1_3,
+		InsecureSkipTLSVerify: true,
+	})
+	assert.Equal(t, uint16(tls.VersionTLS13), cfg.MinVersion)
 }
 
 // TestFileExists tests the file exists function.

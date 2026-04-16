@@ -155,5 +155,8 @@ func TestConfluentScaffoldsWithMockCluster(t *testing.T) {
 	position, err := consumer.Position(0)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, position, int64(1))
+
+	require.NoError(t, consumer.Seek(0, 0))
+
 	require.NoError(t, consumer.CommitOffsets(ctx))
 }

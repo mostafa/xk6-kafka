@@ -106,3 +106,7 @@ func TestTopicConfigToConfluentSpecRejectsInvalidReplicaAssignments(t *testing.T
 		assert.EqualError(t, err, "Invalid topic config, OriginalError: replica assignment partition must be unique")
 	})
 }
+
+func TestTopicMetadataToJSNil(t *testing.T) {
+	assert.Nil(t, topicMetadataToJS(nil))
+}

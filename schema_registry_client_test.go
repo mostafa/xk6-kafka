@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewConfluentSchemaRegistryAdapterNilClient(t *testing.T) {
+	t.Parallel()
+	assert.Nil(t, newConfluentSchemaRegistryAdapter(nil, true))
+	assert.Nil(t, newConfluentSchemaRegistryAdapter(nil, false))
+}
+
 func TestConfluentSchemaRegistryAdapterClearsCachesWhenDisabled(t *testing.T) {
 	client, err := cschemaregistry.NewClient(
 		cschemaregistry.NewConfig("mock://schema-registry-cache-disabled"),
@@ -34,6 +40,8 @@ func TestConfluentSchemaRegistryAdapterClearsCachesWhenDisabled(t *testing.T) {
 	second, err := adapter.GetLatestSchema("test-subject")
 	require.NoError(t, err)
 	assert.Equal(t, 2, second.Version())
+
+	require.NoError(t, adapter.Close())
 }
 
 func TestConfluentSchemaRegistryAdapterCreateSchemaReturnsRegisteredVersion(t *testing.T) {

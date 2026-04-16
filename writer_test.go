@@ -431,4 +431,24 @@ func TestWriterConfigParse(t *testing.T) {
 		assert.Empty(t, writerConfig.Balancer)
 		assert.Nil(t, writerConfig.BalancerFunc)
 	})
+
+	t.Run("unknown balancer string", func(t *testing.T) {
+		var writerConfig WriterConfig
+		err := writerConfig.Parse(map[string]any{
+			"brokers":  []string{"localhost:9092"},
+			"topic":    "test-topic",
+			"balancer": "unknown_balancer_name",
+		}, sobek.New())
+		require.Error(t, err)
+		assert.ErrorIs(t, err, errUnknownBalancer)
+	})
+
+	t.Run("nil writer config receiver", func(t *testing.T) {
+		var writerConfig *WriterConfig
+		err := writerConfig.Parse(map[string]any{
+			"brokers": []string{"localhost:9092"},
+			"topic":   "test-topic",
+		}, sobek.New())
+		require.Error(t, err)
+	})
 }
