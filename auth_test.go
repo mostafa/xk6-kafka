@@ -1,118 +1,98 @@
 package kafka
 
 import (
+	"crypto/tls"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/segmentio/kafka-go/sasl/plain"
-	"github.com/segmentio/kafka-go/sasl/scram"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.k6.io/k6/lib/netext"
 )
 
-// TestGetDialerWithSASLPlainAndFullTLSConfig tests the creation of a dialer with SASL PLAIN and TLS config.
-func TestGetDialerWithSASLPlainAndFullTLSConfig(t *testing.T) {
-	saslConfig := SASLConfig{
-		Username:  "test",
-		Password:  "test",
-		Algorithm: saslPlain,
+func TestConfluentSecurityProtocol(t *testing.T) {
+	t.Run("plaintext without tls", func(t *testing.T) {
+		protocol, err := confluentSecurityProtocol(SASLConfig{}, TLSConfig{})
+		require.NoError(t, err)
+		assert.Equal(t, "PLAINTEXT", protocol)
+	})
+
+	t.Run("ssl without sasl", func(t *testing.T) {
+		protocol, err := confluentSecurityProtocol(SASLConfig{}, TLSConfig{EnableTLS: true})
+		require.NoError(t, err)
+		assert.Equal(t, "SSL", protocol)
+	})
+
+	t.Run("sasl plain with tls", func(t *testing.T) {
+		protocol, err := confluentSecurityProtocol(
+			SASLConfig{Algorithm: saslPlain},
+			TLSConfig{EnableTLS: true},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "SASL_SSL", protocol)
+	})
+
+	t.Run("sasl ssl requires tls", func(t *testing.T) {
+		_, err := confluentSecurityProtocol(
+			SASLConfig{Algorithm: saslSsl},
+			TLSConfig{EnableTLS: false},
+		)
+		require.Error(t, err)
+		assert.EqualError(t, err, "You must enable TLS to use SASL_SSL")
+	})
+}
+
+func TestConfluentSASLMechanism(t *testing.T) {
+	testCases := map[string]struct {
+		algorithm string
+		expected  string
+	}{
+		"plain": {
+			algorithm: saslPlain,
+			expected:  "PLAIN",
+		},
+		"sasl ssl": {
+			algorithm: saslSsl,
+			expected:  "PLAIN",
+		},
+		"scram sha 256": {
+			algorithm: saslScramSha256,
+			expected:  "SCRAM-SHA-256",
+		},
+		"scram sha 512": {
+			algorithm: saslScramSha512,
+			expected:  "SCRAM-SHA-512",
+		},
+		"aws iam": {
+			algorithm: saslAwsIam,
+			expected:  "AWS_MSK_IAM",
+		},
 	}
-	tlsConfig := TLSConfig{
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			mechanism, err := confluentSASLMechanism(SASLConfig{Algorithm: testCase.algorithm})
+			require.NoError(t, err)
+			assert.Equal(t, testCase.expected, mechanism)
+		})
+	}
+
+	t.Run("unsupported mechanism", func(t *testing.T) {
+		_, err := confluentSASLMechanism(SASLConfig{Algorithm: "unsupported"})
+		require.Error(t, err)
+		assert.EqualError(t, err, "Unsupported SASL mechanism for Confluent scaffold")
+	})
+}
+
+func TestNewTLSObjectMinVersionFromTLSVersions(t *testing.T) {
+	t.Parallel()
+	require.NotNil(t, TLSVersions)
+	cfg := newTLSObject(TLSConfig{
 		EnableTLS:             true,
-		InsecureSkipTLSVerify: false,
-		ClientCertPem:         "client.cer",
-		ClientKeyPem:          "key.pem",
-		ServerCaPem:           "caroot.cer",
-	}
-	dialer, err := GetDialer(saslConfig, tlsConfig)
-	assert.Nil(t, err)
-	assert.NotNil(t, dialer)
-	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, false, dialer.DualStack)
-	assert.Nil(t, dialer.TLS)
-	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
-	if mechanism, ok := dialer.SASLMechanism.(plain.Mechanism); ok {
-		assert.Equal(t, "test", mechanism.Username)
-		assert.Equal(t, "test", mechanism.Password)
-	} else {
-		assert.Fail(t, "Expected SASL mechanism to be plain.Mechanism")
-	}
-}
-
-// TestGetDialerWithSASLPlainWithDefaultTLSConfig tests the creation of a dialer with SASL PLAIN.
-func TestGetDialerWithSASLPlainWithDefaultTLSConfig(t *testing.T) {
-	saslConfig := SASLConfig{
-		Username:  "test",
-		Password:  "test",
-		Algorithm: saslPlain,
-	}
-	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
-	assert.Nil(t, err)
-	assert.NotNil(t, dialer)
-	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, true, dialer.DualStack)
-	assert.NotNil(t, dialer.TLS)
-	assert.Equal(t, "PLAIN", dialer.SASLMechanism.Name())
-	if mechanism, ok := dialer.SASLMechanism.(plain.Mechanism); ok {
-		assert.Equal(t, "test", mechanism.Username)
-		assert.Equal(t, "test", mechanism.Password)
-	} else {
-		assert.Fail(t, "Expected SASL mechanism to be plain.Mechanism")
-	}
-}
-
-// TestGetDialerWithSASLScramWithDefaultTLSConfig tests the creation of a dialer with SASL SCRAM.
-func TestGetDialerWithSASLScram(t *testing.T) {
-	saslConfig := SASLConfig{
-		Username:  "test",
-		Password:  "test",
-		Algorithm: saslScramSha256, // Same applies with SASL_SCRAM_SHA512.
-	}
-	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: true})
-	assert.Nil(t, err)
-	assert.NotNil(t, dialer)
-	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, true, dialer.DualStack)
-	assert.NotNil(t, dialer.TLS)
-	assert.Equal(t, scram.SHA256.Name(), dialer.SASLMechanism.Name())
-}
-
-// TestGetDialerWithSASLSSLWithNoTLSConfigFails tests the creation of a dialer with SASL SSL.
-func TestGetDialerWithSASLSSLWithNoTLSConfigFails(t *testing.T) {
-	saslConfig := SASLConfig{
-		Username:  "test",
-		Password:  "test",
-		Algorithm: saslSsl,
-	}
-	dialer, err := GetDialer(saslConfig, TLSConfig{EnableTLS: false})
-	assert.NotNil(t, err)
-	assert.Nil(t, dialer)
-}
-
-// TestGetDialerFails tests the creation of a dialer with SASL PLAIN and fails on invalid credentials.
-func TestGetDialerFails(t *testing.T) {
-	saslConfig := SASLConfig{
-		Username:  "https://www.exa\t\r\n",
-		Password:  "test",
-		Algorithm: saslScramSha256,
-	}
-	dialer, wrappedError := GetDialer(saslConfig, TLSConfig{})
-	assert.Equal(t, wrappedError.Message, "Unable to create SCRAM mechanism")
-	// This is a stringprep (RFC3454) error wrapped inside the Xk6KafkaError.
-	assert.Equal(t, wrappedError.Unwrap().Error(),
-		"Error SASLprepping username 'https://www.exa\t\r\n': "+
-			"prohibited character (rune: '\\u0009')")
-	assert.Nil(t, dialer)
-}
-
-// TestGetDialerUnauthenticatedNoTLS tests the creation of an unauthenticated dialer.
-func TestGetDialerUnauthenticatedNoTLS(t *testing.T) {
-	dialer, err := GetDialer(SASLConfig{}, TLSConfig{})
-	assert.Nil(t, err)
-	assert.NotNil(t, dialer)
-	assert.Equal(t, 10*time.Second, dialer.Timeout)
-	assert.Equal(t, false, dialer.DualStack)
-	assert.Nil(t, dialer.TLS)
+		MinVersion:            netext.TLS_1_3,
+		InsecureSkipTLSVerify: true,
+	})
+	assert.Equal(t, uint16(tls.VersionTLS13), cfg.MinVersion)
 }
 
 // TestFileExists tests the file exists function.

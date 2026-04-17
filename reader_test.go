@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
-	kafkago "github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestConsumerMaxWaitExceeded tests the consume function when no messages are sent.
@@ -22,11 +21,12 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 	}()
 
 	// Create a reader to consume messages.
-	reader := test.module.reader(&ReaderConfig{
+	reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   test.topicName,
 		MaxWait: Duration{250 * time.Millisecond},
 	})
+	require.NoError(t, err)
 	assert.NotNil(t, reader)
 	defer func() {
 		_ = reader.Close()
@@ -35,7 +35,7 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 	// Switch to VU code.
 	test.moveToVUCode()
 
-	test.module.produce(writer, &ProduceConfig{
+	test.module.produceWithProducer(writer, &ProduceConfig{
 		Messages: []Message{
 			{
 				Value: test.module.serialize(&Container{
@@ -47,7 +47,7 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 	})
 
 	// Allow receiving messages consumed before MaxWait
-	messages := test.module.consume(reader, &ConsumeConfig{Limit: 2, ExpectTimeout: true})
+	messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 2, ExpectTimeout: true})
 	assert.Equal(t, 1, len(messages))
 
 	// Check that message was consumed.
@@ -60,7 +60,7 @@ func TestConsumerMaxWaitExceeded(t *testing.T) {
 
 	// Fail on deadline in the default case
 	assert.Panics(t, func() {
-		test.module.consume(reader, &ConsumeConfig{Limit: 2})
+		test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 2})
 	})
 }
 
@@ -72,11 +72,12 @@ func TestConsumerPanicsOnClose(t *testing.T) {
 	test.createTopic()
 
 	// Create a reader to consume messages.
-	reader := test.module.reader(&ReaderConfig{
+	reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   test.topicName,
 		MaxWait: Duration{time.Second * 3},
 	})
+	require.NoError(t, err)
 	defer func() {
 		_ = reader.Close()
 	}()
@@ -93,7 +94,7 @@ func TestConsumerPanicsOnClose(t *testing.T) {
 
 	// Consume a message in the VU function.
 	assert.Panics(t, func() {
-		test.module.consume(reader, &ConsumeConfig{Limit: 1})
+		test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1})
 	})
 }
 
@@ -111,10 +112,11 @@ func TestConsume(t *testing.T) {
 
 	// Create a reader to consume messages.
 	assert.NotPanics(t, func() {
-		reader := test.module.reader(&ReaderConfig{
+		reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
+		require.NoError(t, err)
 		assert.NotNil(t, reader)
 		defer func() {
 			_ = reader.Close()
@@ -125,7 +127,7 @@ func TestConsume(t *testing.T) {
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key: test.module.serialize(&Container{
@@ -144,7 +146,7 @@ func TestConsume(t *testing.T) {
 
 		// Consume a message in the VU function.
 		assert.NotPanics(t, func() {
-			messages := test.module.consume(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 
 			result := test.module.deserialize(&Container{
@@ -198,10 +200,11 @@ func TestConsumeWithoutKey(t *testing.T) {
 		_ = writer.Close()
 	}()
 
-	reader := test.module.reader(&ReaderConfig{
+	reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   test.topicName,
 	})
+	require.NoError(t, err)
 	assert.NotNil(t, reader)
 	defer func() {
 		_ = reader.Close()
@@ -214,7 +217,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: test.module.serialize(&Container{
@@ -228,7 +231,7 @@ func TestConsumeWithoutKey(t *testing.T) {
 
 		// Consume a message in the VU function.
 		assert.NotPanics(t, func() {
-			messages := test.module.consume(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 			assert.NotContains(t, messages[0], "key")
 
@@ -260,10 +263,11 @@ func TestConsumerContextCancelled(t *testing.T) {
 		_ = writer.Close()
 	}()
 
-	reader := test.module.reader(&ReaderConfig{
+	reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   test.topicName,
 	})
+	require.NoError(t, err)
 	assert.NotNil(t, reader)
 	defer func() {
 		_ = reader.Close()
@@ -276,7 +280,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: test.module.serialize(&Container{
@@ -293,7 +297,7 @@ func TestConsumerContextCancelled(t *testing.T) {
 
 		// Consume a message in the VU function.
 		assert.Panics(t, func() {
-			test.module.consume(reader, &ConsumeConfig{Limit: 1})
+			test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1})
 		})
 	})
 
@@ -315,10 +319,11 @@ func TestConsumeJSON(t *testing.T) {
 		_ = writer.Close()
 	}()
 
-	reader := test.module.reader(&ReaderConfig{
+	reader, err := NewConsumerFromReaderConfig(&ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		Topic:   test.topicName,
 	})
+	require.NoError(t, err)
 	assert.NotNil(t, reader)
 	defer func() {
 		_ = reader.Close()
@@ -334,7 +339,7 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: serialized,
@@ -345,12 +350,12 @@ func TestConsumeJSON(t *testing.T) {
 
 		// Consume the message.
 		assert.NotPanics(t, func() {
-			messages := test.module.consume(reader, &ConsumeConfig{Limit: 1})
+			messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1})
 			assert.Equal(t, 1, len(messages))
 
 			result := test.module.deserialize(&Container{
 				Data:       messages[0]["value"],
-				SchemaType: srclient.Json,
+				SchemaType: Json,
 			})
 			if data, ok := result.(map[string]any); ok {
 				assert.Equal(t, "value", data["field"])
@@ -378,7 +383,7 @@ func TestReaderClass(t *testing.T) {
 		_ = writer.Close()
 	}()
 
-	test.module.produce(writer, &ProduceConfig{
+	test.module.produceWithProducer(writer, &ProduceConfig{
 		Messages: []Message{
 			{
 				Key: test.module.serialize(&Container{
@@ -407,12 +412,12 @@ func TestReaderClass(t *testing.T) {
 		})
 		assert.NotNil(t, reader)
 		thisVal := reader.Get("This").Export()
-		this, ok := thisVal.(*kafkago.Reader)
+		this, ok := thisVal.(*Consumer)
 		assert.True(t, ok)
 		assert.NotNil(t, this)
-		assert.Equal(t, this.Config().Brokers, []string{"localhost:9092"})
-		assert.Equal(t, this.Config().Topic, test.topicName)
-		assert.Equal(t, this.Config().MaxWait, time.Second*3)
+		assert.Equal(t, "localhost:9092", this.config["bootstrap.servers"])
+		assert.Equal(t, test.topicName, this.topic)
+		assert.Equal(t, 3000, this.config["fetch.wait.max.ms"])
 
 		consumeVal := reader.Get("consume").Export()
 		consume, ok := consumeVal.(func(sobek.FunctionCall) sobek.Value)
@@ -445,13 +450,5 @@ func TestReaderClass(t *testing.T) {
 		assert.NotNil(t, closeFunc)
 		result := closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
-
-		// Check if one message was consumed.
-		metricsValues := test.getCounterMetricsValues()
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderDials.Name])
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderErrors.Name])
-		assert.Equal(t, 8.0, metricsValues[test.module.metrics.ReaderBytes.Name])
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.ReaderMessages.Name])
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.ReaderRebalances.Name])
 	})
 }

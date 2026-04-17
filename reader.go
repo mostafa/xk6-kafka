@@ -5,15 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"strconv"
+	"maps"
 	"time"
 
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
-	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
-	"go.k6.io/k6/metrics"
 )
 
 var (
@@ -22,27 +18,13 @@ var (
 	groupBalancerRoundRobin   = "group_balancer_round_robin"
 	groupBalancerRackAffinity = "group_balancer_rack_affinity"
 
-	GroupBalancers map[string]kafkago.GroupBalancer
-
 	// Isolation levels.
 	isolationLevelReadUncommitted = "isolation_level_read_uncommitted"
 	isolationLevelReadCommitted   = "isolation_level_read_committed"
 
-	IsolationLevels map[string]kafkago.IsolationLevel
-
 	// Start offsets.
 	lastOffset  = "start_offsets_last_offset"
 	firstOffset = "start_offsets_first_offset"
-
-	// StartOffsets determines from whence the consumer group should begin
-	// consuming when it finds a partition without a committed offset.  If
-	// non-zero, it must be set to one of FirstOffset or LastOffset.
-	//
-	// Default: FirstOffset
-	//
-	// Only used when GroupID is set
-	// Ref: https://github.com/segmentio/kafka-go/blob/a8e5eabf4a90025a4ad2c28e929324d18db21103/reader.go#L481-L488
-	StartOffsets map[string]int64
 
 	RebalanceTimeout       = time.Second * 5
 	HeartbeatInterval      = time.Second * 3
@@ -51,6 +33,8 @@ var (
 	JoinGroupBackoff       = time.Second * 5
 	RetentionTime          = time.Hour * 24
 )
+
+const consumerSeekArgumentCount = 2
 
 type ReaderConfig struct {
 	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
@@ -87,6 +71,7 @@ type ReaderConfig struct {
 
 type ConsumeConfig struct {
 	Limit         int64 `json:"limit"`
+	MaxMessages   int64 `json:"maxMessages"`
 	NanoPrecision bool  `json:"nanoPrecision"`
 	ExpectTimeout bool  `json:"expectTimeout"`
 }
@@ -122,59 +107,122 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 }
 
-// readerClass is a wrapper around kafkago.reader and acts as a JS constructor
-// for this extension, thus it must be called with new operator, e.g. new Reader(...).
+// readerClass is the deprecated Reader compatibility constructor exposed to JS.
 // nolint: funlen
 func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatConsumerClass(call)
+}
+
+func (k *Kafka) consumerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatConsumerClass(call)
+}
+
+func (k *Kafka) compatConsumerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var readerConfig *ReaderConfig
+	var readerConfig ReaderConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]any); ok {
-		if b, err := json.Marshal(params); err != nil {
-			common.Throw(runtime, err)
-		} else {
-			if err = json.Unmarshal(b, &readerConfig); err != nil {
-				common.Throw(runtime, err)
-			}
+	readerConfigParams := exportArgumentMap(runtime, call.Argument(0), "reader config")
+	if groupID, ok := readerConfigParams["groupID"]; ok {
+		if _, hasGroupId := readerConfigParams["groupId"]; !hasGroupId {
+			readerConfigParams["groupId"] = groupID
 		}
 	}
+	decodeArgumentMap(runtime, readerConfigParams, &readerConfig, "reader config")
 
-	reader := k.reader(readerConfig)
-
-	readerObject := runtime.NewObject()
-	// This is the reader object itself
-	if err := readerObject.Set("This", reader); err != nil {
+	consumer, err := NewConsumerFromReaderConfig(&readerConfig)
+	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err := readerObject.Set("consume", func(call sobek.FunctionCall) sobek.Value {
+	consumerObject := runtime.NewObject()
+	if err := consumerObject.Set("This", consumer); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("consume", func(call sobek.FunctionCall) sobek.Value {
 		var consumeConfig *ConsumeConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &consumeConfig); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &consumeConfig, "consume config")
 
-		return runtime.ToValue(k.consume(reader, consumeConfig))
+		return runtime.ToValue(k.consumeWithConsumer(consumer, consumeConfig))
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	// This is unnecessary, but it's here for reference purposes
-	err = readerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
-		if err := reader.Close(); err != nil {
+	err = consumerObject.Set("seek", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) < consumerSeekArgumentCount {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		var partition int
+		var offset int64
+		if err := runtime.ExportTo(call.Argument(0), &partition); err != nil {
+			common.Throw(runtime, newInvalidConfigError("partition", err))
+		}
+		if err := runtime.ExportTo(call.Argument(1), &offset); err != nil {
+			common.Throw(runtime, newInvalidConfigError("offset", err))
+		}
+
+		if err := consumer.Seek(partition, offset); err != nil {
+			common.Throw(runtime, err)
+		}
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("position", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) == 0 {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		var partition int
+		if err := runtime.ExportTo(call.Argument(0), &partition); err != nil {
+			common.Throw(runtime, newInvalidConfigError("partition", err))
+		}
+
+		position, err := consumer.Position(partition)
+		if err != nil {
+			common.Throw(runtime, err)
+		}
+		return runtime.ToValue(position)
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("commitOffsets", func(_ sobek.FunctionCall) sobek.Value {
+		if err := consumer.CommitOffsets(ensureContext(k.vu.Context())); err != nil {
+			common.Throw(runtime, err)
+		}
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
+		stats := consumer.Stats()
+		return runtime.ToValue(map[string]any{
+			"assignments": stats.Assignments,
+			// Backward-compatible alias.
+			"Assignments": stats.Assignments,
+		})
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = consumerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
+		if err := consumer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
@@ -184,253 +232,41 @@ func (k *Kafka) readerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	freeze(readerObject)
+	if err := freeze(consumerObject); err != nil {
+		common.Throw(runtime, err)
+	}
 
-	return runtime.ToValue(readerObject).ToObject(runtime)
+	return runtime.ToValue(consumerObject).ToObject(runtime)
 }
 
-// reader creates a Kafka reader with the given configuration
-// nolint: funlen
-func (k *Kafka) reader(readerConfig *ReaderConfig) *kafkago.Reader {
-	dialer, err := GetDialer(readerConfig.SASL, readerConfig.TLS)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
+func (c *ConsumeConfig) effectiveLimit() int {
+	if c == nil {
+		return 1
 	}
-
-	if readerConfig.Partition != 0 && readerConfig.GroupID != "" {
-		common.Throw(k.vu.Runtime(), ErrPartitionAndGroupID)
+	switch {
+	case c.MaxMessages > 0:
+		return int(c.MaxMessages)
+	case c.Limit > 0:
+		return int(c.Limit)
+	default:
+		return 1
 	}
-
-	if readerConfig.Topic != "" && readerConfig.GroupID != "" {
-		common.Throw(k.vu.Runtime(), ErrTopicAndGroupID)
-	}
-
-	if readerConfig.GroupID != "" &&
-		readerConfig.HeartbeatInterval == 0 {
-		readerConfig.HeartbeatInterval = HeartbeatInterval
-	}
-
-	if readerConfig.GroupID != "" && readerConfig.SessionTimeout == 0 {
-		readerConfig.SessionTimeout = SessionTimeout
-	}
-
-	if readerConfig.GroupID != "" && readerConfig.RebalanceTimeout == 0 {
-		readerConfig.RebalanceTimeout = RebalanceTimeout
-	}
-
-	if readerConfig.GroupID != "" && readerConfig.JoinGroupBackoff == 0 {
-		readerConfig.JoinGroupBackoff = JoinGroupBackoff
-	}
-
-	if readerConfig.GroupID != "" && readerConfig.PartitionWatchInterval == 0 {
-		readerConfig.PartitionWatchInterval = PartitionWatchInterval
-	}
-
-	if readerConfig.GroupID != "" && readerConfig.RetentionTime == 0 {
-		readerConfig.RetentionTime = RetentionTime
-	}
-
-	var groupBalancers []kafkago.GroupBalancer
-	if readerConfig.GroupID != "" {
-		groupBalancers = make([]kafkago.GroupBalancer, 0, len(readerConfig.GroupBalancers))
-		for _, balancer := range readerConfig.GroupBalancers {
-			if b, ok := GroupBalancers[balancer]; ok {
-				groupBalancers = append(groupBalancers, b)
-			}
-		}
-		if len(groupBalancers) == 0 {
-			// Default to [Range, RoundRobin] if no balancer is specified
-			groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRange])
-			groupBalancers = append(groupBalancers, GroupBalancers[groupBalancerRoundRobin])
-		}
-	}
-
-	isolationLevel := IsolationLevels[isolationLevelReadUncommitted]
-	if readerConfig.IsolationLevel != "" {
-		isolationLevel = IsolationLevels[readerConfig.IsolationLevel]
-	}
-
-	var startOffset int64 // Will be set if GroupID is specified and valid StartOffset is provided
-	if readerConfig.GroupID != "" && readerConfig.StartOffset != "" {
-		// Check if StartOffset is a predefined value
-		if predefinedOffset, exists := StartOffsets[readerConfig.StartOffset]; exists {
-			startOffset = predefinedOffset
-		} else {
-			// Attempt to parse StartOffset as an integer
-			parsedOffset, err := strconv.ParseInt(readerConfig.StartOffset, 10, 64)
-			if err != nil {
-				wrappedError := NewXk6KafkaError(
-					failedParseStartOffset,
-					"Failed to parse StartOffset, defaulting to FirstOffset", err)
-				// Log the error and default to FirstOffset
-				logger.WithFields(logrus.Fields{
-					"error":        err,
-					"start_offset": readerConfig.StartOffset,
-				}).Warn(wrappedError)
-				startOffset = StartOffsets[firstOffset]
-			} else {
-				// Use the parsed offset if valid
-				startOffset = parsedOffset
-			}
-		}
-	}
-
-	consolidatedConfig := kafkago.ReaderConfig{
-		Brokers:                readerConfig.Brokers,
-		GroupID:                readerConfig.GroupID,
-		GroupTopics:            readerConfig.GroupTopics,
-		Topic:                  readerConfig.Topic,
-		Partition:              readerConfig.Partition,
-		QueueCapacity:          readerConfig.QueueCapacity,
-		MinBytes:               readerConfig.MinBytes,
-		MaxBytes:               readerConfig.MaxBytes,
-		MaxWait:                readerConfig.MaxWait.Duration,
-		ReadBatchTimeout:       readerConfig.ReadBatchTimeout,
-		ReadLagInterval:        readerConfig.ReadLagInterval,
-		GroupBalancers:         groupBalancers,
-		HeartbeatInterval:      readerConfig.HeartbeatInterval,
-		CommitInterval:         readerConfig.CommitInterval,
-		PartitionWatchInterval: readerConfig.PartitionWatchInterval,
-		WatchPartitionChanges:  readerConfig.WatchPartitionChanges,
-		SessionTimeout:         readerConfig.SessionTimeout,
-		RebalanceTimeout:       readerConfig.RebalanceTimeout,
-		JoinGroupBackoff:       readerConfig.JoinGroupBackoff,
-		RetentionTime:          readerConfig.RetentionTime,
-		StartOffset:            startOffset,
-		ReadBackoffMin:         readerConfig.ReadBackoffMin,
-		ReadBackoffMax:         readerConfig.ReadBackoffMax,
-		IsolationLevel:         isolationLevel,
-		MaxAttempts:            readerConfig.MaxAttempts,
-		OffsetOutOfRangeError:  readerConfig.OffsetOutOfRangeError,
-		Dialer:                 dialer,
-	}
-
-	if readerConfig.ConnectLogger {
-		consolidatedConfig.Logger = logger
-	}
-
-	reader := kafkago.NewReader(consolidatedConfig)
-
-	if readerConfig.Offset > 0 {
-		if readerConfig.GroupID == "" {
-			if err := reader.SetOffset(readerConfig.Offset); err != nil {
-				wrappedError := NewXk6KafkaError(
-					failedSetOffset, "Unable to set offset, yet returning the reader.", err)
-				logger.WithField("error", wrappedError).Warn(wrappedError)
-				return reader
-			}
-		} else {
-			err := NewXk6KafkaError(
-				failedSetOffset, "Offset and groupID are mutually exclusive options, "+
-					"so offset is not set, yet returning the reader.", nil)
-			logger.WithField("error", err).Warn(err)
-			return reader
-		}
-	}
-
-	return reader
 }
 
-// consume consumes messages from the given reader.
-// nolint: funlen
-func (k *Kafka) consume(
-	reader *kafkago.Reader, consumeConfig *ConsumeConfig,
+func (k *Kafka) consumeWithConsumer(
+	consumer *Consumer,
+	consumeConfig *ConsumeConfig,
 ) []map[string]any {
+	if consumer == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("consumer"))
+		return nil
+	}
+	if consumeConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("consume config"))
+		return nil
+	}
+
 	if state := k.vu.State(); state == nil {
-		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
-	}
-
-	var ctx context.Context
-	if ctx = k.vu.Context(); ctx == nil {
-		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		logger.WithField("error", err).Info(err)
-		common.Throw(k.vu.Runtime(), err)
-	}
-
-	if consumeConfig.Limit <= 0 {
-		consumeConfig.Limit = 1
-	}
-
-	messages := make([]map[string]any, 0)
-
-	maxWait := reader.Config().MaxWait
-
-	for range consumeConfig.Limit {
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, maxWait)
-		msg, err := reader.ReadMessage(ctxWithTimeout)
-		cancel()
-		if errors.Is(ctxWithTimeout.Err(), context.DeadlineExceeded) && consumeConfig.ExpectTimeout {
-			k.reportReaderStats(reader.Stats())
-
-			return messages
-		}
-		if errors.Is(err, io.EOF) {
-			k.reportReaderStats(reader.Stats())
-
-			err = NewXk6KafkaError(noMoreMessages, "No more messages.", nil)
-			logger.WithField("error", err).Info(err)
-			common.Throw(k.vu.Runtime(), err)
-		}
-
-		if err != nil {
-			k.reportReaderStats(reader.Stats())
-
-			err = NewXk6KafkaError(failedReadMessage, "Unable to read messages.", err)
-			logger.WithField("error", err).Error(err)
-			common.Throw(k.vu.Runtime(), err)
-		}
-
-		var messageTime string
-		if consumeConfig.NanoPrecision {
-			messageTime = msg.Time.Format(time.RFC3339Nano)
-		} else {
-			messageTime = msg.Time.Format(time.RFC3339)
-		}
-
-		// Rest of the fields of a given message
-		message := map[string]any{
-			"topic":         msg.Topic,
-			"partition":     msg.Partition,
-			"offset":        msg.Offset,
-			"time":          messageTime,
-			"highWaterMark": msg.HighWaterMark,
-			"headers":       make(map[string]any),
-		}
-
-		if headers, ok := message["headers"].(map[string]any); ok {
-			for _, header := range msg.Headers {
-				headers[header.Key] = header.Value
-			}
-		} else {
-			err = NewXk6KafkaError(failedTypeCast, "Failed to cast to map.", nil)
-			logger.WithField("error", err).Error(err)
-		}
-
-		if len(msg.Key) > 0 {
-			message["key"] = msg.Key
-		}
-
-		if len(msg.Value) > 0 {
-			message["value"] = msg.Value
-		}
-
-		messages = append(messages, message)
-	}
-
-	k.reportReaderStats(reader.Stats())
-	return messages
-}
-
-// reportReaderStats reports the reader stats
-//
-//nolint:funlen
-func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
-	state := k.vu.State()
-	if state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
@@ -442,196 +278,171 @@ func (k *Kafka) reportReaderStats(currentStats kafkago.ReaderStats) {
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	ctm := k.vu.State().Tags.GetCurrentValues()
-	sampleTags := ctm.Tags.With("topic", currentStats.Topic)
-	sampleTags = sampleTags.With("clientid", currentStats.ClientID)
-	sampleTags = sampleTags.With("partition", currentStats.Partition)
+	startedAt := time.Now()
+	startupGraceDeadline := startedAt.Add(consumerCompatibilityStartupGrace)
+	limit := consumeConfig.effectiveLimit()
+	messages := make([]Message, 0, limit)
+	for len(messages) < limit {
+		nextMessages, timedOut, shouldRetry, err := consumeConsumerCompatibilityBatch(
+			ctx,
+			consumer,
+			len(messages),
+			startupGraceDeadline,
+		)
+		messages = append(messages, nextMessages...)
+		if err != nil {
+			if shouldRetry {
+				continue
+			}
+			k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), err, timedOut)
 
-	now := time.Now()
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
-		Samples: []metrics.Sample{
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderDials,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Dials),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderFetches,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Fetches),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderMessages,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Messages),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Bytes),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderRebalances,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Rebalances),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderTimeouts,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Timeouts),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderErrors,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Errors),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderDialTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.DialTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderReadTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.ReadTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderWaitTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.WaitTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderFetchSize,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.FetchSize.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderFetchBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.FetchBytes.Min),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderFetchBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.FetchBytes.Max),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderOffset,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Offset),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderLag,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Lag),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderMinBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.MinBytes),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderMaxBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.MaxBytes),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderMaxWait,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.MaxWait),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderQueueLength,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.QueueLength),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.ReaderQueueCapacity,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.QueueCapacity),
-				Metadata: ctm.Metadata,
-			},
-		},
-		Tags: sampleTags,
-		Time: now,
-	})
+			if consumeConfig.ExpectTimeout && timedOut {
+				return messagesToJS(messages, consumeConfig.NanoPrecision)
+			}
+
+			logger.WithField("error", err).Error(err)
+			common.Throw(k.vu.Runtime(), err)
+		}
+
+		if len(messages) == limit {
+			break
+		}
+
+		startupGraceDeadline = time.Time{}
+	}
+
+	k.reportConsumerCompatibilityMetrics(consumer, messages, time.Since(startedAt), nil, false)
+
+	return messagesToJS(messages, consumeConfig.NanoPrecision)
+}
+
+const consumerCompatibilityStartupGrace = 1500 * time.Millisecond
+
+func newConsumerCompatibilityTimeoutContext(
+	parent context.Context,
+	consumer *Consumer,
+) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(parent, confluentConsumerMaxWait(consumer))
+}
+
+func consumeConsumerCompatibilityBatch(
+	parent context.Context,
+	consumer *Consumer,
+	messageCount int,
+	startupGraceDeadline time.Time,
+) ([]Message, bool, bool, error) {
+	consumeCtx, cancel := newConsumerCompatibilityTimeoutContext(parent, consumer)
+	defer cancel()
+
+	nextMessages, err := consumer.Consume(consumeCtx, 1)
+	if err == nil {
+		return nextMessages, false, false, nil
+	}
+
+	timedOut := isConsumerCompatibilityTimeout(parent, consumeCtx, err)
+	shouldRetry := shouldRetryConsumerCompatibilityRead(
+		parent,
+		consumeCtx,
+		err,
+		messageCount,
+		time.Now().Before(startupGraceDeadline),
+	)
+
+	return nextMessages, timedOut, shouldRetry, err
+}
+
+func isConsumerCompatibilityTimeout(parentCtx, consumeCtx context.Context, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+
+	if parentCtx != nil && errors.Is(parentCtx.Err(), context.DeadlineExceeded) {
+		return true
+	}
+
+	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.DeadlineExceeded)
+}
+
+func shouldRetryConsumerCompatibilityRead(
+	parentCtx context.Context,
+	consumeCtx context.Context,
+	err error,
+	messageCount int,
+	startupGraceAvailable bool,
+) bool {
+	if !startupGraceAvailable || messageCount != 0 || err == nil {
+		return false
+	}
+
+	if isConsumerCompatibilityTimeout(parentCtx, consumeCtx, err) {
+		return true
+	}
+
+	if parentCtx != nil && parentCtx.Err() != nil {
+		return false
+	}
+
+	return consumeCtx != nil && errors.Is(consumeCtx.Err(), context.Canceled) && errors.Is(err, context.Canceled)
+}
+
+func confluentConsumerMaxWait(consumer *Consumer) time.Duration {
+	if consumer == nil {
+		return defaultConfluentTimeout
+	}
+
+	raw, ok := consumer.config["fetch.wait.max.ms"]
+	if !ok {
+		return defaultConfluentTimeout
+	}
+
+	switch value := raw.(type) {
+	case int:
+		return time.Duration(value) * time.Millisecond
+	case int32:
+		return time.Duration(value) * time.Millisecond
+	case int64:
+		return time.Duration(value) * time.Millisecond
+	case float64:
+		return time.Duration(value) * time.Millisecond
+	default:
+		return defaultConfluentTimeout
+	}
+}
+
+func messagesToJS(messages []Message, nanoPrecision bool) []map[string]any {
+	converted := make([]map[string]any, 0, len(messages))
+	for _, msg := range messages {
+		messageTime := msg.Time.Format(time.RFC3339)
+		if nanoPrecision {
+			messageTime = msg.Time.Format(time.RFC3339Nano)
+		}
+
+		message := map[string]any{
+			"topic":         msg.Topic,
+			"partition":     msg.Partition,
+			"offset":        msg.Offset,
+			"time":          messageTime,
+			"highWaterMark": msg.HighWaterMark,
+			"headers":       map[string]any{},
+		}
+
+		if headers, ok := message["headers"].(map[string]any); ok {
+			maps.Copy(headers, msg.Headers)
+		}
+
+		if len(msg.Key) > 0 {
+			message["key"] = msg.Key
+		}
+		if len(msg.Value) > 0 {
+			message["value"] = msg.Value
+		}
+
+		converted = append(converted, message)
+	}
+
+	return converted
 }

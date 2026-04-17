@@ -17,6 +17,10 @@ const (
 	failedTypeCast              errCode = 1006
 	unsupportedOperation        errCode = 1007
 	writerError                 errCode = 1008
+	invalidConfiguration        errCode = 1009
+	failedCreateProducer        errCode = 1010
+	failedFlushProducer         errCode = 1011
+	failedFreezeObject          errCode = 1012
 
 	// serdes errors.
 	invalidDataType            errCode = 2000
@@ -37,6 +41,8 @@ const (
 	partitionAndGroupID    errCode = 3003
 	topicAndGroupID        errCode = 3004
 	failedParseStartOffset errCode = 3005
+	failedCreateConsumer   errCode = 3006
+	failedCommitConsumer   errCode = 3007
 
 	// authentication.
 	failedCreateDialerWithScram   errCode = 4000
@@ -62,17 +68,27 @@ const (
 	referenceNotFound                   errCode = 5004
 	failedParseReferencedSchema         errCode = 5005
 	failedResolveReferences             errCode = 5006
+	invalidSchemaID                     errCode = 5007
 
 	// topics.
-	failedGetController  errCode = 6000
-	failedCreateTopic    errCode = 6001
-	failedDeleteTopic    errCode = 6002
-	failedReadPartitions errCode = 6003
+	failedGetController     errCode = 6000
+	failedCreateTopic       errCode = 6001
+	failedDeleteTopic       errCode = 6002
+	failedReadPartitions    errCode = 6003
+	failedCreateAdminClient errCode = 6004
+	failedGetMetadata       errCode = 6005
 )
 
 var (
 	// ErrUnsupportedOperation is the error returned when the operation is not supported.
 	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
+
+	// ErrProtobufSerdesPlanned is returned when Protobuf Schema Registry serdes are requested in v2.0.0.
+	ErrProtobufSerdesPlanned = NewXk6KafkaError(
+		unsupportedOperation,
+		"Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.",
+		nil,
+	)
 
 	// ErrForbiddenInInitContext is used when a Kafka producer was used in the init context.
 	ErrForbiddenInInitContext = NewXk6KafkaError(

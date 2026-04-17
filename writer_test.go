@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,10 +16,11 @@ func TestProduce(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.writer(&WriterConfig{
+		writer, err := NewProducerFromWriterConfig(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
+		require.NoError(t, err)
 		assert.NotNil(t, writer)
 		defer func() {
 			_ = writer.Close()
@@ -28,7 +28,7 @@ func TestProduce(t *testing.T) {
 
 		// Produce a message in the init context.
 		assert.Panics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key: test.module.serialize(&Container{
@@ -58,7 +58,7 @@ func TestProduce(t *testing.T) {
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key: test.module.serialize(&Container{
@@ -111,9 +111,10 @@ func TestProduceWithoutKey(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.writer(&WriterConfig{
+		writer, err := NewProducerFromWriterConfig(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 		})
+		require.NoError(t, err)
 		assert.NotNil(t, writer)
 		defer func() {
 			_ = writer.Close()
@@ -123,7 +124,7 @@ func TestProduceWithoutKey(t *testing.T) {
 
 		// Produce two messages in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: test.module.serialize(&Container{
@@ -161,10 +162,11 @@ func TestProducerContextCancelled(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.writer(&WriterConfig{
+		writer, err := NewProducerFromWriterConfig(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
+		require.NoError(t, err)
 		assert.NotNil(t, writer)
 		defer func() {
 			_ = writer.Close()
@@ -177,7 +179,7 @@ func TestProducerContextCancelled(t *testing.T) {
 
 		// Produce two messages in the VU function.
 		assert.Panics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Key: test.module.serialize(&Container{
@@ -219,10 +221,11 @@ func TestProduceJSON(t *testing.T) {
 	test.createTopic()
 
 	assert.NotPanics(t, func() {
-		writer := test.module.writer(&WriterConfig{
+		writer, err := NewProducerFromWriterConfig(&WriterConfig{
 			Brokers: []string{"localhost:9092"},
 			Topic:   test.topicName,
 		})
+		require.NoError(t, err)
 		assert.NotNil(t, writer)
 		defer func() {
 			_ = writer.Close()
@@ -232,12 +235,12 @@ func TestProduceJSON(t *testing.T) {
 
 		// Produce a message in the VU function.
 		assert.NotPanics(t, func() {
-			test.module.produce(writer, &ProduceConfig{
+			test.module.produceWithProducer(writer, &ProduceConfig{
 				Messages: []Message{
 					{
 						Value: test.module.serialize(&Container{
 							Data:       map[string]any{"field": "value"},
-							SchemaType: srclient.Json,
+							SchemaType: Json,
 						}),
 					},
 				},
@@ -305,12 +308,13 @@ func TestWriterClass(t *testing.T) {
 		result = closeFunc(sobek.FunctionCall{}).Export()
 		assert.Nil(t, result)
 
-		// Check if one message was produced.
-		metricsValues := test.getCounterMetricsValues()
-		assert.Equal(t, 0.0, metricsValues[test.module.metrics.WriterErrors.Name])
-		assert.Equal(t, 31, int(metricsValues[test.module.metrics.WriterBytes.Name]))
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterMessages.Name])
-		assert.Equal(t, 1.0, metricsValues[test.module.metrics.WriterWrites.Name])
+		reader := test.newReader()
+		defer func() {
+			_ = reader.Close()
+		}()
+
+		messages := test.module.consumeWithConsumer(reader, &ConsumeConfig{Limit: 1, ExpectTimeout: true})
+		assert.Len(t, messages, 1)
 	})
 }
 
@@ -386,11 +390,6 @@ func TestWriterConfigParse(t *testing.T) {
 		require.NoError(t, writerConfig.Parse(m, sobek.New()))
 		assert.Equal(t, balancerRoundRobin, writerConfig.Balancer)
 		assert.Nil(t, writerConfig.BalancerFunc)
-
-		// Test that GetBalancer returns the correct balancer
-		balancer := writerConfig.GetBalancer()
-		assert.NotNil(t, balancer)
-		assert.Equal(t, Balancers[balancerRoundRobin], balancer)
 	})
 
 	t.Run("config with balancer function", func(t *testing.T) {
@@ -416,10 +415,6 @@ func TestWriterConfigParse(t *testing.T) {
 		assert.Empty(t, writerConfig.Balancer)
 		assert.NotNil(t, writerConfig.BalancerFunc)
 
-		// Test that GetBalancer returns a function balancer
-		balancer := writerConfig.GetBalancer()
-		assert.NotNil(t, balancer)
-
 		// Test that the balancer function works correctly
 		testKey := []byte("test-key")
 		partition := writerConfig.BalancerFunc(testKey, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -435,10 +430,25 @@ func TestWriterConfigParse(t *testing.T) {
 		require.NoError(t, writerConfig.Parse(m, sobek.New()))
 		assert.Empty(t, writerConfig.Balancer)
 		assert.Nil(t, writerConfig.BalancerFunc)
+	})
 
-		// Test that GetBalancer returns the default balancer
-		balancer := writerConfig.GetBalancer()
-		assert.NotNil(t, balancer)
-		assert.Equal(t, Balancers[defaultBalancer], balancer)
+	t.Run("unknown balancer string", func(t *testing.T) {
+		var writerConfig WriterConfig
+		err := writerConfig.Parse(map[string]any{
+			"brokers":  []string{"localhost:9092"},
+			"topic":    "test-topic",
+			"balancer": "unknown_balancer_name",
+		}, sobek.New())
+		require.Error(t, err)
+		assert.ErrorIs(t, err, errUnknownBalancer)
+	})
+
+	t.Run("nil writer config receiver", func(t *testing.T) {
+		var writerConfig *WriterConfig
+		err := writerConfig.Parse(map[string]any{
+			"brokers": []string{"localhost:9092"},
+			"topic":   "test-topic",
+		}, sobek.New())
+		require.Error(t, err)
 	})
 }

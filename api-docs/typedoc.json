@@ -3,8 +3,8 @@
   "hideBreadcrumbs": true,
   "disableSources": false,
   "plugin": ["typedoc-plugin-markdown"],
-  "out": "./docs",
-  "entryPoints": ["index.d.ts"],
+  "out": "./v2/docs",
+  "entryPoints": ["./v2/index.d.ts"],
   "readme": "none",
   "gitRevision": "main"
 }

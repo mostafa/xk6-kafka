@@ -38,6 +38,12 @@ export function setup() {
     address: brokers[0],
   });
 
+  const existingTopics = connection.listTopics();
+  if (existingTopics.includes(topic)) {
+    connection.deleteTopic(topic);
+    sleep(2);
+  }
+
   connection.createTopic({
     topic: topic,
     configEntries: [
@@ -162,11 +168,11 @@ export default function () {
 }
 
 export function teardown(data) {
+  reader.close();
+  writer.close();
   const connection = new Connection({
     address: brokers[0],
   });
   connection.deleteTopic(topic);
   connection.close();
-  writer.close();
-  reader.close();
 }

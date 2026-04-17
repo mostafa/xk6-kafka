@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hamba/avro/v2"
-	"github.com/riferrei/srclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +26,7 @@ const (
 
 func TestResolver_FindInCacheBySubject(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Add a schema to cache
 	cachedSchema := &Schema{
@@ -61,7 +60,7 @@ func TestResolver_FindInCacheBySubject(t *testing.T) {
 
 func TestResolver_FindInCacheByFullName(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Parse schema and add to cache
 	avroSchema, err := avro.Parse(testUserSchemaJSONSimple)
@@ -102,7 +101,7 @@ func TestResolver_FindInCacheByFullName(t *testing.T) {
 
 func TestResolver_FindInCacheByExtractedName(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Add schema to cache without parsing it first
 	cachedSchema := &Schema{
@@ -125,7 +124,7 @@ func TestResolver_FindInCacheByExtractedName(t *testing.T) {
 		Version:       1,
 		Subject:       "com.example.Main",
 		EnableCaching: true,
-		References: []srclient.Reference{
+		References: []Reference{
 			{
 				Name:    "com.example.User",
 				Subject: "different-subject",
@@ -161,7 +160,7 @@ func TestResolver_FindInCacheByExtractedName(t *testing.T) {
 
 func TestResolver_CodecWithReferences(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Create referenced schema
 	userSchema := &Schema{
@@ -182,7 +181,7 @@ func TestResolver_CodecWithReferences(t *testing.T) {
 		Version:       1,
 		Subject:       "com.example.Main",
 		EnableCaching: true,
-		References: []srclient.Reference{
+		References: []Reference{
 			{
 				Name:    "com.example.User",
 				Subject: "com.example.User",
@@ -210,7 +209,7 @@ func TestResolver_CodecWithReferences(t *testing.T) {
 
 func TestResolver_NestedReferences(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Create nested referenced schemas
 	addressSchemaJSON := `{
@@ -245,7 +244,7 @@ func TestResolver_NestedReferences(t *testing.T) {
 		Version:       1,
 		Subject:       "com.example.User",
 		EnableCaching: true,
-		References: []srclient.Reference{
+		References: []Reference{
 			{
 				Name:    "com.example.Address",
 				Subject: "com.example.Address",
@@ -263,7 +262,7 @@ func TestResolver_NestedReferences(t *testing.T) {
 		Version:       1,
 		Subject:       "com.example.Main",
 		EnableCaching: true,
-		References: []srclient.Reference{
+		References: []Reference{
 			{
 				Name:    "com.example.User",
 				Subject: "com.example.User",
@@ -301,7 +300,7 @@ func TestResolver_NotFound(t *testing.T) {
 
 func TestResolver_CachingDisabled(t *testing.T) {
 	test := getTestModuleInstance(t)
-	avroType := srclient.Avro
+	avroType := Avro
 
 	// Add schema to cache
 	cachedSchema := &Schema{

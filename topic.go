@@ -1,19 +1,21 @@
 package kafka
 
 import (
-	"encoding/json"
-	"net"
-	"strconv"
+	"context"
 
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
 	"go.k6.io/k6/js/common"
 )
 
 type ConnectionConfig struct {
 	Address string     `json:"address"`
+	Brokers []string   `json:"brokers"`
 	SASL    SASLConfig `json:"sasl"`
 	TLS     TLSConfig  `json:"tls"`
+}
+
+func (k *Kafka) adminClientClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatAdminClientClass(call, false)
 }
 
 // connectionClass is a constructor for the Connection object in JS
@@ -21,78 +23,59 @@ type ConnectionConfig struct {
 // e.g. new Connection(...).
 // nolint: funlen
 func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatAdminClientClass(call, true)
+}
+
+func (k *Kafka) compatAdminClientClass(
+	call sobek.ConstructorCall,
+	legacy bool,
+) *sobek.Object {
 	runtime := k.vu.Runtime()
-	var connectionConfig *ConnectionConfig
+	var connectionConfig ConnectionConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	if params, ok := call.Argument(0).Export().(map[string]any); ok {
-		if b, err := json.Marshal(params); err != nil {
-			common.Throw(runtime, err)
-		} else {
-			if err = json.Unmarshal(b, &connectionConfig); err != nil {
-				common.Throw(runtime, err)
-			}
-		}
-	}
+	decodeArgument(runtime, call.Argument(0), &connectionConfig, "connection config")
 
-	connection := k.getKafkaControllerConnection(connectionConfig)
-
-	connectionObject := runtime.NewObject()
-	// This is the connection object itself
-	if err := connectionObject.Set("This", connection); err != nil {
+	adminClient, err := NewAdminClientFromConnectionConfig(&connectionConfig)
+	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err := connectionObject.Set("createTopic", func(call sobek.FunctionCall) sobek.Value {
-		var topicConfig *kafkago.TopicConfig
+	adminObject := runtime.NewObject()
+	if err := adminObject.Set("This", adminClient); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = adminObject.Set("createTopic", func(call sobek.FunctionCall) sobek.Value {
+		var topicConfig TopicConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			if b, err := json.Marshal(params); err != nil {
-				common.Throw(runtime, err)
-			} else {
-				if err = json.Unmarshal(b, &topicConfig); err != nil {
-					common.Throw(runtime, err)
-				}
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &topicConfig, "topic config")
 
-		k.createTopic(connection, topicConfig)
+		if err := adminClient.CreateTopic(k.adminContext(), topicConfig); err != nil {
+			common.Throw(runtime, err)
+		}
 		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err = connectionObject.Set("deleteTopic", func(call sobek.FunctionCall) sobek.Value {
-		if len(call.Arguments) > 0 {
-			if topic, ok := call.Argument(0).Export().(string); !ok {
-				common.Throw(runtime, ErrNotEnoughArguments)
-			} else {
-				k.deleteTopic(connection, topic)
-			}
+	err = adminObject.Set("deleteTopic", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) == 0 {
+			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		return sobek.Undefined()
-	})
-	if err != nil {
-		common.Throw(runtime, err)
-	}
+		topic, ok := call.Argument(0).Export().(string)
+		if !ok {
+			common.Throw(runtime, newInvalidConfigError("topic config", errTopicMustNotBeEmpty))
+		}
 
-	err = connectionObject.Set("listTopics", func(_ sobek.FunctionCall) sobek.Value {
-		topics := k.listTopics(connection)
-		return runtime.ToValue(topics)
-	})
-	if err != nil {
-		common.Throw(runtime, err)
-	}
-
-	err = connectionObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
-		if err := connection.Close(); err != nil {
+		if err := adminClient.DeleteTopic(k.adminContext(), topic); err != nil {
 			common.Throw(runtime, err)
 		}
 
@@ -102,114 +85,119 @@ func (k *Kafka) connectionClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	return connectionObject
-}
-
-// getKafkaControllerConnection returns a kafka controller connection with a given node address.
-// It will also try to use the auth and TLS settings to create a secure connection. The connection
-// should be closed after use.
-func (k *Kafka) getKafkaControllerConnection(connectionConfig *ConnectionConfig) *kafkago.Conn {
-	dialer, wrappedError := GetDialer(connectionConfig.SASL, connectionConfig.TLS)
-	if wrappedError != nil {
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		if dialer == nil {
-			common.Throw(k.vu.Runtime(), wrappedError)
-			return nil
+	err = adminObject.Set("listTopics", func(_ sobek.FunctionCall) sobek.Value {
+		topics, err := adminClient.ListTopics(k.adminContext())
+		if err != nil {
+			common.Throw(runtime, err)
 		}
-	}
-
-	ctx := k.vu.Context()
-	if ctx == nil {
-		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		logger.WithField("error", err).Info(err)
-		common.Throw(k.vu.Runtime(), err)
-		return nil
-	}
-
-	conn, err := dialer.DialContext(ctx, "tcp", connectionConfig.Address)
+		if legacy {
+			topicNames := make([]string, 0, len(topics))
+			for _, topic := range topics {
+				topicNames = append(topicNames, topic.Topic)
+			}
+			return runtime.ToValue(topicNames)
+		}
+		return runtime.ToValue(topicInfosToJS(topics))
+	})
 	if err != nil {
-		wrappedError := NewXk6KafkaError(dialerError, "Failed to create dialer.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
-		return nil
+		common.Throw(runtime, err)
 	}
 
-	controller, err := conn.Controller()
+	err = adminObject.Set("getMetadata", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) == 0 {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		topic, ok := call.Argument(0).Export().(string)
+		if !ok {
+			common.Throw(runtime, newInvalidConfigError("topic config", errTopicMustNotBeEmpty))
+		}
+
+		metadata, err := adminClient.GetMetadata(k.adminContext(), topic)
+		if err != nil {
+			common.Throw(runtime, err)
+		}
+		return runtime.ToValue(topicMetadataToJS(metadata))
+	})
 	if err != nil {
-		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
-		return nil
+		common.Throw(runtime, err)
 	}
 
-	controllerConn, err := dialer.DialContext(
-		ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
+	err = adminObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
+		if err := adminClient.Close(); err != nil {
+			common.Throw(runtime, err)
+		}
+
+		return sobek.Undefined()
+	})
 	if err != nil {
-		wrappedError := NewXk6KafkaError(failedGetController, "Failed to get controller.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
-		return nil
+		common.Throw(runtime, err)
 	}
 
-	return controllerConn
+	if err := freeze(adminObject); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	return adminObject
 }
 
-// createTopic creates a topic with the given name, partitions, replication factor and compression.
-// It will also try to use the auth and TLS settings to create a secure connection. If the topic
-// already exists, it will do no-op.
-func (k *Kafka) createTopic(conn *kafkago.Conn, topicConfig *kafkago.TopicConfig) {
-	if topicConfig.NumPartitions <= 0 {
-		topicConfig.NumPartitions = 1
-	}
+func (k *Kafka) adminContext() context.Context {
+	return ensureContext(k.vu.Context())
+}
 
-	if topicConfig.ReplicationFactor <= 0 {
-		topicConfig.ReplicationFactor = 1
+func topicInfosToJS(topics []TopicInfo) []map[string]any {
+	converted := make([]map[string]any, 0, len(topics))
+	for _, topic := range topics {
+		converted = append(converted, topicInfoToJS(topic))
 	}
+	return converted
+}
 
-	err := conn.CreateTopics(*topicConfig)
-	if err != nil {
-		wrappedError := NewXk6KafkaError(failedCreateTopic, "Failed to create topic.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
+func topicInfoToJS(topic TopicInfo) map[string]any {
+	return map[string]any{
+		"topic":      topic.Topic,
+		"partitions": topic.Partitions,
+		"error":      topic.Error,
+		// Backward-compatible aliases.
+		"Topic":      topic.Topic,
+		"Partitions": topic.Partitions,
+		"Error":      topic.Error,
 	}
 }
 
-// deleteTopic deletes the given topic from the given address. It will also try to
-// use the auth and TLS settings to create a secure connection. If the topic
-// does not exist, it will raise an error.
-func (k *Kafka) deleteTopic(conn *kafkago.Conn, topic string) {
-	err := conn.DeleteTopics([]string{topic}...)
-	if err != nil {
-		wrappedError := NewXk6KafkaError(failedDeleteTopic, "Failed to delete topic.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
+func partitionInfoToJS(partition PartitionInfo) map[string]any {
+	return map[string]any{
+		"id":       partition.ID,
+		"leader":   partition.Leader,
+		"replicas": partition.Replicas,
+		"isrs":     partition.Isrs,
+		"error":    partition.Error,
+		// Backward-compatible aliases.
+		"ID":       partition.ID,
+		"Leader":   partition.Leader,
+		"Replicas": partition.Replicas,
+		"Isrs":     partition.Isrs,
+		"Error":    partition.Error,
 	}
 }
 
-// listTopics lists the topics from the given address. It will also try to
-// use the auth and TLS settings to create a secure connection. If the topic
-// does not exist, it will raise an error.
-func (k *Kafka) listTopics(conn *kafkago.Conn) []string {
-	partitions, err := conn.ReadPartitions()
-	if err != nil {
-		wrappedError := NewXk6KafkaError(failedReadPartitions, "Failed to read partitions.", err)
-		logger.WithField("error", wrappedError).Error(wrappedError)
-		common.Throw(k.vu.Runtime(), wrappedError)
+func topicMetadataToJS(metadata *TopicMetadata) map[string]any {
+	if metadata == nil {
 		return nil
 	}
 
-	// There should be a better way to return unique set of
-	// topics instead of looping over them twice
-	topicSet := map[string]struct{}{}
-
-	for _, partition := range partitions {
-		topicSet[partition.Topic] = struct{}{}
+	partitions := make([]map[string]any, 0, len(metadata.Partitions))
+	for _, partition := range metadata.Partitions {
+		partitions = append(partitions, partitionInfoToJS(partition))
 	}
 
-	topics := make([]string, 0, len(topicSet))
-	for topic := range topicSet {
-		topics = append(topics, topic)
+	return map[string]any{
+		"topic":      metadata.Topic,
+		"partitions": partitions,
+		"error":      metadata.Error,
+		// Backward-compatible aliases.
+		"Topic":      metadata.Topic,
+		"Partitions": partitions,
+		"Error":      metadata.Error,
 	}
-
-	return topics
 }

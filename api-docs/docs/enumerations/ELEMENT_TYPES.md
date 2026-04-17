@@ -10,7 +10,7 @@ Defined in: [index.d.ts:41](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 ### KEY
 
-> **KEY**: `"KEY"`
+> **KEY**: `"key"`
 
 Defined in: [index.d.ts:42](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L42)
 
@@ -18,6 +18,6 @@ Defined in: [index.d.ts:42](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 ### VALUE
 
-> **VALUE**: `"VALUE"`
+> **VALUE**: `"value"`
 
 Defined in: [index.d.ts:43](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L43)

@@ -5,9 +5,6 @@ import (
 	"time"
 
 	"github.com/grafana/sobek"
-	"github.com/riferrei/srclient"
-	kafkago "github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/compress"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/js/common"
 	"go.k6.io/k6/js/modules"
@@ -30,42 +27,6 @@ func init() {
 		netext.TLS_1_3: tls.VersionTLS13,
 	}
 
-	// Initialize the compression types map.
-	CompressionCodecs = map[string]compress.Compression{
-		codecGzip:   compress.Gzip,
-		codecSnappy: compress.Snappy,
-		codecLz4:    compress.Lz4,
-		codecZstd:   compress.Zstd,
-	}
-
-	// Initialize the balancer types map.
-	Balancers = map[string]kafkago.Balancer{
-		balancerRoundRobin: &kafkago.RoundRobin{},
-		balancerLeastBytes: &kafkago.LeastBytes{},
-		balancerHash:       &kafkago.Hash{},
-		balancerCrc32:      &kafkago.CRC32Balancer{},
-		balancerMurmur2:    &kafkago.Murmur2Balancer{},
-	}
-
-	// Initialize the group balancer types map.
-	GroupBalancers = map[string]kafkago.GroupBalancer{
-		groupBalancerRange:        &kafkago.RangeGroupBalancer{},
-		groupBalancerRoundRobin:   &kafkago.RoundRobinGroupBalancer{},
-		groupBalancerRackAffinity: &kafkago.RackAffinityGroupBalancer{},
-	}
-
-	// Initialize the isolation levels map.
-	IsolationLevels = map[string]kafkago.IsolationLevel{
-		isolationLevelReadUncommitted: kafkago.ReadUncommitted,
-		isolationLevelReadCommitted:   kafkago.ReadCommitted,
-	}
-
-	// Initialize the start offsets map.
-	StartOffsets = map[string]int64{
-		lastOffset:  kafkago.LastOffset,  // The most recent offset available for a partition.
-		firstOffset: kafkago.FirstOffset, // The least recent offset available for a partition.
-	}
-
 	// Register the module namespace (aka. JS import path).
 	modules.Register("k6/x/kafka", New())
 }
@@ -76,7 +37,7 @@ type (
 		metrics               kafkaMetrics
 		exports               *sobek.Object
 		schemaCache           map[string]*Schema
-		currentSchemaRegistry *srclient.SchemaRegistryClient
+		currentSchemaRegistry SchemaRegistryClient
 	}
 	RootModule struct{}
 	Module     struct {
@@ -123,6 +84,12 @@ func (*RootModule) NewModuleInstance(virtualUser modules.VU) modules.Instance {
 	}
 
 	// Export the constructors and functions from the Kafka module to the JS code.
+	// The Producer is a constructor and must be called with new, e.g. new Producer(...).
+	mustExport("Producer", moduleInstance.producerClass)
+	// The Consumer is a constructor and must be called with new, e.g. new Consumer(...).
+	mustExport("Consumer", moduleInstance.consumerClass)
+	// The AdminClient is a constructor and must be called with new, e.g. new AdminClient(...).
+	mustExport("AdminClient", moduleInstance.adminClientClass)
 	// The Writer is a constructor and must be called with new, e.g. new Writer(...).
 	mustExport("Writer", moduleInstance.writerClass)
 	// The Reader is a constructor and must be called with new, e.g. new Reader(...).
@@ -215,9 +182,9 @@ func (m *Module) defineConstants() {
 	// Schema types
 	mustAddProp("SCHEMA_TYPE_STRING", String)
 	mustAddProp("SCHEMA_TYPE_BYTES", Bytes)
-	mustAddProp("SCHEMA_TYPE_AVRO", srclient.Avro)
-	mustAddProp("SCHEMA_TYPE_JSON", srclient.Json)
-	mustAddProp("SCHEMA_TYPE_PROTOBUF", srclient.Protobuf)
+	mustAddProp("SCHEMA_TYPE_AVRO", Avro)
+	mustAddProp("SCHEMA_TYPE_JSON", Json)
+	mustAddProp("SCHEMA_TYPE_PROTOBUF", Protobuf)
 
 	// Time constants
 	mustAddProp("NANOSECOND", int64(time.Nanosecond))

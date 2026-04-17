@@ -1,18 +1,12 @@
 package kafka
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/grafana/sobek"
-	kafkago "github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/compress"
 	"go.k6.io/k6/js/common"
-	"go.k6.io/k6/metrics"
 )
 
 var (
@@ -22,20 +16,21 @@ var (
 	codecLz4    = "lz4"
 	codecZstd   = "zstd"
 
-	// CompressionCodecs is a map of compression codec names to their respective codecs.
-	CompressionCodecs map[string]compress.Compression
-
 	// Balancers.
 	balancerRoundRobin = "balancer_roundrobin"
 	balancerLeastBytes = "balancer_leastbytes"
 	balancerHash       = "balancer_hash"
 	balancerCrc32      = "balancer_crc32"
 	balancerMurmur2    = "balancer_murmur2"
-	defaultBalancer    = balancerLeastBytes
-
-	// Balancers is a map of balancer names to their respective balancers.
-	Balancers map[string]kafkago.Balancer
 )
+
+var supportedBalancers = map[string]struct{}{
+	balancerRoundRobin: {},
+	balancerLeastBytes: {},
+	balancerHash:       {},
+	balancerCrc32:      {},
+	balancerMurmur2:    {},
+}
 
 type WriterConfig struct {
 	AutoCreateTopic bool            `mapstructure:"autoCreateTopic"`
@@ -57,7 +52,11 @@ type WriterConfig struct {
 }
 
 func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: &c})
+	if c == nil {
+		return newMissingConfigError("writer config")
+	}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: c})
 	if err != nil {
 		return err
 	}
@@ -74,23 +73,12 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 	if err := decoder.Decode(m); err != nil {
 		return fmt.Errorf("failed to decode writer config: %w", err)
 	}
-	return nil
-}
-
-func (c *WriterConfig) GetBalancer() kafkago.Balancer {
-	switch {
-	case c.BalancerFunc != nil:
-		return kafkago.BalancerFunc(func(message kafkago.Message, partitions ...int) int {
-			if message.Key == nil {
-				panic(fmt.Sprintf("Trying to use balancer function specified in Writer, but message key is nil: %#v", message))
-			}
-			return c.BalancerFunc(message.Key, len(partitions))
-		})
-	case c.Balancer != "":
-		return Balancers[c.Balancer]
-	default:
-		return Balancers[defaultBalancer]
+	if c.Balancer != "" {
+		if _, ok := supportedBalancers[c.Balancer]; !ok {
+			return fmt.Errorf("%w %q", errUnknownBalancer, c.Balancer)
+		}
 	}
+	return nil
 }
 
 type Message struct {
@@ -113,60 +101,83 @@ type ProduceConfig struct {
 	Messages []Message `json:"messages"`
 }
 
-// writerClass is a wrapper around kafkago.writer and acts as a JS constructor
-// for this extension, thus it must be called with new operator, e.g. new Writer(...).
+func (k *Kafka) producerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatProducerClass(call)
+}
+
+// writerClass is the deprecated Writer compatibility constructor exposed to JS.
 // nolint: funlen
 func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
+	return k.compatProducerClass(call)
+}
+
+func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	m := map[string]any{}
-	err := runtime.ExportTo(call.Arguments[0], &m)
-	if err != nil {
-		common.Throw(runtime, fmt.Errorf("can't export: %w", err))
-	}
+	m := exportArgumentMap(runtime, call.Arguments[0], "writer config")
 	var writerConfig WriterConfig
-	err = writerConfig.Parse(m, runtime)
+	err := writerConfig.Parse(m, runtime)
 	if err != nil {
-		common.Throw(runtime, fmt.Errorf("can't parse writerConfig: %w", err))
+		throwConfigError(runtime, newInvalidConfigError("writer config", err))
 	}
-	writer := k.writer(&writerConfig)
-
-	writerObject := runtime.NewObject()
-	// This is the writer object itself.
-	if err := writerObject.Set("This", writer); err != nil {
+	if err := validateConfluentWriterCompatibility(&writerConfig); err != nil {
+		common.Throw(runtime, err)
+	}
+	producer, err := NewProducerFromWriterConfig(&writerConfig)
+	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	err = writerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
+	producerObject := runtime.NewObject()
+	if err := producerObject.Set("This", producer); err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("produce", func(call sobek.FunctionCall) sobek.Value {
 		var producerConfig *ProduceConfig
 		if len(call.Arguments) == 0 {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		if params, ok := call.Argument(0).Export().(map[string]any); ok {
-			b, err := json.Marshal(params)
-			if err != nil {
-				common.Throw(runtime, err)
-			}
-			err = json.Unmarshal(b, &producerConfig)
-			if err != nil {
-				common.Throw(runtime, err)
-			}
-		}
+		decodeArgument(runtime, call.Argument(0), &producerConfig, "produce config")
 
-		k.produce(writer, producerConfig)
+		k.produceWithProducer(producer, producerConfig)
 		return sobek.Undefined()
 	})
 	if err != nil {
 		common.Throw(runtime, err)
 	}
 
-	// This is unnecessary, but it's here for reference purposes.
-	err = writerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
-		if err := writer.Close(); err != nil {
+	err = producerObject.Set("flush", func(_ sobek.FunctionCall) sobek.Value {
+		if ctx := k.vu.Context(); ctx != nil {
+			if err := producer.Flush(ctx); err != nil {
+				common.Throw(runtime, err)
+			}
+		}
+
+		return sobek.Undefined()
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("stats", func(_ sobek.FunctionCall) sobek.Value {
+		stats := producer.Stats()
+		return runtime.ToValue(map[string]any{
+			"pending": stats.Pending,
+			// Backward-compatible alias.
+			"Pending": stats.Pending,
+		})
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
+	err = producerObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
+		if err := producer.Close(); err != nil {
 			common.Throw(runtime, err)
 		}
 
@@ -176,323 +187,56 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 		common.Throw(runtime, err)
 	}
 
-	freeze(writerObject)
+	if err := freeze(producerObject); err != nil {
+		common.Throw(runtime, err)
+	}
 
-	return runtime.ToValue(writerObject).ToObject(runtime)
+	return runtime.ToValue(producerObject).ToObject(runtime)
 }
 
-// writer creates a new Kafka writer.
-func (k *Kafka) writer(writerConfig *WriterConfig) *kafkago.Writer {
-	dialer, err := GetDialer(writerConfig.SASL, writerConfig.TLS)
-	if err != nil {
-		if err.Unwrap() != nil {
-			logger.WithField("error", err).Error(err)
-		}
-		common.Throw(k.vu.Runtime(), err)
-		return nil
+func validateConfluentWriterCompatibility(writerConfig *WriterConfig) *Xk6KafkaError {
+	if writerConfig == nil {
+		return newMissingConfigError("writer config")
+	}
+	if writerConfig.Balancer != "" || writerConfig.BalancerFunc != nil {
+		return NewXk6KafkaError(
+			unsupportedOperation,
+			"Writer balancer configuration is not supported on the Confluent compatibility path.",
+			nil,
+		)
 	}
 
-	if writerConfig.BatchSize <= 0 {
-		writerConfig.BatchSize = 1
-	}
-
-	writer := &kafkago.Writer{
-		Addr:         kafkago.TCP(writerConfig.Brokers...),
-		Topic:        writerConfig.Topic,
-		Balancer:     writerConfig.GetBalancer(),
-		MaxAttempts:  writerConfig.MaxAttempts,
-		BatchSize:    writerConfig.BatchSize,
-		BatchBytes:   int64(writerConfig.BatchBytes),
-		BatchTimeout: writerConfig.BatchTimeout,
-		ReadTimeout:  writerConfig.ReadTimeout,
-		WriteTimeout: writerConfig.WriteTimeout,
-		RequiredAcks: kafkago.RequiredAcks(writerConfig.RequiredAcks),
-		Async:        false,
-		Transport: &kafkago.Transport{
-			TLS:      dialer.TLS,
-			SASL:     dialer.SASLMechanism,
-			ClientID: dialer.ClientID,
-		},
-		AllowAutoTopicCreation: writerConfig.AutoCreateTopic,
-	}
-
-	if codec, ok := CompressionCodecs[writerConfig.Compression]; ok {
-		writer.Compression = codec
-	}
-
-	if writerConfig.ConnectLogger {
-		writer.Logger = logger
-	}
-
-	return writer
+	return nil
 }
 
-// produce sends messages to Kafka with the given configuration.
-// nolint: funlen
-func (k *Kafka) produce(writer *kafkago.Writer, produceConfig *ProduceConfig) {
+func (k *Kafka) produceWithProducer(producer *Producer, produceConfig *ProduceConfig) {
+	if producer == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("producer"))
+		return
+	}
+	if produceConfig == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("produce config"))
+		return
+	}
+
 	if state := k.vu.State(); state == nil {
-		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
-		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
-	}
-
-	var ctx context.Context
-	if ctx = k.vu.Context(); ctx == nil {
-		err := NewXk6KafkaError(noContextError, "No context.", nil)
-		logger.WithField("error", err).Info(err)
-		common.Throw(k.vu.Runtime(), err)
-	}
-
-	kafkaMessages := make([]kafkago.Message, len(produceConfig.Messages))
-	for index, message := range produceConfig.Messages {
-		kafkaMessages[index] = kafkago.Message{
-			Offset: message.Offset,
-		}
-
-		// Topic can be explicitly set on each individual message.
-		// Setting topic on the writer and the messages are mutually exclusive.
-		if message.Topic != "" {
-			kafkaMessages[index].Topic = message.Topic
-		}
-
-		// If time is set, use it to set the time on the message,
-		// otherwise use the current time.
-		if !message.Time.IsZero() {
-			kafkaMessages[index].Time = message.Time
-		}
-
-		// If a key was provided, add it to the message. Keys are optional.
-		if message.Key != nil {
-			kafkaMessages[index].Key = message.Key
-		}
-
-		// Then add the value to the message.
-		if message.Value != nil {
-			kafkaMessages[index].Value = message.Value
-		}
-
-		// If headers are provided, add them to the message.
-		if len(message.Headers) > 0 {
-			for key, value := range message.Headers {
-				var headerValue []byte
-				headerValue = fmt.Appendf(headerValue, "%v", value)
-				kafkaMessages[index].Headers = append(kafkaMessages[index].Headers, kafkago.Header{
-					Key:   key,
-					Value: headerValue,
-				})
-			}
-		}
-	}
-
-	originalErr := writer.WriteMessages(k.vu.Context(), kafkaMessages...)
-
-	k.reportWriterStats(writer.Stats())
-
-	if originalErr != nil {
-		errorMsg := "Error writing messages."
-
-		// Check if the error is related to topic not existing or leader not being available
-		// These are common errors when topics don't exist or metadata hasn't propagated
-		if errors.Is(originalErr, kafkago.UnknownTopicOrPartition) ||
-			errors.Is(originalErr, kafkago.LeaderNotAvailable) {
-			errorMsg = "Error writing messages: Topic may not exist or metadata not yet propagated. " +
-				"Create the topic in setup() function with sleep(2) for metadata propagation, " +
-				"or set autoCreateTopic: true in WriterConfig. " +
-				"See: https://github.com/mostafa/xk6-kafka#usage"
-		}
-
-		err := NewXk6KafkaError(writerError, errorMsg, originalErr)
-		logger.WithField("error", err).Error(err)
-		common.Throw(k.vu.Runtime(), err)
-	}
-}
-
-// reportWriterStats reports the writer stats to the state.
-// nolint: funlen
-func (k *Kafka) reportWriterStats(currentStats kafkago.WriterStats) {
-	state := k.vu.State()
-	if state == nil {
 		logger.WithField("error", ErrForbiddenInInitContext).Error(ErrForbiddenInInitContext)
 		common.Throw(k.vu.Runtime(), ErrForbiddenInInitContext)
 	}
 
 	ctx := k.vu.Context()
 	if ctx == nil {
-		err := NewXk6KafkaError(cannotReportStats, "Cannot report writer stats, no context.", nil)
+		err := NewXk6KafkaError(noContextError, "No context.", nil)
 		logger.WithField("error", err).Info(err)
 		common.Throw(k.vu.Runtime(), err)
 	}
 
-	ctm := k.vu.State().Tags.GetCurrentValues()
-	sampleTags := ctm.Tags.With("topic", currentStats.Topic)
+	startedAt := time.Now()
+	if err := producer.Produce(ctx, produceConfig.Messages); err != nil {
+		k.reportProducerCompatibilityMetrics(producer, produceConfig.Messages, time.Since(startedAt), err)
+		logger.WithField("error", err).Error(err)
+		common.Throw(k.vu.Runtime(), err)
+	}
 
-	now := time.Now()
-
-	metrics.PushIfNotDone(ctx, state.Samples, metrics.ConnectedSamples{
-		Samples: []metrics.Sample{
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterWrites,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Writes),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterMessages,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Messages),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Bytes),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterErrors,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Errors),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBatchTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.BatchTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBatchQueueTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.BatchQueueTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterWriteTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.WriteTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterWaitTime,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.WaitTime.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterRetries,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.Retries),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBatchSize,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.BatchSize.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBatchBytes,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.BatchBytes.Avg),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterMaxAttempts,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.MaxAttempts),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterMaxBatchSize,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.MaxBatchSize),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterBatchTimeout,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.BatchTimeout),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterReadTimeout,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.ReadTimeout),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterWriteTimeout,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.D(currentStats.WriteTimeout),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterRequiredAcks,
-					Tags:   sampleTags,
-				},
-				Value:    float64(currentStats.RequiredAcks),
-				Metadata: ctm.Metadata,
-			},
-			{
-				Time: now,
-				TimeSeries: metrics.TimeSeries{
-					Metric: k.metrics.WriterAsync,
-					Tags:   sampleTags,
-				},
-				Value:    metrics.B(currentStats.Async),
-				Metadata: ctm.Metadata,
-			},
-		},
-		Tags: sampleTags,
-		Time: now,
-	})
+	k.reportProducerCompatibilityMetrics(producer, produceConfig.Messages, time.Since(startedAt), nil)
 }

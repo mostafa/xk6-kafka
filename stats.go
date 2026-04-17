@@ -1,8 +1,6 @@
 package kafka
 
 import (
-	"errors"
-
 	"go.k6.io/k6/js/modules"
 	"go.k6.io/k6/metrics"
 )
@@ -52,197 +50,233 @@ type kafkaMetrics struct {
 	WriterAsync        *metrics.Metric
 }
 
-// registerMetrics registers the metrics for the kafka module in the metrics registry
-// nolint: funlen,maintidx
+type kafkaMetricDefinition struct {
+	name         string
+	metricType   metrics.MetricType
+	valueType    metrics.ValueType
+	hasValueType bool
+	assign       func(*kafkaMetrics, *metrics.Metric)
+}
+
+func metricDef(
+	name string,
+	metricType metrics.MetricType,
+	assign func(*kafkaMetrics, *metrics.Metric),
+) kafkaMetricDefinition {
+	return kafkaMetricDefinition{
+		name:       name,
+		metricType: metricType,
+		assign:     assign,
+	}
+}
+
+func typedMetricDef(
+	name string,
+	metricType metrics.MetricType,
+	valueType metrics.ValueType,
+	assign func(*kafkaMetrics, *metrics.Metric),
+) kafkaMetricDefinition {
+	return kafkaMetricDefinition{
+		name:         name,
+		metricType:   metricType,
+		valueType:    valueType,
+		hasValueType: true,
+		assign:       assign,
+	}
+}
+
+var kafkaMetricDefinitions = []kafkaMetricDefinition{
+	metricDef("kafka_reader_dial_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderDials = metric
+	}),
+	metricDef("kafka_reader_fetches_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderFetches = metric
+	}),
+	metricDef("kafka_reader_message_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMessages = metric
+	}),
+	typedMetricDef("kafka_reader_message_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderBytes = metric
+	}),
+	metricDef("kafka_reader_rebalance_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderRebalances = metric
+	}),
+	metricDef("kafka_reader_timeouts_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderTimeouts = metric
+	}),
+	metricDef("kafka_reader_error_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderErrors = metric
+	}),
+	typedMetricDef("kafka_reader_dial_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderDialTime = metric
+	}),
+	typedMetricDef("kafka_reader_read_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderReadTime = metric
+	}),
+	typedMetricDef("kafka_reader_wait_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderWaitTime = metric
+	}),
+	metricDef("kafka_reader_fetch_size", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderFetchSize = metric
+	}),
+	typedMetricDef("kafka_reader_fetch_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderFetchBytes = metric
+	}),
+	metricDef("kafka_reader_offset", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderOffset = metric
+	}),
+	metricDef("kafka_reader_lag", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderLag = metric
+	}),
+	metricDef("kafka_reader_fetch_bytes_min", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMinBytes = metric
+	}),
+	metricDef("kafka_reader_fetch_bytes_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderMaxBytes = metric
+	}),
+	typedMetricDef("kafka_reader_fetch_wait_max", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.ReaderMaxWait = metric
+	}),
+	metricDef("kafka_reader_queue_length", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderQueueLength = metric
+	}),
+	metricDef("kafka_reader_queue_capacity", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.ReaderQueueCapacity = metric
+	}),
+	metricDef("kafka_writer_write_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterWrites = metric
+	}),
+	metricDef("kafka_writer_message_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMessages = metric
+	}),
+	typedMetricDef("kafka_writer_message_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBytes = metric
+	}),
+	metricDef("kafka_writer_error_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterErrors = metric
+	}),
+	typedMetricDef("kafka_writer_batch_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchTime = metric
+	}),
+	typedMetricDef("kafka_writer_batch_queue_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchQueueTime = metric
+	}),
+	typedMetricDef("kafka_writer_write_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWriteTime = metric
+	}),
+	typedMetricDef("kafka_writer_wait_seconds", metrics.Trend, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWaitTime = metric
+	}),
+	metricDef("kafka_writer_retries_count", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterRetries = metric
+	}),
+	metricDef("kafka_writer_batch_size", metrics.Counter, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterBatchSize = metric
+	}),
+	typedMetricDef("kafka_writer_batch_bytes", metrics.Counter, metrics.Data, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchBytes = metric
+	}),
+	metricDef("kafka_writer_attempts_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMaxAttempts = metric
+	}),
+	metricDef("kafka_writer_batch_max", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterMaxBatchSize = metric
+	}),
+	typedMetricDef("kafka_writer_batch_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterBatchTimeout = metric
+	}),
+	typedMetricDef("kafka_writer_read_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterReadTimeout = metric
+	}),
+	typedMetricDef("kafka_writer_write_timeout", metrics.Gauge, metrics.Time, func(
+		km *kafkaMetrics,
+		metric *metrics.Metric,
+	) {
+		km.WriterWriteTimeout = metric
+	}),
+	metricDef("kafka_writer_acks_required", metrics.Gauge, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterRequiredAcks = metric
+	}),
+	metricDef("kafka_writer_async", metrics.Rate, func(km *kafkaMetrics, metric *metrics.Metric) {
+		km.WriterAsync = metric
+	}),
+}
+
+func registeredKafkaMetricNames() []string {
+	names := make([]string, 0, len(kafkaMetricDefinitions))
+	for _, definition := range kafkaMetricDefinitions {
+		names = append(names, definition.name)
+	}
+
+	return names
+}
+
+func registerKafkaMetric(
+	registry *metrics.Registry,
+	definition kafkaMetricDefinition,
+) (*metrics.Metric, error) {
+	if definition.hasValueType {
+		return registry.NewMetric(definition.name, definition.metricType, definition.valueType)
+	}
+
+	return registry.NewMetric(definition.name, definition.metricType)
+}
+
+// registerMetrics registers the metrics for the kafka module in the metrics registry.
 func registerMetrics(vu modules.VU) (kafkaMetrics, error) {
-	var err error
 	registry := vu.InitEnv().Registry
-	kafkaMetrics := kafkaMetrics{}
+	registeredMetrics := kafkaMetrics{}
 
-	if kafkaMetrics.ReaderDials, err = registry.NewMetric(
-		"kafka_reader_dial_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
+	for _, definition := range kafkaMetricDefinitions {
+		metric, err := registerKafkaMetric(registry, definition)
+		if err != nil {
+			return registeredMetrics, err
+		}
+
+		definition.assign(&registeredMetrics, metric)
 	}
 
-	if kafkaMetrics.ReaderFetches, err = registry.NewMetric(
-		"kafka_reader_fetches_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderMessages, err = registry.NewMetric(
-		"kafka_reader_message_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderBytes, err = registry.NewMetric(
-		"kafka_reader_message_bytes", metrics.Counter, metrics.Data); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderRebalances, err = registry.NewMetric(
-		"kafka_reader_rebalance_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderTimeouts, err = registry.NewMetric(
-		"kafka_reader_timeouts_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderErrors, err = registry.NewMetric(
-		"kafka_reader_error_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderDialTime, err = registry.NewMetric(
-		"kafka_reader_dial_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderReadTime, err = registry.NewMetric(
-		"kafka_reader_read_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderWaitTime, err = registry.NewMetric(
-		"kafka_reader_wait_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderFetchSize, err = registry.NewMetric(
-		"kafka_reader_fetch_size", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderFetchBytes, err = registry.NewMetric(
-		"kafka_reader_fetch_bytes", metrics.Counter, metrics.Data); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderOffset, err = registry.NewMetric(
-		"kafka_reader_offset", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderLag, err = registry.NewMetric(
-		"kafka_reader_lag", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderMinBytes, err = registry.NewMetric(
-		"kafka_reader_fetch_bytes_min", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderMaxBytes, err = registry.NewMetric(
-		"kafka_reader_fetch_bytes_max", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderMaxWait, err = registry.NewMetric(
-		"kafka_reader_fetch_wait_max", metrics.Gauge, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderQueueLength, err = registry.NewMetric(
-		"kafka_reader_queue_length", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.ReaderQueueCapacity, err = registry.NewMetric(
-		"kafka_reader_queue_capacity", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterWrites, err = registry.NewMetric(
-		"kafka_writer_write_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterMessages, err = registry.NewMetric(
-		"kafka_writer_message_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBytes, err = registry.NewMetric(
-		"kafka_writer_message_bytes", metrics.Counter, metrics.Data); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterErrors, err = registry.NewMetric(
-		"kafka_writer_error_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBatchTime, err = registry.NewMetric(
-		"kafka_writer_batch_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBatchQueueTime, err = registry.NewMetric(
-		"kafka_writer_batch_queue_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterWriteTime, err = registry.NewMetric(
-		"kafka_writer_write_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterWaitTime, err = registry.NewMetric(
-		"kafka_writer_wait_seconds", metrics.Trend, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterRetries, err = registry.NewMetric(
-		"kafka_writer_retries_count", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBatchSize, err = registry.NewMetric(
-		"kafka_writer_batch_size", metrics.Counter); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBatchBytes, err = registry.NewMetric(
-		"kafka_writer_batch_bytes", metrics.Counter, metrics.Data); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterMaxAttempts, err = registry.NewMetric(
-		"kafka_writer_attempts_max", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterMaxBatchSize, err = registry.NewMetric(
-		"kafka_writer_batch_max", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterBatchTimeout, err = registry.NewMetric(
-		"kafka_writer_batch_timeout", metrics.Gauge, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterReadTimeout, err = registry.NewMetric(
-		"kafka_writer_read_timeout", metrics.Gauge, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterWriteTimeout, err = registry.NewMetric(
-		"kafka_writer_write_timeout", metrics.Gauge, metrics.Time); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterRequiredAcks, err = registry.NewMetric(
-		"kafka_writer_acks_required", metrics.Gauge); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	if kafkaMetrics.WriterAsync, err = registry.NewMetric(
-		"kafka_writer_async", metrics.Rate); err != nil {
-		return kafkaMetrics, errors.Unwrap(err)
-	}
-
-	return kafkaMetrics, nil
+	return registeredMetrics, nil
 }

@@ -1,14 +1,13 @@
 package kafka
 
 import (
-	"github.com/riferrei/srclient"
 	"go.k6.io/k6/js/common"
 )
 
 type Container struct {
-	Data       any                 `json:"data"`
-	Schema     *Schema             `json:"schema"`
-	SchemaType srclient.SchemaType `json:"schemaType"`
+	Data       any        `json:"data"`
+	Schema     *Schema    `json:"schema"`
+	SchemaType SchemaType `json:"schemaType"`
 }
 
 // serialize checks whether the incoming data has a schema or not.
@@ -18,7 +17,21 @@ type Container struct {
 // a JSONSchema. Then, it returns the data as a byte array.
 // nolint: funlen
 func (k *Kafka) serialize(container *Container) []byte {
+	return k.serializeWithRegistry(container, nil)
+}
+
+func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegistryState) []byte {
+	if container == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("serialize metadata"))
+		return nil
+	}
+
 	if container.Schema == nil {
+		if container.SchemaType == Protobuf {
+			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			return nil
+		}
+
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
@@ -39,8 +52,15 @@ func (k *Kafka) serialize(container *Container) []byte {
 	// Try to get the schema from cache if caching is enabled,
 	// as the cached version will have the resolver.
 	if container.Schema != nil {
+		cache := k.schemaCache
+		client := k.currentSchemaRegistry
+		if registry != nil {
+			cache = registry.cache
+			client = registry.client
+		}
+
 		if container.Schema.EnableCaching {
-			if cachedSchema, ok := k.schemaCache[container.Schema.Subject]; ok {
+			if cachedSchema, ok := cache[container.Schema.Subject]; ok {
 				container.Schema = cachedSchema
 			}
 		}
@@ -48,15 +68,15 @@ func (k *Kafka) serialize(container *Container) []byte {
 		// If schema doesn't have a resolver but has references,
 		// create one using the stored schema registry client
 		if container.Schema.resolver == nil && len(container.Schema.References) > 0 {
-			if k.currentSchemaRegistry != nil {
-				container.Schema.resolver = k.createResolver(
-					k.currentSchemaRegistry, container.Schema.EnableCaching)
+			if client != nil {
+				container.Schema.resolver = k.createResolverWithCache(
+					client, cache, container.Schema.EnableCaching)
 			}
 		}
 	}
 
 	switch container.SchemaType {
-	case srclient.Avro, srclient.Json:
+	case Avro, Json:
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
 			common.Throw(k.vu.Runtime(), err)
@@ -70,8 +90,11 @@ func (k *Kafka) serialize(container *Container) []byte {
 		}
 
 		return k.encodeWireFormat(bytesData, container.Schema.ID)
-	case srclient.Protobuf:
+	case Bytes, String:
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
+		return nil
+	case Protobuf:
+		common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
 		return nil
 	default:
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
@@ -86,7 +109,21 @@ func (k *Kafka) serialize(container *Container) []byte {
 // a JSONSchema. Then, it returns the data based on how it can decode it.
 // nolint: funlen
 func (k *Kafka) deserialize(container *Container) any {
+	return k.deserializeWithRegistry(container, nil)
+}
+
+func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRegistryState) any {
+	if container == nil {
+		throwConfigError(k.vu.Runtime(), newMissingConfigError("deserialize metadata"))
+		return nil
+	}
+
 	if container.Schema == nil {
+		if container.SchemaType == Protobuf {
+			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			return nil
+		}
+
 		// we are dealing with a byte array, a string or a JSON object without a JSONSchema
 		serde, err := GetSerdes(container.SchemaType)
 		if err != nil {
@@ -99,7 +136,9 @@ func (k *Kafka) deserialize(container *Container) any {
 			switch container.SchemaType {
 			case String:
 				return string(data)
-			case srclient.Avro, srclient.Json:
+			case Bytes:
+				return data
+			case Avro, Json:
 				if isJSON(data) {
 					js, err := toMap(data)
 					if err != nil {
@@ -109,7 +148,7 @@ func (k *Kafka) deserialize(container *Container) any {
 					return js
 				}
 				return data
-			case srclient.Protobuf:
+			case Protobuf:
 				return data
 			default:
 				return data
@@ -160,8 +199,15 @@ func (k *Kafka) deserialize(container *Container) any {
 		// Try to get the schema from cache if caching is enabled,
 		// as the cached version will have the resolver.
 		if container.Schema != nil {
+			cache := k.schemaCache
+			client := k.currentSchemaRegistry
+			if registry != nil {
+				cache = registry.cache
+				client = registry.client
+			}
+
 			if container.Schema.EnableCaching {
-				if cachedSchema, ok := k.schemaCache[container.Schema.Subject]; ok {
+				if cachedSchema, ok := cache[container.Schema.Subject]; ok {
 					// Use the cached schema which has the resolver set
 					container.Schema = cachedSchema
 				}
@@ -170,15 +216,15 @@ func (k *Kafka) deserialize(container *Container) any {
 			// If schema doesn't have a resolver but has references,
 			// create one using the stored schema registry client
 			if container.Schema.resolver == nil && len(container.Schema.References) > 0 {
-				if k.currentSchemaRegistry != nil {
-					container.Schema.resolver = k.createResolver(
-						k.currentSchemaRegistry, container.Schema.EnableCaching)
+				if client != nil {
+					container.Schema.resolver = k.createResolverWithCache(
+						client, cache, container.Schema.EnableCaching)
 				}
 			}
 		}
 
 		switch container.SchemaType {
-		case srclient.Avro, srclient.Json:
+		case Avro, Json:
 			serde, err := GetSerdes(container.SchemaType)
 			if err != nil {
 				common.Throw(k.vu.Runtime(), err)
@@ -196,8 +242,11 @@ func (k *Kafka) deserialize(container *Container) any {
 			}
 			common.Throw(k.vu.Runtime(), ErrInvalidDataType)
 			return nil
-		case srclient.Protobuf:
+		case Bytes, String:
 			common.Throw(runtime, ErrUnsupportedOperation)
+			return nil
+		case Protobuf:
+			common.Throw(runtime, ErrProtobufSerdesPlanned)
 			return nil
 		default:
 			common.Throw(runtime, ErrUnsupportedOperation)

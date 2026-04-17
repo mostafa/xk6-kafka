@@ -14,6 +14,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 
 ## Supported Features
 
+- **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
@@ -27,6 +28,32 @@ If you want to learn more about the extension, read the [article](https://grafan
 - Support for k6 [thresholds](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on custom Kafka metrics
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
 - Lots of exported metrics, as shown in the list of [emitted metrics](https://github.com/mostafa/xk6-kafka/blob/main/README.md#emitted-metrics)
+- TypeScript definitions available in [api-docs/v2/index.d.ts](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts)
+
+> [!NOTE]
+> `SCHEMA_TYPE_PROTOBUF` remains exported for the planned v2 Schema Registry API, but Protobuf Schema Registry serdes are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
+
+> [!WARNING]
+> The v2 API is going to take over the v1 API in the future. So, please migrate to the v2 API as soon as possible, as the v1 API will be deprecated soon.
+
+## Quick Start (v2.0.0+)
+
+```javascript
+import { Producer, Consumer, AdminClient } from "k6/x/kafka";
+
+const producer = new Producer({ brokers: ["localhost:9092"], topic: "my-topic" });
+const consumer = new Consumer({ brokers: ["localhost:9092"], topic: "my-topic", groupId: "my-group" });
+const admin = new AdminClient({ brokers: ["localhost:9092"] });
+
+export default function () {
+  producer.produce({ messages: [{ key: "key", value: "value" }] });
+  const messages = consumer.consume({ maxMessages: 10 });
+}
+```
+
+Run with: `./k6 run --vus 50 --duration 60s script.js`
+
+For full examples, see [scripts/v2](./scripts/v2/README.md).
 
 ## Download Binaries
 
@@ -56,6 +83,7 @@ You must have the latest Go version installed to build the k6 binary. The latest
 - [gvm](https://github.com/moovweb/gvm) for easier installation and management of Go versions on your machine
 - [Git](https://git-scm.com/) for cloning the project
 - [xk6](https://github.com/grafana/xk6) for building k6 binary with extensions
+- CGO enabled builds with a working native toolchain
 
 ### Install and build the latest tagged version
 
@@ -69,14 +97,22 @@ Feel free to skip the first two steps if you already have Go installed.
    go install go.k6.io/xk6/cmd/xk6@latest
    ```
 
-4. Build the binary:
+4. Build the binary with CGO enabled:
 
    ```shell
-   xk6 build --with github.com/mostafa/xk6-kafka@latest
+   CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka@latest
    ```
 
 > [!NOTE]
 > You can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
+
+### Native build requirements
+
+`xk6-kafka` uses `confluent-kafka-go` and therefore requires `CGO_ENABLED=1` for local builds and tests.
+
+- Linux: use a working C toolchain. If your environment cannot use the bundled `librdkafka`, install `pkg-config` and `librdkafka-dev`.
+- macOS: install the Xcode Command Line Tools first. If `pkg-config` cannot resolve `librdkafka`, install `pkg-config` and `librdkafka` with Homebrew.
+- Windows: use a Go environment with CGO enabled and a working C toolchain on `PATH`. The GitHub Actions baseline only uses Windows for smoke-build coverage; Kafka-backed tests still run on Linux.
 
 ### Build for development
 
@@ -84,12 +120,19 @@ If you want to add a feature or make a fix, clone the project and build it using
 
 ```bash
 git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
-xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka@latest=.
+```
+
+For local validation, run:
+
+```bash
+CGO_ENABLED=1 go test ./...
+CGO_ENABLED=1 go test ./... -race
 ```
 
 ## Build using docker
 
-The Grafana xk6 also supports [using docker to build a k6 custom binary with extensions](https://grafana.com/docs/k6/latest/extensions/run/build-k6-binary-using-docker/).
+The Grafana xk6 also supports [using docker to build a k6 custom binary with extensions](https://grafana.com/docs/k6/latest/extensions/run/build-k6-binary-using-docker/). This is the simplest way to avoid local CGO and native `librdkafka` setup on development machines.
 
 1. Install the latest xk6 docker image.
 
@@ -148,14 +191,35 @@ I recommend the [fast-data-dev](https://github.com/lensesio/fast-data-dev) Docke
 
 ### The xk6-kafka API
 
-All the exported functions are available by importing the module object from `k6/x/kafka`. The exported objects, constants and other data structures are available in the [`index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) file, and they always reflect the _latest_ changes on the `main` branch. You can access the generated documentation at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
+All the exported functions are available by importing the module object from `k6/x/kafka`. Versioned declarations and generated references live under [`api-docs/`](https://github.com/mostafa/xk6-kafka/tree/main/api-docs). For the current v2 surface, use [`api-docs/v2/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts) and [`api-docs/v2/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/docs/README.md). The legacy unversioned snapshot remains available at [`api-docs/docs/README.md`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/docs/README.md).
 
 > [!NOTE]
 > The JavaScript API is stable as of version 1.0.0 and is not subject to major changes in future versions unless a new major version is released.
 
+## v2 API Migration
+
+`v2.0.0` introduces three new JavaScript constructors:
+
+- `Producer` replaces `Writer`
+- `Consumer` replaces `Reader`
+- `AdminClient` replaces `Connection`
+
+The v1 names are still exported in `v2.x` as deprecated compatibility aliases over the same Confluent-backed runtime path. See [MIGRATION.md](./MIGRATION.md) for the current parity matrix and deprecation notes.
+
+Current compatibility notes:
+
+- `Writer`, `Reader`, and `Connection` continue to work in `v2.x`, but new examples should prefer `Producer`, `Consumer`, and `AdminClient`.
+- `ConnectionConfig` now also accepts `brokers` for the new `AdminClient` constructor, while the legacy `Connection` constructor still accepts `address`.
+- `consumer.consume({ maxMessages })` is the new spelling; `reader.consume({ limit })` remains supported.
+- `Producer`/`Consumer` continue to emit the legacy `kafka_writer_*` and `kafka_reader_*` custom metric names in `v2.0.0` for dashboard and threshold compatibility.
+- Custom writer balancer configuration is not supported on the Confluent compatibility path and should be treated as a migration blocker for now.
+- The versioned example suites for the new constructors now live under [`scripts/v2`](./scripts/v2/README.md).
+
 ### k6 Test Scripts
 
 The example scripts are available as `test_<format/feature>.js` with more code and commented sections in the [scripts](https://github.com/mostafa/xk6-kafka/blob/main/scripts/) directory. Since this project extends the functionality of k6, it has four stages in the [test life cycle](https://grafana.com/docs/k6/latest/using-k6/test-lifecycle/).
+
+For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminClient`), see the [v2 script suite](./scripts/v2/README.md) under `scripts/v2/`.
 
 <details>
 <summary>Click to expand detailed usage guide with code examples</summary>
@@ -169,9 +233,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    // Or individual classes and constants
    import { sleep } from "k6";
    import {
-     Writer,
-     Reader,
-     Connection,
+     Producer,
+     Consumer,
+     AdminClient,
      SchemaRegistry,
      SCHEMA_TYPE_STRING,
    } from "k6/x/kafka";
@@ -180,36 +244,33 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 2. You need to instantiate the classes in the `init` context. All the [k6 options](https://k6.io/docs/using-k6/k6-options/) are also configured here:
 
    ```javascript
-   // Creates a new Writer object to produce messages to Kafka
-   const writer = new Writer({
-     // WriterConfig object
+   // Creates a new Producer object to produce messages to Kafka
+   const producer = new Producer({
      brokers: ["localhost:9092"],
      topic: "my-topic",
    });
 
-   const reader = new Reader({
-     // ReaderConfig object
+   const consumer = new Consumer({
      brokers: ["localhost:9092"],
      topic: "my-topic",
+     groupId: "my-group",
    });
 
-   const connection = new Connection({
-     // ConnectionConfig object
-     address: "localhost:9092",
+   const admin = new AdminClient({
+     brokers: ["localhost:9092"],
    });
 
    const schemaRegistry = new SchemaRegistry({
-     // SchemaRegistryConfig object or be left empty
-       url: "http://localhost:8081",
+     url: "http://localhost:8081",
    });
 
    // Create topic in setup() to avoid race conditions with multiple VUs
    export function setup() {
-     // Connection must be created inside setup() to ensure proper VU context
-     const setupConnection = new Connection({
-       address: "localhost:9092",
+     // AdminClient must be created inside setup() to ensure proper VU context
+     const setupAdmin = new AdminClient({
+       brokers: ["localhost:9092"],
      });
-     setupConnection.createTopic({
+     setupAdmin.createTopic({
        // TopicConfig object
        topic: "my-topic",
        numPartitions: 10, // optional, defaults to 1
@@ -217,28 +278,29 @@ The example scripts are available as `test_<format/feature>.js` with more code a
      });
 
      // Verify topic was created
-     const topics = setupConnection.listTopics();
-     if (!topics.includes("my-topic")) {
+     const topics = setupAdmin.listTopics();
+     if (!topics.some((topic) => topic.topic === "my-topic")) {
        throw new Error("Topic was not created successfully");
      }
 
-     setupConnection.close();
+     setupAdmin.close();
 
      // Wait for Kafka metadata to propagate to all brokers
-     // This ensures Writer/Reader can see all partitions
+     // This ensures Producer/Consumer can see all partitions
      sleep(2);
    }
    ```
 
-   **⚠️ Important**: Do NOT use `if (__VU == 0)` at module level for topic creation. This causes race conditions where other VUs start before the topic is created. Always use the `setup()` function or set `autoCreateTopic: true` on the Writer.
-
-   **Alternative**: If you don't need to control partition count, use `autoCreateTopic`:
+   > [!IMPORTANT]
+   > Do NOT use `if (__VU == 0)` at module level for topic creation. This causes race conditions where other VUs start before the topic is created. Always use the `setup()` function or set `autoCreateTopic: true` on the Writer/Producer config.
+   >
+   > **Alternative**: If you don't need to control partition count, use `autoCreateTopic`:
 
    ```javascript
-   const writer = new Writer({
+   const producer = new Producer({
      brokers: ["localhost:9092"],
      topic: "my-topic",
-     autoCreateTopic: true, // Let Writer auto-create the topic
+     autoCreateTopic: true, // Let Producer auto-create the topic
    });
    ```
 
@@ -247,11 +309,11 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    ```javascript
    export default function () {
      // Fetch the list of all topics
-     const topics = connection.listTopics();
+     const topics = admin.listTopics();
      console.log(topics); // list of topics
 
      // Produces message to Kafka
-     writer.produce({
+     producer.produce({
        // ProduceConfig object
        messages: [
          // Message object(s)
@@ -269,9 +331,9 @@ The example scripts are available as `test_<format/feature>.js` with more code a
      });
 
      // Consume messages from Kafka
-     let messages = reader.consume({
+     let messages = consumer.consume({
        // ConsumeConfig object
-       limit: 10,
+       maxMessages: 10,
      });
 
      // your messages
@@ -310,14 +372,17 @@ The example scripts are available as `test_<format/feature>.js` with more code a
    ./k6 run --vus 50 --duration 60s scripts/test_json.js
    ```
 
-6. And here's the test result output:
+6. On the same machine and with the same `scripts/test_json.js` workload, the current `v1.x.x/main` branch reaches `115,637.233495 msg/s`, while `v2.0.0` reaches `383,331.650997 msg/s`, which is about `3.3x` higher throughput.
+
+7. And here's the `v2.0.0` test result output:
 
    ```bash
-            /\      Grafana   /‾‾/
-       /\  /  \     |\  __   /  /
-      /  \/    \    | |/ /  /   ‾‾\
-     /          \   |   (  |  (‾)  |
-    / __________ \  |_|\_\  \_____/
+               /\      Grafana   /‾‾/
+          /\  /  \     |\  __   /  /
+         /  \/    \    | |/ /  /   ‾‾\
+        /          \   |   (  |  (‾)  |
+       / __________ \  |_|\_\  \_____/
+
 
         execution: local
            script: scripts/test_json.js
@@ -328,86 +393,85 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 
 
-     █ THRESHOLDS
+      █ THRESHOLDS
 
-       kafka_reader_error_count
-       ✓ 'count == 0' count=0
+        kafka_reader_error_count
+        ✓ 'count == 0' count=0
 
-       kafka_writer_error_count
-       ✗ 'count == 0' count=2
+        kafka_writer_error_count
+        ✓ 'count == 0' count=0
 
 
-     █ TOTAL RESULTS
+      █ TOTAL RESULTS 
 
-       checks_total.......: 185697  2729.030778/s
-       checks_succeeded...: 100.00% 185697 out of 185697
-       checks_failed......: 0.00%   0 out of 185697
+      checks_total.......: 1073889 17249.924295/s
+      checks_succeeded...: 100.00% 1073889 out of 1073889
+      checks_failed......: 0.00%   0 out of 1073889
 
-       ✓ 10 messages are received
-       ✓ Topic equals to xk6_kafka_json_topic
-       ✓ Key contains key/value and is JSON
-       ✓ Value contains key/value and is JSON
-       ✓ Header equals {'mykey': 'myvalue'}
-       ✓ Time is past
-       ✓ Partition is zero
-       ✓ Offset is gte zero
-       ✓ High watermark is gte zero
+      ✓ 10 messages are received
+      ✓ Topic equals to xk6_kafka_json_topic
+      ✓ Key contains key/value and is JSON
+      ✓ Value contains key/value and is JSON
+      ✓ Header equals {'mykey': 'myvalue'}
+      ✓ Time is past
+      ✓ Partition is zero
+      ✓ Offset is gte zero
+      ✓ High watermark is gte zero
 
-       CUSTOM
-       kafka_reader_dial_count............: 50      0.734807/s
-       kafka_reader_dial_seconds..........: avg=93.76µs  min=0s     med=0s      max=85.44ms p(90)=0s       p(95)=0s
-       kafka_reader_error_count...........: 0       0/s
-       kafka_reader_fetch_bytes...........: 62 MB   910 kB/s
-       kafka_reader_fetch_bytes_max.......: 1000000 min=1000000      max=1000000
-       kafka_reader_fetch_bytes_min.......: 1       min=1            max=1
-       kafka_reader_fetch_size............: 157680  2317.288772/s
-       kafka_reader_fetch_wait_max........: 10s     min=10s          max=10s
-       kafka_reader_fetches_count.........: 98      1.440223/s
-       kafka_reader_lag...................: 2615790 min=518          max=2619354
-       kafka_reader_message_bytes.........: 41 MB   609 kB/s
-       kafka_reader_message_count.........: 210880  3099.123898/s
-       kafka_reader_offset................: 4390    min=36           max=6000
-       kafka_reader_queue_capacity........: 100     min=100          max=100
-       kafka_reader_queue_length..........: 91      min=26           max=100
-       kafka_reader_read_seconds..........: avg=90.51ms  min=0s     med=0s      max=58.22s  p(90)=0s       p(95)=0s
-       kafka_reader_rebalance_count.......: 0       0/s
-       kafka_reader_timeouts_count........: 48      0.705415/s
-       kafka_reader_wait_seconds..........: avg=75.12µs  min=0s     med=0s      max=94.95ms p(90)=0s       p(95)=0s
-       kafka_writer_acks_required.........: 0       min=0            max=0
-       kafka_writer_async.................: 0.00%   0 out of 2063300
-       kafka_writer_attempts_max..........: 10      min=10           max=10
-       kafka_writer_batch_bytes...........: 482 MB  7.1 MB/s
-       kafka_writer_batch_max.............: 1       min=1            max=1
-       kafka_writer_batch_queue_seconds...: avg=77.09µs  min=0s     med=6.11µs  max=41.11ms p(90)=143.95µs p(95)=302.24µs
-       kafka_writer_batch_seconds.........: avg=394.84µs min=3.34µs med=25.17µs max=5.05s   p(90)=318.84µs p(95)=663.36µs
-       kafka_writer_batch_size............: 2063300 30322.564204/s
-       kafka_writer_batch_timeout.........: 1s      min=1s           max=1s
-       kafka_writer_error_count...........: 2       0.029392/s
-       kafka_writer_message_bytes.........: 965 MB  14 MB/s
-       kafka_writer_message_count.........: 4126602 60645.157801/s
-       kafka_writer_read_timeout..........: 10s     min=10s          max=10s
-       kafka_writer_retries_count.........: 2       0.029392/s
-       kafka_writer_wait_seconds..........: avg=0s       min=0s     med=0s      max=0s      p(90)=0s       p(95)=0s
-       kafka_writer_write_count...........: 4126602 60645.157801/s
-       kafka_writer_write_seconds.........: avg=429.33µs min=6.43µs med=25.13µs max=4.99s   p(90)=53.27µs  p(95)=71.35µs
-       kafka_writer_write_timeout.........: 10s     min=10s          max=10s
+      CUSTOM
+      kafka_reader_dial_count............: 119321   1916.658255/s
+      kafka_reader_dial_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
+      kafka_reader_error_count...........: 0        0/s
+      kafka_reader_fetch_bytes...........: 274 MB   4.4 MB/s
+      kafka_reader_fetch_bytes_max.......: 0        min=0             max=0    
+      kafka_reader_fetch_bytes_min.......: 0        min=0             max=0    
+      kafka_reader_fetch_size............: 1193210  19166.58255/s
+      kafka_reader_fetch_wait_max........: 0s       min=0s            max=0s   
+      kafka_reader_fetches_count.........: 1312531  21083.240805/s
+      kafka_reader_lag...................: 0        min=0             max=0    
+      kafka_reader_message_bytes.........: 274 MB   4.4 MB/s
+      kafka_reader_message_count.........: 1193210  19166.58255/s
+      kafka_reader_offset................: 23779    min=9             max=24819
+      kafka_reader_queue_capacity........: 0        min=0             max=0    
+      kafka_reader_queue_length..........: 0        min=0             max=0    
+      kafka_reader_read_seconds..........: avg=43.03µs min=11.08µs med=18.45µs max=81.67ms  p(90)=41.12µs p(95)=58.08µs
+      kafka_reader_rebalance_count.......: 0        0/s
+      kafka_reader_timeouts_count........: 0        0/s
+      kafka_reader_wait_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
+      kafka_writer_acks_required.........: 0        min=0             max=0    
+      kafka_writer_async.................: 0.00%    0 out of 11932100
+      kafka_writer_attempts_max..........: 0        min=0             max=0    
+      kafka_writer_batch_bytes...........: 2.8 GB   44 MB/s
+      kafka_writer_batch_max.............: 0        min=0             max=0    
+      kafka_writer_batch_queue_seconds...: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
+      kafka_writer_batch_seconds.........: avg=2.67µs  min=437ns   med=729ns   max=30.61ms  p(90)=1.6µs   p(95)=2.04µs 
+      kafka_writer_batch_size............: 11932100 191665.825499/s
+      kafka_writer_batch_timeout.........: 0s       min=0s            max=0s   
+      kafka_writer_error_count...........: 0        0/s
+      kafka_writer_message_bytes.........: 5.5 GB   89 MB/s
+      kafka_writer_message_count.........: 23864200 383331.650997/s
+      kafka_writer_read_timeout..........: 0s       min=0s            max=0s   
+      kafka_writer_retries_count.........: 0        0/s
+      kafka_writer_wait_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
+      kafka_writer_write_count...........: 23864200 383331.650997/s
+      kafka_writer_write_seconds.........: avg=5.35µs  min=875ns   med=1.45µs  max=61.23ms  p(90)=3.2µs   p(95)=4.08µs 
+      kafka_writer_write_timeout.........: 0s       min=0s            max=0s   
 
-       EXECUTION
-       iteration_duration.................: avg=150.93ms min=8.63ms med=60.05ms max=10.12s  p(90)=176.66ms p(95)=221.25ms
-       iterations.........................: 20633   303.225642/s
-       vus................................: 1       min=0            max=50
-       vus_max............................: 50      min=50           max=50
+      EXECUTION
+      iteration_duration.................: avg=25.07ms min=2.49ms  med=14.17ms max=446.15ms p(90)=61.86ms p(95)=85.65ms
+      iterations.........................: 119321   1916.658255/s
+      vus................................: 50       min=0             max=50   
+      vus_max............................: 50       min=50            max=50
 
        NETWORK
-       data_received......................: 0 B     0 B/s
-       data_sent..........................: 0 B     0 B/s
+       data_received......................: 0 B      0 B/s
+       data_sent..........................: 0 B      0 B/s
 
 
 
 
-   running (1m08.0s), 00/50 VUs, 20633 complete and 0 interrupted iterations
+   running (1m02.1s), 00/50 VUs, 117079 complete and 0 interrupted iterations
    default ✓ [======================================] 50 VUs  1m0s
-   ERRO[0068] thresholds on metrics 'kafka_writer_error_count' have been crossed
    ```
 
 </details>
@@ -416,6 +480,8 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 <details>
 <summary>Click to expand full metrics table</summary>
+
+`v2.0.0` keeps the existing metric names on the Confluent-backed runtime path. See [MIGRATION.md](./MIGRATION.md#metric-compatibility-appendix) for the compatibility appendix, including the current compatibility-derived semantics and the explicit renamed/removed status (`none` in `v2.0.0`).
 
 | Metric                           | Type    | Description                                                             |
 | -------------------------------- | ------- | ----------------------------------------------------------------------- |
@@ -464,7 +530,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 <details>
 <summary>Click to expand FAQ (16 questions)</summary>
 
-1.  Why do I receive `Error writing messages`?
+1. Why do I receive `Error writing messages`?
 
     There are a few reasons why this might happen. The most prominent one is that the topic might not exist, which causes the producer to fail to send messages to a non-existent topic.
 
@@ -503,19 +569,19 @@ The example scripts are available as `test_<format/feature>.js` with more code a
     (inside container)$ kafka-topics --create --topic xk6_kafka_json_topic --bootstrap-server localhost:9092
     ```
 
-2.  Why does the `reader.consume` keep hanging?
+2. Why does the `reader.consume` keep hanging?
 
     If the `reader.consume` keeps hanging, it might be because the topic doesn't exist or is empty.
 
-3.  I want to test SASL authentication. How should I do that?
+3. I want to test SASL authentication. How should I do that?
 
     If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
 
-4.  Why doesn't the consumer group consume messages from the topic?
+4. Why doesn't the consumer group consume messages from the topic?
 
     As explained in issue [#37](https://github.com/mostafa/xk6-kafka/issues/37), multiple inits by k6 cause multiple consumer group instances to be created in the init context, which sometimes causes the random partitions to be selected by each instance. This, in turn, causes confusion when consuming messages from different partitions. This can be solved by using a UUID when naming the consumer group, thereby guaranteeing that the consumer group object was assigned to all partitions in a topic.
 
-5.  Why do I receive a `MessageTooLargeError` when I produce messages bigger than 1 MB?
+5. Why do I receive a `MessageTooLargeError` when I produce messages bigger than 1 MB?
 
     Kafka has a [maximum message size](https://docs.confluent.io/platform/current/installation/configuration/broker-configs.html) of 1 MB by default, which is set by `message.max.bytes`, and this limit is also applied to the `Writer` object.
 
@@ -523,13 +589,13 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
     Remember that the `Writer` object will reject messages larger than the default Kafka message size limit (1 MB). Hence you need to set `batchBytes` to a larger value, for example, `1024 * 1024 * 2` (2 MB). The `batchBytes` refers to the raw uncompressed size of all the keys and values (data) in your array of messages you pass to the `Writer` object. You can calculate the raw data size of your messages using [this example script](https://github.com/mostafa/xk6-kafka/issues/181#issuecomment-1325390880).
 
-6.  Can I consume messages from a consumer group in a topic with multiple partitions?
+6. Can I consume messages from a consumer group in a topic with multiple partitions?
 
-    Yes, you can. Just pass the `groupID` to your `Reader` object. You must not specify the partition anymore. Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
+    Yes, you can. Just pass the `groupId` to your `Reader` object. You must not specify the partition anymore. (`groupID` remains accepted as a legacy alias.) Visit this [documentation article](https://docs.confluent.io/platform/current/clients/consumer.html#concepts) to learn more about Kafka consumer groups.
 
     Remember that you must set `sessionTimeout` on your `Reader` object if the consume function terminates abruptly, thus failing to consume messages.
 
-7.  Why does the `Reader.consume` produces an `unable to read message` error?
+7. Why does the `Reader.consume` produces an `unable to read message` error?
 
     The `maxWait` option controls how long the reader waits for messages before timing out. If not specified, it uses the default from the underlying Kafka library (typically 1 second). For performance testing reasons, you may want to set a shorter timeout (e.g., 200ms) to avoid hanging. If you keep receiving timeout errors, consider increasing `maxWait` to a larger value:
 
@@ -541,13 +607,13 @@ The example scripts are available as `test_<format/feature>.js` with more code a
     });
     ```
 
-8.  How can I consume from multiple partitions on a single topic?
+8. How can I consume from multiple partitions on a single topic?
 
-    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieved by setting `groupTopics`, `groupID` and a few other options for timeouts, intervals and lags. Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
+    You can configure your reader to consume from a (list of) topic(s) and its partitions using a consumer group. This can be achieved by setting `groupTopics`, `groupId` and a few other options for timeouts, intervals and lags. (`groupID` remains accepted as a legacy alias.) Have a look at the [`test_consumer_group.js`](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_consumer_group.js) example script.
 
-9.  How can I use autocompletion in IDEs?
+9. How can I use autocompletion in IDEs?
 
-    Copy [`api-docs/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
+    Copy [`api-docs/v2/index.d.ts`](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts) into your project directory and reference it at the top of your JavaScript file:
 
     ```javascript
     /// <reference path="index.d.ts" />
@@ -591,7 +657,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 14. I want to specify the offset of a message when consuming from a topic. How can I do that?
 
     To specify the offset of a message while consuming from a topic, use the following options based on your consumption setup:
-    1.  **When consuming from a group:**
+    1. **When consuming from a group:**
         Use the `startOffset` option in the `Reader` object. This option allows you to define the starting point for message consumption. Here are the values you can use for `startOffset`:
         - `-1`: Consume from the most recent message. This is equivalent to `START_OFFSETS_LAST_OFFSET`.
         - `-2`: Consume from the oldest message. This is equivalent to `START_OFFSETS_FIRST_OFFSET`.
@@ -604,13 +670,13 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
           const reader = new Reader({
             brokers: ["localhost:9092"], // Replace with your broker(s)
-            groupID: "example-group", // Specify your consumer group ID
+            groupId: "example-group", // Specify your consumer group ID
             groupTopics: ["example-topic"], // List of topics for the group
             startOffset: START_OFFSETS_LAST_OFFSET, // Use the most recent offset
           });
           ```
 
-    2.  **When consuming from a topic:**
+    2. **When consuming from a topic:**
 
         Use the `offset` option instead of `startOffset`. The `offset` option is a number that directly specifies the offset of the message you want to consume, unlike `startOffset`, which is a string.
 
@@ -630,7 +696,7 @@ The example scripts are available as `test_<format/feature>.js` with more code a
 
 16. What if I want to use a custom profile for the SASL authentication with AWS IAM instead of the default profile?
 
-    You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/docs/interfaces/SASLConfig.md).
+    You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/v2/docs/interfaces/SASLConfig.md).
 
 </details>
 
