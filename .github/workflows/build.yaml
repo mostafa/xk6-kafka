@@ -67,14 +67,23 @@ jobs:
         run: brew install pkg-config librdkafka
 
       - name: Install xk6 and build xk6-kafka 🏗️
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.goarch == ''
         run: |
           mkdir -p dist
           go install go.k6.io/xk6/cmd/xk6@latest
-          export GOARCH="${{ matrix.goarch || ''}}"
-          : "${GOARCH:=$(go env GOARCH)}"
-          BINARY="xk6-kafka_${GITHUB_REF_NAME}_$(go env GOOS)_${GOARCH}"
+          BINARY="xk6-kafka_${GITHUB_REF_NAME}_$(go env GOOS)_$(go env GOARCH)"
           xk6 build --output "dist/${BINARY}" --with "github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=."
+          tar cvzf "dist/${BINARY}.tar.gz" -C dist "${BINARY}"
+
+      - name: Install xk6 and cross-build xk6-kafka 🏗️
+        if: matrix.goarch != ''
+        run: |
+          mkdir -p dist
+          go install go.k6.io/xk6/cmd/xk6@latest
+          xk6 build --skip-cleanup --output /dev/null --with "github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=." 2>&1 | tee /tmp/xk6.log || true
+          BUILD_DIR=$(sed -n 's/.* leaving directory \(.*\) intact/\1/p' /tmp/xk6.log)
+          BINARY="xk6-kafka_${GITHUB_REF_NAME}_$(go env GOOS)_${{ matrix.goarch }}"
+          CGO_ENABLED=1 GOARCH=${{ matrix.goarch }} go build -C "${BUILD_DIR}" -trimpath -ldflags="-s -w" -o "$(pwd)/dist/${BINARY}" .
           tar cvzf "dist/${BINARY}.tar.gz" -C dist "${BINARY}"
 
       - name: Install xk6 and build xk6-kafka on Windows 🏗️
