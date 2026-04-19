@@ -19,19 +19,15 @@ jobs:
         include:
           - name: linux-amd64
             os: ubuntu-latest
-            binary: xk6-kafka_${GITHUB_REF_NAME}_linux_amd64
           - name: linux-arm64
             os: ubuntu-24.04-arm
-            binary: xk6-kafka_${GITHUB_REF_NAME}_linux_arm64
           - name: darwin-amd64
-            os: macos-13
-            binary: xk6-kafka_${GITHUB_REF_NAME}_darwin_amd64
+            os: macos-latest
+            goarch: amd64
           - name: darwin-arm64
             os: macos-latest
-            binary: xk6-kafka_${GITHUB_REF_NAME}_darwin_arm64
           - name: windows-amd64
             os: windows-latest
-            binary: xk6-kafka_${GITHUB_REF_NAME}_windows_amd64.exe
     defaults:
       run:
         shell: bash
@@ -75,7 +71,9 @@ jobs:
         run: |
           mkdir -p dist
           go install go.k6.io/xk6/cmd/xk6@latest
-          BINARY="xk6-kafka_${GITHUB_REF_NAME}_$(go env GOOS)_$(go env GOARCH)"
+          export GOARCH="${{ matrix.goarch || ''}}"
+          : "${GOARCH:=$(go env GOARCH)}"
+          BINARY="xk6-kafka_${GITHUB_REF_NAME}_$(go env GOOS)_${GOARCH}"
           xk6 build --output "dist/${BINARY}" --with "github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=."
           tar cvzf "dist/${BINARY}.tar.gz" -C dist "${BINARY}"
 
