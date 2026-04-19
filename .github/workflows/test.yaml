@@ -138,7 +138,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
-          xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka@latest=.
+          xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka/v2@latest=.
 
       - name: Install xk6 and smoke build xk6-kafka on Windows 🏗️
         if: runner.os == 'Windows'
@@ -148,7 +148,7 @@ jobs:
           CXX: g++
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
-          xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka@latest=.
+          xk6 build "${{ matrix.k6-version }}" --with github.com/mostafa/xk6-kafka/v2@latest=.
 
   linux-validation:
     name: Linux race and integration
@@ -198,7 +198,7 @@ jobs:
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
-          xk6 build "v1.7.1" --with github.com/mostafa/xk6-kafka@latest=.
+          xk6 build "v1.7.1" --with github.com/mostafa/xk6-kafka/v2@latest=.
 
       - name: Wait for Kafka and Schema Registry ⏳
         run: |

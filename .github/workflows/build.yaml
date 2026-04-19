@@ -36,22 +36,22 @@ jobs:
           mkdir dist
           go install go.k6.io/xk6/cmd/xk6@latest
           # ------------------------- Linux amd64 -------------------------
-          GOOS=linux GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_linux_amd64 --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=linux GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_linux_amd64 --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_linux_amd64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_linux_amd64
           # ------------------------- Linux arm64 -------------------------
-          GOOS=linux GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_linux_arm64 --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=linux GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_linux_arm64 --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_linux_arm64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_linux_arm64
           # ------------------------- macOS amd64 -------------------------
-          GOOS=darwin GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_amd64 --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=darwin GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_amd64 --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_amd64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_amd64
           # ------------------------- macOS arm64 -------------------------
-          GOOS=darwin GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_arm64 --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=darwin GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_arm64 --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_arm64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_darwin_arm64
           # ------------------------- Windows amd64 -------------------------
-          GOOS=windows GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_windows_amd64.exe --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=windows GOARCH=amd64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_windows_amd64.exe --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_windows_amd64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_windows_amd64.exe
           # ------------------------- Windows arm64 -------------------------
-          GOOS=windows GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_windows_arm64.exe --with github.com/mostafa/xk6-kafka@${GITHUB_REF_NAME}=.
+          GOOS=windows GOARCH=arm64 xk6 build --output dist/xk6-kafka_${GITHUB_REF_NAME}_windows_arm64.exe --with github.com/mostafa/xk6-kafka/v2@${GITHUB_REF_NAME}=.
           tar cvzf dist/xk6-kafka_${GITHUB_REF_NAME}_windows_arm64.tar.gz dist/xk6-kafka_${GITHUB_REF_NAME}_windows_arm64.exe
 
       - name: Generate CycloneDX SBOM artifacts 📃
