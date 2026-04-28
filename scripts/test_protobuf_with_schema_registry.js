@@ -100,7 +100,11 @@ export default function () {
         schemaType: SCHEMA_TYPE_PROTOBUF,
       });
 
-      return value.firstName === "mostafa" && value.lastName === "moradian" && value.age === 33;
+      return (
+        value.firstName === "mostafa" &&
+        value.lastName === "moradian" &&
+        value.age === 33
+      );
     },
   });
 }
