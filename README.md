@@ -15,7 +15,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 ## Supported Features
 
 - **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
-- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) and [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js) formats
+- Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js), [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js), and [Protobuf](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_protobuf_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
@@ -29,9 +29,6 @@ If you want to learn more about the extension, read the [article](https://grafan
 - Support for [headers](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js) on produced and consumed messages
 - Lots of exported metrics, as shown in the list of [emitted metrics](https://github.com/mostafa/xk6-kafka/blob/main/README.md#emitted-metrics)
 - TypeScript definitions available in [api-docs/v2/index.d.ts](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts)
-
-> [!NOTE]
-> `SCHEMA_TYPE_PROTOBUF` remains exported for the planned v2 Schema Registry API, but Protobuf Schema Registry serdes are not implemented in `v2.0.0`. The supported Schema Registry formats in `v2.0.0` are Avro and JSON, and the Protobuf serde path is planned for `v2.1`.
 
 > [!WARNING]
 > The v2 API is going to take over the v1 API in the future. So, please migrate to the v2 API as soon as possible, as the v1 API will be deprecated soon.

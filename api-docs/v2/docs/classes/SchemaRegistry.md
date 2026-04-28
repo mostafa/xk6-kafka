@@ -4,7 +4,7 @@
 
 # Class: SchemaRegistry
 
-Defined in: [index.d.ts:567](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L567)
+Defined in: [index.d.ts:569](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L569)
 
 ## Classdesc
 
@@ -65,7 +65,7 @@ writer.produce({
 
 > **new SchemaRegistry**(`schemaRegistryConfig`): `SchemaRegistry`
 
-Defined in: [index.d.ts:574](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L574)
+Defined in: [index.d.ts:576](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L576)
 
 #### Parameters
 
@@ -87,7 +87,7 @@ Schema Registry configuration.
 
 > **createSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
 
-Defined in: [index.d.ts:588](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L588)
+Defined in: [index.d.ts:590](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L590)
 
 #### Parameters
 
@@ -113,7 +113,7 @@ Create or update a schema on Schema Registry.
 
 > **deserialize**(`container`): `any`
 
-Defined in: [index.d.ts:609](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L609)
+Defined in: [index.d.ts:611](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L611)
 
 #### Parameters
 
@@ -139,7 +139,7 @@ Deserializes the given data and schema into its original form.
 
 > **getSchema**(`schema`): [`Schema`](../interfaces/Schema.md)
 
-Defined in: [index.d.ts:581](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L581)
+Defined in: [index.d.ts:583](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L583)
 
 #### Parameters
 
@@ -165,7 +165,7 @@ Get a schema from Schema Registry by version and subject.
 
 > **getSubjectName**(`subjectNameConfig`): `string`
 
-Defined in: [index.d.ts:595](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L595)
+Defined in: [index.d.ts:597](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L597)
 
 #### Parameters
 
@@ -191,7 +191,7 @@ Returns the subject name for the given SubjectNameConfig.
 
 > **serialize**(`container`): `Uint8Array`
 
-Defined in: [index.d.ts:602](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L602)
+Defined in: [index.d.ts:604](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L604)
 
 #### Parameters
 
