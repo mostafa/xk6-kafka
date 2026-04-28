@@ -49,14 +49,14 @@ const (
 // Schema is a wrapper around the schema registry schema.
 // The Codec() and JsonSchema() methods will return the respective codecs (duck-typing).
 type Schema struct {
-	EnableCaching bool        `json:"enableCaching"`
-	ID            int         `json:"id"`
-	Schema        string      `json:"schema"`
-	SchemaType    *SchemaType `json:"schemaType"`
-	Version       int         `json:"version"`
-	References    []Reference `json:"references"`
-	Subject       string      `json:"subject"`
-	MessageName   string      `json:"messageName"`
+	EnableCaching bool              `json:"enableCaching"`
+	ID            int               `json:"id"`
+	Schema        string            `json:"schema"`
+	SchemaType    *SchemaType       `json:"schemaType"`
+	Version       int               `json:"version"`
+	References    []Reference       `json:"references"`
+	Subject       string            `json:"subject"`
+	MessageName   string            `json:"messageName"`
 	Dependencies  map[string]string `json:"dependencies"`
 	avroSchema    avro.Schema
 	jsonSchema    *jsonschema.Schema

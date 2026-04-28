@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/bufbuild/protocompile"
@@ -76,7 +77,7 @@ func parseProtobufMessageIndexes(payload []byte) (int, []int, *Xk6KafkaError) {
 	}
 
 	indexes := make([]int, arrayLen)
-	for i := 0; i < int(arrayLen); i++ {
+	for i := range int(arrayLen) {
 		index, read := binary.Varint(payload[bytesRead:])
 		if read <= 0 {
 			return 0, nil, ErrProtobufInvalidMessageIndexPath
@@ -162,8 +163,7 @@ func toMessageIndexes(descriptor protoreflect.Descriptor, count int) []int {
 
 func toMessageIndexArray(messageDesc protoreflect.MessageDescriptor) []int {
 	if messageDesc.Index() == 0 {
-		switch messageDesc.Parent().(type) {
-		case protoreflect.FileDescriptor:
+		if _, ok := messageDesc.Parent().(protoreflect.FileDescriptor); ok {
 			return []int{0}
 		}
 	}
@@ -207,7 +207,7 @@ func findMessageByFullName(
 	messages protoreflect.MessageDescriptors,
 	fullName protoreflect.FullName,
 ) protoreflect.MessageDescriptor {
-	for i := 0; i < messages.Len(); i++ {
+	for i := range messages.Len() {
 		message := messages.Get(i)
 		if message.FullName() == fullName {
 			return message
@@ -292,9 +292,7 @@ func collectProtobufReferenceSchemas(
 
 func buildProtobufDependencyMap(schema *Schema) (map[string]string, *Xk6KafkaError) {
 	dependencies := make(map[string]string)
-	for key, value := range schema.Dependencies {
-		dependencies[key] = value
-	}
+	maps.Copy(dependencies, schema.Dependencies)
 
 	if len(schema.References) == 0 {
 		return dependencies, nil
@@ -324,9 +322,7 @@ func parseProtobufFileDescriptor(schema *Schema) (protoreflect.FileDescriptor, *
 	sources := map[string]string{
 		".": schema.Schema,
 	}
-	for filename, dependencySchema := range dependencies {
-		sources[filename] = dependencySchema
-	}
+	maps.Copy(sources, dependencies)
 
 	compiler := protocompile.Compiler{
 		Resolver: protocompile.WithStandardImports(&protocompile.SourceResolver{
@@ -384,7 +380,8 @@ func (s *ProtobufSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaEr
 		return nil, ErrProtobufObjectValidationFailed
 	}
 
-	if unmarshalErr := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(jsonData, message); unmarshalErr != nil {
+	unmarshalOptions := protojson.UnmarshalOptions{DiscardUnknown: false}
+	if unmarshalErr := unmarshalOptions.Unmarshal(jsonData, message); unmarshalErr != nil {
 		return nil, NewXk6KafkaError(failedToEncode, "Failed to encode protobuf object data", unmarshalErr)
 	}
 
