@@ -352,3 +352,85 @@ func TestSerialize_AvroNestedUnionWithLogicalTypeIssue376(t *testing.T) {
 		})
 	}
 }
+
+func TestSerializeDeserialize_ProtobufObjectMode(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	schema := &Schema{
+		ID:          9,
+		Schema:      `syntax = "proto3"; message User { string name = 1; int32 age = 2; }`,
+		Subject:     "test-user",
+		MessageName: "User",
+	}
+
+	serialized := test.module.serialize(&Container{
+		Data: map[string]any{
+			"name": "Mostafa",
+			"age":  33.0,
+		},
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+	require.NotNil(t, serialized)
+
+	deserialized := test.module.deserialize(&Container{
+		Data:       serialized,
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+
+	decoded, ok := deserialized.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "Mostafa", decoded["name"])
+	assert.Equal(t, float64(33), decoded["age"])
+}
+
+func TestSerializeDeserialize_ProtobufStandaloneDependencies(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	schema := &Schema{
+		ID: 0,
+		Schema: `
+syntax = "proto3";
+import "common.proto";
+message UserWrapper {
+  common.User user = 1;
+}`,
+		Dependencies: map[string]string{
+			"common.proto": `
+syntax = "proto3";
+package common;
+message User {
+  string name = 1;
+}
+`,
+		},
+		Subject:     "test-user-wrapper",
+		MessageName: "UserWrapper",
+	}
+
+	serialized := test.module.serialize(&Container{
+		Data: map[string]any{
+			"user": map[string]any{
+				"name": "Mostafa",
+			},
+		},
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+	require.NotNil(t, serialized)
+
+	deserialized := test.module.deserialize(&Container{
+		Data:       serialized,
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+
+	decoded, ok := deserialized.(map[string]any)
+	require.True(t, ok)
+	user, ok := decoded["user"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "Mostafa", user["name"])
+}

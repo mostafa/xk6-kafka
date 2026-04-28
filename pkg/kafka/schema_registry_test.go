@@ -299,6 +299,28 @@ func TestGetSubjectNameCanUseRecordNameStrategyWithNamespace(t *testing.T) {
 	assert.Equal(t, "com.example.person.Schema", subjectName)
 }
 
+func TestGetSubjectNameUsesMessageNameForProtobufStrategies(t *testing.T) {
+	test := getTestModuleInstance(t)
+
+	subject := test.module.getSubjectName(&SubjectNameConfig{
+		Schema:              `syntax = "proto3"; message User { string name = 1; }`,
+		Topic:               "test-topic",
+		SubjectNameStrategy: RecordNameStrategy,
+		Element:             Value,
+		MessageName:         "com.example.User",
+	})
+	assert.Equal(t, "com.example.User", subject)
+
+	subject = test.module.getSubjectName(&SubjectNameConfig{
+		Schema:              `syntax = "proto3"; message User { string name = 1; }`,
+		Topic:               "test-topic",
+		SubjectNameStrategy: TopicRecordNameStrategy,
+		Element:             Value,
+		MessageName:         "com.example.User",
+	})
+	assert.Equal(t, "test-topic-com.example.User", subject)
+}
+
 // TestSchemaRegistryClientClass tests the schema registry client class.
 func TestSchemaRegistryClientClass(t *testing.T) {
 	test := getTestModuleInstance(t)

@@ -145,36 +145,61 @@ func TestDeserializeRejectsMissingMetadata(t *testing.T) {
 	}, "deserialize metadata is required")
 }
 
-func TestSerializeRejectsProtobufSerdesInV2(t *testing.T) {
+func TestSerializeSupportsProtobufBytesFormat(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	requireGoErrorMessage(t, func() {
-		test.module.serialize(&Container{
-			Data: []byte("value"),
-			Schema: &Schema{
-				ID:      1,
-				Schema:  `syntax = "proto3"; message Value { string field = 1; }`,
-				Subject: "test-subject",
-			},
-			SchemaType: Protobuf,
-		})
-	}, "Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.")
+	test.moveToVUCode()
+
+	rawPayload := []byte{10, 5, 'v', 'a', 'l', 'u', 'e'}
+	serialized := test.module.serialize(&Container{
+		Data: rawPayload,
+		Schema: &Schema{
+			ID:          1,
+			Schema:      `syntax = "proto3"; message Value { string field = 1; }`,
+			Subject:     "test-subject",
+			MessageName: "Value",
+		},
+		SchemaType:     Protobuf,
+		ProtobufFormat: "bytes",
+	})
+
+	require.NotNil(t, serialized)
+	assert.Greater(t, len(serialized), MagicPrefixSize)
 }
 
-func TestDeserializeRejectsProtobufSerdesInV2(t *testing.T) {
+func TestDeserializeSupportsProtobufBytesFormat(t *testing.T) {
 	test := getTestModuleInstance(t)
 
-	requireGoErrorMessage(t, func() {
-		test.module.deserialize(&Container{
-			Data: test.module.encodeWireFormat([]byte("value"), 1),
-			Schema: &Schema{
-				ID:      1,
-				Schema:  `syntax = "proto3"; message Value { string field = 1; }`,
-				Subject: "test-subject",
-			},
-			SchemaType: Protobuf,
-		})
-	}, "Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.")
+	test.moveToVUCode()
+
+	rawPayload := []byte{10, 5, 'v', 'a', 'l', 'u', 'e'}
+	serialized := test.module.serialize(&Container{
+		Data: rawPayload,
+		Schema: &Schema{
+			ID:          1,
+			Schema:      `syntax = "proto3"; message Value { string field = 1; }`,
+			Subject:     "test-subject",
+			MessageName: "Value",
+		},
+		SchemaType:     Protobuf,
+		ProtobufFormat: "bytes",
+	})
+
+	deserialized := test.module.deserialize(&Container{
+		Data: serialized,
+		Schema: &Schema{
+			ID:          1,
+			Schema:      `syntax = "proto3"; message Value { string field = 1; }`,
+			Subject:     "test-subject",
+			MessageName: "Value",
+		},
+		SchemaType:     Protobuf,
+		ProtobufFormat: "bytes",
+	})
+
+	decoded, ok := deserialized.([]byte)
+	require.True(t, ok)
+	assert.Equal(t, rawPayload, decoded)
 }
 
 func TestEncodeWireFormatRejectsOutOfRangeSchemaID(t *testing.T) {
