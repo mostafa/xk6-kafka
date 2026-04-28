@@ -5,9 +5,10 @@ import (
 )
 
 type Container struct {
-	Data       any        `json:"data"`
-	Schema     *Schema    `json:"schema"`
-	SchemaType SchemaType `json:"schemaType"`
+	Data           any        `json:"data"`
+	Schema         *Schema    `json:"schema"`
+	SchemaType     SchemaType `json:"schemaType"`
+	ProtobufFormat string     `json:"protobufFormat"`
 }
 
 // serialize checks whether the incoming data has a schema or not.
@@ -28,7 +29,7 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 
 	if container.Schema == nil {
 		if container.SchemaType == Protobuf {
-			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			common.Throw(k.vu.Runtime(), newMissingConfigError("schema metadata"))
 			return nil
 		}
 
@@ -94,8 +95,7 @@ func (k *Kafka) serializeWithRegistry(container *Container, registry *schemaRegi
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
 		return nil
 	case Protobuf:
-		common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
-		return nil
+		return k.serializeProtobuf(container)
 	default:
 		common.Throw(k.vu.Runtime(), ErrUnsupportedOperation)
 		return nil
@@ -120,7 +120,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 
 	if container.Schema == nil {
 		if container.SchemaType == Protobuf {
-			common.Throw(k.vu.Runtime(), ErrProtobufSerdesPlanned)
+			common.Throw(k.vu.Runtime(), newMissingConfigError("schema metadata"))
 			return nil
 		}
 
@@ -246,8 +246,7 @@ func (k *Kafka) deserializeWithRegistry(container *Container, registry *schemaRe
 			common.Throw(runtime, ErrUnsupportedOperation)
 			return nil
 		case Protobuf:
-			common.Throw(runtime, ErrProtobufSerdesPlanned)
-			return nil
+			return k.deserializeProtobuf(container)
 		default:
 			common.Throw(runtime, ErrUnsupportedOperation)
 			return nil

@@ -69,6 +69,13 @@ const (
 	failedParseReferencedSchema         errCode = 5005
 	failedResolveReferences             errCode = 5006
 	invalidSchemaID                     errCode = 5007
+	protobufSchemaCompileFailed         errCode = 5008
+	protobufMissingImport               errCode = 5009
+	protobufAmbiguousMessageName        errCode = 5010
+	protobufMissingMessageName          errCode = 5011
+	protobufInvalidMessageIndexPath     errCode = 5012
+	protobufObjectValidationFailed      errCode = 5013
+	protobufUnsupportedFormatInput      errCode = 5014
 
 	// topics.
 	failedGetController     errCode = 6000
@@ -83,10 +90,46 @@ var (
 	// ErrUnsupportedOperation is the error returned when the operation is not supported.
 	ErrUnsupportedOperation = NewXk6KafkaError(unsupportedOperation, "Operation not supported", nil)
 
-	// ErrProtobufSerdesPlanned is returned when Protobuf Schema Registry serdes are requested in v2.0.0.
-	ErrProtobufSerdesPlanned = NewXk6KafkaError(
-		unsupportedOperation,
-		"Protobuf Schema Registry serdes are planned for v2.1 and are not available in v2.0.0.",
+	// ErrProtobufSchemaCompileFailed is returned when compiling a protobuf schema fails.
+	ErrProtobufSchemaCompileFailed = NewXk6KafkaError(
+		protobufSchemaCompileFailed,
+		"Failed to compile protobuf schema",
+		nil,
+	)
+	// ErrProtobufMissingImport is returned when a protobuf import cannot be resolved.
+	ErrProtobufMissingImport = NewXk6KafkaError(
+		protobufMissingImport,
+		"Missing protobuf import or dependency",
+		nil,
+	)
+	// ErrProtobufAmbiguousMessageName is returned when schema has multiple top-level messages.
+	ErrProtobufAmbiguousMessageName = NewXk6KafkaError(
+		protobufAmbiguousMessageName,
+		"Ambiguous protobuf message name: set schema.messageName",
+		nil,
+	)
+	// ErrProtobufMissingMessageName is returned when the selected message doesn't exist.
+	ErrProtobufMissingMessageName = NewXk6KafkaError(
+		protobufMissingMessageName,
+		"Configured protobuf messageName was not found in schema",
+		nil,
+	)
+	// ErrProtobufInvalidMessageIndexPath is returned when protobuf framing indexes are invalid.
+	ErrProtobufInvalidMessageIndexPath = NewXk6KafkaError(
+		protobufInvalidMessageIndexPath,
+		"Invalid protobuf message-index path",
+		nil,
+	)
+	// ErrProtobufObjectValidationFailed is returned when object-mode payload is invalid.
+	ErrProtobufObjectValidationFailed = NewXk6KafkaError(
+		protobufObjectValidationFailed,
+		"Failed to validate object against protobuf schema",
+		nil,
+	)
+	// ErrProtobufUnsupportedFormatInput is returned when protobufFormat data type is unsupported.
+	ErrProtobufUnsupportedFormatInput = NewXk6KafkaError(
+		protobufUnsupportedFormatInput,
+		"Unsupported input type for protobufFormat",
 		nil,
 	)
 

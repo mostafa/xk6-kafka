@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	cschemaregistry "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/grafana/sobek"
@@ -55,6 +56,8 @@ type Schema struct {
 	Version       int         `json:"version"`
 	References    []Reference `json:"references"`
 	Subject       string      `json:"subject"`
+	MessageName   string      `json:"messageName"`
+	Dependencies  map[string]string `json:"dependencies"`
 	avroSchema    avro.Schema
 	jsonSchema    *jsonschema.Schema
 
@@ -67,6 +70,7 @@ type SubjectNameConfig struct {
 	Topic               string  `json:"topic"`
 	Element             Element `json:"element"`
 	SubjectNameStrategy string  `json:"subjectNameStrategy"`
+	MessageName         string  `json:"messageName"`
 }
 
 type WireFormat struct {
@@ -726,19 +730,25 @@ func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 	}
 
 	runtime := k.vu.Runtime()
-	var schemaMap map[string]any
-	err := json.Unmarshal([]byte(subjectNameConfig.Schema), &schemaMap)
-	if err != nil {
-		common.Throw(runtime, NewXk6KafkaError(
-			failedUnmarshalSchema, "Failed to unmarshal schema", err))
-	}
 	recordName := ""
-	if namespace, ok := schemaMap["namespace"]; ok {
-		if namespace, ok := namespace.(string); ok {
-			recordName = namespace + "."
-		} else {
-			err := NewXk6KafkaError(failedTypeCast, "Failed to cast to string", nil)
-			common.Throw(runtime, err)
+	var schemaMap map[string]any
+	if strings.TrimSpace(subjectNameConfig.MessageName) != "" {
+		recordName = strings.TrimSpace(subjectNameConfig.MessageName)
+	}
+
+	if recordName == "" {
+		err := json.Unmarshal([]byte(subjectNameConfig.Schema), &schemaMap)
+		if err != nil {
+			common.Throw(runtime, NewXk6KafkaError(
+				failedUnmarshalSchema, "Failed to unmarshal schema", err))
+		}
+		if namespace, ok := schemaMap["namespace"]; ok {
+			if namespace, ok := namespace.(string); ok {
+				recordName = namespace + "."
+			} else {
+				err := NewXk6KafkaError(failedTypeCast, "Failed to cast to string", nil)
+				common.Throw(runtime, err)
+			}
 		}
 	}
 	if name, ok := schemaMap["name"]; ok {
@@ -757,7 +767,7 @@ func (k *Kafka) getSubjectName(subjectNameConfig *SubjectNameConfig) string {
 		return subjectNameConfig.Topic + "-" + recordName
 	}
 
-	err = NewXk6KafkaError(failedToEncode, fmt.Sprintf(
+	err := NewXk6KafkaError(failedToEncode, fmt.Sprintf(
 		"Unknown subject name strategy: %v", subjectNameConfig.SubjectNameStrategy), nil)
 	common.Throw(runtime, err)
 	return ""

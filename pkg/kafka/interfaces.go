@@ -10,6 +10,7 @@ var TypesRegistry map[SchemaType]Serdes = map[SchemaType]Serdes{
 	Bytes:  &ByteArraySerde{},
 	Json:   &JSONSerde{},
 	Avro:   &AvroSerde{},
+	Protobuf: &ProtobufSerde{},
 }
 
 func GetSerdes(schemaType SchemaType) (Serdes, *Xk6KafkaError) {
