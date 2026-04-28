@@ -110,9 +110,9 @@ type SimpleTLSConfig struct {
 func TestTlsConfig(t *testing.T) {
 	tlsConfig := TLSConfig{
 		EnableTLS:     true,
-		ClientCertPem: "fixtures/client.cer",
-		ClientKeyPem:  "fixtures/client.pem",
-		ServerCaPem:   "fixtures/caroot.cer",
+		ClientCertPem: "testdata/fixtures/client.cer",
+		ClientKeyPem:  "testdata/fixtures/client.pem",
+		ServerCaPem:   "testdata/fixtures/caroot.cer",
 	}
 	tlsObject, err := GetTLSConfig(tlsConfig)
 	assert.Nil(t, err)
@@ -148,7 +148,7 @@ func TestTlsConfigFails(t *testing.T) {
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "server.cer",
-				ClientCertPem: "fixtures/client.cer",
+				ClientCertPem: "testdata/fixtures/client.cer",
 				ClientKeyPem:  "test.pem",
 			},
 			err: &Xk6KafkaError{
@@ -161,8 +161,8 @@ func TestTlsConfigFails(t *testing.T) {
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
 				ServerCaPem:   "server.cer",
-				ClientCertPem: "fixtures/client.cer",
-				ClientKeyPem:  "fixtures/client.pem",
+				ClientCertPem: "testdata/fixtures/client.cer",
+				ClientKeyPem:  "testdata/fixtures/client.pem",
 			},
 			err: &Xk6KafkaError{
 				Code:          fileNotFound,
@@ -173,27 +173,27 @@ func TestTlsConfigFails(t *testing.T) {
 		{
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
-				ServerCaPem:   "fixtures/caroot.cer",
-				ClientCertPem: "fixtures/invalid-client.cer",
-				ClientKeyPem:  "fixtures/invalid-client.pem",
+				ServerCaPem:   "testdata/fixtures/caroot.cer",
+				ClientCertPem: "testdata/fixtures/invalid-client.cer",
+				ClientKeyPem:  "testdata/fixtures/invalid-client.pem",
 			},
 			err: &Xk6KafkaError{
 				Code: failedLoadX509KeyPair,
-				Message: "Error creating x509 key pair from \"fixtures/invalid-client.cer\" " +
-					"and \"fixtures/invalid-client.pem\".",
+				Message: "Error creating x509 key pair from \"testdata/fixtures/invalid-client.cer\" " +
+					"and \"testdata/fixtures/invalid-client.pem\".",
 				OriginalError: ErrInvalidPEMData,
 			},
 		},
 		{
 			tlsConfig: TLSConfig{
 				EnableTLS:     true,
-				ClientCertPem: "fixtures/client.cer",
-				ClientKeyPem:  "fixtures/client.pem",
-				ServerCaPem:   "fixtures/invalid-caroot.cer",
+				ClientCertPem: "testdata/fixtures/client.cer",
+				ClientKeyPem:  "testdata/fixtures/client.pem",
+				ServerCaPem:   "testdata/fixtures/invalid-caroot.cer",
 			},
 			err: &Xk6KafkaError{
 				Code:    failedAppendCaCertFile,
-				Message: "Error appending CA certificate file \"fixtures/invalid-caroot.cer\".",
+				Message: "Error appending CA certificate file \"testdata/fixtures/invalid-caroot.cer\".",
 			},
 		},
 	}
@@ -209,7 +209,11 @@ func TestTlsConfigFails(t *testing.T) {
 
 // TestTlsConfigFromContent tests the creation of a TLS config.
 func TestTlsConfigFromContent(t *testing.T) {
-	paths := []string{"fixtures/client.cer", "fixtures/client.pem", "fixtures/caroot.cer"}
+	paths := []string{
+		"testdata/fixtures/client.cer",
+		"testdata/fixtures/client.pem",
+		"testdata/fixtures/caroot.cer",
+	}
 	files := make([]string, len(paths))
 
 	for i, path := range paths {

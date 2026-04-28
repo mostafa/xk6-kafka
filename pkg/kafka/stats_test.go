@@ -35,10 +35,10 @@ func TestRegisterMetricsReturnsConcreteErrorOnDuplicateRegistration(t *testing.T
 }
 
 func TestMetricCompatibilityDocsCoverRegisteredMetrics(t *testing.T) {
-	readme, err := os.ReadFile("README.md")
+	readme, err := os.ReadFile("../../README.md")
 	require.NoError(t, err)
 
-	migrationGuide, err := os.ReadFile("MIGRATION.md")
+	migrationGuide, err := os.ReadFile("../../MIGRATION.md")
 	require.NoError(t, err)
 
 	combinedDocs := string(readme) + string(migrationGuide)
