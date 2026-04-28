@@ -352,3 +352,149 @@ func TestSerialize_AvroNestedUnionWithLogicalTypeIssue376(t *testing.T) {
 		})
 	}
 }
+
+func TestSerializeDeserialize_ProtobufObjectMode(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	schema := &Schema{
+		ID:          9,
+		Schema:      `syntax = "proto3"; message User { string name = 1; int32 age = 2; }`,
+		Subject:     "test-user",
+		MessageName: "User",
+	}
+
+	serialized := test.module.serialize(&Container{
+		Data: map[string]any{
+			"name": "Mostafa",
+			"age":  33.0,
+		},
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+	require.NotNil(t, serialized)
+
+	deserialized := test.module.deserialize(&Container{
+		Data:       serialized,
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+
+	decoded, ok := deserialized.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "Mostafa", decoded["name"])
+	assert.Equal(t, float64(33), decoded["age"])
+}
+
+func TestSerializeDeserialize_ProtobufStandaloneDependencies(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	schema := &Schema{
+		ID: 0,
+		Schema: `
+syntax = "proto3";
+import "common.proto";
+message UserWrapper {
+  common.User user = 1;
+}`,
+		Dependencies: map[string]string{
+			"common.proto": `
+syntax = "proto3";
+package common;
+message User {
+  string name = 1;
+}
+`,
+		},
+		Subject:     "test-user-wrapper",
+		MessageName: "UserWrapper",
+	}
+
+	serialized := test.module.serialize(&Container{
+		Data: map[string]any{
+			"user": map[string]any{
+				"name": "Mostafa",
+			},
+		},
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+	require.NotNil(t, serialized)
+
+	deserialized := test.module.deserialize(&Container{
+		Data:       serialized,
+		Schema:     schema,
+		SchemaType: Protobuf,
+	})
+
+	decoded, ok := deserialized.(map[string]any)
+	require.True(t, ok)
+	user, ok := decoded["user"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "Mostafa", user["name"])
+}
+
+func TestDeserializeWithoutSchemaBranches(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	t.Run("bytes to string", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte("hello"),
+			SchemaType: String,
+		})
+		assert.Equal(t, "hello", out)
+	})
+
+	t.Run("bytes passthrough", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte{1, 2, 3},
+			SchemaType: Bytes,
+		})
+		assert.Equal(t, []byte{1, 2, 3}, out)
+	})
+
+	t.Run("json bytes to map", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte(`{"key":"value"}`),
+			SchemaType: Json,
+		})
+		asMap, ok := out.(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, "value", asMap["key"])
+	})
+
+	t.Run("non-json bytes remain bytes", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte("not-json"),
+			SchemaType: Json,
+		})
+		assert.Equal(t, []byte("not-json"), out)
+	})
+
+	t.Run("plain string returns bytes", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       "plain",
+			SchemaType: String,
+		})
+		assert.Equal(t, []byte("plain"), out)
+	})
+
+	t.Run("base64 string decodes via serde", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       "aGVsbG8=",
+			SchemaType: String,
+		})
+		assert.Equal(t, "hello", out)
+	})
+
+	t.Run("protobuf without schema errors", func(t *testing.T) {
+		requireGoErrorMessage(t, func() {
+			test.module.deserialize(&Container{
+				Data:       []byte("abc"),
+				SchemaType: Protobuf,
+			})
+		}, "schema metadata is required")
+	})
+}

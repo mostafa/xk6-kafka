@@ -7,7 +7,7 @@ It ensures that the data produced and consumed by Kafka producers and consumers 
 It is highly recommended to use Schema Registry when working with Kafka, in order to ensure that your messages conform to the expected structure and types.
 
 > [!NOTE]
-> `xk6-kafka v2.0.0` supports Avro and JSON on the Schema Registry path. `SCHEMA_TYPE_PROTOBUF` remains exported for compatibility planning, but Protobuf Schema Registry serdes are not implemented in `v2.0.0` and are planned for `v2.1`.
+> `xk6-kafka v2.1.0` supports Avro, JSON, and Protobuf on both Schema Registry and standalone schema flows.
 
 ## How to Use Schema Registry with xk6-kafka
 

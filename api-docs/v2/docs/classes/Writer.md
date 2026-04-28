@@ -4,7 +4,7 @@
 
 # ~~Class: Writer~~
 
-Defined in: [index.d.ts:371](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L371)
+Defined in: [index.d.ts:373](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L373)
 
 ## Deprecated
 
@@ -16,7 +16,7 @@ Use `Producer` instead. `Writer` remains as a compatibility alias in v2.x.
 
 > **new Writer**(`writerConfig`): `Writer`
 
-Defined in: [index.d.ts:378](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L378)
+Defined in: [index.d.ts:380](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L380)
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Writer configuration.
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:391](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L391)
+Defined in: [index.d.ts:393](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L393)
 
 #### Returns
 
@@ -58,7 +58,7 @@ Close the writer.
 
 > **produce**(`produceConfig`): `void`
 
-Defined in: [index.d.ts:385](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L385)
+Defined in: [index.d.ts:387](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L387)
 
 #### Parameters
 

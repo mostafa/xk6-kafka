@@ -16,6 +16,14 @@ Defined in: [index.d.ts:308](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ---
 
+### messageName?
+
+> `optional` **messageName?**: `string`
+
+Defined in: [index.d.ts:310](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L310)
+
+---
+
 ### schema
 
 > **schema**: `string`

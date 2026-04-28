@@ -6,10 +6,11 @@ type Serdes interface {
 }
 
 var TypesRegistry map[SchemaType]Serdes = map[SchemaType]Serdes{
-	String: &StringSerde{},
-	Bytes:  &ByteArraySerde{},
-	Json:   &JSONSerde{},
-	Avro:   &AvroSerde{},
+	String:   &StringSerde{},
+	Bytes:    &ByteArraySerde{},
+	Json:     &JSONSerde{},
+	Avro:     &AvroSerde{},
+	Protobuf: &ProtobufSerde{},
 }
 
 func GetSerdes(schemaType SchemaType) (Serdes, *Xk6KafkaError) {

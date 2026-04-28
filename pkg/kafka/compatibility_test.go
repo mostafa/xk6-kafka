@@ -43,8 +43,8 @@ func TestJSCompatibilityConstructorsWithMockCluster(t *testing.T) {
 		Arguments: []sobek.Value{
 			test.rt.ToValue(map[string]any{
 				"messages": []map[string]any{{
-					"key":   []byte("producer-key"),
-					"value": []byte("producer-value"),
+					"key":   "producer-key",
+					"value": "producer-value",
 				}},
 			}),
 		},
@@ -65,8 +65,8 @@ func TestJSCompatibilityConstructorsWithMockCluster(t *testing.T) {
 		Arguments: []sobek.Value{
 			test.rt.ToValue(map[string]any{
 				"messages": []map[string]any{{
-					"key":   []byte("writer-key"),
-					"value": []byte("writer-value"),
+					"key":   "writer-key",
+					"value": "writer-value",
 				}},
 			}),
 		},
