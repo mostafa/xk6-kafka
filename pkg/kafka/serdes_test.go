@@ -434,3 +434,67 @@ message User {
 	require.True(t, ok)
 	assert.Equal(t, "Mostafa", user["name"])
 }
+
+func TestDeserializeWithoutSchemaBranches(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	t.Run("bytes to string", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte("hello"),
+			SchemaType: String,
+		})
+		assert.Equal(t, "hello", out)
+	})
+
+	t.Run("bytes passthrough", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte{1, 2, 3},
+			SchemaType: Bytes,
+		})
+		assert.Equal(t, []byte{1, 2, 3}, out)
+	})
+
+	t.Run("json bytes to map", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte(`{"key":"value"}`),
+			SchemaType: Json,
+		})
+		asMap, ok := out.(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, "value", asMap["key"])
+	})
+
+	t.Run("non-json bytes remain bytes", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       []byte("not-json"),
+			SchemaType: Json,
+		})
+		assert.Equal(t, []byte("not-json"), out)
+	})
+
+	t.Run("plain string returns bytes", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       "plain",
+			SchemaType: String,
+		})
+		assert.Equal(t, []byte("plain"), out)
+	})
+
+	t.Run("base64 string decodes via serde", func(t *testing.T) {
+		out := test.module.deserialize(&Container{
+			Data:       "aGVsbG8=",
+			SchemaType: String,
+		})
+		assert.Equal(t, "hello", out)
+	})
+
+	t.Run("protobuf without schema errors", func(t *testing.T) {
+		requireGoErrorMessage(t, func() {
+			test.module.deserialize(&Container{
+				Data:       []byte("abc"),
+				SchemaType: Protobuf,
+			})
+		}, "schema metadata is required")
+	})
+}
