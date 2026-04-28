@@ -1,7 +1,9 @@
 package kafka
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -22,6 +24,8 @@ var (
 	balancerHash       = "balancer_hash"
 	balancerCrc32      = "balancer_crc32"
 	balancerMurmur2    = "balancer_murmur2"
+
+	errExpectedNumericByte = errors.New("expected numeric byte")
 )
 
 var supportedBalancers = map[string]struct{}{
@@ -142,7 +146,10 @@ func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 			common.Throw(runtime, ErrNotEnoughArguments)
 		}
 
-		decodeArgument(runtime, call.Argument(0), &producerConfig, "produce config")
+		producerConfig = decodeProduceConfig(runtime, call.Argument(0))
+		if producerConfig == nil {
+			return sobek.Undefined()
+		}
 
 		k.produceWithProducer(producer, producerConfig)
 		return sobek.Undefined()
@@ -192,6 +199,53 @@ func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	}
 
 	return runtime.ToValue(producerObject).ToObject(runtime)
+}
+
+func decodeProduceConfig(runtime *sobek.Runtime, value sobek.Value) *ProduceConfig {
+	params := exportArgumentMap(runtime, value, "produce config")
+	if params == nil {
+		return nil
+	}
+
+	var produceConfig ProduceConfig
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result: &produceConfig,
+		DecodeHook: func(from reflect.Type, to reflect.Type, data any) (any, error) {
+			if to == reflect.TypeFor[[]byte]() {
+				switch v := data.(type) {
+				case string:
+					return []byte(v), nil
+				case []any:
+					bytes := make([]byte, len(v))
+					for i, value := range v {
+						number, ok := value.(float64)
+						if !ok {
+							return nil, fmt.Errorf(
+								"%w at index %d, got %T",
+								errExpectedNumericByte,
+								i,
+								value,
+							)
+						}
+						bytes[i] = byte(number)
+					}
+					return bytes, nil
+				}
+			}
+			return data, nil
+		},
+	})
+	if err != nil {
+		throwConfigError(runtime, newInvalidConfigError("produce config", err))
+		return nil
+	}
+
+	if err := decoder.Decode(params); err != nil {
+		throwConfigError(runtime, newInvalidConfigError("produce config", err))
+		return nil
+	}
+
+	return &produceConfig
 }
 
 func validateConfluentWriterCompatibility(writerConfig *WriterConfig) *Xk6KafkaError {
