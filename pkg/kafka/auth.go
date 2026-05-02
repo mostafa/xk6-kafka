@@ -35,12 +35,12 @@ type SASLContextOpts struct {
 	OAuthProviderOpts OAuthProviderOpts
 }
 
-func NewSaslContext(saslConfig SASLConfig, opts SASLContextOpts) (SASLContext, error) {
+func NewSaslContext(saslConfig SASLConfig, brokers []string, opts SASLContextOpts) (SASLContext, error) {
 	saslContext := SASLContext{}
 
 	switch saslConfig.Algorithm {
 	case saslAzureEntra:
-		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, opts.OAuthProviderOpts)
+		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, brokers, opts.OAuthProviderOpts)
 		if err != nil {
 			return SASLContext{}, err
 		}

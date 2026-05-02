@@ -15,7 +15,7 @@ func TestSASLContext(t *testing.T) {
 	t.Run("algorithm without context", func(t *testing.T) {
 		context, err := NewSaslContext(SASLConfig{
 			Algorithm: saslSsl,
-		}, SASLContextOpts{})
+		}, []string{"broker1"}, SASLContextOpts{})
 
 		require.NoError(t, err)
 		require.Nil(t, context.OAuthProvider)
@@ -32,7 +32,7 @@ func TestSASLContext(t *testing.T) {
 
 		context, err := NewSaslContext(SASLConfig{
 			Algorithm: saslAzureEntra,
-		}, opts)
+		}, []string{"broker1"}, opts)
 
 		require.NoError(t, err)
 		require.NotNil(t, context.OAuthProvider)

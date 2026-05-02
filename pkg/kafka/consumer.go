@@ -21,9 +21,10 @@ const (
 )
 
 type Consumer struct {
-	client *ckafka.Consumer
-	config ckafka.ConfigMap
-	topic  string
+	client      *ckafka.Consumer
+	saslContext SASLContext
+	config      ckafka.ConfigMap
+	topic       string
 
 	mu          sync.Mutex
 	closeCond   *sync.Cond
@@ -51,14 +52,20 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 		}
 	}
 
+	saslContext, err := NewSaslContext(readerConfig.SASL, readerConfig.Brokers, SASLContextOpts{})
+	if err != nil {
+		return nil, err
+	}
+
 	client, err := ckafka.NewConsumer(&config)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedCreateConsumer, "Failed to create consumer.", err)
 	}
 
 	consumer := &Consumer{
-		client: client,
-		config: cloneConfluentConfigMap(config),
+		client:      client,
+		saslContext: saslContext,
+		config:      cloneConfluentConfigMap(config),
 	}
 	consumer.closeCond = sync.NewCond(&consumer.mu)
 
@@ -141,12 +148,7 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			return messages, consumerContextError(err)
 		}
 
-		timeout := confluentPollTimeout(ctx)
-		if timeout == 0 {
-			return messages, consumerContextError(consumerContextCause(ctx))
-		}
-
-		msg, err := consumerReadMessage(client, timeout)
+		msg, err := c.consumerReadMessage(ctx, client)
 		if err != nil {
 			var kafkaErr ckafka.Error
 			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
@@ -161,7 +163,12 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 	return messages, nil
 }
 
-func consumerReadMessage(client *ckafka.Consumer, timeout time.Duration) (*ckafka.Message, error) {
+func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consumer) (*ckafka.Message, error) {
+	timeout := confluentPollTimeout(ctx)
+	if timeout == 0 {
+		return nil, consumerContextError(consumerContextCause(ctx))
+	}
+
 	var absTimeout time.Time
 	var timeoutMs int
 
@@ -182,7 +189,10 @@ func consumerReadMessage(client *ckafka.Consumer, timeout time.Duration) (*ckafk
 			}
 			return e, nil
 		case ckafka.OAuthBearerTokenRefresh:
-			// TODO: Refresh token here
+			err := confluentConsumerRefreshOAuthToken(ctx, c.saslContext, client)
+			if err != nil {
+				return nil, err
+			}
 		case ckafka.Error:
 			return nil, e
 		default:
@@ -199,6 +209,36 @@ func consumerReadMessage(client *ckafka.Consumer, timeout time.Duration) (*ckafk
 		}
 
 	}
+}
+
+func confluentConsumerRefreshOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Consumer) error {
+	if saslContext.OAuthProvider == nil {
+		return NewXk6KafkaError(failedGetOAuthToken, "Failed to get an OAuth token. The OAuth provider is nil in the SASL context.", nil)
+	}
+
+	oauthProvider := *saslContext.OAuthProvider
+
+	token, err := oauthProvider.GetToken(ctx)
+	if err == nil {
+		err = client.SetOAuthBearerToken(ckafka.OAuthBearerToken{
+			TokenValue: token.Token,
+			Expiration: token.ExpiresOn,
+			Principal:  token.Subject,
+			Extensions: make(map[string]string),
+		})
+
+		if err != nil {
+			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token. The Kafka client rejected the OAuth token.", err)
+
+		}
+	} else {
+		err = client.SetOAuthBearerTokenFailure(err.Error())
+
+		if err != nil {
+			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token error. The Kafka client rejected the OAuth token error.", err)
+		}
+	}
+	return nil
 }
 
 func consumerContextError(err error) error {
