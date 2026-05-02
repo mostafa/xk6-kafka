@@ -150,14 +150,12 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 
 		msg, err := c.consumerReadMessage(ctx, client)
 		if err != nil {
-			var kafkaErr ckafka.Error
-			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
-				continue
-			}
 			return messages, normalizeConsumerReadError(ctx, err)
 		}
 
-		messages = append(messages, confluentMessageToMessage(msg))
+		if msg != nil {
+			messages = append(messages, confluentMessageToMessage(msg))
+		}
 	}
 
 	return messages, nil
@@ -205,7 +203,7 @@ func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consu
 		}
 
 		if timeoutMs == 0 && event == nil {
-			return nil, ckafka.NewError(ckafka.ErrTimedOut, "", false)
+			return nil, nil
 		}
 
 	}
