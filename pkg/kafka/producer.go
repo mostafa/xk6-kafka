@@ -227,6 +227,10 @@ func producerWaitsForAck(writerConfig *WriterConfig) bool {
 
 func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ckafka.Producer, eventChan chan ckafka.Event) {
 	for event := range eventChan {
+		if ctx.Err() != nil {
+			break
+		}
+
 		switch event.(type) {
 		case ckafka.OAuthBearerTokenRefresh:
 			confluentProducerRefreshOAuthToken(ctx, saslContext, client)
