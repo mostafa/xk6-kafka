@@ -4,7 +4,7 @@
 
 # Interface: SASLConfig
 
-Defined in: [index.d.ts:107](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L107)
+Defined in: [index.d.ts:108](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L108)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:107](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **algorithm**: [`SASL_MECHANISMS`](../enumerations/SASL_MECHANISMS.md)
 
-Defined in: [index.d.ts:110](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L110)
+Defined in: [index.d.ts:111](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L111)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:110](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **awsProfile**: `string`
 
-Defined in: [index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L111)
+Defined in: [index.d.ts:112](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L112)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:111](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **password**: `string`
 
-Defined in: [index.d.ts:109](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L109)
+Defined in: [index.d.ts:110](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L110)
 
 ---
 
@@ -36,4 +36,4 @@ Defined in: [index.d.ts:109](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **username**: `string`
 
-Defined in: [index.d.ts:108](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L108)
+Defined in: [index.d.ts:109](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L109)

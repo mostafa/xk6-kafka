@@ -4,7 +4,7 @@
 
 # Enumeration: TIME
 
-Defined in: [index.d.ts:97](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L97)
+Defined in: [index.d.ts:98](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L98)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:97](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **HOUR**: `3600000000000`
 
-Defined in: [index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L103)
+Defined in: [index.d.ts:104](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L104)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:103](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **MICROSECOND**: `1000`
 
-Defined in: [index.d.ts:99](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L99)
+Defined in: [index.d.ts:100](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L100)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:99](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **MILLISECOND**: `1000000`
 
-Defined in: [index.d.ts:100](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L100)
+Defined in: [index.d.ts:101](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L101)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:100](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **MINUTE**: `60000000000`
 
-Defined in: [index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L102)
+Defined in: [index.d.ts:103](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L103)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: [index.d.ts:102](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **NANOSECOND**: `1`
 
-Defined in: [index.d.ts:98](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L98)
+Defined in: [index.d.ts:99](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L99)
 
 ---
 
@@ -52,4 +52,4 @@ Defined in: [index.d.ts:98](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SECOND**: `1000000000`
 
-Defined in: [index.d.ts:101](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L101)
+Defined in: [index.d.ts:102](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L102)
