@@ -5,10 +5,39 @@ import (
 	"os"
 	"testing"
 
+	azcoreFake "github.com/Azure/azure-sdk-for-go/sdk/azcore/fake"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.k6.io/k6/lib/netext"
 )
+
+func TestSASLContext(t *testing.T) {
+	t.Run("algorithm without context", func(t *testing.T) {
+		context, err := NewSaslContext(SASLConfig{
+			Algorithm: saslSsl,
+		}, SASLContextOpts{})
+
+		require.NoError(t, err)
+		require.Nil(t, context.OAuthProvider)
+	})
+
+	t.Run("algorithm with oauth context", func(t *testing.T) {
+		fakeToken := azcoreFake.TokenCredential{}
+
+		opts := SASLContextOpts{
+			OAuthProviderOpts: OAuthProviderOpts{
+				azureTokenCredential: &fakeToken,
+			},
+		}
+
+		context, err := NewSaslContext(SASLConfig{
+			Algorithm: saslAzureEntra,
+		}, opts)
+
+		require.NoError(t, err)
+		require.NotNil(t, context.OAuthProvider)
+	})
+}
 
 func TestConfluentSecurityProtocol(t *testing.T) {
 	t.Run("plaintext without tls", func(t *testing.T) {
@@ -66,6 +95,10 @@ func TestConfluentSASLMechanism(t *testing.T) {
 		"aws iam": {
 			algorithm: saslAwsIam,
 			expected:  "AWS_MSK_IAM",
+		},
+		"azure entra": {
+			algorithm: saslAzureEntra,
+			expected:  "OAUTHBEARER",
 		},
 	}
 

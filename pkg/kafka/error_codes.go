@@ -45,20 +45,22 @@ const (
 	failedCommitConsumer   errCode = 3007
 
 	// authentication.
-	failedCreateDialerWithScram   errCode = 4000
-	failedCreateDialerWithSaslSSL errCode = 4001
-	failedLoadX509KeyPair         errCode = 4002
-	failedReadCaCertFile          errCode = 4003
-	failedAppendCaCertFile        errCode = 4004
-	failedCreateDialerWithAwsIam  errCode = 4005
-	failedReadJKSFile             errCode = 4006
-	failedDecodeJKSFile           errCode = 4007
-	failedDecodePrivateKey        errCode = 4008
-	failedDecodeServerCa          errCode = 4009
-	failedConfigureJKS            errCode = 4010
-	failedWriteCertFile           errCode = 4011
-	failedWriteKeyFile            errCode = 4012
-	failedWriteServerCaFile       errCode = 4013
+	failedCreateDialerWithScram    errCode = 4000
+	failedCreateDialerWithSaslSSL  errCode = 4001
+	failedLoadX509KeyPair          errCode = 4002
+	failedReadCaCertFile           errCode = 4003
+	failedAppendCaCertFile         errCode = 4004
+	failedCreateDialerWithAwsIam   errCode = 4005
+	failedReadJKSFile              errCode = 4006
+	failedDecodeJKSFile            errCode = 4007
+	failedDecodePrivateKey         errCode = 4008
+	failedDecodeServerCa           errCode = 4009
+	failedConfigureJKS             errCode = 4010
+	failedWriteCertFile            errCode = 4011
+	failedWriteKeyFile             errCode = 4012
+	failedWriteServerCaFile        errCode = 4013
+	failedCreateOAuthTokenProvider errCode = 4014
+	failedGetOAuthToken            errCode = 4015
 
 	// schema registry.
 	messageTooShort                     errCode = 5000
