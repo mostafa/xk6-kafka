@@ -52,7 +52,7 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 }
 
 func handleClientEvents(eventChan chan ckafka.Event) {
-	for _ = range eventChan {
+	for range eventChan {
 		// TODO: Refresh token here
 	}
 }
