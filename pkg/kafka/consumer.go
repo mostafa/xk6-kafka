@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -145,7 +146,7 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			return messages, consumerContextError(consumerContextCause(ctx))
 		}
 
-		msg, err := client.ReadMessage(timeout)
+		msg, err := consumerReadMessage(client, timeout)
 		if err != nil {
 			var kafkaErr ckafka.Error
 			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
@@ -158,6 +159,44 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 	}
 
 	return messages, nil
+}
+
+func consumerReadMessage(client *ckafka.Consumer, timeout time.Duration) (*ckafka.Message, error) {
+	var absTimeout time.Time
+	var timeoutMs int
+
+	if timeout > 0 {
+		absTimeout = time.Now().Add(timeout)
+		timeoutMs = (int)(timeout.Seconds() * 1000.0)
+	} else {
+		timeoutMs = (int)(timeout)
+	}
+
+	for {
+		event := client.Poll(timeoutMs)
+
+		switch e := event.(type) {
+		case *ckafka.Message:
+			if e.TopicPartition.Error != nil {
+				return e, e.TopicPartition.Error
+			}
+			return e, nil
+		case ckafka.Error:
+			return nil, e
+		default:
+			// Ignore other event types
+		}
+
+		if timeout > 0 {
+			// Calculate remaining time
+			timeoutMs = int(math.Max(0.0, time.Until(absTimeout).Seconds()*1000.0))
+		}
+
+		if timeoutMs == 0 && event == nil {
+			return nil, ckafka.NewError(ckafka.ErrTimedOut, "", false)
+		}
+
+	}
 }
 
 func consumerContextError(err error) error {
