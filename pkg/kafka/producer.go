@@ -226,16 +226,21 @@ func producerWaitsForAck(writerConfig *WriterConfig) bool {
 }
 
 func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ckafka.Producer, eventChan chan ckafka.Event) {
-	for event := range eventChan {
-		if ctx.Err() != nil {
-			break
-		}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
 
-		switch event.(type) {
-		case ckafka.OAuthBearerTokenRefresh:
-			confluentProducerRefreshOAuthToken(ctx, saslContext, client)
-		default:
-			// Ignore other event types
+			switch event.(type) {
+			case ckafka.OAuthBearerTokenRefresh:
+				confluentProducerRefreshOAuthToken(ctx, saslContext, client)
+			default:
+				// Ignore other event types
+			}
 		}
 	}
 }
