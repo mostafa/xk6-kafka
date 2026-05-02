@@ -181,6 +181,8 @@ func consumerReadMessage(client *ckafka.Consumer, timeout time.Duration) (*ckafk
 				return e, e.TopicPartition.Error
 			}
 			return e, nil
+		case ckafka.OAuthBearerTokenRefresh:
+			// TODO: Refresh token here
 		case ckafka.Error:
 			return nil, e
 		default:

@@ -41,12 +41,20 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 		defaultTopic = writerConfig.Topic
 	}
 
+	go handleClientEvents(client.Events())
+
 	return &Producer{
 		client:       client,
 		config:       cloneConfluentConfigMap(config),
 		defaultTopic: defaultTopic,
 		waitForAck:   producerWaitsForAck(writerConfig),
 	}, nil
+}
+
+func handleClientEvents(eventChan chan ckafka.Event) {
+	for _ = range eventChan {
+		// TODO: Refresh token here
+	}
 }
 
 func (p *Producer) Produce(ctx context.Context, msgs []Message) error {
