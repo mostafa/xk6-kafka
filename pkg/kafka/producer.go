@@ -237,7 +237,7 @@ func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ck
 
 			switch event.(type) {
 			case ckafka.OAuthBearerTokenRefresh:
-				confluentProducerRefreshOAuthToken(ctx, saslContext, client)
+				refreshProducerOAuthToken(ctx, saslContext, client)
 			default:
 				// Ignore other event types
 			}
@@ -245,7 +245,7 @@ func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ck
 	}
 }
 
-func confluentProducerRefreshOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Producer) error {
+func refreshProducerOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Producer) error {
 	if saslContext.OAuthProvider == nil {
 		return NewXk6KafkaError(failedGetOAuthToken, "Failed to get an OAuth token. The OAuth provider is nil in the SASL context.", nil)
 	}

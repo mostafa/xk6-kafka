@@ -189,7 +189,7 @@ func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consu
 			}
 			return e, nil
 		case ckafka.OAuthBearerTokenRefresh:
-			err := confluentConsumerRefreshOAuthToken(ctx, c.saslContext, client)
+			err := refreshConsumerOAuthToken(ctx, c.saslContext, client)
 			if err != nil {
 				return nil, err
 			}
@@ -211,7 +211,7 @@ func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consu
 	}
 }
 
-func confluentConsumerRefreshOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Consumer) error {
+func refreshConsumerOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Consumer) error {
 	if saslContext.OAuthProvider == nil {
 		return NewXk6KafkaError(failedGetOAuthToken, "Failed to get an OAuth token. The OAuth provider is nil in the SASL context.", nil)
 	}
