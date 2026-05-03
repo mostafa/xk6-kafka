@@ -49,9 +49,18 @@ func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.To
 		return nil, NewXk6KafkaError(failedGetOAuthToken, fmt.Sprintf("Azure Entra OAuth requires a single bootstrap server, but %d were provided.", len(brokers)), nil)
 	}
 
-	brokerUrl := url.URL{
+	brokerUrl, err := url.Parse(brokers[0])
+	if err != nil {
+		return nil, NewXk6KafkaError(
+			failedCreateOAuthTokenProvider,
+			"Failed to parse broker to url.",
+			err,
+		)
+	}
+
+	scopeUrl := url.URL{
 		Scheme: "https",
-		Host:   brokers[0],
+		Host:   brokerUrl.Host,
 	}
 
 	if tokenCredential == nil {
@@ -59,7 +68,7 @@ func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.To
 		if err != nil {
 			return nil, NewXk6KafkaError(
 				failedCreateOAuthTokenProvider,
-				"Failed to create Azure Entra OAuth Token Provider",
+				"Failed to create Azure Entra OAuth Token Provider.",
 				err,
 			)
 		}
@@ -70,7 +79,7 @@ func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.To
 	return &AzureEntraOAuthTokenProvider{
 		tokenCredential: cred,
 		requestOpts: policy.TokenRequestOptions{
-			Scopes: []string{brokerUrl.String()},
+			Scopes: []string{scopeUrl.String()},
 		},
 	}, nil
 }

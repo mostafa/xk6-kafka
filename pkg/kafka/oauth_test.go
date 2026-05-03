@@ -59,7 +59,7 @@ func TestGetOAuthTokenSuccess(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1"}, test.opts)
+			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1:9093"}, test.opts)
 			require.NoError(t, err)
 
 			token, err := provider.GetToken(t.Context())
