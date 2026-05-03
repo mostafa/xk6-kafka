@@ -27,6 +27,7 @@ export enum SASL_MECHANISMS {
   SASL_SCRAM_SHA512 = "sasl_scram_sha512",
   SASL_SSL = "sasl_ssl",
   SASL_AWS_IAM = "sasl_aws_iam",
+  SASL_AZURE_ENTRA = "sasl_azure_entra",
 }
 
 /* TLS versions for creating a secure communication channel with Kafka. */

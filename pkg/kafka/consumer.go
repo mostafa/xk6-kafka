@@ -20,9 +20,10 @@ const (
 )
 
 type Consumer struct {
-	client *ckafka.Consumer
-	config ckafka.ConfigMap
-	topic  string
+	client      *ckafka.Consumer
+	saslContext SASLContext
+	config      ckafka.ConfigMap
+	topic       string
 
 	mu          sync.Mutex
 	closeCond   *sync.Cond
@@ -50,14 +51,20 @@ func NewConsumerFromReaderConfig(readerConfig *ReaderConfig) (*Consumer, error) 
 		}
 	}
 
+	saslContext, err := NewSaslContext(readerConfig.SASL, readerConfig.Brokers, SASLContextOpts{})
+	if err != nil {
+		return nil, err
+	}
+
 	client, err := ckafka.NewConsumer(&config)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedCreateConsumer, "Failed to create consumer.", err)
 	}
 
 	consumer := &Consumer{
-		client: client,
-		config: cloneConfluentConfigMap(config),
+		client:      client,
+		saslContext: saslContext,
+		config:      cloneConfluentConfigMap(config),
 	}
 	consumer.closeCond = sync.NewCond(&consumer.mu)
 
@@ -140,12 +147,7 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			return messages, consumerContextError(err)
 		}
 
-		timeout := confluentPollTimeout(ctx)
-		if timeout == 0 {
-			return messages, consumerContextError(consumerContextCause(ctx))
-		}
-
-		msg, err := client.ReadMessage(timeout)
+		msg, err := c.consumerReadMessage(ctx, client)
 		if err != nil {
 			var kafkaErr ckafka.Error
 			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
@@ -154,7 +156,9 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 			return messages, normalizeConsumerReadError(ctx, err)
 		}
 
-		messages = append(messages, confluentMessageToMessage(msg))
+		if msg != nil {
+			messages = append(messages, confluentMessageToMessage(msg))
+		}
 	}
 
 	return messages, nil
@@ -402,4 +406,68 @@ func confluentMessageToMessage(msg *ckafka.Message) Message {
 	}
 
 	return converted
+}
+
+func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consumer) (*ckafka.Message, error) {
+	timeout := confluentPollTimeout(ctx)
+	if timeout == 0 {
+		return nil, consumerContextError(consumerContextCause(ctx))
+	}
+
+	var absTimeout time.Time
+	var timeoutMs int
+
+	if timeout > 0 {
+		absTimeout = time.Now().Add(timeout)
+		timeoutMs = int(timeout.Milliseconds())
+	} else {
+		timeoutMs = int(timeout.Milliseconds())
+	}
+
+	for {
+		event, err := c.poll(ctx, client, timeoutMs)
+		if err != nil {
+			return nil, err
+		}
+
+		message, ok := event.(*ckafka.Message)
+		if ok {
+			return message, nil
+		}
+
+		if timeout > 0 {
+			// Calculate remaining time
+			timeoutMs = int(max(0, time.Until(absTimeout).Milliseconds()))
+		}
+
+		if timeoutMs == 0 && event == nil {
+			return nil, ckafka.NewError(ckafka.ErrTimedOut, "", false)
+		}
+	}
+}
+
+func (c *Consumer) poll(
+	ctx context.Context,
+	client *ckafka.Consumer,
+	timeoutMs int,
+) (ckafka.Event, error) {
+	event := client.Poll(timeoutMs)
+
+	switch e := event.(type) {
+	case *ckafka.Message:
+		if e.TopicPartition.Error != nil {
+			return event, e.TopicPartition.Error
+		}
+		return event, nil
+	case ckafka.OAuthBearerTokenRefresh:
+		err := refreshOAuthToken(ctx, c.saslContext, client)
+		if err != nil {
+			return event, err
+		}
+	case ckafka.Error:
+		return nil, e
+	default:
+		// Ignore other event types
+	}
+	return event, nil
 }

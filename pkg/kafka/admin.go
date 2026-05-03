@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"sort"
+	"sync"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -46,8 +47,11 @@ type TopicMetadata struct {
 }
 
 type AdminClient struct {
-	client *ckafka.AdminClient
-	config ckafka.ConfigMap
+	client    *ckafka.AdminClient
+	pClient   *ckafka.Producer
+	config    ckafka.ConfigMap
+	doneChan  chan struct{}
+	closeOnce sync.Once
 }
 
 func NewAdminClientFromConnectionConfig(connectionConfig *ConnectionConfig) (*AdminClient, error) {
@@ -56,14 +60,33 @@ func NewAdminClientFromConnectionConfig(connectionConfig *ConnectionConfig) (*Ad
 		return nil, err
 	}
 
-	client, err := ckafka.NewAdminClient(&config)
+	saslContext, err := NewSaslContext(connectionConfig.SASL, connectionConfig.Brokers, SASLContextOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	// The admin client does not have an event channel to detect requests for OAuth tokens.
+	// Creating the admin client through the producer will provide an event channel for
+	// OAuth events.
+	pClient, err := ckafka.NewProducer(&config)
 	if err != nil {
 		return nil, NewXk6KafkaError(failedCreateAdminClient, "Failed to create admin client.", err)
 	}
 
+	client, err := ckafka.NewAdminClientFromProducer(pClient)
+	if err != nil {
+		pClient.Close()
+		return nil, NewXk6KafkaError(failedCreateAdminClient, "Failed to create admin client.", err)
+	}
+
+	doneChan := make(chan struct{})
+	go handleProducerClientEvents(saslContext, pClient, pClient.Events(), doneChan)
+
 	return &AdminClient{
-		client: client,
-		config: cloneConfluentConfigMap(config),
+		client:   client,
+		pClient:  pClient,
+		config:   cloneConfluentConfigMap(config),
+		doneChan: doneChan,
 	}, nil
 }
 
@@ -172,13 +195,29 @@ func (a *AdminClient) GetMetadata(ctx context.Context, topic string) (*TopicMeta
 }
 
 func (a *AdminClient) Close() error {
-	if a == nil || a.client == nil {
+	if a == nil {
 		return nil
 	}
 
-	client := a.client
-	a.client = nil
-	client.Close()
+	a.closeOnce.Do(func() {
+		if a.doneChan != nil {
+			close(a.doneChan)
+			a.doneChan = nil
+		}
+
+		client := a.client
+		a.client = nil
+		if client != nil {
+			client.Close()
+		}
+
+		pClient := a.pClient
+		a.pClient = nil
+		if pClient != nil {
+			pClient.Close()
+		}
+	})
+
 	return nil
 }
 

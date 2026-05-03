@@ -23,10 +23,16 @@ type Producer struct {
 	waitForAck   bool
 	closeOnce    sync.Once
 	closeErr     error
+	doneChan     chan struct{}
 }
 
 func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) {
 	config, err := writerConfigToConfluentConfigMap(writerConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	saslContext, err := NewSaslContext(writerConfig.SASL, writerConfig.Brokers, SASLContextOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +47,15 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 		defaultTopic = writerConfig.Topic
 	}
 
+	doneChan := make(chan struct{})
+	go handleProducerClientEvents(saslContext, client, client.Events(), doneChan)
+
 	return &Producer{
 		client:       client,
 		config:       cloneConfluentConfigMap(config),
 		defaultTopic: defaultTopic,
 		waitForAck:   producerWaitsForAck(writerConfig),
+		doneChan:     doneChan,
 	}, nil
 }
 
@@ -154,6 +164,7 @@ func (p *Producer) Close() error {
 			cancel()
 		}
 		p.client = nil
+		close(p.doneChan)
 		client.Close()
 	})
 
@@ -210,4 +221,40 @@ func confluentHeaders(headers map[string]any) []ckafka.Header {
 
 func producerWaitsForAck(writerConfig *WriterConfig) bool {
 	return writerConfig == nil || writerConfig.RequiredAcks != 0
+}
+
+func handleProducerClientEvents(
+	saslContext SASLContext,
+	client *ckafka.Producer,
+	eventChan chan ckafka.Event,
+	doneChan <-chan struct{},
+) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		select {
+		case <-doneChan:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event, ok := <-eventChan:
+			if !ok {
+				return
+			}
+
+			switch event.(type) {
+			case ckafka.OAuthBearerTokenRefresh:
+				_ = refreshOAuthToken(ctx, saslContext, client)
+			default:
+				// Ignore other event types
+			}
+		}
+	}
 }

@@ -140,6 +140,16 @@ func TestApplyConfluentSecurityConfig(t *testing.T) {
 		assert.Equal(t, "p", cfg["sasl.password"])
 	})
 
+	t.Run("azure entra", func(t *testing.T) {
+		t.Parallel()
+		cfg := newMap()
+		require.NoError(t, applyConfluentSecurityConfig(cfg, SASLConfig{
+			Algorithm: saslAzureEntra,
+		}, TLSConfig{EnableTLS: true}))
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Equal(t, "OAUTHBEARER", cfg["sasl.mechanism"])
+	})
+
 	t.Run("aws iam not wired", func(t *testing.T) {
 		t.Parallel()
 		cfg := newMap()

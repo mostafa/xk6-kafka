@@ -6,7 +6,7 @@ The xk6-kafka project is a [k6 extension](https://grafana.com/docs/k6/latest/ext
 
 The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats are supported, including strings, JSON, binary, Avro, and JSON Schema. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication and message compression are also supported.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats are supported, including strings, JSON, binary, Avro, and JSON Schema. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication, AWS IAM, Azure Entra OAuth, and message compression are also supported.
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
@@ -17,7 +17,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 - **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js), [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js), and [Protobuf](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_protobuf_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
-- Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js)
+- Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js), plus [Azure Entra OAuth for Event Hub](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_azure_event_hub.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading [Java Keystore (JKS) files](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_tls_with_jks.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) with gzip compression support
@@ -576,6 +576,8 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 3. I want to test SASL authentication. How should I do that?
 
     If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
+
+    For Azure Event Hub with Azure Entra OAuth, use [`scripts/test_azure_event_hub.js`](./scripts/test_azure_event_hub.js) as a reference.
 
 4. Why doesn't the consumer group consume messages from the topic?
 

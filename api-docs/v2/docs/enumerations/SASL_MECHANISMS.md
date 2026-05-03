@@ -24,6 +24,14 @@ Defined in: [index.d.ts:29](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 ---
 
+### SASL_AZURE_ENTRA
+
+> **SASL_AZURE_ENTRA**: `"sasl_azure_entra"`
+
+Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L30)
+
+---
+
 ### SASL_PLAIN
 
 > **SASL_PLAIN**: `"sasl_plain"`

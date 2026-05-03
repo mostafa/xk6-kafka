@@ -17,6 +17,7 @@ const (
 	saslScramSha512 = "sasl_scram_sha512"
 	saslSsl         = "sasl_ssl"
 	saslAwsIam      = "sasl_aws_iam"
+	saslAzureEntra  = "sasl_azure_entra"
 )
 
 type SASLConfig struct {
@@ -24,6 +25,32 @@ type SASLConfig struct {
 	Password   string `json:"password"`
 	Algorithm  string `json:"algorithm"`
 	AWSProfile string `json:"awsProfile"`
+}
+
+type SASLContext struct {
+	OAuthProvider *OAuthTokenProvider
+}
+
+type SASLContextOpts struct {
+	OAuthProviderOpts OAuthProviderOpts
+}
+
+func NewSaslContext(saslConfig SASLConfig, brokers []string, opts SASLContextOpts) (SASLContext, error) {
+	saslContext := SASLContext{}
+
+	switch saslConfig.Algorithm {
+	case saslAzureEntra:
+		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, brokers, opts.OAuthProviderOpts)
+		if err != nil {
+			return SASLContext{}, err
+		}
+
+		saslContext.OAuthProvider = &oauthProvider
+	default:
+		// nothing to add to the SASL context
+	}
+
+	return saslContext, nil
 }
 
 type TLSConfig struct {

@@ -4,7 +4,7 @@
 
 # Interface: BasicAuth
 
-Defined in: [index.d.ts:159](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L159)
+Defined in: [index.d.ts:160](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L160)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:159](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **password**: `string`
 
-Defined in: [index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L161)
+Defined in: [index.d.ts:162](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L162)
 
 ---
 
@@ -20,4 +20,4 @@ Defined in: [index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **username**: `string`
 
-Defined in: [index.d.ts:160](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L160)
+Defined in: [index.d.ts:161](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L161)

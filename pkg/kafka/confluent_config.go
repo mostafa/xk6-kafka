@@ -128,7 +128,7 @@ func confluentSecurityProtocol(saslConfig SASLConfig, tlsConfig TLSConfig) (stri
 			)
 		}
 		return "SASL_SSL", nil
-	case saslPlain, saslScramSha256, saslScramSha512, saslAwsIam:
+	case saslPlain, saslScramSha256, saslScramSha512, saslAwsIam, saslAzureEntra:
 		if tlsConfig.EnableTLS {
 			return "SASL_SSL", nil
 		}
@@ -152,6 +152,8 @@ func confluentSASLMechanism(saslConfig SASLConfig) (string, error) {
 		return "SCRAM-SHA-512", nil
 	case saslAwsIam:
 		return "AWS_MSK_IAM", nil
+	case saslAzureEntra:
+		return "OAUTHBEARER", nil
 	default:
 		return "", NewXk6KafkaError(
 			unsupportedOperation,

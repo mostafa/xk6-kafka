@@ -4,7 +4,7 @@
 
 # Enumeration: SUBJECT_NAME_STRATEGY
 
-Defined in: [index.d.ts:63](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L63)
+Defined in: [index.d.ts:64](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L64)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:63](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **RECORD_NAME_STRATEGY**: `"RecordNameStrategy"`
 
-Defined in: [index.d.ts:65](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L65)
+Defined in: [index.d.ts:66](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L66)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:65](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **TOPIC_NAME_STRATEGY**: `"TopicNameStrategy"`
 
-Defined in: [index.d.ts:64](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L64)
+Defined in: [index.d.ts:65](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L65)
 
 ---
 
@@ -28,4 +28,4 @@ Defined in: [index.d.ts:64](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **TOPIC_RECORD_NAME_STRATEGY**: `"TopicRecordNameStrategy"`
 
-Defined in: [index.d.ts:66](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L66)
+Defined in: [index.d.ts:67](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L67)

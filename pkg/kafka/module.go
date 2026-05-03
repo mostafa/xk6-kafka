@@ -139,6 +139,7 @@ func (m *Module) defineConstants() {
 	mustAddProp("SASL_SCRAM_SHA512", saslScramSha512)
 	mustAddProp("SASL_SSL", saslSsl)
 	mustAddProp("SASL_AWS_IAM", saslAwsIam)
+	mustAddProp("SASL_AZURE_ENTRA", saslAzureEntra)
 
 	// Compression codecs
 	mustAddProp("CODEC_GZIP", codecGzip)
