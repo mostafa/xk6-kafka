@@ -12,6 +12,7 @@ linters:
     - gocognit
     - gocyclo
     - godox
+    - gomodguard
     - ireturn
     - nestif
     - nlreturn
@@ -25,6 +26,18 @@ linters:
     - wsl
     - wsl_v5
     - wrapcheck
+  settings:
+    goconst:
+      min-len: 3
+      min-occurrences: 4
+  exclusions:
+    rules:
+      - path: (.+)_test\.go
+        linters:
+          - goconst
+      - path: pkg/kafka/(avro|confluent_config|reader|schema_registry|topic)\.go
+        linters:
+          - goconst
 formatters:
   enable:
     - gofmt
