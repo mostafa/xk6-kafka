@@ -17,17 +17,22 @@ type ProducerStats struct {
 const producerFlushPollTimeoutMs = 100
 
 type Producer struct {
-	client         *ckafka.Producer
-	config         ckafka.ConfigMap
-	defaultTopic   string
-	waitForAck     bool
-	closeOnce      sync.Once
-	closeErr       error
-	cancelEventCtx context.CancelFunc
+	client       *ckafka.Producer
+	config       ckafka.ConfigMap
+	defaultTopic string
+	waitForAck   bool
+	closeOnce    sync.Once
+	closeErr     error
+	doneChan     chan struct{}
 }
 
 func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) {
 	config, err := writerConfigToConfluentConfigMap(writerConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	saslContext, err := NewSaslContext(writerConfig.SASL, writerConfig.Brokers, SASLContextOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -42,21 +47,15 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 		defaultTopic = writerConfig.Topic
 	}
 
-	saslContext, err := NewSaslContext(writerConfig.SASL, writerConfig.Brokers, SASLContextOpts{})
-	if err != nil {
-		return nil, err
-	}
-
-	eventCtx, cancelEventCtx := context.WithCancel(context.Background())
-
-	go handleClientEvents(eventCtx, saslContext, client, client.Events())
+	doneChan := make(chan struct{})
+	go handleClientEvents(saslContext, client, client.Events(), doneChan)
 
 	return &Producer{
-		client:         client,
-		config:         cloneConfluentConfigMap(config),
-		defaultTopic:   defaultTopic,
-		waitForAck:     producerWaitsForAck(writerConfig),
-		cancelEventCtx: cancelEventCtx,
+		client:       client,
+		config:       cloneConfluentConfigMap(config),
+		defaultTopic: defaultTopic,
+		waitForAck:   producerWaitsForAck(writerConfig),
+		doneChan:     doneChan,
 	}, nil
 }
 
@@ -154,8 +153,6 @@ func (p *Producer) Close() error {
 	}
 
 	p.closeOnce.Do(func() {
-		p.cancelEventCtx()
-
 		client := p.client
 		if client == nil {
 			return
@@ -167,6 +164,7 @@ func (p *Producer) Close() error {
 			cancel()
 		}
 		p.client = nil
+		close(p.doneChan)
 		client.Close()
 	})
 
@@ -226,11 +224,22 @@ func producerWaitsForAck(writerConfig *WriterConfig) bool {
 }
 
 func handleClientEvents(
-	ctx context.Context,
 	saslContext SASLContext,
 	client *ckafka.Producer,
 	eventChan chan ckafka.Event,
+	doneChan <-chan struct{},
 ) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		select {
+		case <-doneChan:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
