@@ -94,7 +94,10 @@ func (a *AzureEntraOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken
 		return OAuthToken{}, NewXk6KafkaError(failedGetOAuthToken, "Azure Entra OAuth token could not be retrieved.", err)
 	}
 
-	parsedToken, _, err := jwt.NewParser().ParseUnverified(token.Token, jwt.MapClaims{})
+	// The client retrieved this token and sending it to the server, which will verify it.
+	// The token is only parsed to obtain the subject, since the Entra SDK does not include
+	// the subject in the token struct.
+	parsedToken, _, err := jwt.NewParser().ParseUnverified(token.Token, jwt.MapClaims{}) //NOSONAR
 	if err != nil {
 		return OAuthToken{}, NewXk6KafkaError(failedGetOAuthToken, "Failed to parse Azure Entra OAuth token.", err)
 	}
