@@ -88,7 +88,7 @@ function produce() {
     let messages = [
       {
         key: schemaRegistry.serialize({
-          data: String(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)),
+          data: String(i),
           schemaType: SCHEMA_TYPE_STRING,
         }),
         value: schemaRegistry.serialize({
