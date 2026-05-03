@@ -425,23 +425,14 @@ func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consu
 	}
 
 	for {
-		event := client.Poll(timeoutMs)
+		event, err := c.poll(ctx, client, timeoutMs)
+		if err != nil {
+			return nil, err
+		}
 
-		switch e := event.(type) {
-		case *ckafka.Message:
-			if e.TopicPartition.Error != nil {
-				return e, e.TopicPartition.Error
-			}
-			return e, nil
-		case ckafka.OAuthBearerTokenRefresh:
-			err := refreshOAuthToken(ctx, c.saslContext, client)
-			if err != nil {
-				return nil, err
-			}
-		case ckafka.Error:
-			return nil, e
-		default:
-			// Ignore other event types
+		message, ok := event.(*ckafka.Message)
+		if ok {
+			return message, nil
 		}
 
 		if timeout > 0 {
@@ -453,4 +444,30 @@ func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consu
 			return nil, ckafka.NewError(ckafka.ErrTimedOut, "", false)
 		}
 	}
+}
+
+func (c *Consumer) poll(
+	ctx context.Context,
+	client *ckafka.Consumer,
+	timeoutMs int,
+) (ckafka.Event, error) {
+	event := client.Poll(timeoutMs)
+
+	switch e := event.(type) {
+	case *ckafka.Message:
+		if e.TopicPartition.Error != nil {
+			return event, e.TopicPartition.Error
+		}
+		return event, nil
+	case ckafka.OAuthBearerTokenRefresh:
+		err := refreshOAuthToken(ctx, c.saslContext, client)
+		if err != nil {
+			return event, err
+		}
+	case ckafka.Error:
+		return nil, e
+	default:
+		// Ignore other event types
+	}
+	return event, nil
 }
