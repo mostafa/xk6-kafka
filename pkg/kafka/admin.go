@@ -47,10 +47,10 @@ type TopicMetadata struct {
 }
 
 type AdminClient struct {
-	client   *ckafka.AdminClient
-	pClient  *ckafka.Producer
-	config   ckafka.ConfigMap
-	doneChan chan struct{}
+	client    *ckafka.AdminClient
+	pClient   *ckafka.Producer
+	config    ckafka.ConfigMap
+	doneChan  chan struct{}
 	closeOnce sync.Once
 }
 
