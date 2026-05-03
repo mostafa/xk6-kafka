@@ -128,7 +128,7 @@ func confluentSecurityProtocol(saslConfig SASLConfig, tlsConfig TLSConfig) (stri
 			)
 		}
 		return "SASL_SSL", nil
-	case saslPlain, saslScramSha256, saslScramSha512, saslAwsIam:
+	case saslPlain, saslScramSha256, saslScramSha512, saslAwsIam, saslAzureEntra:
 		if tlsConfig.EnableTLS {
 			return "SASL_SSL", nil
 		}

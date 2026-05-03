@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"net/url"
+	"net"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -49,19 +49,12 @@ func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.To
 		return nil, NewXk6KafkaError(failedGetOAuthToken, fmt.Sprintf("Azure Entra OAuth requires a single bootstrap server, but %d were provided.", len(brokers)), nil)
 	}
 
-	brokerUrl, err := url.Parse(brokers[0])
+	host, _, err := net.SplitHostPort(brokers[0])
 	if err != nil {
-		return nil, NewXk6KafkaError(
-			failedCreateOAuthTokenProvider,
-			"Failed to parse broker to url.",
-			err,
-		)
+		return nil, NewXk6KafkaError(failedGetOAuthToken, fmt.Sprintf("Azure Entra OAuth requires a valid host:port for the broker.", len(brokers)), err)
 	}
 
-	scopeUrl := url.URL{
-		Scheme: "https",
-		Host:   brokerUrl.Host,
-	}
+	scope := fmt.Sprintf("https://%s/.default", host)
 
 	if tokenCredential == nil {
 		cred, err = azidentity.NewDefaultAzureCredential(nil)
@@ -79,7 +72,7 @@ func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.To
 	return &AzureEntraOAuthTokenProvider{
 		tokenCredential: cred,
 		requestOpts: policy.TokenRequestOptions{
-			Scopes: []string{scopeUrl.String()},
+			Scopes: []string{scope},
 		},
 	}, nil
 }
