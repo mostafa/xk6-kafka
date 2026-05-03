@@ -8,6 +8,7 @@ require (
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.14.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/grafana/sobek v0.0.0-20260219184149-bdae4a158e94
 	github.com/hamba/avro/v2 v2.31.0
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
@@ -33,7 +34,6 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/pprof v0.0.0-20230728192033-2ba5b33183c6 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
