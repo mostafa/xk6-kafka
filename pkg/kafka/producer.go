@@ -260,14 +260,11 @@ func refreshProducerOAuthToken(ctx context.Context, saslContext SASLContext, cli
 			Principal:  token.Subject,
 			Extensions: make(map[string]string),
 		})
-
 		if err != nil {
 			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token. The Kafka client rejected the OAuth token.", err)
-
 		}
 	} else {
 		err = client.SetOAuthBearerTokenFailure(err.Error())
-
 		if err != nil {
 			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token error. The Kafka client rejected the OAuth token error.", err)
 		}
