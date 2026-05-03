@@ -55,11 +55,11 @@ const consumer = new Consumer({
   topic: topic,
   groupId: groupId,
   // Event Hub does not support all rebalancing strategies
-  groupBalancers: ['group_balancer_round_robin'],
+  groupBalancers: ["group_balancer_round_robin"],
   sasl: saslConfig,
   tls: tlsConfig,
   // Need to allow time for rebalance
-  maxWait: '30s',
+  maxWait: "30s",
 });
 
 const adminClient = new AdminClient({
@@ -72,15 +72,15 @@ const schemaRegistry = new SchemaRegistry();
 
 export function setup() {
   try {
-      adminClient.createTopic({ topic: topic });
+    adminClient.createTopic({ topic: topic });
   } catch {
     // topic already exists
   }
 }
 
 export default function main() {
-  produce()
-  consume()
+  produce();
+  consume();
 }
 
 function produce() {
@@ -108,11 +108,10 @@ function consume() {
   check(messages, {
     "10 messages returned": (msgs) => msgs.length == 10,
     "key is correct": (msgs) =>
-      schemaRegistry
-        .deserialize({
-          data: msgs[0].key,
-          schemaType: SCHEMA_TYPE_STRING 
-        }) != undefined,
+      schemaRegistry.deserialize({
+        data: msgs[0].key,
+        schemaType: SCHEMA_TYPE_STRING,
+      }) != undefined,
     "value is correct": (msgs) =>
       schemaRegistry.deserialize({
         data: msgs[0].value,
@@ -122,7 +121,7 @@ function consume() {
 }
 
 export function teardown(data) {
-  adminClient.deleteTopic(topic)
+  adminClient.deleteTopic(topic);
   adminClient.close();
   producer.close();
   consumer.close();
