@@ -96,13 +96,13 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1"}, test.opts)
+			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1:9093"}, test.opts)
 			require.NoError(t, err)
 
 			_, err = provider.GetToken(t.Context())
 
 			var xk6KafkaError *Xk6KafkaError
-			ok := errors.As(err, xk6KafkaError)
+			ok := errors.As(err, &xk6KafkaError)
 
 			require.True(t, ok, "error is not Xk6KafkaError")
 			require.Equal(t, failedGetOAuthToken, xk6KafkaError.Code)

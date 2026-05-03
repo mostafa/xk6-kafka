@@ -32,7 +32,7 @@ func TestSASLContext(t *testing.T) {
 
 		context, err := NewSaslContext(SASLConfig{
 			Algorithm: saslAzureEntra,
-		}, []string{"broker1"}, opts)
+		}, []string{"broker1:9093"}, opts)
 
 		require.NoError(t, err)
 		require.NotNil(t, context.OAuthProvider)
