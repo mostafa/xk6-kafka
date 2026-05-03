@@ -198,10 +198,20 @@ jobs:
           format: cyclonedx-json
           dependency-snapshot: true
 
-      - name: Create Release 📦 and add binaries and SBOM files 💾
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          files: |
+      - name: Create release and upload binaries/SBOM files 💾
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=(
             dist/*.tar.gz
-            code-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
-            docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
+            "code-cyclonedx-xk6-kafka-${GITHUB_REF_NAME}.json"
+            "docker-image-cyclonedx-xk6-kafka-${GITHUB_REF_NAME}.json"
+          )
+
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" "${files[@]}" --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" "${files[@]}" \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes
+          fi
