@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"sort"
+	"sync"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -50,6 +51,7 @@ type AdminClient struct {
 	pClient  *ckafka.Producer
 	config   ckafka.ConfigMap
 	doneChan chan struct{}
+	closeOnce sync.Once
 }
 
 func NewAdminClientFromConnectionConfig(connectionConfig *ConnectionConfig) (*AdminClient, error) {
@@ -82,6 +84,7 @@ func NewAdminClientFromConnectionConfig(connectionConfig *ConnectionConfig) (*Ad
 
 	return &AdminClient{
 		client:   client,
+		pClient:  pClient,
 		config:   cloneConfluentConfigMap(config),
 		doneChan: doneChan,
 	}, nil
@@ -192,19 +195,28 @@ func (a *AdminClient) GetMetadata(ctx context.Context, topic string) (*TopicMeta
 }
 
 func (a *AdminClient) Close() error {
-	if a == nil || a.client == nil || a.pClient == nil {
+	if a == nil {
 		return nil
 	}
 
-	close(a.doneChan)
+	a.closeOnce.Do(func() {
+		if a.doneChan != nil {
+			close(a.doneChan)
+			a.doneChan = nil
+		}
 
-	client := a.client
-	a.client = nil
-	client.Close()
+		client := a.client
+		a.client = nil
+		if client != nil {
+			client.Close()
+		}
 
-	pClient := a.pClient
-	a.pClient = nil
-	pClient.Close()
+		pClient := a.pClient
+		a.pClient = nil
+		if pClient != nil {
+			pClient.Close()
+		}
+	})
 
 	return nil
 }
