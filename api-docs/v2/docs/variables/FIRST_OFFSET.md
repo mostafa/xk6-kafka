@@ -6,4 +6,4 @@
 
 > `const` **FIRST_OFFSET**: `"start_offsets_first_offset"` = `"start_offsets_first_offset"`
 
-Defined in: [index.d.ts:60](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L60)
+Defined in: [index.d.ts:60](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L60)

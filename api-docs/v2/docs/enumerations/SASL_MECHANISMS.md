@@ -4,7 +4,7 @@
 
 # Enumeration: SASL_MECHANISMS
 
-Defined in: [index.d.ts:23](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L23)
+Defined in: [index.d.ts:23](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L23)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:23](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **NONE**: `"none"`
 
-Defined in: [index.d.ts:24](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L24)
+Defined in: [index.d.ts:24](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L24)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:24](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_AWS_IAM**: `"sasl_aws_iam"`
 
-Defined in: [index.d.ts:29](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L29)
+Defined in: [index.d.ts:29](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L29)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:29](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_AZURE_ENTRA**: `"sasl_azure_entra"`
 
-Defined in: [index.d.ts:30](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L30)
+Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L30)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:30](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_PLAIN**: `"sasl_plain"`
 
-Defined in: [index.d.ts:25](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L25)
+Defined in: [index.d.ts:25](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L25)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: [index.d.ts:25](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_SCRAM_SHA256**: `"sasl_scram_sha256"`
 
-Defined in: [index.d.ts:26](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L26)
+Defined in: [index.d.ts:26](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L26)
 
 ---
 
@@ -52,7 +52,7 @@ Defined in: [index.d.ts:26](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_SCRAM_SHA512**: `"sasl_scram_sha512"`
 
-Defined in: [index.d.ts:27](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L27)
+Defined in: [index.d.ts:27](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L27)
 
 ---
 
@@ -60,4 +60,4 @@ Defined in: [index.d.ts:27](https://github.com/tnewman/xk6-kafka/blob/main/api-d
 
 > **SASL_SSL**: `"sasl_ssl"`
 
-Defined in: [index.d.ts:28](https://github.com/tnewman/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L28)
+Defined in: [index.d.ts:28](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L28)
