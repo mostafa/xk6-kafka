@@ -48,7 +48,7 @@ func NewProducerFromWriterConfig(writerConfig *WriterConfig) (*Producer, error) 
 	}
 
 	doneChan := make(chan struct{})
-	go handleClientEvents(saslContext, client, client.Events(), doneChan)
+	go handleProducerClientEvents(saslContext, client, client.Events(), doneChan)
 
 	return &Producer{
 		client:       client,
@@ -223,7 +223,7 @@ func producerWaitsForAck(writerConfig *WriterConfig) bool {
 	return writerConfig == nil || writerConfig.RequiredAcks != 0
 }
 
-func handleClientEvents(
+func handleProducerClientEvents(
 	saslContext SASLContext,
 	client *ckafka.Producer,
 	eventChan chan ckafka.Event,
