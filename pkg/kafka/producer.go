@@ -225,7 +225,12 @@ func producerWaitsForAck(writerConfig *WriterConfig) bool {
 	return writerConfig == nil || writerConfig.RequiredAcks != 0
 }
 
-func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ckafka.Producer, eventChan chan ckafka.Event) {
+func handleClientEvents(
+	ctx context.Context,
+	saslContext SASLContext,
+	client *ckafka.Producer,
+	eventChan chan ckafka.Event,
+) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -237,37 +242,10 @@ func handleClientEvents(ctx context.Context, saslContext SASLContext, client *ck
 
 			switch event.(type) {
 			case ckafka.OAuthBearerTokenRefresh:
-				refreshProducerOAuthToken(ctx, saslContext, client)
+				_ = refreshOAuthToken(ctx, saslContext, client)
 			default:
 				// Ignore other event types
 			}
 		}
 	}
-}
-
-func refreshProducerOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Producer) error {
-	if saslContext.OAuthProvider == nil {
-		return NewXk6KafkaError(failedGetOAuthToken, "Failed to get an OAuth token. The OAuth provider is nil in the SASL context.", nil)
-	}
-
-	oauthProvider := *saslContext.OAuthProvider
-
-	token, err := oauthProvider.GetToken(ctx)
-	if err == nil {
-		err = client.SetOAuthBearerToken(ckafka.OAuthBearerToken{
-			TokenValue: token.Token,
-			Expiration: token.ExpiresOn,
-			Principal:  token.Subject,
-			Extensions: make(map[string]string),
-		})
-		if err != nil {
-			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token. The Kafka client rejected the OAuth token.", err)
-		}
-	} else {
-		err = client.SetOAuthBearerTokenFailure(err.Error())
-		if err != nil {
-			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token error. The Kafka client rejected the OAuth token error.", err)
-		}
-	}
-	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -27,13 +28,17 @@ type OAuthProviderOpts struct {
 	azureTokenCredential azcore.TokenCredential
 }
 
+type OAuthTokenHandler interface {
+	SetOAuthBearerToken(oauthBearerToken ckafka.OAuthBearerToken) error
+	SetOAuthBearerTokenFailure(errstr string) error
+}
+
 func NewOAuthProvider(saslAlgorithm string, brokers []string, opts OAuthProviderOpts) (OAuthTokenProvider, error) {
-	switch saslAlgorithm {
-	case saslAzureEntra:
+	if saslAlgorithm == saslAzureEntra {
 		return newAzureEntraOAuthTokenProvider(brokers, opts.azureTokenCredential)
 	}
 
-	return nil, nil
+	return nil, NewXk6KafkaError(failedCreateOAuthTokenProvider, saslAlgorithm+" is not a supported OAuth Provider.", nil)
 }
 
 type AzureEntraOAuthTokenProvider struct {
@@ -41,17 +46,23 @@ type AzureEntraOAuthTokenProvider struct {
 	requestOpts     policy.TokenRequestOptions
 }
 
-func newAzureEntraOAuthTokenProvider(brokers []string, tokenCredential azcore.TokenCredential) (*AzureEntraOAuthTokenProvider, error) {
+func newAzureEntraOAuthTokenProvider(
+	brokers []string, tokenCredential azcore.TokenCredential,
+) (*AzureEntraOAuthTokenProvider, error) {
 	var cred azcore.TokenCredential
 	var err error
 
 	if len(brokers) != 1 {
-		return nil, NewXk6KafkaError(failedGetOAuthToken, fmt.Sprintf("Azure Entra OAuth requires a single bootstrap server, but %d were provided.", len(brokers)), nil)
+		return nil, NewXk6KafkaError(
+			failedGetOAuthToken,
+			fmt.Sprintf("Azure Entra OAuth requires a single bootstrap server, but %d were provided.", len(brokers)),
+			nil,
+		)
 	}
 
 	host, _, err := net.SplitHostPort(brokers[0])
 	if err != nil {
-		return nil, NewXk6KafkaError(failedGetOAuthToken, fmt.Sprintf("Azure Entra OAuth requires a valid host:port for the broker.", len(brokers)), err)
+		return nil, NewXk6KafkaError(failedGetOAuthToken, "Azure Entra OAuth requires a valid host:port for the broker.", err)
 	}
 
 	scope := fmt.Sprintf("https://%s/.default", host)
@@ -95,7 +106,11 @@ func (a *AzureEntraOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken
 
 	subject, err := claims.GetSubject()
 	if err != nil {
-		return OAuthToken{}, NewXk6KafkaError(failedGetOAuthToken, "Azure Entra OAuth token is missing the subject claim.", err)
+		return OAuthToken{}, NewXk6KafkaError(
+			failedGetOAuthToken,
+			"Azure Entra OAuth token is missing the subject claim.",
+			err,
+		)
 	}
 
 	return OAuthToken{
@@ -104,4 +119,43 @@ func (a *AzureEntraOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken
 		ExpiresOn: token.ExpiresOn,
 		RefreshOn: token.RefreshOn,
 	}, nil
+}
+
+func refreshOAuthToken(ctx context.Context, saslContext SASLContext, handler OAuthTokenHandler) error {
+	if saslContext.OAuthProvider == nil {
+		return NewXk6KafkaError(
+			failedGetOAuthToken,
+			"Failed to get an OAuth token. The OAuth provider is nil in the SASL context.",
+			nil,
+		)
+	}
+
+	oauthProvider := *saslContext.OAuthProvider
+
+	token, err := oauthProvider.GetToken(ctx)
+	if err == nil {
+		err = handler.SetOAuthBearerToken(ckafka.OAuthBearerToken{
+			TokenValue: token.Token,
+			Expiration: token.ExpiresOn,
+			Principal:  token.Subject,
+			Extensions: make(map[string]string),
+		})
+		if err != nil {
+			return NewXk6KafkaError(
+				failedGetOAuthToken,
+				"Failed to set an OAuth token. The Kafka client rejected the OAuth token.",
+				err,
+			)
+		}
+	} else {
+		err = handler.SetOAuthBearerTokenFailure(err.Error())
+		if err != nil {
+			return NewXk6KafkaError(
+				failedGetOAuthToken,
+				"Failed to set an OAuth token error. The Kafka client rejected the OAuth token error.",
+				err,
+			)
+		}
+	}
+	return nil
 }

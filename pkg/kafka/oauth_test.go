@@ -12,14 +12,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testSigningKey = []byte("test-signing-key-unit-test-only")
+var (
+	errFakeFailedRetrieveToken = errors.New("failed to retrieve token")
+	testSigningKey             = []byte("test-signing-key-unit-test-only")
+)
 
 type testTokenCredential struct {
 	Subject string
 	Error   error
 }
 
-func (t *testTokenCredential) GetToken(ctx context.Context, opts policy.TokenRequestOptions) (azcore.AccessToken, error) {
+func (t *testTokenCredential) GetToken(
+	ctx context.Context,
+	opts policy.TokenRequestOptions,
+) (azcore.AccessToken, error) {
 	if t.Error != nil {
 		return azcore.AccessToken{}, t.Error
 	}
@@ -82,7 +88,7 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 			saslAlgorithm: saslAzureEntra,
 			opts: OAuthProviderOpts{
 				azureTokenCredential: &testTokenCredential{
-					Error: errors.New("failed to retrieve token"),
+					Error: errFakeFailedRetrieveToken,
 				},
 			},
 		},
@@ -95,10 +101,16 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 
 			_, err = provider.GetToken(t.Context())
 
-			xk6KafkaError, ok := err.(*Xk6KafkaError)
-			require.True(t, ok, "error is not Xk6KafkaError")
+			var xk6KafkaError *Xk6KafkaError
+			ok := errors.As(err, xk6KafkaError)
 
+			require.True(t, ok, "error is not Xk6KafkaError")
 			require.Equal(t, failedGetOAuthToken, xk6KafkaError.Code)
 		})
 	}
+}
+
+func TestUnsupportedOAuthProvider(t *testing.T) {
+	_, err := NewOAuthProvider(saslPlain, []string{"broker1"}, OAuthProviderOpts{})
+	require.ErrorContains(t, err, "sasl_plain is not a supported OAuth Provider.")
 }

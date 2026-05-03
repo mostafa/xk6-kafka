@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
@@ -150,6 +149,10 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 
 		msg, err := c.consumerReadMessage(ctx, client)
 		if err != nil {
+			var kafkaErr ckafka.Error
+			if errors.As(err, &kafkaErr) && kafkaErr.IsTimeout() {
+				continue
+			}
 			return messages, normalizeConsumerReadError(ctx, err)
 		}
 
@@ -159,81 +162,6 @@ func (c *Consumer) Consume(ctx context.Context, limit int) ([]Message, error) {
 	}
 
 	return messages, nil
-}
-
-func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consumer) (*ckafka.Message, error) {
-	timeout := confluentPollTimeout(ctx)
-	if timeout == 0 {
-		return nil, consumerContextError(consumerContextCause(ctx))
-	}
-
-	var absTimeout time.Time
-	var timeoutMs int
-
-	if timeout > 0 {
-		absTimeout = time.Now().Add(timeout)
-		timeoutMs = (int)(timeout.Seconds() * 1000.0)
-	} else {
-		timeoutMs = (int)(timeout)
-	}
-
-	for {
-		event := client.Poll(timeoutMs)
-
-		switch e := event.(type) {
-		case *ckafka.Message:
-			if e.TopicPartition.Error != nil {
-				return e, e.TopicPartition.Error
-			}
-			return e, nil
-		case ckafka.OAuthBearerTokenRefresh:
-			err := refreshConsumerOAuthToken(ctx, c.saslContext, client)
-			if err != nil {
-				return nil, err
-			}
-		case ckafka.Error:
-			return nil, e
-		default:
-			// Ignore other event types
-		}
-
-		if timeout > 0 {
-			// Calculate remaining time
-			timeoutMs = int(math.Max(0.0, time.Until(absTimeout).Seconds()*1000.0))
-		}
-
-		if timeoutMs == 0 && event == nil {
-			return nil, nil
-		}
-
-	}
-}
-
-func refreshConsumerOAuthToken(ctx context.Context, saslContext SASLContext, client *ckafka.Consumer) error {
-	if saslContext.OAuthProvider == nil {
-		return NewXk6KafkaError(failedGetOAuthToken, "Failed to get an OAuth token. The OAuth provider is nil in the SASL context.", nil)
-	}
-
-	oauthProvider := *saslContext.OAuthProvider
-
-	token, err := oauthProvider.GetToken(ctx)
-	if err == nil {
-		err = client.SetOAuthBearerToken(ckafka.OAuthBearerToken{
-			TokenValue: token.Token,
-			Expiration: token.ExpiresOn,
-			Principal:  token.Subject,
-			Extensions: make(map[string]string),
-		})
-		if err != nil {
-			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token. The Kafka client rejected the OAuth token.", err)
-		}
-	} else {
-		err = client.SetOAuthBearerTokenFailure(err.Error())
-		if err != nil {
-			return NewXk6KafkaError(failedGetOAuthToken, "Failed to set an OAuth token error. The Kafka client rejected the OAuth token error.", err)
-		}
-	}
-	return nil
 }
 
 func consumerContextError(err error) error {
@@ -478,4 +406,51 @@ func confluentMessageToMessage(msg *ckafka.Message) Message {
 	}
 
 	return converted
+}
+
+func (c *Consumer) consumerReadMessage(ctx context.Context, client *ckafka.Consumer) (*ckafka.Message, error) {
+	timeout := confluentPollTimeout(ctx)
+	if timeout == 0 {
+		return nil, consumerContextError(consumerContextCause(ctx))
+	}
+
+	var absTimeout time.Time
+	var timeoutMs int
+
+	if timeout > 0 {
+		absTimeout = time.Now().Add(timeout)
+		timeoutMs = int(timeout.Milliseconds())
+	} else {
+		timeoutMs = int(timeout.Milliseconds())
+	}
+
+	for {
+		event := client.Poll(timeoutMs)
+
+		switch e := event.(type) {
+		case *ckafka.Message:
+			if e.TopicPartition.Error != nil {
+				return e, e.TopicPartition.Error
+			}
+			return e, nil
+		case ckafka.OAuthBearerTokenRefresh:
+			err := refreshOAuthToken(ctx, c.saslContext, client)
+			if err != nil {
+				return nil, err
+			}
+		case ckafka.Error:
+			return nil, e
+		default:
+			// Ignore other event types
+		}
+
+		if timeout > 0 {
+			// Calculate remaining time
+			timeoutMs = int(max(0, time.Until(absTimeout).Milliseconds()))
+		}
+
+		if timeoutMs == 0 && event == nil {
+			return nil, ckafka.NewError(ckafka.ErrTimedOut, "", false)
+		}
+	}
 }
