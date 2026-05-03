@@ -13,7 +13,7 @@ adjust the test settings to accomodate your throughput
 requirements.
 */
 
-import { check, sleep } from "k6";
+import check from "k6";
 import {
   Producer,
   Consumer,
