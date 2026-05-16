@@ -1,5 +1,14 @@
 # Migration Guide
 
+## k6 Major-Version Compatibility
+
+`xk6-kafka` versioning follows k6 major compatibility:
+
+- `xk6-kafka v2.x` targets `k6 v1.x`
+- `xk6-kafka v3.x` targets `k6 v2.x`
+
+Treat the `k6 v1 -> v2` upgrade as a breaking change for extension consumers and CI pipelines. Even if the JS API shape is unchanged, users pinned to `k6 v1` cannot consume a `k6 v2`-only extension release.
+
 ## v2 Constructor Parity
 
 | Old API | New API | Status |

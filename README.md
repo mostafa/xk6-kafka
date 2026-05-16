@@ -52,6 +52,18 @@ Run with: `./k6 run --vus 50 --duration 60s script.js`
 
 For full examples, see [scripts/v2](./scripts/v2/README.md).
 
+## Version Compatibility Policy
+
+To avoid accidental breakage when k6 introduces major-version module-path changes, `xk6-kafka` tracks k6 major lines explicitly:
+
+| xk6-kafka line | k6 line | Status |
+| --- | --- | --- |
+| `v2.x` | `k6 v1.x` | Maintenance line for existing users |
+| `v3.x` | `k6 v2.x` | New line for k6 v2-compatible releases |
+
+> [!IMPORTANT]
+> Moving from `k6 v1` to `k6 v2` is treated as a breaking compatibility boundary for extension consumers. The first release that requires `k6 v2` should be published as `xk6-kafka v3.0.0` (Go module path: `github.com/mostafa/xk6-kafka/v3`).
+
 ## Download Binaries
 
 ### The Official Docker Image
