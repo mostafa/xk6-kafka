@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/sobek"
 	"github.com/pavlo-v-chernykh/keystore-go/v4"
-	"go.k6.io/k6/js/common"
+	"go.k6.io/k6/v2/js/common"
 )
 
 const (

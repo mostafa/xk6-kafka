@@ -66,16 +66,16 @@ jobs:
         include:
           - os: ubuntu-latest
             go-version: "1.26.0"
-            k6-version: "v1.7.0"
+            k6-version: "v2.0.0"
           - os: ubuntu-latest
             go-version: "1.26.1"
-            k6-version: "v1.7.1"
+            k6-version: "v2.0.0"
           - os: macos-latest
             go-version: "1.26.1"
-            k6-version: "v1.7.1"
+            k6-version: "v2.0.0"
           - os: windows-latest
             go-version: "1.26.1"
-            k6-version: "v1.7.1"
+            k6-version: "v2.0.0"
     defaults:
       run:
         shell: bash
@@ -198,7 +198,7 @@ jobs:
       - name: Install xk6 and build xk6-kafka 🏗️
         run: |
           go install go.k6.io/xk6/cmd/xk6@latest
-          xk6 build "v1.7.1" --with github.com/mostafa/xk6-kafka/v2@latest=.
+          xk6 build "v2.0.0" --with github.com/mostafa/xk6-kafka/v2@latest=.
 
       - name: Wait for Kafka and Schema Registry ⏳
         run: |

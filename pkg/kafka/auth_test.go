@@ -8,7 +8,7 @@ import (
 	azcoreFake "github.com/Azure/azure-sdk-for-go/sdk/azcore/fake"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.k6.io/k6/lib/netext"
+	"go.k6.io/k6/v2/lib/netext"
 )
 
 func TestSASLContext(t *testing.T) {
