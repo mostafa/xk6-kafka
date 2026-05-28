@@ -1,17 +1,15 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: ProduceConfig
 
-## Table of contents
-
-### Properties
-
-- [messages](ProduceConfig.md#messages)
+Defined in: [index.d.ts:173](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L173)
 
 ## Properties
 
 ### messages
 
-• **messages**: [`Message`](Message.md)[]
+> **messages**: [`Message`](Message.md)[]
 
-#### Defined in
-
-[index.d.ts:167](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L167)
+Defined in: [index.d.ts:174](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L174)

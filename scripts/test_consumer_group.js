@@ -5,7 +5,7 @@ tests Kafka with a 200 JSON messages per iteration.
 
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 // import * as kafka from "k6/x/kafka";
 import {
   Writer,
@@ -33,12 +33,13 @@ const reader = new Reader({
   groupID: groupID,
   groupTopics: [topic],
 });
-const connection = new Connection({
-  address: brokers[0],
-});
 const schemaRegistry = new SchemaRegistry();
 
-if (__VU == 0) {
+export function setup() {
+  const connection = new Connection({
+    address: brokers[0],
+  });
+
   connection.createTopic({
     topic: topic,
     numPartitions: 3,
@@ -50,6 +51,17 @@ if (__VU == 0) {
       },
     ],
   });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
 }
 
 export const options = {
@@ -114,7 +126,11 @@ export default function () {
 }
 
 export function teardown(data) {
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
+  connection.close();
   writer.close();
   reader.close();
-  connection.close();
 }

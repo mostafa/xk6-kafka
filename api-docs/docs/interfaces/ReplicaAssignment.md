@@ -1,28 +1,23 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: ReplicaAssignment
 
-## Table of contents
-
-### Properties
-
-- [partition](ReplicaAssignment.md#partition)
-- [replicas](ReplicaAssignment.md#replicas)
+Defined in: [index.d.ts:231](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L231)
 
 ## Properties
 
 ### partition
 
-• **partition**: `number`
+> **partition**: `number`
 
-#### Defined in
-
-[index.d.ts:225](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L225)
+Defined in: [index.d.ts:232](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L232)
 
 ---
 
 ### replicas
 
-• **replicas**: `number`[]
+> **replicas**: `number`[]
 
-#### Defined in
-
-[index.d.ts:226](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L226)
+Defined in: [index.d.ts:233](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L233)

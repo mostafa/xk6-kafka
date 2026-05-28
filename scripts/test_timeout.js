@@ -5,7 +5,7 @@ This is a k6 test script that imports the xk6-kafka and
 
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 // import * as kafka from "k6/x/kafka";
 import { Reader, Connection } from "k6/x/kafka"; // import kafka extension
 
@@ -21,12 +21,23 @@ const reader = new Reader({
   maxWait: "5s",
 });
 
-const connection = new Connection({
-  address: brokers[0],
-});
+export function setup() {
+  const connection = new Connection({
+    address: brokers[0],
+  });
 
-if (__VU === 0) {
   connection.createTopic({ topic: topic });
+
+  // Verify topic was created
+  const topics = connection.listTopics();
+  if (!topics.includes(topic)) {
+    throw new Error(`Topic ${topic} was not created successfully`);
+  }
+
+  connection.close();
+
+  // Wait for Kafka metadata to propagate to all brokers
+  sleep(2);
 }
 
 export const options = {
@@ -50,10 +61,10 @@ export default function () {
 }
 
 export function teardown(data) {
-  if (__VU === 0) {
-    // Delete the topic
-    connection.deleteTopic(topic);
-  }
-  reader.close();
+  const connection = new Connection({
+    address: brokers[0],
+  });
+  connection.deleteTopic(topic);
   connection.close();
+  reader.close();
 }

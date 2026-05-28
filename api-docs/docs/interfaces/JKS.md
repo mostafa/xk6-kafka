@@ -1,39 +1,31 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Interface: JKS
 
-## Table of contents
-
-### Properties
-
-- [clientCertsPem](JKS.md#clientcertspem)
-- [clientKeyPem](JKS.md#clientkeypem)
-- [serverCaPem](JKS.md#servercapem)
+Defined in: [index.d.ts:292](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L292)
 
 ## Properties
 
 ### clientCertsPem
 
-• **clientCertsPem**: `string`[]
+> **clientCertsPem**: `string`[]
 
-#### Defined in
-
-[index.d.ts:286](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L286)
+Defined in: [index.d.ts:293](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L293)
 
 ---
 
 ### clientKeyPem
 
-• **clientKeyPem**: `string`
+> **clientKeyPem**: `string`
 
-#### Defined in
-
-[index.d.ts:287](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L287)
+Defined in: [index.d.ts:294](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L294)
 
 ---
 
 ### serverCaPem
 
-• **serverCaPem**: `string`
+> **serverCaPem**: `string`
 
-#### Defined in
-
-[index.d.ts:288](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L288)
+Defined in: [index.d.ts:295](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L295)

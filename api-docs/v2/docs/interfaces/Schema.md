@@ -1,0 +1,79 @@
+[**xk6-kafka**](../README.md)
+
+---
+
+# Interface: Schema
+
+Defined in: [index.d.ts:294](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L294)
+
+## Properties
+
+### dependencies?
+
+> `optional` **dependencies?**: `Record`\<`string`, `string`\>
+
+Defined in: [index.d.ts:303](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L303)
+
+---
+
+### enableCaching
+
+> **enableCaching**: `boolean`
+
+Defined in: [index.d.ts:295](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L295)
+
+---
+
+### id
+
+> **id**: `number`
+
+Defined in: [index.d.ts:296](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L296)
+
+---
+
+### messageName?
+
+> `optional` **messageName?**: `string`
+
+Defined in: [index.d.ts:302](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L302)
+
+---
+
+### references
+
+> **references**: [`Reference`](Reference.md)[]
+
+Defined in: [index.d.ts:300](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L300)
+
+---
+
+### schema
+
+> **schema**: `string`
+
+Defined in: [index.d.ts:297](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L297)
+
+---
+
+### schemaType
+
+> **schemaType**: [`SCHEMA_TYPES`](../enumerations/SCHEMA_TYPES.md)
+
+Defined in: [index.d.ts:298](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L298)
+
+---
+
+### subject
+
+> **subject**: `string`
+
+Defined in: [index.d.ts:301](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L301)
+
+---
+
+### version
+
+> **version**: `number`
+
+Defined in: [index.d.ts:299](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L299)

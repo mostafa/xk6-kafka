@@ -1,8 +1,16 @@
+[**xk6-kafka**](../README.md)
+
+---
+
 # Class: Connection
 
-**`classdesc`** Connection connects to Kafka for working with topics.
+Defined in: [index.d.ts:408](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L408)
 
-**`example`**
+## Classdesc
+
+Connection connects to Kafka for working with topics.
+
+## Example
 
 ```javascript
 // In init context
@@ -17,44 +25,35 @@ const topics = connection.listTopics();
 connection.close();
 ```
 
-## Table of contents
-
-### Constructors
-
-- [constructor](Connection.md#constructor)
-
-### Methods
-
-- [close](Connection.md#close)
-- [createTopic](Connection.md#createtopic)
-- [deleteTopic](Connection.md#deletetopic)
-- [listTopics](Connection.md#listtopics)
-
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new Connection**(`connectionConfig`)
+> **new Connection**(`connectionConfig`): `Connection`
+
+Defined in: [index.d.ts:415](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L415)
 
 #### Parameters
 
-| Name               | Type                                                    | Description               |
-| :----------------- | :------------------------------------------------------ | :------------------------ |
-| `connectionConfig` | [`ConnectionConfig`](../interfaces/ConnectionConfig.md) | Connection configuration. |
+##### connectionConfig
 
-#### Defined in
+[`ConnectionConfig`](../interfaces/ConnectionConfig.md)
 
-[index.d.ts:408](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L408)
+Connection configuration.
+
+#### Returns
+
+`Connection`
+
+- Connection instance.
 
 ## Methods
 
-### close
+### close()
 
-▸ **close**(): `void`
+> **close**(): `void`
 
-**`destructor`**
-
-**`description`** Close the connection.
+Defined in: [index.d.ts:441](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L441)
 
 #### Returns
 
@@ -62,24 +61,53 @@ connection.close();
 
 - Nothing.
 
-#### Defined in
+#### Destructor
 
-[index.d.ts:434](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L434)
+#### Description
+
+Close the connection.
 
 ---
 
-### createTopic
+### createTopic()
 
-▸ **createTopic**(`topicConfig`): `void`
+> **createTopic**(`topicConfig`): `void`
 
-**`method`**
+Defined in: [index.d.ts:422](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L422)
+
+#### Parameters
+
+##### topicConfig
+
+[`TopicConfig`](../interfaces/TopicConfig.md)
+
+Topic configuration.
+
+#### Returns
+
+`void`
+
+- Nothing.
+
+#### Method
+
 Create a new topic.
 
+---
+
+### deleteTopic()
+
+> **deleteTopic**(`topic`): `void`
+
+Defined in: [index.d.ts:429](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L429)
+
 #### Parameters
 
-| Name          | Type                                          | Description          |
-| :------------ | :-------------------------------------------- | :------------------- |
-| `topicConfig` | [`TopicConfig`](../interfaces/TopicConfig.md) | Topic configuration. |
+##### topic
+
+`string`
+
+Topic name.
 
 #### Returns
 
@@ -87,43 +115,17 @@ Create a new topic.
 
 - Nothing.
 
-#### Defined in
+#### Method
 
-[index.d.ts:415](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L415)
-
----
-
-### deleteTopic
-
-▸ **deleteTopic**(`topic`): `void`
-
-**`method`**
 Delete a topic.
 
-#### Parameters
-
-| Name    | Type     | Description |
-| :------ | :------- | :---------- |
-| `topic` | `string` | Topic name. |
-
-#### Returns
-
-`void`
-
-- Nothing.
-
-#### Defined in
-
-[index.d.ts:422](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L422)
-
 ---
 
-### listTopics
+### listTopics()
 
-▸ **listTopics**(): `string`[]
+> **listTopics**(): `string`[]
 
-**`method`**
-List topics.
+Defined in: [index.d.ts:435](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L435)
 
 #### Returns
 
@@ -131,6 +133,6 @@ List topics.
 
 - Topics.
 
-#### Defined in
+#### Method
 
-[index.d.ts:428](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L428)
+List topics.
