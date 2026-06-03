@@ -3,6 +3,7 @@ package kafka
 import (
 	"encoding/base64"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/grafana/sobek"
@@ -452,6 +453,81 @@ message Inner {
   repeated string tags = 2;
 }`,
 		},
+	}
+}
+
+func TestParseProtobufFileDescriptorCachesByContent(t *testing.T) {
+	// Different *Schema pointers, identical content — mirrors the JS path,
+	// where decodeArgument allocates a fresh *Schema on every serialize()
+	// call (see TestDecodeArgumentAllocatesFreshSchemaPerCall).
+	src := `syntax = "proto3"; package cachebycontent; message M { string v = 1; }`
+	s1 := &Schema{Schema: src, MessageName: "cachebycontent.M"}
+	s2 := &Schema{Schema: src, MessageName: "cachebycontent.M"}
+	require.NotSame(t, s1, s2)
+
+	fd1, err := parseProtobufFileDescriptor(s1)
+	require.Nil(t, err)
+	fd2, err := parseProtobufFileDescriptor(s2)
+	require.Nil(t, err)
+	assert.Same(t, fd1, fd2, "identical schema content must yield the same cached FileDescriptor across *Schema instances")
+}
+
+func TestParseProtobufFileDescriptorDistinctContentDoesNotCollide(t *testing.T) {
+	a := &Schema{Schema: `syntax = "proto3"; package distinctcache; message A { string v = 1; }`}
+	b := &Schema{Schema: `syntax = "proto3"; package distinctcache; message B { int32 n = 1; }`}
+
+	fdA, err := parseProtobufFileDescriptor(a)
+	require.Nil(t, err)
+	fdB, err := parseProtobufFileDescriptor(b)
+	require.Nil(t, err)
+	assert.NotSame(t, fdA, fdB)
+}
+
+func TestParseProtobufFileDescriptorCachesCompileError(t *testing.T) {
+	// Unique import name so the cache enters from a known-miss state
+	// regardless of test ordering or parallel sibling-test pollution.
+	schema := &Schema{
+		Schema: `syntax = "proto3"; package errorcache; import "errorcache_missing_xK6.proto"; message A { string v = 1; }`,
+	}
+
+	_, firstErr := parseProtobufFileDescriptor(schema)
+	require.Error(t, firstErr)
+	_, secondErr := parseProtobufFileDescriptor(schema)
+	require.Error(t, secondErr)
+	// Failed compiles are cached so pathological schemas do not re-run
+	// protocompile.Compile on every retry.
+	assert.Same(t, firstErr, secondErr)
+}
+
+func TestParseProtobufFileDescriptorConcurrentInit(t *testing.T) {
+	src := `syntax = "proto3"; package concurrentinit; message Race { string v = 1; }`
+	const workers = 16
+
+	// Distinct *Schema instances with identical content — the JS-path shape
+	// under concurrent VUs.
+	schemas := make([]*Schema, workers)
+	for i := range schemas {
+		schemas[i] = &Schema{Schema: src, MessageName: "concurrentinit.Race"}
+	}
+
+	results := make([]protoreflect.FileDescriptor, workers)
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := range workers {
+		go func(idx int) {
+			defer wg.Done()
+			fd, err := parseProtobufFileDescriptor(schemas[idx])
+			if err != nil {
+				t.Errorf("worker %d: parseProtobufFileDescriptor returned error: %v", idx, err)
+				return
+			}
+			results[idx] = fd
+		}(i)
+	}
+	wg.Wait()
+
+	for i := 1; i < workers; i++ {
+		assert.Same(t, results[0], results[i])
 	}
 }
 
