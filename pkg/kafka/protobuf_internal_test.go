@@ -428,3 +428,78 @@ func requireGoErrorContains(t *testing.T, fn func(), expectedSubstring string) {
 
 	fn()
 }
+
+// benchProtobufSchema is a small but non-trivial schema covering a custom
+// dependency and a well-known import. It is shared across the protobuf
+// benchmarks below so they exercise the same compile cost.
+func benchProtobufSchema() *Schema {
+	return &Schema{
+		Schema: `syntax = "proto3";
+package bench;
+import "google/protobuf/timestamp.proto";
+import "bench/inner.proto";
+message Outer {
+  string name = 1;
+  google.protobuf.Timestamp ts = 2;
+  bench.Inner inner = 3;
+}`,
+		MessageName: "bench.Outer",
+		Dependencies: map[string]string{
+			"bench/inner.proto": `syntax = "proto3";
+package bench;
+message Inner {
+  int64 id = 1;
+  repeated string tags = 2;
+}`,
+		},
+	}
+}
+
+// BenchmarkBuildProtobufRuntime exercises the descriptor compilation path
+// invoked on every Serialize/Deserialize call. Each iteration calls
+// buildProtobufRuntime with the same *Schema instance, so a correct
+// implementation should not recompile the descriptor graph beyond the first
+// iteration. Run with `-benchmem` to surface the per-call allocations.
+func BenchmarkBuildProtobufRuntime(b *testing.B) {
+	schema := benchProtobufSchema()
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		runtime, err := buildProtobufRuntime(schema)
+		if err != nil {
+			b.Fatalf("buildProtobufRuntime returned error: %v", err)
+		}
+		if runtime == nil || runtime.messageDesc == nil {
+			b.Fatalf("buildProtobufRuntime returned empty runtime")
+		}
+	}
+}
+
+// BenchmarkProtobufSerdeSerialize exercises the full Serialize hot path used
+// by xk6-kafka's JS-facing schemaRegistry.serialize. It is the same shape as
+// what an in-cluster k6 script calls on every produce() iteration; without a
+// descriptor cache the per-call cost grows in lockstep with descriptor graph
+// size.
+func BenchmarkProtobufSerdeSerialize(b *testing.B) {
+	serde := &ProtobufSerde{}
+	schema := benchProtobufSchema()
+	data := map[string]any{
+		"name": "load-test",
+		"ts":   "2026-01-01T00:00:00Z",
+		"inner": map[string]any{
+			"id":   "42",
+			"tags": []any{"a", "b"},
+		},
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encoded, err := serde.Serialize(data, schema)
+		if err != nil {
+			b.Fatalf("Serialize returned error: %v", err)
+		}
+		if len(encoded) == 0 {
+			b.Fatalf("Serialize returned empty payload")
+		}
+	}
+}
