@@ -372,7 +372,10 @@ func protobufCacheKey(schemaSource string, dependencies map[string]string) strin
 	return string(h.Sum(nil))
 }
 
-func compileProtobufFileDescriptor(schemaSource string, dependencies map[string]string) (protoreflect.FileDescriptor, *Xk6KafkaError) {
+func compileProtobufFileDescriptor(
+	schemaSource string,
+	dependencies map[string]string,
+) (protoreflect.FileDescriptor, *Xk6KafkaError) {
 	sources := map[string]string{
 		".": schemaSource,
 	}
