@@ -2,10 +2,13 @@ package kafka
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
 	"maps"
+	"sort"
 	"strings"
+	"sync"
 
 	"github.com/bufbuild/protocompile"
 	"go.k6.io/k6/js/common"
@@ -309,6 +312,25 @@ func buildProtobufDependencyMap(schema *Schema) (map[string]string, *Xk6KafkaErr
 	return dependencies, nil
 }
 
+// protobufFileDescCache memoises protocompile.Compile results across the
+// process. The JS-facing serialize/deserialize handlers go through
+// decodeArgument, which json.Marshal/Unmarshal-round-trips the argument
+// and so produces a fresh *Schema on every call; a cache keyed on *Schema
+// pointer identity therefore cannot hit. Keys here are a SHA-256 hash of
+// the schema source plus sorted dependency map, so two distinct *Schema
+// instances with identical content share a compiled FileDescriptor.
+//
+// FileDescriptors are read-only once compiled and safe to share across
+// goroutines. The cache is unbounded by design — load tests typically use
+// a small fixed set of schemas, so growth is naturally constrained.
+var protobufFileDescCache sync.Map
+
+type protobufCachedDescriptor struct {
+	once     sync.Once
+	fileDesc protoreflect.FileDescriptor
+	err      *Xk6KafkaError
+}
+
 func parseProtobufFileDescriptor(schema *Schema) (protoreflect.FileDescriptor, *Xk6KafkaError) {
 	if schema == nil || strings.TrimSpace(schema.Schema) == "" {
 		return nil, ErrProtobufSchemaCompileFailed
@@ -319,8 +341,43 @@ func parseProtobufFileDescriptor(schema *Schema) (protoreflect.FileDescriptor, *
 		return nil, err
 	}
 
+	key := protobufCacheKey(schema.Schema, dependencies)
+	entry, _ := protobufFileDescCache.LoadOrStore(key, &protobufCachedDescriptor{})
+	cached := entry.(*protobufCachedDescriptor)
+	cached.once.Do(func() {
+		cached.fileDesc, cached.err = compileProtobufFileDescriptor(schema.Schema, dependencies)
+	})
+	return cached.fileDesc, cached.err
+}
+
+// protobufCacheKey returns a SHA-256 digest of the schema source and the
+// canonical (sorted) dependency map. NUL separators after every field
+// prevent boundary ambiguities between adjacent keys/values.
+func protobufCacheKey(schemaSource string, dependencies map[string]string) string {
+	h := sha256.New()
+	h.Write([]byte(schemaSource))
+	h.Write([]byte{0})
+
+	keys := make([]string, 0, len(dependencies))
+	for k := range dependencies {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		h.Write([]byte(k))
+		h.Write([]byte{0})
+		h.Write([]byte(dependencies[k]))
+		h.Write([]byte{0})
+	}
+	return string(h.Sum(nil))
+}
+
+func compileProtobufFileDescriptor(
+	schemaSource string,
+	dependencies map[string]string,
+) (protoreflect.FileDescriptor, *Xk6KafkaError) {
 	sources := map[string]string{
-		".": schema.Schema,
+		".": schemaSource,
 	}
 	maps.Copy(sources, dependencies)
 

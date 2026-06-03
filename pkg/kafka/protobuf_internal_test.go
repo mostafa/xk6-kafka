@@ -3,6 +3,7 @@ package kafka
 import (
 	"encoding/base64"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/grafana/sobek"
@@ -427,4 +428,240 @@ func requireGoErrorContains(t *testing.T, fn func(), expectedSubstring string) {
 	}()
 
 	fn()
+}
+
+// benchProtobufSchema is a small but non-trivial schema covering a custom
+// dependency and a well-known import. It is shared across the protobuf
+// benchmarks below so they exercise the same compile cost.
+func benchProtobufSchema() *Schema {
+	return &Schema{
+		Schema: `syntax = "proto3";
+package bench;
+import "google/protobuf/timestamp.proto";
+import "bench/inner.proto";
+message Outer {
+  string name = 1;
+  google.protobuf.Timestamp ts = 2;
+  bench.Inner inner = 3;
+}`,
+		MessageName: "bench.Outer",
+		Dependencies: map[string]string{
+			"bench/inner.proto": `syntax = "proto3";
+package bench;
+message Inner {
+  int64 id = 1;
+  repeated string tags = 2;
+}`,
+		},
+	}
+}
+
+func TestParseProtobufFileDescriptorCachesByContent(t *testing.T) {
+	// Different *Schema pointers, identical content — mirrors the JS path,
+	// where decodeArgument allocates a fresh *Schema on every serialize()
+	// call (see TestDecodeArgumentAllocatesFreshSchemaPerCall).
+	src := `syntax = "proto3"; package cachebycontent; message M { string v = 1; }`
+	s1 := &Schema{Schema: src, MessageName: "cachebycontent.M"}
+	s2 := &Schema{Schema: src, MessageName: "cachebycontent.M"}
+	require.NotSame(t, s1, s2)
+
+	fd1, err := parseProtobufFileDescriptor(s1)
+	require.Nil(t, err)
+	fd2, err := parseProtobufFileDescriptor(s2)
+	require.Nil(t, err)
+	assert.Same(t, fd1, fd2, "identical schema content must yield the same cached FileDescriptor across *Schema instances")
+}
+
+func TestParseProtobufFileDescriptorDistinctContentDoesNotCollide(t *testing.T) {
+	a := &Schema{Schema: `syntax = "proto3"; package distinctcache; message A { string v = 1; }`}
+	b := &Schema{Schema: `syntax = "proto3"; package distinctcache; message B { int32 n = 1; }`}
+
+	fdA, err := parseProtobufFileDescriptor(a)
+	require.Nil(t, err)
+	fdB, err := parseProtobufFileDescriptor(b)
+	require.Nil(t, err)
+	assert.NotSame(t, fdA, fdB)
+}
+
+func TestParseProtobufFileDescriptorCachesCompileError(t *testing.T) {
+	// Unique import name so the cache enters from a known-miss state
+	// regardless of test ordering or parallel sibling-test pollution.
+	schema := &Schema{
+		Schema: `syntax = "proto3"; package errorcache; import "errorcache_missing_xK6.proto"; message A { string v = 1; }`,
+	}
+
+	_, firstErr := parseProtobufFileDescriptor(schema)
+	require.Error(t, firstErr)
+	_, secondErr := parseProtobufFileDescriptor(schema)
+	require.Error(t, secondErr)
+	// Failed compiles are cached so pathological schemas do not re-run
+	// protocompile.Compile on every retry.
+	assert.Same(t, firstErr, secondErr)
+}
+
+func TestParseProtobufFileDescriptorConcurrentInit(t *testing.T) {
+	src := `syntax = "proto3"; package concurrentinit; message Race { string v = 1; }`
+	const workers = 16
+
+	// Distinct *Schema instances with identical content — the JS-path shape
+	// under concurrent VUs.
+	schemas := make([]*Schema, workers)
+	for i := range schemas {
+		schemas[i] = &Schema{Schema: src, MessageName: "concurrentinit.Race"}
+	}
+
+	results := make([]protoreflect.FileDescriptor, workers)
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := range workers {
+		go func(idx int) {
+			defer wg.Done()
+			fd, err := parseProtobufFileDescriptor(schemas[idx])
+			if err != nil {
+				t.Errorf("worker %d: parseProtobufFileDescriptor returned error: %v", idx, err)
+				return
+			}
+			results[idx] = fd
+		}(i)
+	}
+	wg.Wait()
+
+	for i := 1; i < workers; i++ {
+		assert.Same(t, results[0], results[i])
+	}
+}
+
+// TestDecodeArgumentAllocatesFreshSchemaPerCall is the load-bearing proof
+// that a per-*Schema cache cannot hit across JS-facing serialize() calls:
+// decodeArgument round-trips the argument through json.Marshal/Unmarshal,
+// which fabricates a new *Schema on every call even when the JS-side value
+// is the identical object. Any descriptor cache that wants to amortise
+// protocompile.Compile across the JS hot path must key on schema content,
+// not on *Schema identity.
+func TestDecodeArgumentAllocatesFreshSchemaPerCall(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	// Single sobek.Value representing the JS-side argument to
+	// schemaRegistry.serialize(). The reference is reused across both
+	// decodeArgument calls below — that is the JS-author's perspective of
+	// "passing the same schema object every iteration."
+	jsArg := test.rt.ToValue(map[string]any{
+		"data": "x",
+		"schema": map[string]any{
+			"schema":      `syntax = "proto3"; package t; message A { string v = 1; }`,
+			"messageName": "t.A",
+		},
+		"schemaType": string(Protobuf),
+	})
+
+	var first, second Container
+	decodeArgument(test.rt, jsArg, &first, "test")
+	decodeArgument(test.rt, jsArg, &second, "test")
+
+	require.NotNil(t, first.Schema)
+	require.NotNil(t, second.Schema)
+	// Different pointers despite the same JS-side input — this is the
+	// architectural reason any cache must key on schema content, not on
+	// *Schema identity.
+	assert.NotSame(t, first.Schema, second.Schema,
+		"decodeArgument must allocate a fresh *Schema per call; if this ever changes, per-instance caching becomes viable")
+
+	// The content fields, however, survive the round-trip intact — which is
+	// what makes a content-keyed cache feasible.
+	assert.Equal(t, first.Schema.Schema, second.Schema.Schema)
+	assert.Equal(t, first.Schema.MessageName, second.Schema.MessageName)
+}
+
+// BenchmarkBuildProtobufRuntime exercises the descriptor compilation path
+// invoked on every Serialize/Deserialize call. Each iteration calls
+// buildProtobufRuntime with the same *Schema instance, so a correct
+// implementation should not recompile the descriptor graph beyond the first
+// iteration. Run with `-benchmem` to surface the per-call allocations.
+func BenchmarkBuildProtobufRuntime(b *testing.B) {
+	schema := benchProtobufSchema()
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		runtime, err := buildProtobufRuntime(schema)
+		if err != nil {
+			b.Fatalf("buildProtobufRuntime returned error: %v", err)
+		}
+		if runtime == nil || runtime.messageDesc == nil {
+			b.Fatalf("buildProtobufRuntime returned empty runtime")
+		}
+	}
+}
+
+// BenchmarkProtobufSerdeSerializeViaDecodeArgument mirrors the JS-facing
+// hot path: each iteration runs decodeArgument (the json.Marshal/Unmarshal
+// round-trip the serialize handler performs on every call) before invoking
+// Serialize, so the *Schema is freshly allocated each time. Compared with
+// BenchmarkProtobufSerdeSerialize — which reuses one *Schema — this proves
+// that a cache keyed on *Schema pointer identity cannot hit the JS path.
+func BenchmarkProtobufSerdeSerializeViaDecodeArgument(b *testing.B) {
+	test := getTestModuleInstance(b)
+	test.moveToVUCode()
+	serde := &ProtobufSerde{}
+
+	schema := benchProtobufSchema()
+	jsArg := test.rt.ToValue(map[string]any{
+		"data": map[string]any{
+			"name": "load-test",
+			"ts":   "2026-01-01T00:00:00Z",
+			"inner": map[string]any{
+				"id":   "42",
+				"tags": []any{"a", "b"},
+			},
+		},
+		"schema": map[string]any{
+			"schema":       schema.Schema,
+			"messageName":  schema.MessageName,
+			"dependencies": schema.Dependencies,
+		},
+		"schemaType": string(Protobuf),
+	})
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		var c Container
+		decodeArgument(test.rt, jsArg, &c, "test")
+		encoded, err := serde.Serialize(c.Data, c.Schema)
+		if err != nil {
+			b.Fatalf("Serialize returned error: %v", err)
+		}
+		if len(encoded) == 0 {
+			b.Fatalf("Serialize returned empty payload")
+		}
+	}
+}
+
+// BenchmarkProtobufSerdeSerialize exercises the full Serialize hot path used
+// by xk6-kafka's JS-facing schemaRegistry.serialize. It is the same shape as
+// what an in-cluster k6 script calls on every produce() iteration; without a
+// descriptor cache the per-call cost grows in lockstep with descriptor graph
+// size.
+func BenchmarkProtobufSerdeSerialize(b *testing.B) {
+	serde := &ProtobufSerde{}
+	schema := benchProtobufSchema()
+	data := map[string]any{
+		"name": "load-test",
+		"ts":   "2026-01-01T00:00:00Z",
+		"inner": map[string]any{
+			"id":   "42",
+			"tags": []any{"a", "b"},
+		},
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		encoded, err := serde.Serialize(data, schema)
+		if err != nil {
+			b.Fatalf("Serialize returned error: %v", err)
+		}
+		if len(encoded) == 0 {
+			b.Fatalf("Serialize returned empty payload")
+		}
+	}
 }
