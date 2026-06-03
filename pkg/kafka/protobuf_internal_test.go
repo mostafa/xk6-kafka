@@ -455,6 +455,48 @@ message Inner {
 	}
 }
 
+// TestDecodeArgumentAllocatesFreshSchemaPerCall is the load-bearing proof
+// that a per-*Schema cache cannot hit across JS-facing serialize() calls:
+// decodeArgument round-trips the argument through json.Marshal/Unmarshal,
+// which fabricates a new *Schema on every call even when the JS-side value
+// is the identical object. Any descriptor cache that wants to amortise
+// protocompile.Compile across the JS hot path must key on schema content,
+// not on *Schema identity.
+func TestDecodeArgumentAllocatesFreshSchemaPerCall(t *testing.T) {
+	test := getTestModuleInstance(t)
+	test.moveToVUCode()
+
+	// Single sobek.Value representing the JS-side argument to
+	// schemaRegistry.serialize(). The reference is reused across both
+	// decodeArgument calls below — that is the JS-author's perspective of
+	// "passing the same schema object every iteration."
+	jsArg := test.rt.ToValue(map[string]any{
+		"data": "x",
+		"schema": map[string]any{
+			"schema":      `syntax = "proto3"; package t; message A { string v = 1; }`,
+			"messageName": "t.A",
+		},
+		"schemaType": string(Protobuf),
+	})
+
+	var first, second Container
+	decodeArgument(test.rt, jsArg, &first, "test")
+	decodeArgument(test.rt, jsArg, &second, "test")
+
+	require.NotNil(t, first.Schema)
+	require.NotNil(t, second.Schema)
+	// Different pointers despite the same JS-side input — this is the
+	// architectural reason any cache must key on schema content, not on
+	// *Schema identity.
+	assert.NotSame(t, first.Schema, second.Schema,
+		"decodeArgument must allocate a fresh *Schema per call; if this ever changes, per-instance caching becomes viable")
+
+	// The content fields, however, survive the round-trip intact — which is
+	// what makes a content-keyed cache feasible.
+	assert.Equal(t, first.Schema.Schema, second.Schema.Schema)
+	assert.Equal(t, first.Schema.MessageName, second.Schema.MessageName)
+}
+
 // BenchmarkBuildProtobufRuntime exercises the descriptor compilation path
 // invoked on every Serialize/Deserialize call. Each iteration calls
 // buildProtobufRuntime with the same *Schema instance, so a correct
@@ -464,13 +506,57 @@ func BenchmarkBuildProtobufRuntime(b *testing.B) {
 	schema := benchProtobufSchema()
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		runtime, err := buildProtobufRuntime(schema)
 		if err != nil {
 			b.Fatalf("buildProtobufRuntime returned error: %v", err)
 		}
 		if runtime == nil || runtime.messageDesc == nil {
 			b.Fatalf("buildProtobufRuntime returned empty runtime")
+		}
+	}
+}
+
+// BenchmarkProtobufSerdeSerializeViaDecodeArgument mirrors the JS-facing
+// hot path: each iteration runs decodeArgument (the json.Marshal/Unmarshal
+// round-trip the serialize handler performs on every call) before invoking
+// Serialize, so the *Schema is freshly allocated each time. Compared with
+// BenchmarkProtobufSerdeSerialize — which reuses one *Schema — this proves
+// that a cache keyed on *Schema pointer identity cannot hit the JS path.
+func BenchmarkProtobufSerdeSerializeViaDecodeArgument(b *testing.B) {
+	test := getTestModuleInstance(b)
+	test.moveToVUCode()
+	serde := &ProtobufSerde{}
+
+	schema := benchProtobufSchema()
+	jsArg := test.rt.ToValue(map[string]any{
+		"data": map[string]any{
+			"name": "load-test",
+			"ts":   "2026-01-01T00:00:00Z",
+			"inner": map[string]any{
+				"id":   "42",
+				"tags": []any{"a", "b"},
+			},
+		},
+		"schema": map[string]any{
+			"schema":       schema.Schema,
+			"messageName":  schema.MessageName,
+			"dependencies": schema.Dependencies,
+		},
+		"schemaType": string(Protobuf),
+	})
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		var c Container
+		decodeArgument(test.rt, jsArg, &c, "test")
+		encoded, err := serde.Serialize(c.Data, c.Schema)
+		if err != nil {
+			b.Fatalf("Serialize returned error: %v", err)
+		}
+		if len(encoded) == 0 {
+			b.Fatalf("Serialize returned empty payload")
 		}
 	}
 }
@@ -493,7 +579,7 @@ func BenchmarkProtobufSerdeSerialize(b *testing.B) {
 	}
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		encoded, err := serde.Serialize(data, schema)
 		if err != nil {
 			b.Fatalf("Serialize returned error: %v", err)
