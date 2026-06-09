@@ -194,7 +194,9 @@ jobs:
       - name: Scan Docker image with Syft and generate SBOM 🦉
         uses: anchore/sbom-action@fbfd9c6c189226748411491745178e0c2017392d # v0.20.10
         with:
+          image: mostafamoradian/xk6-kafka:${{ steps.meta.outputs.version }}
           artifact-name: docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
+          output-file: docker-image-cyclonedx-xk6-kafka-${{ github.ref_name }}.json
           format: cyclonedx-json
           dependency-snapshot: true
 
