@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/bufbuild/protocompile"
-	"go.k6.io/k6/js/common"
+	"go.k6.io/k6/v2/js/common"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
