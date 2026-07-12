@@ -51,8 +51,23 @@ The following optional configurations are available:
 
 If a configuration is undefined, it will use the `librdkafka` defaults.
 
+Example:
 ```typescript
 const saslConfig = {
   algorithm: SASL_GSSAPI,
+  kerberosConfig: {
+    serviceName: "kafka",
+    principal: "test@example.com",
+    kInitCmd: "kinit",
+    keyTab: "/path/to/keytab",
+    minTimeBeforeRelogin: 1000,
+  }
 };
+```
+
+Example with defaults:
+```typescript
+const saslConfig = {
+  algorithm: SASL_GSSAPI,
+}
 ```
