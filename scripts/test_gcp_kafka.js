@@ -19,16 +19,16 @@ import {
   AdminClient,
   SchemaRegistry,
   SCHEMA_TYPE_STRING,
-  SASL_AZURE_ENTRA,
+  SASL_GCP_OAUTH,
   TLS_1_2,
 } from "k6/x/kafka";
 
-if (!__ENV.EVENT_HUB_NAMESPACE) {
-  throw new Error(`Environment variable EVENT_HUB_NAMESPACE is missing!`);
+if (!__ENV.GCP_KAFKA_BOOTSTRAP_SERVER) {
+  throw new Error(`Environment variable GCP_KAFKA_BOOTSTRAP_SERVER is missing!`);
 }
 
-const brokers = [`${__ENV.EVENT_HUB_NAMESPACE}.servicebus.windows.net:9093`];
-const topic = "k6-event-hub-test";
+const brokers = [`${GCP_KAFKA_BOOTSTRAP_SERVER}:9093`];
+const topic = "k6-gcp-kafka-test";
 const numPartitions = 1;
 const groupId = "k6";
 
@@ -53,8 +53,6 @@ const consumer = new Consumer({
   brokers: brokers,
   topic: topic,
   groupId: groupId,
-  // Event Hub does not support all rebalancing strategies
-  groupBalancers: ["group_balancer_round_robin"],
   sasl: saslConfig,
   tls: tlsConfig,
   // Need to allow time for rebalance
@@ -91,7 +89,7 @@ function produce() {
           schemaType: SCHEMA_TYPE_STRING,
         }),
         value: schemaRegistry.serialize({
-          data: `Hello, Event Hub!`,
+          data: `Hello, GCP Kafka!`,
           schemaType: SCHEMA_TYPE_STRING,
         }),
       },
@@ -115,7 +113,7 @@ function consume() {
       schemaRegistry.deserialize({
         data: msgs[0].value,
         schemaType: SCHEMA_TYPE_STRING,
-      }) == "Hello, Event Hub!",
+      }) == "Hello, GCP Kafka!",
   });
 }
 
