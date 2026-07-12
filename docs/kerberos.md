@@ -36,3 +36,23 @@ libsasl2.so.3 => /lib64/libsasl2.so.3 (0x00007f7caf8f8000)
 ```
 
 ## Configuring xk6-kafka
+Kerberos is configured using the `kerberos` configuration object 
+within the `SASL` config object.
+
+The following optional configurations are available:
+
+| Property | Description |
+| -------- | ----------- |
+| serviceName | Kerberos principal name that Kafka runs as |
+| principal | This client's Kerberos principal name |
+| kInitCmd | Shell command to refresh or acquire the client's Kerberos ticket |
+| keyTab | Path to Kerberos keytab file |
+| minTimeBeforeRelogin | Minimum time in milliseconds between key refresh attempts |
+
+If a configuration is undefined, it will use the `librdkafka` defaults.
+
+```typescript
+const saslConfig = {
+  algorithm: SASL_GSSAPI,
+};
+```

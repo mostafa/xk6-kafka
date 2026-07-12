@@ -45,6 +45,14 @@ func setConfluentConfigValue(config ckafka.ConfigMap, key string, value any) err
 	return config.SetKey(key, value)
 }
 
+func setConfluentConfigPtrValue[T any](config ckafka.ConfigMap, key string, value *T) error {
+	if value == nil {
+		return nil
+	}
+
+	return setConfluentConfigValue(config, key, *value)
+}
+
 func applyConfluentSecurityConfig(
 	config ckafka.ConfigMap,
 	saslConfig SASLConfig,
@@ -101,6 +109,24 @@ func applyConfluentSecurityConfig(
 		if err := setConfluentConfigValue(config, "sasl.password", saslConfig.Password); err != nil {
 			return err
 		}
+	case saslGssApi:
+		kerbCfg := saslConfig.KerberosConfig
+
+		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.service.name", kerbCfg.ServiceName); err != nil {
+			return err
+		}
+		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.principal", kerbCfg.Principal); err != nil {
+			return err
+		}
+		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.kinit.cmd", kerbCfg.KInitCmd); err != nil {
+			return err
+		}
+		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.keytab", kerbCfg.KeyTab); err != nil {
+			return err
+		}
+		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.min.time.before.relogin", kerbCfg.MinTimeBeforeRelogin); err != nil {
+			return err
+		}
 	case saslAwsIam:
 		return NewXk6KafkaError(
 			unsupportedOperation,
@@ -128,7 +154,7 @@ func confluentSecurityProtocol(saslConfig SASLConfig, tlsConfig TLSConfig) (stri
 			)
 		}
 		return "SASL_SSL", nil
-	case saslPlain, saslScramSha256, saslScramSha512, saslAwsIam, saslAzureEntra, saslGcpOauth:
+	case saslPlain, saslGssApi, saslScramSha256, saslScramSha512, saslAwsIam, saslAzureEntra, saslGcpOauth:
 		if tlsConfig.EnableTLS {
 			return "SASL_SSL", nil
 		}
@@ -146,6 +172,8 @@ func confluentSASLMechanism(saslConfig SASLConfig) (string, error) {
 	switch saslConfig.Algorithm {
 	case saslPlain, saslSsl:
 		return "PLAIN", nil
+	case saslGssApi:
+		return "GSSAPI", nil
 	case saslScramSha256:
 		return "SCRAM-SHA-256", nil
 	case saslScramSha512:

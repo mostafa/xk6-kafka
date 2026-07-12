@@ -135,6 +135,7 @@ func (m *Module) defineConstants() {
 	// SASL mechanisms
 	mustAddProp("NONE", none)
 	mustAddProp("SASL_PLAIN", saslPlain)
+	mustAddProp("SASL_GSSAPI", saslGssApi)
 	mustAddProp("SASL_SCRAM_SHA256", saslScramSha256)
 	mustAddProp("SASL_SCRAM_SHA512", saslScramSha512)
 	mustAddProp("SASL_SSL", saslSsl)
