@@ -9,7 +9,7 @@ import {
 } from "k6";
 import {
   Producer,
-  Consumer,
+  Reader,
   AdminClient,
   SchemaRegistry,
   SCHEMA_TYPE_STRING,
@@ -32,8 +32,9 @@ if (!__ENV.PRINCIPAL) {
 
 const brokers = [__ENV.BOOTSTRAP_SERVER];
 const topic = "k6-sasl-kerberos-test";
+const partition = 0;
 const numPartitions = 1;
-const groupId = "k6";
+const offset = 0;
 
 const saslConfig = {
   algorithm: SASL_GSSAPI,
@@ -54,16 +55,13 @@ const producer = new Producer({
   tls: tlsConfig,
 });
 
-const consumer = new Consumer({
+const reader = new Reader({
   brokers: brokers,
   topic: topic,
-  groupId: groupId,
-  // Default rebalance protocol could not complete in 30 seconds
-  groupBalancers: ["group_balancer_round_robin"],
+  partition: partition,
+  offset: offset,
   sasl: saslConfig,
   tls: tlsConfig,
-  // Need to allow time for rebalance
-  maxWait: "30s",
 });
 
 const adminClient = new AdminClient({
@@ -83,7 +81,7 @@ export function setup() {
         adminClient.createTopic({ topic: topic });
 
         // Wait for Kafka metadata to propagate to all brokers
-        sleep(5);
+        sleep(2);
     }
 }
 
@@ -112,7 +110,7 @@ function produce() {
 }
 
 function consume() {
-  let messages = consumer.consume({ limit: 10 });
+  let messages = reader.consume({ limit: 10 });
 
   check(messages, {
     "10 messages returned": (msgs) => msgs.length == 10,
@@ -133,5 +131,5 @@ export function teardown(data) {
   adminClient.deleteTopic(topic);
   adminClient.close();
   producer.close();
-  consumer.close();
+  reader.close();
 }
