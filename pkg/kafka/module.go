@@ -140,6 +140,7 @@ func (m *Module) defineConstants() {
 	mustAddProp("SASL_SSL", saslSsl)
 	mustAddProp("SASL_AWS_IAM", saslAwsIam)
 	mustAddProp("SASL_AZURE_ENTRA", saslAzureEntra)
+	mustAddProp("SASL_GCP_OAUTH", saslGcpOauth)
 
 	// Compression codecs
 	mustAddProp("CODEC_GZIP", codecGzip)
