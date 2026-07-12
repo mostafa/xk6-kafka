@@ -71,3 +71,5 @@ const saslConfig = {
   algorithm: SASL_GSSAPI,
 }
 ```
+
+See [`../scripts/test_sasl_kerberos.js`](../scripts/test_sasl_kerberos.js) for a complete example.
