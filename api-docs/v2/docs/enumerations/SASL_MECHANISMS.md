@@ -32,6 +32,14 @@ Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 ---
 
+### SASL_GCP_OAUTH
+
+> **SASL_GCP_OAUTH**: `"sasl_gcp_oauth"`
+
+Defined in: [index.d.ts:31](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L31)
+
+---
+
 ### SASL_PLAIN
 
 > **SASL_PLAIN**: `"sasl_plain"`

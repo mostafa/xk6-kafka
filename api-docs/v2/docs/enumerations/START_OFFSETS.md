@@ -4,7 +4,7 @@
 
 # Enumeration: START_OFFSETS
 
-Defined in: [index.d.ts:54](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L54)
+Defined in: [index.d.ts:55](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L55)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:54](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **START_OFFSETS_FIRST_OFFSET**: `"start_offsets_first_offset"`
 
-Defined in: [index.d.ts:56](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L56)
+Defined in: [index.d.ts:57](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L57)
 
 ---
 
@@ -20,4 +20,4 @@ Defined in: [index.d.ts:56](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **START_OFFSETS_LAST_OFFSET**: `"start_offsets_last_offset"`
 
-Defined in: [index.d.ts:55](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L55)
+Defined in: [index.d.ts:56](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L56)
