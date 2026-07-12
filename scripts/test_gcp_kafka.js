@@ -27,7 +27,7 @@ if (!__ENV.GCP_KAFKA_BOOTSTRAP_SERVER) {
   throw new Error(`Environment variable GCP_KAFKA_BOOTSTRAP_SERVER is missing!`);
 }
 
-const brokers = [`${__ENV.GCP_KAFKA_BOOTSTRAP_SERVER}:9093`];
+const brokers = [`${__ENV.GCP_KAFKA_BOOTSTRAP_SERVER}`];
 const topic = "k6-gcp-kafka-test";
 const numPartitions = 1;
 const groupId = "k6";
