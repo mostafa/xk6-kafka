@@ -104,6 +104,10 @@ func TestConfluentSASLMechanism(t *testing.T) {
 			algorithm: saslAzureEntra,
 			expected:  "OAUTHBEARER",
 		},
+		"gcp oauth": {
+			algorithm: saslGcpOauth,
+			expected:  "OAUTHBEARER",
+		},
 	}
 
 	for name, testCase := range testCases {

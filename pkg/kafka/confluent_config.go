@@ -154,6 +154,8 @@ func confluentSASLMechanism(saslConfig SASLConfig) (string, error) {
 		return "AWS_MSK_IAM", nil
 	case saslAzureEntra:
 		return "OAUTHBEARER", nil
+	case saslGcpOauth:
+		return "OAUTHBEARER", nil
 	default:
 		return "", NewXk6KafkaError(
 			unsupportedOperation,
