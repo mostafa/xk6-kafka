@@ -251,7 +251,7 @@ func buildGcpKafkaToken(accessToken string, expiresOn time.Time, subject string)
 		return "", err
 	}
 
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"exp":   expiresOn.Unix(),
 		"iat":   time.Now().Unix(),
 		"scope": "kafka",

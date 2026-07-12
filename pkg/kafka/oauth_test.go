@@ -161,7 +161,7 @@ func TestBuildGcpKafkaToken(t *testing.T) {
 	// Decode Payload
 	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 	require.NoError(t, err)
-	var payload map[string]interface{}
+	var payload map[string]any
 	err = json.Unmarshal(payloadBytes, &payload)
 	require.NoError(t, err)
 	require.Equal(t, "kafka", payload["scope"])
