@@ -6,6 +6,9 @@ import (
 	"net"
 	"time"
 
+	gcpAuth "cloud.google.com/go/auth"
+	gcpCredentials "cloud.google.com/go/auth/credentials"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -26,6 +29,7 @@ type OAuthTokenProvider interface {
 
 type OAuthProviderOpts struct {
 	azureTokenCredential azcore.TokenCredential
+	gcpTokenProvider     gcpAuth.TokenProvider
 }
 
 type OAuthTokenHandler interface {
@@ -38,6 +42,10 @@ func NewOAuthProvider(saslAlgorithm string, brokers []string, opts OAuthProvider
 		return newAzureEntraOAuthTokenProvider(brokers, opts.azureTokenCredential)
 	}
 
+	if saslAlgorithm == saslGcpOauth {
+		return newGcpOAuthTokenProvider(opts.gcpTokenProvider)
+	}
+
 	return nil, NewXk6KafkaError(failedCreateOAuthTokenProvider, saslAlgorithm+" is not a supported OAuth Provider.", nil)
 }
 
@@ -45,6 +53,8 @@ type AzureEntraOAuthTokenProvider struct {
 	tokenCredential azcore.TokenCredential
 	requestOpts     policy.TokenRequestOptions
 }
+
+var _ OAuthTokenProvider = (*AzureEntraOAuthTokenProvider)(nil)
 
 func newAzureEntraOAuthTokenProvider(
 	brokers []string, tokenCredential azcore.TokenCredential,
@@ -122,6 +132,36 @@ func (a *AzureEntraOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken
 		ExpiresOn: token.ExpiresOn,
 		RefreshOn: token.RefreshOn,
 	}, nil
+}
+
+var _ OAuthTokenProvider = (*GcpOAuthTokenProvider)(nil)
+
+type GcpOAuthTokenProvider struct {
+	tokenProvider gcpAuth.TokenProvider
+}
+
+func newGcpOAuthTokenProvider(tokenProvider gcpAuth.TokenProvider) (*GcpOAuthTokenProvider, error) {
+	var provider gcpAuth.TokenProvider
+	var err error
+
+	if tokenProvider == nil {
+		provider, err = gcpCredentials.DetectDefault(nil)
+		if err != nil {
+			return nil, NewXk6KafkaError(
+				failedGetOAuthToken,
+				"Failed to configure GCP OAuth Application Default Credentials (ADC).",
+				err,
+			)
+		}
+	}
+
+	return &GcpOAuthTokenProvider{
+		tokenProvider: provider,
+	}, nil
+}
+
+func (a *GcpOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken, error) {
+	return OAuthToken{}, nil
 }
 
 func refreshOAuthToken(ctx context.Context, saslContext SASLContext, handler OAuthTokenHandler) error {

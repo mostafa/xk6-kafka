@@ -18,6 +18,7 @@ const (
 	saslSsl         = "sasl_ssl"
 	saslAwsIam      = "sasl_aws_iam"
 	saslAzureEntra  = "sasl_azure_entra"
+	saslGcpOauth    = "sasl_gcp_oauth"
 )
 
 type SASLConfig struct {

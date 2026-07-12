@@ -21,7 +21,7 @@ func TestSASLContext(t *testing.T) {
 		require.Nil(t, context.OAuthProvider)
 	})
 
-	t.Run("algorithm with oauth context", func(t *testing.T) {
+	t.Run("azure entra algorithm with oauth context", func(t *testing.T) {
 		fakeToken := azcoreFake.TokenCredential{}
 
 		opts := SASLContextOpts{
@@ -36,6 +36,10 @@ func TestSASLContext(t *testing.T) {
 
 		require.NoError(t, err)
 		require.NotNil(t, context.OAuthProvider)
+	})
+
+	t.Run("gcp oauth algorithm with oauth context", func(t *testing.T) {
+
 	})
 }
 
