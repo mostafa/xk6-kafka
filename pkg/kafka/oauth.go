@@ -164,7 +164,6 @@ func (g *GcpSdkSubjectProvider) GetSubject(ctx context.Context, token string) (s
 	tokenInfo, err := oAuthService.Tokeninfo().AccessToken(token).Do()
 	if err != nil {
 		return "", NewXk6KafkaError(failedGetOAuthToken, "Failed to get GCP OAuth Access Token information.", err)
-
 	}
 
 	return tokenInfo.Email, nil
