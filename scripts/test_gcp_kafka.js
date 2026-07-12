@@ -24,7 +24,9 @@ import {
 } from "k6/x/kafka";
 
 if (!__ENV.GCP_KAFKA_BOOTSTRAP_SERVER) {
-  throw new Error(`Environment variable GCP_KAFKA_BOOTSTRAP_SERVER is missing!`);
+  throw new Error(
+    `Environment variable GCP_KAFKA_BOOTSTRAP_SERVER is missing!`,
+  );
 }
 
 const brokers = [`${__ENV.GCP_KAFKA_BOOTSTRAP_SERVER}`];
