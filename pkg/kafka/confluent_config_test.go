@@ -157,6 +157,16 @@ func TestApplyConfluentSecurityConfig(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("gcp oauth", func(t *testing.T) {
+		t.Parallel()
+		cfg := newMap()
+		require.NoError(t, applyConfluentSecurityConfig(cfg, SASLConfig{
+			Algorithm: saslGcpOauth,
+		}, TLSConfig{EnableTLS: true}))
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Equal(t, "OAUTHBEARER", cfg["sasl.mechanism"])
+	})
+
 	t.Run("unsupported security protocol", func(t *testing.T) {
 		t.Parallel()
 		cfg := newMap()
