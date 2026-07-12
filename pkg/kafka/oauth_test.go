@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	gcpAuth "cloud.google.com/go/auth"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,12 +19,14 @@ var (
 	testSigningKey             = []byte("test-signing-key-unit-test-only")
 )
 
-type testTokenCredential struct {
+type testAzureEntraTokenCredential struct {
 	Subject string
 	Error   error
 }
 
-func (t *testTokenCredential) GetToken(
+var _ azcore.TokenCredential = (*testAzureEntraTokenCredential)(nil)
+
+func (t *testAzureEntraTokenCredential) GetToken(
 	ctx context.Context,
 	opts policy.TokenRequestOptions,
 ) (azcore.AccessToken, error) {
@@ -42,6 +46,45 @@ func (t *testTokenCredential) GetToken(
 	return azcore.AccessToken{Token: tokenStr, ExpiresOn: time.Now().Add(24 * time.Hour)}, nil
 }
 
+type testGcpTokenProvider struct {
+	Error error
+}
+
+var _ gcpAuth.TokenProvider = (*testGcpTokenProvider)(nil)
+
+type testGcpSubjectProvider struct {
+	Subject string
+	Error   error
+}
+
+var _ GcpSubjectProvider = (*testGcpSubjectProvider)(nil)
+
+func (t *testGcpTokenProvider) Token(context.Context) (*gcpAuth.Token, error) {
+	if t.Error != nil {
+		return nil, t.Error
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{})
+
+	tokenStr, err := token.SignedString(testSigningKey)
+	if err != nil {
+		return &gcpAuth.Token{}, err
+	}
+
+	return &gcpAuth.Token{
+		Value:  tokenStr,
+		Expiry: time.Now().Add(24 * time.Hour),
+	}, nil
+}
+
+func (t *testGcpSubjectProvider) GetSubject(ctx context.Context, token string) (string, error) {
+	if t.Error != nil {
+		return "", t.Error
+	}
+
+	return t.Subject, nil
+}
+
 func TestGetOAuthTokenSuccess(t *testing.T) {
 	testCases := map[string]struct {
 		saslAlgorithm        string
@@ -53,7 +96,19 @@ func TestGetOAuthTokenSuccess(t *testing.T) {
 		"azure entra": {
 			saslAlgorithm: saslAzureEntra,
 			opts: OAuthProviderOpts{
-				azureTokenCredential: &testTokenCredential{
+				azureTokenCredential: &testAzureEntraTokenCredential{
+					Subject: "test-sub",
+				},
+			},
+			expectedSubject:      "test-sub",
+			expectedExpiredAfter: time.Now(),
+			expectedRefreshAfter: time.Time{},
+		},
+		"gcp oauth": {
+			saslAlgorithm: saslGcpOauth,
+			opts: OAuthProviderOpts{
+				gcpTokenProvider: &testGcpTokenProvider{},
+				gcpSubjectProvider: &testGcpSubjectProvider{
 					Subject: "test-sub",
 				},
 			},
@@ -87,7 +142,27 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 		"azure entra": {
 			saslAlgorithm: saslAzureEntra,
 			opts: OAuthProviderOpts{
-				azureTokenCredential: &testTokenCredential{
+				azureTokenCredential: &testAzureEntraTokenCredential{
+					Error: errFakeFailedRetrieveToken,
+				},
+			},
+		},
+		"gcp oauth": {
+			saslAlgorithm: saslGcpOauth,
+			opts: OAuthProviderOpts{
+				gcpTokenProvider: &testGcpTokenProvider{
+					Error: errFakeFailedRetrieveToken,
+				},
+				gcpSubjectProvider: &testGcpSubjectProvider{
+					Subject: "test-subject",
+				},
+			},
+		},
+		"gcp oauth subject": {
+			saslAlgorithm: saslGcpOauth,
+			opts: OAuthProviderOpts{
+				gcpTokenProvider: &testGcpTokenProvider{},
+				gcpSubjectProvider: &testGcpSubjectProvider{
 					Error: errFakeFailedRetrieveToken,
 				},
 			},
