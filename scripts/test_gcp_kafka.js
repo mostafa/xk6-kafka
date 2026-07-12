@@ -33,7 +33,7 @@ const numPartitions = 1;
 const groupId = "k6";
 
 const saslConfig = {
-  algorithm: SASL_AZURE_ENTRA,
+  algorithm: SASL_GCP_OAUTH,
 };
 
 const tlsConfig = {
