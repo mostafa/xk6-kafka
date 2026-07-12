@@ -178,7 +178,9 @@ func newGcpOAuthTokenProvider(tokenProvider gcpAuth.TokenProvider, subjectProvid
 	var err error
 
 	if tokenProvider == nil {
-		tokenProvider, err = gcpCredentials.DetectDefault(nil)
+		tokenProvider, err = gcpCredentials.DetectDefault(&gcpCredentials.DetectOptions{
+			Scopes: []string{"https://www.googleapis.com/auth/cloud-platform"},
+		})
 		if err != nil {
 			return nil, NewXk6KafkaError(
 				failedGetOAuthToken,
