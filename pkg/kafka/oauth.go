@@ -21,6 +21,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const halfLifeDivisor = 2
+
 type OAuthToken struct {
 	Token     string
 	Subject   string
@@ -173,7 +175,10 @@ func newGcpSdkSubjectProvider() (*GcpSdkSubjectProvider, error) {
 	return &GcpSdkSubjectProvider{}, nil
 }
 
-func newGcpOAuthTokenProvider(tokenProvider gcpAuth.TokenProvider, subjectProvider GcpSubjectProvider) (*GcpOAuthTokenProvider, error) {
+func newGcpOAuthTokenProvider(
+	tokenProvider gcpAuth.TokenProvider,
+	subjectProvider GcpSubjectProvider,
+) (*GcpOAuthTokenProvider, error) {
 	var provider gcpAuth.TokenProvider
 	var subProvider GcpSubjectProvider
 	var err error
@@ -221,7 +226,7 @@ func (a *GcpOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken, error
 	}
 
 	lifetime := token.Expiry.Sub(fetchTime)
-	refreshOn := fetchTime.Add(lifetime / 2)
+	refreshOn := fetchTime.Add(lifetime / halfLifeDivisor)
 
 	subject, err := a.subjectProvider.GetSubject(ctx, token.Value)
 	if err != nil {
