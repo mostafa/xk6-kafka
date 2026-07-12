@@ -28,6 +28,7 @@ export enum SASL_MECHANISMS {
   SASL_SSL = "sasl_ssl",
   SASL_AWS_IAM = "sasl_aws_iam",
   SASL_AZURE_ENTRA = "sasl_azure_entra",
+  SASL_GCP_OAUTH = "sasl_gcp_oauth",
 }
 
 /* TLS versions for creating a secure communication channel with Kafka. */

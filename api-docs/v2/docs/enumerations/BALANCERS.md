@@ -4,7 +4,7 @@
 
 # Enumeration: BALANCERS
 
-Defined in: [index.d.ts:71](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L71)
+Defined in: [index.d.ts:72](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L72)
 
 ## Enumeration Members
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:71](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **BALANCER_CRC32**: `"balancer_crc32"`
 
-Defined in: [index.d.ts:75](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L75)
+Defined in: [index.d.ts:76](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L76)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:75](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **BALANCER_HASH**: `"balancer_hash"`
 
-Defined in: [index.d.ts:74](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L74)
+Defined in: [index.d.ts:75](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L75)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:74](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **BALANCER_LEAST_BYTES**: `"balancer_leastbytes"`
 
-Defined in: [index.d.ts:73](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L73)
+Defined in: [index.d.ts:74](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L74)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:73](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **BALANCER_MURMUR2**: `"balancer_murmur2"`
 
-Defined in: [index.d.ts:76](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L76)
+Defined in: [index.d.ts:77](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L77)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: [index.d.ts:76](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **BALANCER_ROUND_ROBIN**: `"balancer_roundrobin"`
 
-Defined in: [index.d.ts:72](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L72)
+Defined in: [index.d.ts:73](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L73)
