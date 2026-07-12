@@ -188,6 +188,8 @@ func newGcpOAuthTokenProvider(tokenProvider gcpAuth.TokenProvider, subjectProvid
 				err,
 			)
 		}
+
+		provider = tokenProvider
 	} else {
 		provider = tokenProvider
 	}
