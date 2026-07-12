@@ -79,13 +79,11 @@ export function setup() {
         .listTopics(saslConfig, tlsConfig)
         .map(topic => topic.Topic);
 
-    console.log(topics)
-
     if (!topics.includes(topic)) {
         adminClient.createTopic({ topic: topic });
 
         // Wait for Kafka metadata to propagate to all brokers
-        sleep(2);
+        sleep(5);
     }
 }
 
