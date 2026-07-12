@@ -6,7 +6,7 @@
 
 > **BalancerFunction** = (`key`, `partitionCount`) => `number`
 
-Defined in: [index.d.ts:80](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L80)
+Defined in: [index.d.ts:81](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L81)
 
 ## Parameters
 

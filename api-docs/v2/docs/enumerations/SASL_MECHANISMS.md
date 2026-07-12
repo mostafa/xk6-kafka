@@ -20,7 +20,7 @@ Defined in: [index.d.ts:24](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_AWS_IAM**: `"sasl_aws_iam"`
 
-Defined in: [index.d.ts:29](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L29)
+Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L30)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:29](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_AZURE_ENTRA**: `"sasl_azure_entra"`
 
-Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L30)
+Defined in: [index.d.ts:31](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L31)
 
 ---
 
@@ -36,7 +36,15 @@ Defined in: [index.d.ts:30](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_GCP_OAUTH**: `"sasl_gcp_oauth"`
 
-Defined in: [index.d.ts:31](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L31)
+Defined in: [index.d.ts:32](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L32)
+
+---
+
+### SASL_GSSAPI
+
+> **SASL_GSSAPI**: `"sasl_gssapi"`
+
+Defined in: [index.d.ts:26](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L26)
 
 ---
 
@@ -52,7 +60,7 @@ Defined in: [index.d.ts:25](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_SCRAM_SHA256**: `"sasl_scram_sha256"`
 
-Defined in: [index.d.ts:26](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L26)
+Defined in: [index.d.ts:27](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L27)
 
 ---
 
@@ -60,7 +68,7 @@ Defined in: [index.d.ts:26](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_SCRAM_SHA512**: `"sasl_scram_sha512"`
 
-Defined in: [index.d.ts:27](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L27)
+Defined in: [index.d.ts:28](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L28)
 
 ---
 
@@ -68,4 +76,4 @@ Defined in: [index.d.ts:27](https://github.com/mostafa/xk6-kafka/blob/main/api-d
 
 > **SASL_SSL**: `"sasl_ssl"`
 
-Defined in: [index.d.ts:28](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L28)
+Defined in: [index.d.ts:29](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L29)
