@@ -40,7 +40,7 @@ func NewSaslContext(saslConfig SASLConfig, brokers []string, opts SASLContextOpt
 	saslContext := SASLContext{}
 
 	switch saslConfig.Algorithm {
-	case saslAzureEntra:
+	case saslAzureEntra, saslGcpOauth:
 		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, brokers, opts.OAuthProviderOpts)
 		if err != nil {
 			return SASLContext{}, err

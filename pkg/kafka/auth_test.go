@@ -39,7 +39,19 @@ func TestSASLContext(t *testing.T) {
 	})
 
 	t.Run("gcp oauth algorithm with oauth context", func(t *testing.T) {
+		opts := SASLContextOpts{
+			OAuthProviderOpts: OAuthProviderOpts{
+				gcpTokenProvider:   &testGcpTokenProvider{},
+				gcpSubjectProvider: &testGcpSubjectProvider{},
+			},
+		}
 
+		context, err := NewSaslContext(SASLConfig{
+			Algorithm: saslGcpOauth,
+		}, []string{"broker1:9093"}, opts)
+
+		require.NoError(t, err)
+		require.NotNil(t, context.OAuthProvider)
 	})
 }
 
