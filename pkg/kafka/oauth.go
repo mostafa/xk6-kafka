@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"time"
@@ -165,7 +167,7 @@ func (g *GcpSdkSubjectProvider) GetSubject(ctx context.Context, token string) (s
 
 	}
 
-	return tokenInfo.UserId, nil
+	return tokenInfo.Email, nil
 }
 
 func newGcpSdkSubjectProvider() (*GcpSdkSubjectProvider, error) {
@@ -227,12 +229,45 @@ func (a *GcpOAuthTokenProvider) GetToken(ctx context.Context) (OAuthToken, error
 		return OAuthToken{}, NewXk6KafkaError(failedGetOAuthToken, "GCP OAuth token subject could not be retrieved.", err)
 	}
 
+	kafkaToken, err := buildGcpKafkaToken(token.Value, token.Expiry, subject)
+	if err != nil {
+		return OAuthToken{}, NewXk6KafkaError(failedGetOAuthToken, "Failed to build GCP Kafka OAuth token.", err)
+	}
+
 	return OAuthToken{
-		Token:     token.Value,
+		Token:     kafkaToken,
 		Subject:   subject,
 		ExpiresOn: token.Expiry,
 		RefreshOn: refreshOn,
 	}, nil
+}
+
+func buildGcpKafkaToken(accessToken string, expiresOn time.Time, subject string) (string, error) {
+	header := map[string]string{
+		"typ": "JWT",
+		"alg": "GOOG_OAUTH2_TOKEN",
+	}
+	headerBytes, err := json.Marshal(header)
+	if err != nil {
+		return "", err
+	}
+
+	payload := map[string]interface{}{
+		"exp":   expiresOn.Unix(),
+		"iat":   time.Now().Unix(),
+		"scope": "kafka",
+		"sub":   subject,
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	headerB64 := base64.RawURLEncoding.EncodeToString(headerBytes)
+	payloadB64 := base64.RawURLEncoding.EncodeToString(payloadBytes)
+	tokenB64 := base64.RawURLEncoding.EncodeToString([]byte(accessToken))
+
+	return headerB64 + "." + payloadB64 + "." + tokenB64, nil
 }
 
 func refreshOAuthToken(ctx context.Context, saslContext SASLContext, handler OAuthTokenHandler) error {

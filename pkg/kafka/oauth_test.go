@@ -2,7 +2,10 @@ package kafka
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -132,6 +135,44 @@ func TestGetOAuthTokenSuccess(t *testing.T) {
 			require.GreaterOrEqual(t, token.RefreshOn, test.expectedRefreshAfter)
 		})
 	}
+}
+
+func TestBuildGcpKafkaToken(t *testing.T) {
+	accessToken := "ya29.test-access-token"
+	expiresOn := time.Now().Add(1 * time.Hour)
+	subject := "test-subject@example.com"
+
+	tokenStr, err := buildGcpKafkaToken(accessToken, expiresOn, subject)
+	require.NoError(t, err)
+	require.NotEmpty(t, tokenStr)
+
+	parts := strings.Split(tokenStr, ".")
+	require.Len(t, parts, 3)
+
+	// Decode Header
+	headerBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
+	require.NoError(t, err)
+	var header map[string]string
+	err = json.Unmarshal(headerBytes, &header)
+	require.NoError(t, err)
+	require.Equal(t, "JWT", header["typ"])
+	require.Equal(t, "GOOG_OAUTH2_TOKEN", header["alg"])
+
+	// Decode Payload
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	require.NoError(t, err)
+	var payload map[string]interface{}
+	err = json.Unmarshal(payloadBytes, &payload)
+	require.NoError(t, err)
+	require.Equal(t, "kafka", payload["scope"])
+	require.Equal(t, subject, payload["sub"])
+	require.Equal(t, float64(expiresOn.Unix()), payload["exp"])
+	require.Contains(t, payload, "iat")
+
+	// Decode Token
+	rawTokenBytes, err := base64.RawURLEncoding.DecodeString(parts[2])
+	require.NoError(t, err)
+	require.Equal(t, accessToken, string(rawTokenBytes))
 }
 
 func TestGetOAuthTokenFailure(t *testing.T) {
