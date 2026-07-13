@@ -124,7 +124,11 @@ func applyConfluentSecurityConfig(
 		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.keytab", kerbCfg.KeyTab); err != nil {
 			return err
 		}
-		if err := setConfluentConfigPtrValue(config, "sasl.kerberos.min.time.before.relogin", kerbCfg.MinTimeBeforeRelogin); err != nil {
+		if err := setConfluentConfigPtrValue(
+			config,
+			"sasl.kerberos.min.time.before.relogin",
+			kerbCfg.MinTimeBeforeRelogin,
+		); err != nil {
 			return err
 		}
 	case saslAwsIam:
