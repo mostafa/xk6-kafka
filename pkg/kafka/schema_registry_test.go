@@ -132,7 +132,9 @@ func TestNewSchemaRegistryTransportWithTLS(t *testing.T) {
 
 	httpTransport, ok := transport.(*http.Transport)
 	require.True(t, ok, "expected *http.Transport")
-	assert.Empty(t, httpTransport.TLSNextProto, "TLSNextProto must be empty to prevent HTTP/2 connection pool corruption when TLSClientConfig is set")
+	assert.Empty(t, httpTransport.TLSNextProto,
+		"TLSNextProto must be empty to prevent HTTP/2 negotiation "+
+			"which bypasses gzipTransport when TLSClientConfig is set")
 	assert.Equal(t, tlsConfig, httpTransport.TLSClientConfig)
 }
 
