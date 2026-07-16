@@ -585,17 +585,23 @@ func (k *Kafka) schemaRegistryClient(config *SchemaRegistryConfig) SchemaRegistr
 }
 
 func newSchemaRegistryTransport(tlsConfig *tls.Config) http.RoundTripper {
+	if tlsConfig == nil {
+		return http.DefaultTransport
+	}
+
 	baseTransport, ok := http.DefaultTransport.(*http.Transport)
 	if !ok {
-		if tlsConfig == nil {
-			return http.DefaultTransport
-		}
-
 		return &http.Transport{TLSClientConfig: tlsConfig}
 	}
 
 	transport := baseTransport.Clone()
 	transport.TLSClientConfig = tlsConfig
+	// Cloning http.DefaultTransport copies TLSNextProto (the HTTP/2 protocol map).
+	// Setting TLSClientConfig on the clone without clearing TLSNextProto leaves the
+	// HTTP/2 connection pool in a broken state, causing EOF and gzip decoding failures
+	// on HTTPS schema registry endpoints. Clearing TLSNextProto forces HTTP/1.1, which
+	// is the same behaviour as the v1 fix (PR #363) that used a fresh http.Transport.
+	transport.TLSNextProto = make(map[string]func(authority string, c *tls.Conn) http.RoundTripper)
 	return transport
 }
 
