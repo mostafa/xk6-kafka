@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"crypto/tls"
+	"net/http"
 	"testing"
 
 	"github.com/grafana/sobek"
@@ -117,6 +119,28 @@ func TestSchemaRegistryClientWithTLSConfig(t *testing.T) {
 	}
 	srClient := test.module.schemaRegistryClient(&srConfig)
 	assert.NotNil(t, srClient)
+}
+
+// TestNewSchemaRegistryTransportWithTLS verifies that the transport returned when a
+// TLSClientConfig is provided has TLSNextProto cleared. Cloning http.DefaultTransport
+// copies TLSNextProto (the HTTP/2 protocol map); without clearing it, setting
+// TLSClientConfig on the clone corrupts the HTTP/2 connection pool and causes EOF
+// and gzip decoding failures on HTTPS schema registry endpoints (regression in v2).
+func TestNewSchemaRegistryTransportWithTLS(t *testing.T) {
+	tlsConfig := &tls.Config{InsecureSkipVerify: true} //nolint:gosec // test only
+	transport := newSchemaRegistryTransport(tlsConfig)
+
+	httpTransport, ok := transport.(*http.Transport)
+	require.True(t, ok, "expected *http.Transport")
+	assert.Empty(t, httpTransport.TLSNextProto, "TLSNextProto must be empty to prevent HTTP/2 connection pool corruption when TLSClientConfig is set")
+	assert.Equal(t, tlsConfig, httpTransport.TLSClientConfig)
+}
+
+// TestNewSchemaRegistryTransportWithoutTLS verifies that http.DefaultTransport is
+// returned as-is when no TLSClientConfig is provided.
+func TestNewSchemaRegistryTransportWithoutTLS(t *testing.T) {
+	transport := newSchemaRegistryTransport(nil)
+	assert.Equal(t, http.DefaultTransport, transport)
 }
 
 // TestGetLatestSchemaFails tests getting the latest schema and fails because
