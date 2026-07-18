@@ -4,6 +4,36 @@ node = "24"
 podman = "6"
 golangci-lint = "2"
 "go:go.k6.io/xk6" = "1"
+"npm:prettier" = "3"
+
+[tasks.build]
+sources = ["pkg/**/*"]
+outputs = ["k6*"]
+run = "CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v2@latest=."
+
+[tasks.test]
+depends = ["test:unit"]
+
+[tasks."test:unit"]
+sources = ["pkg/**/*"]
+run = "CGO_ENABLED=1 go test ./... -race"
+
+[tasks.lint]
+depends = ["lint:scripts", "lint:api-docs"]
+
+[tasks."lint:scripts"]
+sources = ["scripts/**/*.js"]
+run = "prettier --check scripts/**/*.js"
+
+[tasks."lint:api-docs"]
+sources = ["api-docs/**/*.ts"]
+run = "prettier --check api-docs/**/*.ts"
+
+[tasks."lint:actions"]
+sources = [".github/**.yaml", ".github/*.yml"]
+
+[tasks."verify"]
+depends = ["build", "test", "lint"]
 
 [settings]
 lockfile = true
