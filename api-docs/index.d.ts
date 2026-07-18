@@ -23,6 +23,7 @@ export enum COMPRESSION_CODECS {
 export enum SASL_MECHANISMS {
   NONE = "none",
   SASL_PLAIN = "sasl_plain",
+  SASL_GSSAPI = "sasl_gssapi",
   SASL_SCRAM_SHA256 = "sasl_scram_sha256",
   SASL_SCRAM_SHA512 = "sasl_scram_sha512",
   SASL_SSL = "sasl_ssl",
@@ -111,6 +112,16 @@ export interface SASLConfig {
   password: string;
   algorithm: SASL_MECHANISMS;
   awsProfile: string;
+  kerberosConfig?: KerberosConfig;
+}
+
+/* SASL GSSAPI configurations for Kerberos authentication to Kafka. */
+export interface KerberosConfig {
+  serviceName?: string;
+  principal?: string;
+  kInitCmd?: string;
+  keyTab?: string;
+  minTimeBeforeRelogin?: number;
 }
 
 /* TLS configurations for creating a secure communication channel with Kafka. */

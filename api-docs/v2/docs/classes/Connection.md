@@ -4,7 +4,7 @@
 
 # ~~Class: Connection~~
 
-Defined in: [index.d.ts:483](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L483)
+Defined in: [index.d.ts:494](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L494)
 
 ## Deprecated
 
@@ -16,7 +16,7 @@ Use `AdminClient` instead. `Connection` remains as a compatibility alias in v2.x
 
 > **new Connection**(`connectionConfig`): `Connection`
 
-Defined in: [index.d.ts:490](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L490)
+Defined in: [index.d.ts:501](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L501)
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Connection configuration.
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:516](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L516)
+Defined in: [index.d.ts:527](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L527)
 
 #### Returns
 
@@ -58,7 +58,7 @@ Close the connection.
 
 > **createTopic**(`topicConfig`): `void`
 
-Defined in: [index.d.ts:497](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L497)
+Defined in: [index.d.ts:508](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L508)
 
 #### Parameters
 
@@ -84,7 +84,7 @@ Create a new topic.
 
 > **deleteTopic**(`topic`): `void`
 
-Defined in: [index.d.ts:504](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L504)
+Defined in: [index.d.ts:515](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L515)
 
 #### Parameters
 
@@ -110,7 +110,7 @@ Delete a topic.
 
 > **listTopics**(): `string`[]
 
-Defined in: [index.d.ts:510](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L510)
+Defined in: [index.d.ts:521](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L521)
 
 #### Returns
 

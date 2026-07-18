@@ -99,6 +99,57 @@ func TestApplyConfluentSecurityConfig(t *testing.T) {
 		assert.Equal(t, "SASL_PLAINTEXT", cfg["security.protocol"])
 	})
 
+	t.Run("sasl gssapi", func(t *testing.T) {
+		t.Parallel()
+		cfg := newMap()
+		require.NoError(t, applyConfluentSecurityConfig(cfg, SASLConfig{Algorithm: saslGssApi}, TLSConfig{EnableTLS: true}))
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Equal(t, "GSSAPI", cfg["sasl.mechanism"])
+	})
+
+	t.Run("sasl gssapi with kerberos config", func(t *testing.T) {
+		t.Parallel()
+		cfg := newMap()
+		require.NoError(t, applyConfluentSecurityConfig(
+			cfg,
+			SASLConfig{
+				Algorithm: saslGssApi,
+				KerberosConfig: KerberosConfig{
+					ServiceName:          new("kafkaTest"),
+					Principal:            new("test@realm"),
+					KInitCmd:             new("/path/to/kinit"),
+					KeyTab:               new("/path/to/test/keytab"),
+					MinTimeBeforeRelogin: new(1000),
+				},
+			},
+			TLSConfig{EnableTLS: true},
+		))
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Equal(t, "GSSAPI", cfg["sasl.mechanism"])
+		assert.Equal(t, "kafkaTest", cfg["sasl.kerberos.service.name"])
+		assert.Equal(t, "test@realm", cfg["sasl.kerberos.principal"])
+		assert.Equal(t, "/path/to/kinit", cfg["sasl.kerberos.kinit.cmd"])
+		assert.Equal(t, "/path/to/test/keytab", cfg["sasl.kerberos.keytab"])
+		assert.Equal(t, 1000, cfg["sasl.kerberos.min.time.before.relogin"])
+	})
+
+	t.Run("sasl gssapi with kerberos default config", func(t *testing.T) {
+		t.Parallel()
+		cfg := newMap()
+		require.NoError(t, applyConfluentSecurityConfig(cfg, SASLConfig{
+			Algorithm:      saslGssApi,
+			KerberosConfig: KerberosConfig{},
+		}, TLSConfig{EnableTLS: true}))
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Equal(t, "GSSAPI", cfg["sasl.mechanism"])
+		assert.Equal(t, "SASL_SSL", cfg["security.protocol"])
+		assert.Nil(t, cfg["sasl.kerberos.service.name"])
+		assert.Nil(t, cfg["sasl.kerberos.principal"])
+		assert.Nil(t, cfg["sasl.kerberos.kinit.cmd"])
+		assert.Nil(t, cfg["sasl.kerberos.keytab"])
+		assert.Nil(t, cfg["sasl.kerberos.min.time.before.relogin"])
+	})
+
 	t.Run("scram sha512", func(t *testing.T) {
 		t.Parallel()
 		cfg := newMap()

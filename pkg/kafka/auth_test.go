@@ -85,6 +85,15 @@ func TestConfluentSecurityProtocol(t *testing.T) {
 		require.Error(t, err)
 		assert.EqualError(t, err, "You must enable TLS to use SASL_SSL")
 	})
+
+	t.Run("sasl ssl gssapi", func(t *testing.T) {
+		protocol, err := confluentSecurityProtocol(
+			SASLConfig{Algorithm: saslGssApi},
+			TLSConfig{EnableTLS: true},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "SASL_SSL", protocol)
+	})
 }
 
 func TestConfluentSASLMechanism(t *testing.T) {
@@ -95,6 +104,10 @@ func TestConfluentSASLMechanism(t *testing.T) {
 		"plain": {
 			algorithm: saslPlain,
 			expected:  "PLAIN",
+		},
+		"sasl gssapi": {
+			algorithm: saslGssApi,
+			expected:  "GSSAPI",
 		},
 		"sasl ssl": {
 			algorithm: saslSsl,
