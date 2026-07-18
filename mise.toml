@@ -41,7 +41,11 @@ done
 '''
 
 [tasks.lint]
-depends = ["lint:scripts", "lint:api-docs", "lint:actions"]
+depends = ["lint:go", "lint:scripts", "lint:api-docs", "lint:actions"]
+
+[tasks."lint:go"]
+sources = ["compat.go", "pkg/**/*.go", "go.mod", "go.sum"]
+run = "golangci-lint run"
 
 [tasks."lint:scripts"]
 sources = ["scripts/**/*.js"]
