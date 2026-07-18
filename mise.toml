@@ -6,6 +6,12 @@ golangci-lint = "2"
 "go:go.k6.io/xk6" = "1"
 "npm:prettier" = "3"
 "github:zizmorcore/zizmor" = "1"
+"npm:yarn" = "1"
+
+[tasks."deps:api-docs"]
+dir = "api-docs"
+sources = ["package.json", "yarn.lock", "node_modules"]
+run = "yarn install"
 
 [tasks.build]
 depends = ["build:go", "build:api-docs"]
@@ -16,10 +22,11 @@ outputs = ["k6*"]
 run = "CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v2@latest=."
 
 [tasks."build:api-docs"]
+depends = ["deps:api-docs"]
 dir = "api-docs"
 sources = ["api-docs/**/*.ts"]
 outputs = ["docs/**", "v2/**"]
-run = "npm run sync-docs:v2 && npm run generate-docs"
+run = "yarn run generate-docs:v2"
 
 [tasks.test]
 depends = ["test:unit", "test:smoke", "test:integration"]
@@ -72,9 +79,10 @@ sources = ["api-docs/**/*.ts"]
 run = "prettier --check api-docs/**/*.ts"
 
 [tasks."lint:api-docs:validate"]
+depends = ["deps:api-docs"]
 dir = "api-docs"
 sources = ["api-docs/**/*.ts"]
-run = "npm run validate-d-ts"
+run = "yarn run validate-d-ts"
 
 [tasks."lint:actions"]
 sources = [".github/**.yaml", ".github/*.yml"]
