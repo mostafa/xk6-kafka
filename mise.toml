@@ -1,0 +1,9 @@
+[tools]
+go = "1.26"
+node = "24"
+podman = "6"
+golangci-lint = "2"
+"go:go.k6.io/xk6" = "1"
+
+[settings]
+lockfile = true
