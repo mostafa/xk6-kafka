@@ -8,9 +8,18 @@ golangci-lint = "2"
 "github:zizmorcore/zizmor" = "1"
 
 [tasks.build]
+depends = ["build:go", "build:docs"]
+
+[tasks."build:go"]
 sources = ["pkg/**/*"]
 outputs = ["k6*"]
 run = "CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v2@latest=."
+
+[tasks."build:api-docs"]
+dir = "api-docs"
+sources = ["api-docs/**/*.ts"]
+outputs = ["docs/**", "v2/**"]
+run = "npm run sync-docs:v2 && npm run generate-docs"
 
 [tasks.test]
 depends = ["test:unit"]
@@ -27,6 +36,13 @@ sources = ["scripts/**/*.js"]
 run = "prettier --check scripts/**/*.js"
 
 [tasks."lint:api-docs"]
+depends = ["lint:api-docs:prettier", "lint:api-docs:validate"]
+
+[tasks."lint:api-docs:prettier"]
+sources = ["api-docs/**/*.ts"]
+run = "prettier --check api-docs/**/*.ts"
+
+[tasks."lint:api-docs:validate"]
 sources = ["api-docs/**/*.ts"]
 run = "prettier --check api-docs/**/*.ts"
 
