@@ -8,7 +8,7 @@ golangci-lint = "2"
 "github:zizmorcore/zizmor" = "1"
 
 [tasks.build]
-depends = ["build:go", "build:docs"]
+depends = ["build:go", "build:api-docs"]
 
 [tasks."build:go"]
 sources = ["pkg/**/*"]
