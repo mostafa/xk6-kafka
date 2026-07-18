@@ -5,6 +5,7 @@ podman = "6"
 golangci-lint = "2"
 "go:go.k6.io/xk6" = "1"
 "npm:prettier" = "3"
+"github:zizmorcore/zizmor" = "1"
 
 [tasks.build]
 sources = ["pkg/**/*"]
@@ -19,7 +20,7 @@ sources = ["pkg/**/*"]
 run = "CGO_ENABLED=1 go test ./... -race"
 
 [tasks.lint]
-depends = ["lint:scripts", "lint:api-docs"]
+depends = ["lint:scripts", "lint:api-docs", "lint:actions"]
 
 [tasks."lint:scripts"]
 sources = ["scripts/**/*.js"]
@@ -31,6 +32,7 @@ run = "prettier --check api-docs/**/*.ts"
 
 [tasks."lint:actions"]
 sources = [".github/**.yaml", ".github/*.yml"]
+run = "zizmor ."
 
 [tasks."verify"]
 depends = ["build", "test", "lint"]
