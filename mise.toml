@@ -10,7 +10,8 @@ golangci-lint = "2"
 
 [tasks."deps:api-docs"]
 dir = "api-docs"
-sources = ["package.json", "yarn.lock", "node_modules"]
+sources = ["package.json", "yarn.lock"]
+outputs = ["node_modules"]
 run = "yarn install"
 
 [tasks.build]
