@@ -3,10 +3,7 @@ This is a k6 test script that imports the xk6-kafka and
 tests Kerberized Kafka with 1 string message per iteration.
 */
 
-import {
-    check,
-    sleep
-} from "k6";
+import { check, sleep } from "k6";
 import {
   Producer,
   Reader,
@@ -29,7 +26,6 @@ if (!__ENV.PRINCIPAL) {
   throw new Error(`Environment variable PRINCIPAL is missing!`);
 }
 
-
 const brokers = [__ENV.BOOTSTRAP_SERVER];
 const topic = "k6-sasl-kerberos-test";
 const partition = 0;
@@ -41,12 +37,12 @@ const saslConfig = {
   kerberosConfig: {
     keyTab: __ENV.KEYTAB_PATH,
     principal: __ENV.PRINCIPAL,
-  }
+  },
 };
 
 const tlsConfig = {
   enableTls: false,
-}
+};
 
 const producer = new Producer({
   brokers: brokers,
@@ -73,16 +69,16 @@ const adminClient = new AdminClient({
 const schemaRegistry = new SchemaRegistry();
 
 export function setup() {
-    const topics = adminClient
-        .listTopics(saslConfig, tlsConfig)
-        .map(topic => topic.Topic);
+  const topics = adminClient
+    .listTopics(saslConfig, tlsConfig)
+    .map((topic) => topic.Topic);
 
-    if (!topics.includes(topic)) {
-        adminClient.createTopic({ topic: topic });
+  if (!topics.includes(topic)) {
+    adminClient.createTopic({ topic: topic });
 
-        // Wait for Kafka metadata to propagate to all brokers
-        sleep(2);
-    }
+    // Wait for Kafka metadata to propagate to all brokers
+    sleep(2);
+  }
 }
 
 export default function main() {
