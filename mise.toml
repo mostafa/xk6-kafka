@@ -40,6 +40,19 @@ for f in $(find scripts/v2/integration -maxdepth 1 -type f -name '*.js' | sort);
 done
 '''
 
+[tasks.format]
+depends = ["format:go", "format:api-docs", "format:scripts"]
+run = "golangci-lint fmt"
+
+[tasks."format:go"]
+run = "prettier --write scripts/**/*.js"
+
+[tasks."format:api-docs"]
+run = "prettier --write api-docs/**/*.ts"
+
+[tasks."format:scripts"]
+run = "prettier --write scripts/**/*.js"
+
 [tasks.lint]
 depends = ["lint:go", "lint:scripts", "lint:api-docs", "lint:actions"]
 
@@ -59,8 +72,9 @@ sources = ["api-docs/**/*.ts"]
 run = "prettier --check api-docs/**/*.ts"
 
 [tasks."lint:api-docs:validate"]
+dir = "api-docs"
 sources = ["api-docs/**/*.ts"]
-run = "prettier --check api-docs/**/*.ts"
+run = "npm run validate-d-ts"
 
 [tasks."lint:actions"]
 sources = [".github/**.yaml", ".github/*.yml"]
