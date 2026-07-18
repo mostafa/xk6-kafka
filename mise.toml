@@ -50,10 +50,9 @@ done
 
 [tasks.format]
 depends = ["format:go", "format:api-docs", "format:scripts"]
-run = "golangci-lint fmt"
 
 [tasks."format:go"]
-run = "prettier --write scripts/**/*.js"
+run = "golangci-lint fmt"
 
 [tasks."format:api-docs"]
 run = "prettier --write api-docs/**/*.ts"
