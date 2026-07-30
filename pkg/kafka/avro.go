@@ -360,6 +360,20 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			continue
 		}
 
+		// Arrays and maps are unnamed composite types: recurse into their
+        // elements so nested int/long fields get converted, and return the
+        // value unwrapped (hamba/avro resolves the branch by Go type).
+        if actualType.Type() == avro.Array || actualType.Type() == avro.Map {
+            if !isValueCompatibleWithSchema(fieldValue, actualType) {
+                continue
+            }
+            converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
+            if err != nil {
+                continue
+            }
+            return converted, nil
+        }
+
 		// Named schemas (enums, fixed, records) need wrapping.
 		if namedSchema, ok := actualType.(avro.NamedSchema); ok {
 			if actualType.Type() == avro.Enum {
