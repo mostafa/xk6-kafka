@@ -49,9 +49,9 @@ type OAuthTokenHandler interface {
 	SetOAuthBearerTokenFailure(errstr string) error
 }
 
-func NewOAuthProvider(saslAlgorithm string, brokers []string, opts OAuthProviderOpts) (OAuthTokenProvider, error) {
+func NewOAuthProvider(saslAlgorithm string, scope string, brokers []string, opts OAuthProviderOpts) (OAuthTokenProvider, error) {
 	if saslAlgorithm == saslAzureEntra {
-		return newAzureEntraOAuthTokenProvider(brokers, opts.azureTokenCredential)
+		return newAzureEntraOAuthTokenProvider(brokers, scope, opts.azureTokenCredential)
 	}
 
 	if saslAlgorithm == saslGcpOauth {
@@ -69,7 +69,7 @@ type AzureEntraOAuthTokenProvider struct {
 var _ OAuthTokenProvider = (*AzureEntraOAuthTokenProvider)(nil)
 
 func newAzureEntraOAuthTokenProvider(
-	brokers []string, tokenCredential azcore.TokenCredential,
+	brokers []string, scope string, tokenCredential azcore.TokenCredential,
 ) (*AzureEntraOAuthTokenProvider, error) {
 	var cred azcore.TokenCredential
 	var err error
@@ -87,7 +87,9 @@ func newAzureEntraOAuthTokenProvider(
 		return nil, NewXk6KafkaError(failedGetOAuthToken, "Azure Entra OAuth requires a valid host:port for the broker.", err)
 	}
 
-	scope := fmt.Sprintf("https://%s/.default", host)
+	if scope == "" {
+		scope = fmt.Sprintf("https://%s/.default", host)
+	}
 
 	if tokenCredential == nil {
 		cred, err = azidentity.NewDefaultAzureCredential(nil)

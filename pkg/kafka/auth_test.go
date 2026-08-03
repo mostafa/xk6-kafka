@@ -38,6 +38,28 @@ func TestSASLContext(t *testing.T) {
 		require.NotNil(t, context.OAuthProvider)
 	})
 
+	t.Run("azure entra algorithm with custom oauth scope", func(t *testing.T) {
+		fakeToken := azcoreFake.TokenCredential{}
+
+		opts := SASLContextOpts{
+			OAuthProviderOpts: OAuthProviderOpts{
+				azureTokenCredential: &fakeToken,
+			},
+		}
+
+		context, err := NewSaslContext(SASLConfig{
+			Algorithm: saslAzureEntra,
+			Scope:     "api://custom-scope/.default",
+		}, []string{"broker1:9093"}, opts)
+
+		require.NoError(t, err)
+		require.NotNil(t, context.OAuthProvider)
+
+		provider, ok := (*context.OAuthProvider).(*AzureEntraOAuthTokenProvider)
+		require.True(t, ok, "expected *AzureEntraOAuthTokenProvider")
+		require.Equal(t, []string{"api://custom-scope/.default"}, provider.requestOpts.Scopes)
+	})
+
 	t.Run("gcp oauth algorithm with oauth context", func(t *testing.T) {
 		opts := SASLContextOpts{
 			OAuthProviderOpts: OAuthProviderOpts{

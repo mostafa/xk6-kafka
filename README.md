@@ -724,6 +724,19 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
     You can use the `AWS_PROFILE` environment variable to specify the profile name or use the `awsProfile` option in the `SASLConfig` [object](api-docs/v2/docs/interfaces/SASLConfig.md).
 
+17. My Azure Entra OAuth (or GCP OAuth) authentication fails because the token scope/audience doesn't match my broker. How can I fix that?
+
+    By default, the Azure Entra OAuth provider derives the scope from the broker's hostname, i.e. `https://<broker-host>/.default`. This doesn't work for every setup, for example, managed Kafka providers may expect a scope tied to an Azure App Registration's Application ID URI (e.g. `api://<app-id>/.default`) instead. You can override the derived scope with the `scope` option in the `SASLConfig` [object](api-docs/v2/docs/interfaces/SASLConfig.md):
+
+    ```javascript
+    const saslConfig = {
+      algorithm: SASL_AZURE_ENTRA,
+      scope: "api://<your-app-registration-id>/.default",
+    };
+    ```
+
+    If `scope` is left empty, the previous hostname-derived behavior is used.
+
 </details>
 
 ## Avro Union Types
