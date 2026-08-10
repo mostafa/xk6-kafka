@@ -46,6 +46,8 @@ type TopicMetadata struct {
 	Error      error
 }
 
+// ConsumerGroupOffsetsConfig identifies an inactive consumer group and the
+// topics whose current end offsets should become its committed offsets.
 type AdminClient struct {
 	client    *ckafka.AdminClient
 	pClient   *ckafka.Producer

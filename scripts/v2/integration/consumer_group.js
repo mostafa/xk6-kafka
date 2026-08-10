@@ -30,6 +30,20 @@ export function setup() {
     numPartitions: 3,
     replicationFactor: 1,
   });
+
+  producer.produce({
+    messages: [{ key: "historical", value: "historical" }],
+  });
+
+  const offsets = adminClient.initializeConsumerGroupOffsets({
+    groupId,
+    topics: [topic],
+  });
+  if (offsets.length !== 3) {
+    throw new Error(`Expected offsets for 3 partitions, got ${offsets.length}`);
+  }
+
+  return { offsets };
 }
 
 export default function () {

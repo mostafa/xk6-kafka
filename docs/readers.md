@@ -131,6 +131,41 @@ const messages = readers.get("my-topic").consume({
 });
 ```
 
+## Start a Consumer Group at a Deterministic Boundary
+
+Use `AdminClient.initializeConsumerGroupOffsets()` in `setup()` when a test must consume only records produced during that test. The operation captures the current end offset of every partition in the supplied topics and commits the complete snapshot for the consumer group before VU scenarios start.
+
+```javascript
+import { AdminClient, Consumer } from "k6/x/kafka";
+
+const brokers = ["localhost:9092"];
+const groupId = "my-test-run-group";
+const topics = ["result-events", "commands-dlq"];
+
+const admin = new AdminClient({ brokers });
+
+export function setup() {
+  const offsets = admin.initializeConsumerGroupOffsets({ groupId, topics });
+  console.log(JSON.stringify({ groupId, offsets }));
+}
+
+export default function () {
+  const consumer = new Consumer({ brokers, groupId, groupTopics: topics });
+  try {
+    const messages = consumer.consume({ maxMessages: 1 });
+    // Assert messages produced after setup.
+  } finally {
+    consumer.close();
+  }
+}
+
+export function teardown() {
+  admin.close();
+}
+```
+
+The group must be inactive while its offsets are initialized. This operation resets any existing committed offsets for the supplied group and topics, so use a dedicated test group rather than an application consumer group. The caller requires topic metadata/read access and permission to alter offsets for the group.
+
 ---
 
 ## ✅ Notes
