@@ -86,13 +86,14 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 			}
 		}
 
-		return &JKS{
-				ClientCertsPem: nil,
-				ClientKeyPem:   "",
-				ServerCaPem:    serverCaFilename,
-			}, NewXk6KafkaError(
-				failedDecodePrivateKey,
-				"Failed to decode client's private key: "+jksConfig.Path, err)
+		jks := &JKS{
+			ClientCertsPem: nil,
+			ClientKeyPem:   "",
+			ServerCaPem:    serverCaFilename,
+		}
+		return jks, NewXk6KafkaError(
+			failedDecodePrivateKey,
+			"Failed to decode client's private key: "+jksConfig.Path, err)
 	}
 
 	clientCertsFilenames := make([]string, 0, len(clientKey.CertificateChain))

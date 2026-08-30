@@ -5,7 +5,6 @@ linters:
     - cyclop
     - depguard
     - exhaustruct
-    - exhaustruct_v5
     - forcetypeassert
     - funlen
     - gochecknoglobals
