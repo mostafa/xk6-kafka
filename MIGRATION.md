@@ -1,5 +1,9 @@
 # Migration Guide
 
+## k6 Compatibility
+
+`xk6-kafka` v2.x targets k6 v2.x and keeps the Go module path `github.com/mostafa/xk6-kafka/v2`. Build the extension with k6 v2.2.0 or later.
+
 ## v2 Constructor Parity
 
 | Old API | New API | Status |

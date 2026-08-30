@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/sobek"
-	"go.k6.io/k6/js/common"
+	"go.k6.io/k6/v2/js/common"
 )
 
 func newInvalidConfigError(component string, originalErr error) *Xk6KafkaError {

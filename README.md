@@ -52,6 +52,10 @@ Run with: `./k6 run --vus 50 --duration 60s script.js`
 
 For full examples, see [scripts/v2](./scripts/v2/README.md).
 
+## Version Compatibility
+
+`xk6-kafka` v2.x builds against k6 v2 (`go.k6.io/k6/v2`) and keeps the existing Go module path `github.com/mostafa/xk6-kafka/v2`.
+
 ## Download Binaries
 
 ### The Official Docker Image
@@ -119,7 +123,7 @@ Feel free to skip the first two steps if you already have Go installed.
 4. Build the binary with CGO enabled:
 
    ```shell
-   CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v2@latest
+   CGO_ENABLED=1 xk6 build v2.2.0 --with github.com/mostafa/xk6-kafka/v2@latest
    ```
 
 > [!NOTE]
@@ -142,7 +146,7 @@ If you want to add a feature or make a fix, clone the project and build it using
 
 ```bash
 git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
-CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v2@latest=.
+CGO_ENABLED=1 xk6 build v2.2.0 --with github.com/mostafa/xk6-kafka/v2@latest=.
 ```
 
 For local validation, run:
@@ -166,7 +170,7 @@ The Grafana xk6 also supports [using docker to build a k6 custom binary with ext
 
    ```shell
    docker run --rm -e GOOS=darwin -u "$(id -u):$(id -g)" -v "${PWD}:/xk6" \
-       grafana/xk6 build \
+       grafana/xk6 build v2.2.0 \
        --with github.com/avitalique/xk6-file@latest \
        --with github.com/LeonAdato/xk6-output-statsd@latest \
        --with github.com/mostafa/xk6-kafka/v2@latest

@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/sobek"
 	"github.com/pavlo-v-chernykh/keystore-go/v4"
-	"go.k6.io/k6/js/common"
+	"go.k6.io/k6/v2/js/common"
 )
 
 const (
@@ -86,13 +86,14 @@ func (*Kafka) loadJKS(jksConfig *JKSConfig) (*JKS, *Xk6KafkaError) {
 			}
 		}
 
-		return &JKS{
-				ClientCertsPem: nil,
-				ClientKeyPem:   "",
-				ServerCaPem:    serverCaFilename,
-			}, NewXk6KafkaError(
-				failedDecodePrivateKey,
-				"Failed to decode client's private key: "+jksConfig.Path, err)
+		jks := &JKS{
+			ClientCertsPem: nil,
+			ClientKeyPem:   "",
+			ServerCaPem:    serverCaFilename,
+		}
+		return jks, NewXk6KafkaError(
+			failedDecodePrivateKey,
+			"Failed to decode client's private key: "+jksConfig.Path, err)
 	}
 
 	clientCertsFilenames := make([]string, 0, len(clientKey.CertificateChain))
