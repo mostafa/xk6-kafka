@@ -21,7 +21,7 @@ func TestSASLContext(t *testing.T) {
 		require.Nil(t, context.OAuthProvider)
 	})
 
-	t.Run("algorithm with oauth context", func(t *testing.T) {
+	t.Run("azure entra algorithm with oauth context", func(t *testing.T) {
 		fakeToken := azcoreFake.TokenCredential{}
 
 		opts := SASLContextOpts{
@@ -32,6 +32,22 @@ func TestSASLContext(t *testing.T) {
 
 		context, err := NewSaslContext(SASLConfig{
 			Algorithm: saslAzureEntra,
+		}, []string{"broker1:9093"}, opts)
+
+		require.NoError(t, err)
+		require.NotNil(t, context.OAuthProvider)
+	})
+
+	t.Run("gcp oauth algorithm with oauth context", func(t *testing.T) {
+		opts := SASLContextOpts{
+			OAuthProviderOpts: OAuthProviderOpts{
+				gcpTokenProvider:   &testGcpTokenProvider{},
+				gcpSubjectProvider: &testGcpSubjectProvider{},
+			},
+		}
+
+		context, err := NewSaslContext(SASLConfig{
+			Algorithm: saslGcpOauth,
 		}, []string{"broker1:9093"}, opts)
 
 		require.NoError(t, err)
@@ -69,6 +85,15 @@ func TestConfluentSecurityProtocol(t *testing.T) {
 		require.Error(t, err)
 		assert.EqualError(t, err, "You must enable TLS to use SASL_SSL")
 	})
+
+	t.Run("sasl ssl gssapi", func(t *testing.T) {
+		protocol, err := confluentSecurityProtocol(
+			SASLConfig{Algorithm: saslGssApi},
+			TLSConfig{EnableTLS: true},
+		)
+		require.NoError(t, err)
+		assert.Equal(t, "SASL_SSL", protocol)
+	})
 }
 
 func TestConfluentSASLMechanism(t *testing.T) {
@@ -79,6 +104,10 @@ func TestConfluentSASLMechanism(t *testing.T) {
 		"plain": {
 			algorithm: saslPlain,
 			expected:  "PLAIN",
+		},
+		"sasl gssapi": {
+			algorithm: saslGssApi,
+			expected:  "GSSAPI",
 		},
 		"sasl ssl": {
 			algorithm: saslSsl,
@@ -98,6 +127,10 @@ func TestConfluentSASLMechanism(t *testing.T) {
 		},
 		"azure entra": {
 			algorithm: saslAzureEntra,
+			expected:  "OAUTHBEARER",
+		},
+		"gcp oauth": {
+			algorithm: saslGcpOauth,
 			expected:  "OAUTHBEARER",
 		},
 	}

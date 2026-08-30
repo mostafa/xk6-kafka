@@ -13,18 +13,29 @@ var TLSVersions map[string]uint16
 const (
 	none            = "none"
 	saslPlain       = "sasl_plain"
+	saslGssApi      = "sasl_gssapi"
 	saslScramSha256 = "sasl_scram_sha256"
 	saslScramSha512 = "sasl_scram_sha512"
 	saslSsl         = "sasl_ssl"
 	saslAwsIam      = "sasl_aws_iam"
 	saslAzureEntra  = "sasl_azure_entra"
+	saslGcpOauth    = "sasl_gcp_oauth"
 )
 
 type SASLConfig struct {
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	Algorithm  string `json:"algorithm"`
-	AWSProfile string `json:"awsProfile"`
+	Username       string         `json:"username"`
+	Password       string         `json:"password"`
+	Algorithm      string         `json:"algorithm"`
+	AWSProfile     string         `json:"awsProfile"`
+	KerberosConfig KerberosConfig `json:"kerberosConfig"`
+}
+
+type KerberosConfig struct {
+	ServiceName          *string `json:"serviceName,omitempty"`
+	Principal            *string `json:"principal,omitempty"`
+	KInitCmd             *string `json:"kInitCmd,omitempty"`
+	KeyTab               *string `json:"keyTab,omitempty"`
+	MinTimeBeforeRelogin *int    `json:"minTimeBeforeRelogin,omitempty"`
 }
 
 type SASLContext struct {
@@ -39,7 +50,7 @@ func NewSaslContext(saslConfig SASLConfig, brokers []string, opts SASLContextOpt
 	saslContext := SASLContext{}
 
 	switch saslConfig.Algorithm {
-	case saslAzureEntra:
+	case saslAzureEntra, saslGcpOauth:
 		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, brokers, opts.OAuthProviderOpts)
 		if err != nil {
 			return SASLContext{}, err

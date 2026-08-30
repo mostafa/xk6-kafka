@@ -1,12 +1,12 @@
 # <img src="https://github.com/mostafa/xk6-kafka/blob/main/assets/xk6-kafka-logo.png" alt="xk6-kafka logo" style="height: 32px; width:32px;"/> xk6-kafka
 
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/xk6-kafka/test.yaml?branch=main&logo=github)](https://github.com/mostafa/xk6-kafka/actions) [![Docker Pulls](https://img.shields.io/docker/pulls/mostafamoradian/xk6-kafka?logo=docker)](https://hub.docker.com/r/mostafamoradian/xk6-kafka) [![Coverage Status](https://coveralls.io/repos/github/mostafa/xk6-kafka/badge.svg?branch=main)](https://coveralls.io/github/mostafa/xk6-kafka?branch=main) [![Go Reference](https://pkg.go.dev/badge/github.com/mostafa/xk6-kafka/v3.svg)](https://pkg.go.dev/github.com/mostafa/xk6-kafka/v3)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mostafa/xk6-kafka/test.yaml?branch=main&logo=github)](https://github.com/mostafa/xk6-kafka/actions) [![Docker Pulls](https://img.shields.io/docker/pulls/mostafamoradian/xk6-kafka?logo=docker)](https://hub.docker.com/r/mostafamoradian/xk6-kafka) [![Coverage Status](https://coveralls.io/repos/github/mostafa/xk6-kafka/badge.svg?branch=main)](https://coveralls.io/github/mostafa/xk6-kafka?branch=main) [![Go Reference](https://pkg.go.dev/badge/github.com/mostafa/xk6-kafka/v2.svg)](https://pkg.go.dev/github.com/mostafa/xk6-kafka/v2)
 
 The xk6-kafka project is a [k6 extension](https://grafana.com/docs/k6/latest/extensions/) that enables k6 users to load test Apache Kafka using a producer and possibly a consumer for debugging.
 
 The real purpose of this extension is to test the system you meticulously designed to use Apache Kafka. So, you can test your consumers, hence your system, by auto-generating messages and sending them to your system via Apache Kafka.
 
-You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats are supported, including strings, JSON, binary, Avro, and JSON Schema. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication, AWS IAM, Azure Entra OAuth, and message compression are also supported.
+You can send many messages with each connection to Kafka. These messages are arrays of objects containing a key and a value in various serialization formats, passed via configuration objects. Various serialization formats are supported, including strings, JSON, binary, Avro, and JSON Schema. Avro and JSON Schema can either be fetched from Schema Registry or hard-code directly in the script. SASL PLAIN/SCRAM authentication, SASL GSSAPI ([Kerberose](./docs/kerberos.md)), AWS IAM, Azure Entra OAuth, GCP OAuth and message compression are also supported.
 
 For debugging and testing purposes, a consumer is available to make sure you send the correct data to Kafka.
 
@@ -17,7 +17,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 - **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js), [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js), and [Protobuf](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_protobuf_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
-- Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js), plus [Azure Entra OAuth for Event Hub](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_azure_event_hub.js)
+- Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js), plus [Azure Entra OAuth for Event Hub](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_azure_event_hub.js) and [GCP OAuth for GCP Kafka](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_gcp_kafka.js)
 - Create, list and delete [topics](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_topics.js)
 - Support for loading [Java Keystore (JKS) files](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_tls_with_jks.js)
 - Support for loading Avro schemas from [Schema Registry](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js) with gzip compression support
@@ -52,17 +52,9 @@ Run with: `./k6 run --vus 50 --duration 60s script.js`
 
 For full examples, see [scripts/v2](./scripts/v2/README.md).
 
-## Version Compatibility Policy
+## Version Compatibility
 
-To avoid accidental breakage when k6 introduces major-version module-path changes, `xk6-kafka` tracks k6 major lines explicitly:
-
-| xk6-kafka line | k6 line | Status |
-| --- | --- | --- |
-| `v2.x` | `k6 v1.x` | Maintenance line for existing users |
-| `v3.x` | `k6 v2.x` | New line for k6 v2-compatible releases |
-
-> [!IMPORTANT]
-> Moving from `k6 v1` to `k6 v2` is treated as a breaking compatibility boundary for extension consumers. The first release that requires `k6 v2` should be published as `xk6-kafka v3.0.0` (Go module path: `github.com/mostafa/xk6-kafka/v3`).
+`xk6-kafka` v2.x builds against k6 v2 (`go.k6.io/k6/v2`) and keeps the existing Go module path `github.com/mostafa/xk6-kafka/v2`.
 
 ## Download Binaries
 
@@ -80,6 +72,28 @@ The binaries are generated by the build process and published on the [releases p
 
 > [!NOTE]
 > If you want to see an official build for your machine, please build and test xk6-kafka from [source](https://grafana.com/docs/k6/latest/extensions/run/build-k6-binary-using-go/) and then create an [issue](https://github.com/mostafa/xk6-kafka/issues/new) with details. I'll add the specific binary to the build pipeline and publish them on the next release.
+
+## Accelerated Local Development with Mise
+
+You can optionally install the [Mise Tool](https://mise.jdx.dev/) for an accelerated, easy, out of the box development experience.
+
+Once Mise is installed, setup your 
+[CGO Environment](https://github.com/go101/go101/wiki/CGO-Environment-Setup#use-gcc).
+
+Install tools with `mise install`.
+
+Now you are ready to go!
+
+1. Start local development services with `mise run services` (keep this terminal running)
+2. Hack with your editor
+3. Build with `mise run build`
+4. Run unit tests with `mise run test`
+5. Test your binary with `./k6 <path to test script>`
+6. Format your files with `mise run format`
+7. Verify with `mise run verify`
+8. Commit, push and open a PR
+
+If your code passes `mise run verify`, it should pass the PR checks 🎉!
 
 ## Build from Source
 
@@ -109,11 +123,11 @@ Feel free to skip the first two steps if you already have Go installed.
 4. Build the binary with CGO enabled:
 
    ```shell
-   CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v3@latest
+   CGO_ENABLED=1 xk6 build v2.2.0 --with github.com/mostafa/xk6-kafka/v2@latest
    ```
 
 > [!NOTE]
-> Go modules require a `/vN` import path for major version 2 and later. Use `github.com/mostafa/xk6-kafka/v3@…` for `v3.x.x` tags, `github.com/mostafa/xk6-kafka/v2@…` for the `v2.x.x` maintenance line, and `github.com/mostafa/xk6-kafka@…` only for `v1.x.x` and earlier.
+> Go modules require a `/v2` import path for major version 2 and later. Use `github.com/mostafa/xk6-kafka/v2@…` for `v2.x.x` tags and `github.com/mostafa/xk6-kafka@…` only for `v1.x.x` and earlier.
 
 > [!NOTE]
 > You can always use the latest version of k6 to build the extension, but the earliest version of k6 that supports extensions via xk6 is v0.32.0. The xk6 is constantly evolving, so some APIs may not be backward compatible.
@@ -132,7 +146,7 @@ If you want to add a feature or make a fix, clone the project and build it using
 
 ```bash
 git clone git@github.com:mostafa/xk6-kafka.git && cd xk6-kafka
-CGO_ENABLED=1 xk6 build --with github.com/mostafa/xk6-kafka/v3@latest=.
+CGO_ENABLED=1 xk6 build v2.2.0 --with github.com/mostafa/xk6-kafka/v2@latest=.
 ```
 
 For local validation, run:
@@ -156,10 +170,10 @@ The Grafana xk6 also supports [using docker to build a k6 custom binary with ext
 
    ```shell
    docker run --rm -e GOOS=darwin -u "$(id -u):$(id -g)" -v "${PWD}:/xk6" \
-       grafana/xk6 build \
+       grafana/xk6 build v2.2.0 \
        --with github.com/avitalique/xk6-file@latest \
        --with github.com/LeonAdato/xk6-output-statsd@latest \
-       --with github.com/mostafa/xk6-kafka/v3@latest
+       --with github.com/mostafa/xk6-kafka/v2@latest
    ```
 
 ## Example scripts
@@ -590,6 +604,8 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
     If you want to test SASL authentication, look at [this commit message](https://github.com/mostafa/xk6-kafka/pull/3/commits/403fbc48d13683d836b8033eeeefa48bf2f25c6e), in which I describe how to run a test environment to test SASL authentication.
 
     For Azure Event Hub with Azure Entra OAuth, use [`scripts/test_azure_event_hub.js`](./scripts/test_azure_event_hub.js) as a reference.
+
+    For GCP Kafka with GCP OAuth, use [`scripts/test_gcp_kafka.js`](./scripts/test_gcp_kafka.js) as a reference.
 
 4. Why doesn't the consumer group consume messages from the topic?
 
