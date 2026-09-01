@@ -112,6 +112,7 @@ export interface SASLConfig {
   password: string;
   algorithm: SASL_MECHANISMS;
   awsProfile: string;
+  scope?: string;
   kerberosConfig?: KerberosConfig;
 }
 

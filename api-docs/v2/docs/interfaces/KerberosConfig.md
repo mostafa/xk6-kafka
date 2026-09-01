@@ -4,7 +4,7 @@
 
 # Interface: KerberosConfig
 
-Defined in: [index.d.ts:119](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L119)
+Defined in: [index.d.ts:120](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L120)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:119](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **keyTab?**: `string`
 
-Defined in: [index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L123)
+Defined in: [index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L124)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **kInitCmd?**: `string`
 
-Defined in: [index.d.ts:122](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L122)
+Defined in: [index.d.ts:123](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L123)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:122](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **minTimeBeforeRelogin?**: `number`
 
-Defined in: [index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L124)
+Defined in: [index.d.ts:125](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L125)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:124](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **principal?**: `string`
 
-Defined in: [index.d.ts:121](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L121)
+Defined in: [index.d.ts:122](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L122)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: [index.d.ts:121](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **serviceName?**: `string`
 
-Defined in: [index.d.ts:120](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L120)
+Defined in: [index.d.ts:121](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L121)

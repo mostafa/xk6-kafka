@@ -4,7 +4,7 @@
 
 # Interface: ReplicaAssignment
 
-Defined in: [index.d.ts:249](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L249)
+Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L250)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:249](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **partition**: `number`
 
-Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L250)
+Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L251)
 
 ---
 
@@ -20,4 +20,4 @@ Defined in: [index.d.ts:250](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **replicas**: `number`[]
 
-Defined in: [index.d.ts:251](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L251)
+Defined in: [index.d.ts:252](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L252)
