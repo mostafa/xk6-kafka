@@ -28,7 +28,7 @@ Defined in: [index.d.ts:114](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **kerberosConfig?**: [`KerberosConfig`](KerberosConfig.md)
 
-Defined in: [index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L115)
+Defined in: [index.d.ts:116](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L116)
 
 ---
 
@@ -37,6 +37,14 @@ Defined in: [index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-
 > **password**: `string`
 
 Defined in: [index.d.ts:112](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L112)
+
+---
+
+### scope?
+
+> `optional` **scope?**: `string`
+
+Defined in: [index.d.ts:115](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L115)
 
 ---
 

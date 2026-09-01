@@ -4,7 +4,7 @@
 
 # Interface: TLSConfig
 
-Defined in: [index.d.ts:128](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L128)
+Defined in: [index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L129)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:128](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **clientCertPem**: `string`
 
-Defined in: [index.d.ts:132](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L132)
+Defined in: [index.d.ts:133](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L133)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:132](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **clientKeyPem**: `string`
 
-Defined in: [index.d.ts:133](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L133)
+Defined in: [index.d.ts:134](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L134)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:133](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **enableTls**: `boolean`
 
-Defined in: [index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L129)
+Defined in: [index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L130)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:129](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **insecureSkipTlsVerify**: `boolean`
 
-Defined in: [index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L130)
+Defined in: [index.d.ts:131](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L131)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: [index.d.ts:130](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **minVersion**: [`TLS_VERSIONS`](../enumerations/TLS_VERSIONS.md)
 
-Defined in: [index.d.ts:131](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L131)
+Defined in: [index.d.ts:132](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L132)
 
 ---
 
@@ -52,4 +52,4 @@ Defined in: [index.d.ts:131](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **serverCaPem**: `string`
 
-Defined in: [index.d.ts:134](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L134)
+Defined in: [index.d.ts:135](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L135)

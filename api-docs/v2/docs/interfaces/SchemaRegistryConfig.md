@@ -4,7 +4,7 @@
 
 # Interface: SchemaRegistryConfig
 
-Defined in: [index.d.ts:178](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L178)
+Defined in: [index.d.ts:179](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L179)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:178](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **basicAuth**: [`BasicAuth`](BasicAuth.md)
 
-Defined in: [index.d.ts:181](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L181)
+Defined in: [index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L182)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:181](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **enableCaching**: `boolean`
 
-Defined in: [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L180)
+Defined in: [index.d.ts:181](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L181)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **tls**: [`TLSConfig`](TLSConfig.md)
 
-Defined in: [index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L182)
+Defined in: [index.d.ts:183](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L183)
 
 ---
 
@@ -36,4 +36,4 @@ Defined in: [index.d.ts:182](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **url**: `string`
 
-Defined in: [index.d.ts:179](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L179)
+Defined in: [index.d.ts:180](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L180)

@@ -28,6 +28,7 @@ type SASLConfig struct {
 	Algorithm      string         `json:"algorithm"`
 	AWSProfile     string         `json:"awsProfile"`
 	KerberosConfig KerberosConfig `json:"kerberosConfig"`
+	Scope          string         `json:"scope"`
 }
 
 type KerberosConfig struct {
@@ -51,7 +52,7 @@ func NewSaslContext(saslConfig SASLConfig, brokers []string, opts SASLContextOpt
 
 	switch saslConfig.Algorithm {
 	case saslAzureEntra, saslGcpOauth:
-		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, brokers, opts.OAuthProviderOpts)
+		oauthProvider, err := NewOAuthProvider(saslConfig.Algorithm, saslConfig.Scope, brokers, opts.OAuthProviderOpts)
 		if err != nil {
 			return SASLContext{}, err
 		}

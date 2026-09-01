@@ -123,7 +123,7 @@ func TestGetOAuthTokenSuccess(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1:9093"}, test.opts)
+			provider, err := NewOAuthProvider(test.saslAlgorithm, "", []string{"broker1:9093"}, test.opts)
 			require.NoError(t, err)
 
 			token, err := provider.GetToken(t.Context())
@@ -212,7 +212,7 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			provider, err := NewOAuthProvider(test.saslAlgorithm, []string{"broker1:9093"}, test.opts)
+			provider, err := NewOAuthProvider(test.saslAlgorithm, "", []string{"broker1:9093"}, test.opts)
 			require.NoError(t, err)
 
 			_, err = provider.GetToken(t.Context())
@@ -227,6 +227,30 @@ func TestGetOAuthTokenFailure(t *testing.T) {
 }
 
 func TestUnsupportedOAuthProvider(t *testing.T) {
-	_, err := NewOAuthProvider(saslPlain, []string{"broker1"}, OAuthProviderOpts{})
+	_, err := NewOAuthProvider(saslPlain, "", []string{"broker1"}, OAuthProviderOpts{})
 	require.ErrorContains(t, err, "sasl_plain is not a supported OAuth Provider.")
+}
+
+func TestAzureEntraOAuthScopeOverride(t *testing.T) {
+	t.Run("derives scope from broker host when scope is empty", func(t *testing.T) {
+		provider, err := newAzureEntraOAuthTokenProvider(
+			[]string{"broker1.example.com:9093"},
+			"",
+			&testAzureEntraTokenCredential{Subject: "test-sub"},
+		)
+
+		require.NoError(t, err)
+		require.Equal(t, []string{"https://broker1.example.com/.default"}, provider.requestOpts.Scopes)
+	})
+
+	t.Run("uses the explicit scope override when provided", func(t *testing.T) {
+		provider, err := newAzureEntraOAuthTokenProvider(
+			[]string{"broker1.example.com:9093"},
+			"api://custom-scope/.default",
+			&testAzureEntraTokenCredential{Subject: "test-sub"},
+		)
+
+		require.NoError(t, err)
+		require.Equal(t, []string{"api://custom-scope/.default"}, provider.requestOpts.Scopes)
+	})
 }
