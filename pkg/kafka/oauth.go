@@ -49,7 +49,9 @@ type OAuthTokenHandler interface {
 	SetOAuthBearerTokenFailure(errstr string) error
 }
 
-func NewOAuthProvider(saslAlgorithm string, scope string, brokers []string, opts OAuthProviderOpts) (OAuthTokenProvider, error) {
+func NewOAuthProvider(
+	saslAlgorithm string, scope string, brokers []string, opts OAuthProviderOpts,
+) (OAuthTokenProvider, error) {
 	if saslAlgorithm == saslAzureEntra {
 		return newAzureEntraOAuthTokenProvider(brokers, scope, opts.azureTokenCredential)
 	}
