@@ -30,6 +30,31 @@ export function setup() {
     numPartitions: 3,
     replicationFactor: 1,
   });
+
+  producer.produce({
+    messages: [
+      {
+        key: schemaRegistry.serialize({
+          data: { correlationId: "historical-key" },
+          schemaType: SCHEMA_TYPE_JSON,
+        }),
+        value: schemaRegistry.serialize({
+          data: { kind: "historical" },
+          schemaType: SCHEMA_TYPE_JSON,
+        }),
+      },
+    ],
+  });
+
+  const offsets = adminClient.initializeConsumerGroupOffsets({
+    groupId,
+    topics: [topic],
+  });
+  if (offsets.length !== 3) {
+    throw new Error(`Expected offsets for 3 partitions, got ${offsets.length}`);
+  }
+
+  return { offsets };
 }
 
 export default function () {
@@ -60,6 +85,14 @@ export default function () {
     check(consumed, {
       "consumer group receives six messages": (received) =>
         received.length === 6,
+      "consumer group skips historical records": (received) =>
+        received.every((message) => {
+          const value = schemaRegistry.deserialize({
+            data: message.value,
+            schemaType: SCHEMA_TYPE_JSON,
+          });
+          return value.kind !== "historical";
+        }),
       "consumer group topic matches": (received) =>
         received.every((message) => message.topic === topic),
       "consumer group payloads deserialize": (received) =>

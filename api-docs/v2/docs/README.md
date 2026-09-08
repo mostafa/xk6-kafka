@@ -36,6 +36,8 @@ xk6-kafka is a k6 extension to load test Apache Kafka
 - [ConfigEntry](interfaces/ConfigEntry.md)
 - [ConnectionConfig](interfaces/ConnectionConfig.md)
 - [ConsumeConfig](interfaces/ConsumeConfig.md)
+- [ConsumerGroupOffset](interfaces/ConsumerGroupOffset.md)
+- [ConsumerGroupOffsetsConfig](interfaces/ConsumerGroupOffsetsConfig.md)
 - [ConsumerStats](interfaces/ConsumerStats.md)
 - [Container](interfaces/Container.md)
 - [JKS](interfaces/JKS.md)

@@ -4,7 +4,7 @@
 
 # Interface: Schema
 
-Defined in: [index.d.ts:307](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L307)
+Defined in: [index.d.ts:321](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L321)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:307](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **dependencies?**: `Record`\<`string`, `string`\>
 
-Defined in: [index.d.ts:316](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L316)
+Defined in: [index.d.ts:330](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L330)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:316](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **enableCaching**: `boolean`
 
-Defined in: [index.d.ts:308](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L308)
+Defined in: [index.d.ts:322](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L322)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:308](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **id**: `number`
 
-Defined in: [index.d.ts:309](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L309)
+Defined in: [index.d.ts:323](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L323)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:309](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **messageName?**: `string`
 
-Defined in: [index.d.ts:315](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L315)
+Defined in: [index.d.ts:329](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L329)
 
 ---
 
@@ -44,7 +44,7 @@ Defined in: [index.d.ts:315](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **references**: [`Reference`](Reference.md)[]
 
-Defined in: [index.d.ts:313](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L313)
+Defined in: [index.d.ts:327](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L327)
 
 ---
 
@@ -52,7 +52,7 @@ Defined in: [index.d.ts:313](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **schema**: `string`
 
-Defined in: [index.d.ts:310](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L310)
+Defined in: [index.d.ts:324](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L324)
 
 ---
 
@@ -60,7 +60,7 @@ Defined in: [index.d.ts:310](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **schemaType**: [`SCHEMA_TYPES`](../enumerations/SCHEMA_TYPES.md)
 
-Defined in: [index.d.ts:311](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L311)
+Defined in: [index.d.ts:325](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L325)
 
 ---
 
@@ -68,7 +68,7 @@ Defined in: [index.d.ts:311](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **subject**: `string`
 
-Defined in: [index.d.ts:314](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L314)
+Defined in: [index.d.ts:328](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L328)
 
 ---
 
@@ -76,4 +76,4 @@ Defined in: [index.d.ts:314](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **version**: `number`
 
-Defined in: [index.d.ts:312](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L312)
+Defined in: [index.d.ts:326](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L326)

@@ -123,6 +123,24 @@ func (k *Kafka) compatAdminClientClass(
 		common.Throw(runtime, err)
 	}
 
+	err = adminObject.Set("initializeConsumerGroupOffsets", func(call sobek.FunctionCall) sobek.Value {
+		if len(call.Arguments) == 0 {
+			common.Throw(runtime, ErrNotEnoughArguments)
+		}
+
+		var config ConsumerGroupOffsetsConfig
+		decodeArgument(runtime, call.Argument(0), &config, "consumer group offsets config")
+
+		snapshot, initializeErr := adminClient.InitializeConsumerGroupOffsets(k.adminContext(), config)
+		if initializeErr != nil {
+			common.Throw(runtime, initializeErr)
+		}
+		return runtime.ToValue(consumerGroupOffsetsToJS(snapshot))
+	})
+	if err != nil {
+		common.Throw(runtime, err)
+	}
+
 	err = adminObject.Set("close", func(_ sobek.FunctionCall) sobek.Value {
 		if err := adminClient.Close(); err != nil {
 			common.Throw(runtime, err)
@@ -200,4 +218,16 @@ func topicMetadataToJS(metadata *TopicMetadata) map[string]any {
 		"Partitions": partitions,
 		"Error":      metadata.Error,
 	}
+}
+
+func consumerGroupOffsetsToJS(offsets []ConsumerGroupOffset) []map[string]any {
+	converted := make([]map[string]any, 0, len(offsets))
+	for _, offset := range offsets {
+		converted = append(converted, map[string]any{
+			"topic":     offset.Topic,
+			"partition": offset.Partition,
+			"offset":    offset.Offset,
+		})
+	}
+	return converted
 }

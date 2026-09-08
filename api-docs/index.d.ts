@@ -295,6 +295,20 @@ export interface TopicMetadata {
   error: any | null;
 }
 
+/** Topics whose end offsets will initialize an inactive consumer group. */
+export interface ConsumerGroupOffsetsConfig {
+  groupId: string;
+  topics: string[];
+}
+
+/** One topic-partition offset captured for a consumer group. */
+export interface ConsumerGroupOffset {
+  topic: string;
+  partition: number;
+  /** Loses integer precision above 2^53; only a concern for extremely large offsets. */
+  offset: number;
+}
+
 /* Reference uses the import statement of Protobuf
 and the $ref field of JSON Schema. */
 export interface Reference {
@@ -486,6 +500,13 @@ export class AdminClient {
   deleteTopic(topic: string): void;
   listTopics(): TopicInfo[];
   getMetadata(topic: string): TopicMetadata;
+  /**
+   * Reset an inactive consumer group to a snapshot of the current end offset
+   * of every partition in the supplied topics.
+   */
+  initializeConsumerGroupOffsets(
+    config: ConsumerGroupOffsetsConfig,
+  ): ConsumerGroupOffset[];
   close(): void;
 }
 

@@ -86,6 +86,8 @@ const (
 	failedReadPartitions    errCode = 6003
 	failedCreateAdminClient errCode = 6004
 	failedGetMetadata       errCode = 6005
+	failedListOffsets       errCode = 6006
+	failedAlterGroupOffsets errCode = 6007
 )
 
 var (

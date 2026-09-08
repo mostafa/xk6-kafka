@@ -110,3 +110,13 @@ func TestTopicConfigToConfluentSpecRejectsInvalidReplicaAssignments(t *testing.T
 func TestTopicMetadataToJSNil(t *testing.T) {
 	assert.Nil(t, topicMetadataToJS(nil))
 }
+
+func TestConsumerGroupOffsetsToJS(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, []map[string]any{
+		{"topic": "topic-a", "partition": int32(0), "offset": int64(12)},
+	}, consumerGroupOffsetsToJS([]ConsumerGroupOffset{
+		{Topic: "topic-a", Partition: 0, Offset: 12},
+	}))
+}
