@@ -190,7 +190,7 @@ For example, if you have a union type schema like this:
 }
 ```
 
-Here `myField` can either be a string or null. When serializing data for this schema with hamba/avro, you can provide the value directly:
+Here `myField` can either be a string or null. When serializing data for this schema with confluent-avro-go, you can provide the value directly:
 
 ```javascript
 export const productionOrder = {
@@ -200,7 +200,7 @@ export const productionOrder = {
 };
 ```
 
-With hamba/avro, you usually don't need to wrap union values in a type-specific object. Simply provide the value that matches one of the union types. For nullable fields, you can use `null` directly.
+With confluent-avro-go, you usually don't need to wrap union values in a type-specific object. Simply provide the value that matches one of the union types. For nullable fields, you can use `null` directly.
 
 For unions with logical primitive types (for example `["null", {"type":"int","logicalType":"date"}]`), xk6-kafka accepts:
 
@@ -208,9 +208,9 @@ For unions with logical primitive types (for example `["null", {"type":"int","lo
 - wrapped primitive values (for example `documentValidTo: { "int": 20474 }`)
 - wrapped logical discriminator values (for example `documentValidTo: { "int.date": 20474 }`)
 
-xk6-kafka normalizes these inputs before Avro encoding so they match the discriminator format expected by `hamba/avro`.
+xk6-kafka normalizes these inputs before Avro encoding so they match the discriminator format expected by `confluent-avro-go`.
 
-**Note**: In your schema, you should define the `null` value first in the union type (e.g., `["null", "string"]` rather than `["string", "null"]`) to follow Avro best practices, though hamba/avro will handle both cases.
+**Note**: In your schema, you should define the `null` value first in the union type (e.g., `["null", "string"]` rather than `["string", "null"]`) to follow Avro best practices, though confluent-avro-go will handle both cases.
 
 In order to help you with complex schemas, you can use the [nested-avro-schema](https://github.com/mostafa/nested-avro-schema) project, which provides a way to define complex Avro schemas in a more structured way.
 

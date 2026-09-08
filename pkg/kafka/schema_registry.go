@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"strings"
 
+	avro "github.com/confluentinc/confluent-avro-go/v2"
 	cschemaregistry "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
 	"github.com/grafana/sobek"
-	"github.com/hamba/avro/v2"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/v2/js/common"

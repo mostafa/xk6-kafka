@@ -745,7 +745,7 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
 ## Avro Union Types
 
-xk6-kafka uses `hamba/avro` for Avro serialization/deserialization. When working with Avro union types, you can usually provide union values directly without wrapping them in type-specific objects. For nullable fields, you can use `null` directly. For logical primitive unions (for example `int` with `logicalType: "date"`), direct values and wrapped values like `{ "int": 20474 }` or `{ "int.date": 20474 }` are supported and normalized before encoding. See the [Schema Registry documentation](./docs/schema-registry.md#complex-schemas--manage-union-types) for detailed examples and best practices.
+xk6-kafka uses [`confluent-avro-go`](https://github.com/confluentinc/confluent-avro-go) (Confluent's maintained fork of the archived `hamba/avro`) for Avro serialization/deserialization. When working with Avro union types, you can usually provide union values directly without wrapping them in type-specific objects. For nullable fields, you can use `null` directly. For logical primitive unions (for example `int` with `logicalType: "date"`), direct values and wrapped values like `{ "int": 20474 }` or `{ "int.date": 20474 }` are supported and normalized before encoding. See the [Schema Registry documentation](./docs/schema-registry.md#complex-schemas--manage-union-types) for detailed examples and best practices.
 
 ## Contributions, Issues and Feedback
 

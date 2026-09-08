@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hamba/avro/v2"
+	avro "github.com/confluentinc/confluent-avro-go/v2"
 )
 
 var (
@@ -149,7 +149,7 @@ func getPrimitiveTypeName(schemaType avro.Type) string {
 	}
 }
 
-// getPrimitiveUnionDiscriminator returns the discriminator key expected by hamba/avro
+// getPrimitiveUnionDiscriminator returns the discriminator key expected by confluent-avro-go
 // for a primitive union branch. For logical primitive types, this is typically
 // "<primitive>.<logicalType>" (for example: "int.date").
 func getPrimitiveUnionDiscriminator(schema avro.Schema) string {
@@ -373,9 +373,9 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 			if err != nil {
 				continue
 			}
-			// Arrays are returned unwrapped: hamba/avro encodes a bare slice
+			// Arrays are returned unwrapped: confluent-avro-go encodes a bare slice
 			// with the non-null branch of a nullable union. Maps must be
-			// wrapped by type name: hamba/avro only encodes map[string]any
+			// wrapped by type name: confluent-avro-go only encodes map[string]any
 			// union values in the {"map": value} form.
 			if actualType.Type() == avro.Map {
 				return map[string]any{string(avro.Map): converted}, nil
@@ -546,7 +546,7 @@ func (*AvroSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError) {
 			convertErr)
 	}
 
-	// Marshal to binary using hamba/avro
+	// Marshal to binary using confluent-avro-go
 	bytesData, originalErr := avro.Marshal(avroSchema, convertedData)
 	if originalErr != nil {
 		return nil, NewXk6KafkaError(failedToEncodeToBinary,
@@ -558,7 +558,7 @@ func (*AvroSerde) Serialize(data any, schema *Schema) ([]byte, *Xk6KafkaError) {
 }
 
 // unwrapUnionValues recursively unwraps union values that are wrapped in the
-// {"typeName": value} format returned by hamba/avro for named types in unions.
+// {"typeName": value} format returned by confluent-avro-go for named types in unions.
 func unwrapUnionValues(data any, schema avro.Schema) (any, error) {
 	if data == nil {
 		//nolint: nilnil // nil is a valid value

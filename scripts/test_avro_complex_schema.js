@@ -1,7 +1,7 @@
 /*
  * This is a comprehensive k6 test script that tests Kafka with complex Avro schemas
  * including nested records, unions, arrays, maps, enums, fixed types, and combinations thereof.
- * This script demonstrates the full capabilities of the hamba/avro library.
+ * This script demonstrates the full capabilities of the confluent-avro-go library.
  *
  * NESTED SCHEMA REFERENCES:
  * This script uses Schema Registry references to demonstrate nested schemas. Instead of
@@ -532,7 +532,7 @@ export default function (data) {
           ? null
           : {
               // Union type: null or Order record
-              // Pass the Order record directly - hamba/avro will match it to the union type
+              // Pass the Order record directly - confluent-avro-go will match it to the union type
               orderId: `order-${index}`,
               items: [
                 {
@@ -571,7 +571,7 @@ export default function (data) {
           ? null
           : {
               // Union type: null or Coordinates record
-              // Pass the Coordinates record directly - hamba/avro will match it to the union type
+              // Pass the Coordinates record directly - confluent-avro-go will match it to the union type
               latitude: 40.7128 + index * 0.001,
               longitude: -74.006 + index * 0.001,
             },
