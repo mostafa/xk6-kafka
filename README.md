@@ -14,7 +14,7 @@ If you want to learn more about the extension, read the [article](https://grafan
 
 ## Supported Features
 
-- **v2.0.0 Performance**: Up to ~383,000 msgs/sec (unacked) with 50 VUs using new `Producer`/`Consumer` constructors with `confluentinc/confluent-kafka-go` (**~3.3x faster than the current v1.x.x/main branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
+- **Performance**: Up to ~382,000 msgs/sec (unacked) with 50 VUs using the `Producer`/`Consumer` constructors backed by `confluentinc/confluent-kafka-go` (**~3.3x faster than the `v1.x.x` branch**, which reaches ~115,637 msgs/sec on the same `scripts/test_json.js` benchmark and machine)
 - Produce/consume messages as [String](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_string.js), [JSON](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_json.js), [ByteArray](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_bytes.js), [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_with_schema_registry.js), [JSON Schema](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_jsonschema_with_schema_registry.js), and [Protobuf](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_protobuf_with_schema_registry.js) formats
 - Support for user-provided [Avro](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_avro_no_schema_registry.js) and JSON Schema key and value schemas in the script
 - Authentication with [SASL PLAIN, SCRAM, SSL and AWS IAM](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_sasl_auth.js), plus [Azure Entra OAuth for Event Hub](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_azure_event_hub.js) and [GCP OAuth for GCP Kafka](https://github.com/mostafa/xk6-kafka/blob/main/scripts/test_gcp_kafka.js)
@@ -398,16 +398,17 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
    ./k6 run --vus 50 --duration 60s scripts/test_json.js
    ```
 
-6. On the same machine and with the same `scripts/test_json.js` workload, the current `v1.x.x/main` branch reaches `115,637.233495 msg/s`, while `v2.0.0` reaches `383,331.650997 msg/s`, which is about `3.3x` higher throughput.
+6. On the same machine and with the same `scripts/test_json.js` workload, the `v1.x.x` branch reaches `115,637.233495 msg/s`, while the current version reaches `372,484.757665 msg/s`, which is about `3.2x` higher throughput.
 
-7. And here's the `v2.0.0` test result output:
+7. And here's the test result output on `main` (with the v2.1.0 throughput fix):
 
    ```bash
-               /\      Grafana   /‾‾/
-          /\  /  \     |\  __   /  /
-         /  \/    \    | |/ /  /   ‾‾\
-        /          \   |   (  |  (‾)  |
-       / __________ \  |_|\_\  \_____/
+
+            /\      Grafana   /‾‾/
+       /\  /  \     |\  __   /  /
+      /  \/    \    | |/ /  /   ‾‾\
+     /          \   |   (  |  (‾)  |
+    / __________ \  |_|\_\  \_____/
 
 
         execution: local
@@ -419,75 +420,75 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
 
 
-      █ THRESHOLDS
+     █ THRESHOLDS
 
-        kafka_reader_error_count
-        ✓ 'count == 0' count=0
+       kafka_reader_error_count
+       ✓ 'count == 0' count=0
 
-        kafka_writer_error_count
-        ✓ 'count == 0' count=0
+       kafka_writer_error_count
+       ✓ 'count == 0' count=0
 
 
-      █ TOTAL RESULTS 
+     █ TOTAL RESULTS
 
-      checks_total.......: 1073889 17249.924295/s
-      checks_succeeded...: 100.00% 1073889 out of 1073889
-      checks_failed......: 0.00%   0 out of 1073889
+       checks_total.......: 1045215 16761.814095/s
+       checks_succeeded...: 100.00% 1045215 out of 1045215
+       checks_failed......: 0.00%   0 out of 1045215
 
-      ✓ 10 messages are received
-      ✓ Topic equals to xk6_kafka_json_topic
-      ✓ Key contains key/value and is JSON
-      ✓ Value contains key/value and is JSON
-      ✓ Header equals {'mykey': 'myvalue'}
-      ✓ Time is past
-      ✓ Partition is zero
-      ✓ Offset is gte zero
-      ✓ High watermark is gte zero
+       ✓ 10 messages are received
+       ✓ Topic equals to xk6_kafka_json_topic
+       ✓ Key contains key/value and is JSON
+       ✓ Value contains key/value and is JSON
+       ✓ Header equals {'mykey': 'myvalue'}
+       ✓ Time is past
+       ✓ Partition is zero
+       ✓ Offset is gte zero
+       ✓ High watermark is gte zero
 
-      CUSTOM
-      kafka_reader_dial_count............: 119321   1916.658255/s
-      kafka_reader_dial_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
-      kafka_reader_error_count...........: 0        0/s
-      kafka_reader_fetch_bytes...........: 274 MB   4.4 MB/s
-      kafka_reader_fetch_bytes_max.......: 0        min=0             max=0    
-      kafka_reader_fetch_bytes_min.......: 0        min=0             max=0    
-      kafka_reader_fetch_size............: 1193210  19166.58255/s
-      kafka_reader_fetch_wait_max........: 0s       min=0s            max=0s   
-      kafka_reader_fetches_count.........: 1312531  21083.240805/s
-      kafka_reader_lag...................: 0        min=0             max=0    
-      kafka_reader_message_bytes.........: 274 MB   4.4 MB/s
-      kafka_reader_message_count.........: 1193210  19166.58255/s
-      kafka_reader_offset................: 23779    min=9             max=24819
-      kafka_reader_queue_capacity........: 0        min=0             max=0    
-      kafka_reader_queue_length..........: 0        min=0             max=0    
-      kafka_reader_read_seconds..........: avg=43.03µs min=11.08µs med=18.45µs max=81.67ms  p(90)=41.12µs p(95)=58.08µs
-      kafka_reader_rebalance_count.......: 0        0/s
-      kafka_reader_timeouts_count........: 0        0/s
-      kafka_reader_wait_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
-      kafka_writer_acks_required.........: 0        min=0             max=0    
-      kafka_writer_async.................: 0.00%    0 out of 11932100
-      kafka_writer_attempts_max..........: 0        min=0             max=0    
-      kafka_writer_batch_bytes...........: 2.8 GB   44 MB/s
-      kafka_writer_batch_max.............: 0        min=0             max=0    
-      kafka_writer_batch_queue_seconds...: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
-      kafka_writer_batch_seconds.........: avg=2.67µs  min=437ns   med=729ns   max=30.61ms  p(90)=1.6µs   p(95)=2.04µs 
-      kafka_writer_batch_size............: 11932100 191665.825499/s
-      kafka_writer_batch_timeout.........: 0s       min=0s            max=0s   
-      kafka_writer_error_count...........: 0        0/s
-      kafka_writer_message_bytes.........: 5.5 GB   89 MB/s
-      kafka_writer_message_count.........: 23864200 383331.650997/s
-      kafka_writer_read_timeout..........: 0s       min=0s            max=0s   
-      kafka_writer_retries_count.........: 0        0/s
-      kafka_writer_wait_seconds..........: avg=0s      min=0s      med=0s      max=0s       p(90)=0s      p(95)=0s     
-      kafka_writer_write_count...........: 23864200 383331.650997/s
-      kafka_writer_write_seconds.........: avg=5.35µs  min=875ns   med=1.45µs  max=61.23ms  p(90)=3.2µs   p(95)=4.08µs 
-      kafka_writer_write_timeout.........: 0s       min=0s            max=0s   
+       CUSTOM
+       kafka_reader_dial_count............: 116135   1862.423788/s
+       kafka_reader_dial_seconds..........: avg=0s      min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka_reader_error_count...........: 0        0/s
+       kafka_reader_fetch_bytes...........: 267 MB   4.3 MB/s
+       kafka_reader_fetch_bytes_max.......: 0        min=0             max=0
+       kafka_reader_fetch_bytes_min.......: 0        min=0             max=0
+       kafka_reader_fetch_size............: 1161350  18624.237883/s
+       kafka_reader_fetch_wait_max........: 0s       min=0s            max=0s
+       kafka_reader_fetches_count.........: 1277485  20486.661672/s
+       kafka_reader_lag...................: 0        min=0             max=0
+       kafka_reader_message_bytes.........: 267 MB   4.3 MB/s
+       kafka_reader_message_count.........: 1161350  18624.237883/s
+       kafka_reader_offset................: 22989    min=9             max=24219
+       kafka_reader_queue_capacity........: 0        min=0             max=0
+       kafka_reader_queue_length..........: 0        min=0             max=0
+       kafka_reader_read_seconds..........: avg=46.92µs min=11.5µs med=20.29µs max=82.09ms p(90)=46.16µs p(95)=65.29µs
+       kafka_reader_rebalance_count.......: 0        0/s
+       kafka_reader_timeouts_count........: 0        0/s
+       kafka_reader_wait_seconds..........: avg=0s      min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka_writer_acks_required.........: 0        min=0             max=0
+       kafka_writer_async.................: 0.00%    0 out of 11613500
+       kafka_writer_attempts_max..........: 0        min=0             max=0
+       kafka_writer_batch_bytes...........: 2.7 GB   43 MB/s
+       kafka_writer_batch_max.............: 0        min=0             max=0
+       kafka_writer_batch_queue_seconds...: avg=0s      min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka_writer_batch_seconds.........: avg=2.93µs  min=458ns  med=895ns   max=27.75ms p(90)=1.68µs  p(95)=2.16µs
+       kafka_writer_batch_size............: 11613500 186242.378832/s
+       kafka_writer_batch_timeout.........: 0s       min=0s            max=0s
+       kafka_writer_error_count...........: 0        0/s
+       kafka_writer_message_bytes.........: 5.4 GB   86 MB/s
+       kafka_writer_message_count.........: 23227000 372484.757665/s
+       kafka_writer_read_timeout..........: 0s       min=0s            max=0s
+       kafka_writer_retries_count.........: 0        0/s
+       kafka_writer_wait_seconds..........: avg=0s      min=0s     med=0s      max=0s      p(90)=0s      p(95)=0s
+       kafka_writer_write_count...........: 23227000 372484.757665/s
+       kafka_writer_write_seconds.........: avg=5.87µs  min=916ns  med=1.79µs  max=55.5ms  p(90)=3.37µs  p(95)=4.33µs
+       kafka_writer_write_timeout.........: 0s       min=0s            max=0s
 
-      EXECUTION
-      iteration_duration.................: avg=25.07ms min=2.49ms  med=14.17ms max=446.15ms p(90)=61.86ms p(95)=85.65ms
-      iterations.........................: 119321   1916.658255/s
-      vus................................: 50       min=0             max=50   
-      vus_max............................: 50       min=50            max=50
+       EXECUTION
+       iteration_duration.................: avg=25.76ms min=2.42ms med=14.69ms max=355.7ms p(90)=63.5ms  p(95)=87.31ms
+       iterations.........................: 116135   1862.423788/s
+       vus................................: 50       min=0             max=50
+       vus_max............................: 50       min=50            max=50
 
        NETWORK
        data_received......................: 0 B      0 B/s
@@ -496,9 +497,14 @@ For v2.0.0+ examples using the new constructors (`Producer`, `Consumer`, `AdminC
 
 
 
-   running (1m02.1s), 00/50 VUs, 117079 complete and 0 interrupted iterations
-   default ✓ [======================================] 50 VUs  1m0s
+   running (1m02.4s), 00/50 VUs, 116135 complete and 0 interrupted iterations
+   default ✓ [ 100% ] 50 VUs  1m0s
    ```
+
+   > [!NOTE]
+   > The `v2.1.0` release shipped with a producer throughput regression that roughly
+   > halved the throughput shown above (produce-config decode path). It is fixed on
+   > `main` and in the upcoming release.
 
 </details>
 

@@ -3,7 +3,6 @@ package kafka
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -201,51 +200,80 @@ func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	return runtime.ToValue(producerObject).ToObject(runtime)
 }
 
+// decodeProduceConfig decodes a produce config from JS. It uses the fast
+// JSON round-trip path (decodeArgumentMap) after normalizing message key/value
+// payloads in the exported map: plain strings and number arrays are converted
+// to []byte first, so they survive the base64 semantics encoding/json applies
+// to []byte fields. A previous implementation used a mapstructure decoder with
+// a per-field reflection hook, which roughly halved producer throughput.
 func decodeProduceConfig(runtime *sobek.Runtime, value sobek.Value) *ProduceConfig {
 	params := exportArgumentMap(runtime, value, "produce config")
 	if params == nil {
 		return nil
 	}
 
+	normalizeProduceMessagePayloads(runtime, params)
+
 	var produceConfig ProduceConfig
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result: &produceConfig,
-		DecodeHook: func(from reflect.Type, to reflect.Type, data any) (any, error) {
-			if to == reflect.TypeFor[[]byte]() {
-				switch v := data.(type) {
-				case string:
-					return []byte(v), nil
-				case []any:
-					bytes := make([]byte, len(v))
-					for i, value := range v {
-						number, ok := value.(float64)
-						if !ok {
-							return nil, fmt.Errorf(
-								"%w at index %d, got %T",
-								errExpectedNumericByte,
-								i,
-								value,
-							)
-						}
-						bytes[i] = byte(number)
-					}
-					return bytes, nil
-				}
-			}
-			return data, nil
-		},
-	})
-	if err != nil {
-		throwConfigError(runtime, newInvalidConfigError("produce config", err))
-		return nil
-	}
-
-	if err := decoder.Decode(params); err != nil {
-		throwConfigError(runtime, newInvalidConfigError("produce config", err))
-		return nil
-	}
-
+	decodeArgumentMap(runtime, params, &produceConfig, "produce config")
 	return &produceConfig
+}
+
+// normalizeProduceMessagePayloads converts JS string and number-array
+// key/value payloads in an exported produce config map to []byte in place.
+// The exported messages are []any for script-created values and
+// []map[string]any for Go-created ones (for example tests using ToValue).
+func normalizeProduceMessagePayloads(runtime *sobek.Runtime, params map[string]any) {
+	switch messages := params["messages"].(type) {
+	case []any:
+		for _, message := range messages {
+			if messageMap, ok := message.(map[string]any); ok {
+				normalizeProduceMessagePayload(runtime, messageMap)
+			}
+		}
+	case []map[string]any:
+		for _, messageMap := range messages {
+			normalizeProduceMessagePayload(runtime, messageMap)
+		}
+	}
+}
+
+// normalizeProduceMessagePayload normalizes the key and value of a single
+// exported message map in place.
+func normalizeProduceMessagePayload(runtime *sobek.Runtime, messageMap map[string]any) {
+	for _, field := range []string{"key", "value"} {
+		payload, exists := messageMap[field]
+		if !exists {
+			continue
+		}
+		converted, err := toRawBytes(payload)
+		if err != nil {
+			throwConfigError(runtime, newInvalidConfigError("produce config", err))
+			return
+		}
+		messageMap[field] = converted
+	}
+}
+
+// toRawBytes converts string and []any payloads to raw bytes; anything else
+// (including []byte and nil) passes through unchanged.
+func toRawBytes(payload any) (any, error) {
+	switch v := payload.(type) {
+	case string:
+		return []byte(v), nil
+	case []any:
+		bytes := make([]byte, len(v))
+		for i, value := range v {
+			number, ok := value.(float64)
+			if !ok {
+				return nil, fmt.Errorf("%w at index %d, got %T", errExpectedNumericByte, i, value)
+			}
+			bytes[i] = byte(number)
+		}
+		return bytes, nil
+	default:
+		return payload, nil
+	}
 }
 
 func validateConfluentWriterCompatibility(writerConfig *WriterConfig) *Xk6KafkaError {
