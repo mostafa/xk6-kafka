@@ -4,7 +4,7 @@
 
 # Interface: JKS
 
-Defined in: [index.d.ts:343](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L343)
+Defined in: [index.d.ts:357](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L357)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:343](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **clientCertsPem**: `string`[]
 
-Defined in: [index.d.ts:344](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L344)
+Defined in: [index.d.ts:358](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L358)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:344](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **clientKeyPem**: `string`
 
-Defined in: [index.d.ts:345](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L345)
+Defined in: [index.d.ts:359](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L359)
 
 ---
 
@@ -28,4 +28,4 @@ Defined in: [index.d.ts:345](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **serverCaPem**: `string`
 
-Defined in: [index.d.ts:346](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L346)
+Defined in: [index.d.ts:360](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L360)
