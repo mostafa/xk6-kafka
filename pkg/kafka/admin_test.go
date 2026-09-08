@@ -159,6 +159,123 @@ func TestValidateAlteredConsumerGroupOffsets(t *testing.T) {
 	assert.Contains(t, err.Error(), "partition topic[0]: expected offset 12, got 99")
 }
 
+func TestIsRetriableOffsetListingError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{
+			name: "not leader for partition",
+			err: NewXk6KafkaError(failedListOffsets, "Failed to list end offset.",
+				ckafka.NewError(ckafka.ErrNotLeaderForPartition, "not leader", false)),
+			want: true,
+		},
+		{
+			name: "leader not available",
+			err: NewXk6KafkaError(failedListOffsets, "Failed to list end offset.",
+				ckafka.NewError(ckafka.ErrLeaderNotAvailable, "leader not available", false)),
+			want: true,
+		},
+		{
+			name: "unknown topic or partition",
+			err: NewXk6KafkaError(failedListOffsets, "Failed to list end offset.",
+				ckafka.NewError(ckafka.ErrUnknownTopicOrPart, "unknown topic", false)),
+			want: true,
+		},
+		{
+			name: "replica not available",
+			err: NewXk6KafkaError(failedListOffsets, "Failed to list end offset.",
+				ckafka.NewError(ckafka.ErrReplicaNotAvailable, "replica not available", false)),
+			want: true,
+		},
+		{
+			name: "non-empty group is not retriable",
+			err: NewXk6KafkaError(failedAlterGroupOffsets, "Failed to alter consumer group offsets.",
+				ckafka.NewError(ckafka.ErrNonEmptyGroup, "non-empty group", false)),
+			want: false,
+		},
+		{
+			name: "non-kafka error",
+			err:  errListOffsetsIncomplete,
+			want: false,
+		},
+		{
+			name: "nil error",
+			err:  nil,
+			want: false,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, testCase.want, isRetriableOffsetListingError(testCase.err))
+		})
+	}
+}
+
+func TestRetryWhileLeadershipSettles(t *testing.T) {
+	t.Parallel()
+
+	retriableErr := func() error {
+		return NewXk6KafkaError(failedListOffsets, "Failed to list end offset.",
+			ckafka.NewError(ckafka.ErrNotLeaderForPartition, "not leader", false))
+	}
+
+	t.Run("succeeds after retriable failures", func(t *testing.T) {
+		t.Parallel()
+		attempts := 0
+		snapshot, err := retryWhileLeadershipSettles(context.Background(), func() ([]ConsumerGroupOffset, error) {
+			attempts++
+			if attempts < 3 {
+				return nil, retriableErr()
+			}
+			return []ConsumerGroupOffset{{Topic: "topic", Partition: 0, Offset: 7}}, nil
+		})
+		require.NoError(t, err)
+		assert.Equal(t, 3, attempts)
+		assert.Equal(t, []ConsumerGroupOffset{{Topic: "topic", Partition: 0, Offset: 7}}, snapshot)
+	})
+
+	t.Run("gives up after max attempts", func(t *testing.T) {
+		t.Parallel()
+		attempts := 0
+		_, err := retryWhileLeadershipSettles(context.Background(), func() ([]ConsumerGroupOffset, error) {
+			attempts++
+			return nil, retriableErr()
+		})
+		require.Error(t, err)
+		assert.Equal(t, initializeGroupOffsetsMaxAttempts, attempts)
+	})
+
+	t.Run("does not retry non-retriable errors", func(t *testing.T) {
+		t.Parallel()
+		attempts := 0
+		_, err := retryWhileLeadershipSettles(context.Background(), func() ([]ConsumerGroupOffset, error) {
+			attempts++
+			return nil, errListOffsetsIncomplete
+		})
+		require.Error(t, err)
+		assert.Equal(t, 1, attempts)
+	})
+
+	t.Run("stops retrying when context is cancelled", func(t *testing.T) {
+		t.Parallel()
+		ctx, cancel := context.WithCancel(context.Background())
+		attempts := 0
+		_, err := retryWhileLeadershipSettles(ctx, func() ([]ConsumerGroupOffset, error) {
+			attempts++
+			cancel()
+			return nil, retriableErr()
+		})
+		require.Error(t, err)
+		assert.Equal(t, 1, attempts)
+	})
+}
+
 func TestInitializeConsumerGroupOffsetsWithMockCluster(t *testing.T) {
 	t.Parallel()
 

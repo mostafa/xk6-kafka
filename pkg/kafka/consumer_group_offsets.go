@@ -4,10 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
+	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+)
+
+const (
+	// initializeGroupOffsetsMaxAttempts bounds the retries while partition
+	// leadership settles (for example right after topic creation).
+	initializeGroupOffsetsMaxAttempts = 5
+	// initializeGroupOffsetsRetryBackoff is the base delay between attempts;
+	// it grows linearly with each attempt.
+	initializeGroupOffsetsRetryBackoff = 200 * time.Millisecond
 )
 
 // ConsumerGroupOffsetsConfig identifies an inactive consumer group and the
@@ -47,6 +58,74 @@ func (a *AdminClient) InitializeConsumerGroupOffsets(
 	}
 
 	ctx = ensureContext(ctx)
+
+	snapshot, err := a.listTopicEndOffsetsWithRetry(ctx, topics)
+	if err != nil {
+		return nil, err
+	}
+
+	partitions := make([]ckafka.TopicPartition, 0, len(snapshot))
+	for _, item := range snapshot {
+		topic := item.Topic
+		partitions = append(partitions, ckafka.TopicPartition{
+			Topic:     &topic,
+			Partition: item.Partition,
+			Offset:    ckafka.Offset(item.Offset),
+		})
+	}
+
+	altered, err := a.client.AlterConsumerGroupOffsets(ctx, []ckafka.ConsumerGroupTopicPartitions{{
+		Group:      groupID,
+		Partitions: partitions,
+	}})
+	if err != nil {
+		return nil, newAlterGroupOffsetsError(groupID, err)
+	}
+	if err := validateAlteredConsumerGroupOffsets(groupID, snapshot, altered); err != nil {
+		return nil, err
+	}
+
+	return snapshot, nil
+}
+
+// listTopicEndOffsetsWithRetry lists the current end offsets for every
+// partition of the given topics, retrying while partition leadership settles
+// (for example right after topic creation or during a leader election).
+func (a *AdminClient) listTopicEndOffsetsWithRetry(
+	ctx context.Context,
+	topics []string,
+) ([]ConsumerGroupOffset, error) {
+	return retryWhileLeadershipSettles(ctx, func() ([]ConsumerGroupOffset, error) {
+		return a.listTopicEndOffsets(ctx, topics)
+	})
+}
+
+// retryWhileLeadershipSettles runs fn, retrying with linear backoff while fn
+// fails with a retriable offset listing error. It gives up after
+// initializeGroupOffsetsMaxAttempts attempts or when ctx is done.
+func retryWhileLeadershipSettles(
+	ctx context.Context,
+	fn func() ([]ConsumerGroupOffset, error),
+) ([]ConsumerGroupOffset, error) {
+	for attempt := 1; ; attempt++ {
+		snapshot, err := fn()
+		if err == nil || !isRetriableOffsetListingError(err) || attempt >= initializeGroupOffsetsMaxAttempts {
+			return snapshot, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, err
+		case <-time.After(time.Duration(attempt) * initializeGroupOffsetsRetryBackoff):
+		}
+	}
+}
+
+// listTopicEndOffsets lists the current end offset of every partition in the
+// given topics via topic metadata and a single ListOffsets call.
+func (a *AdminClient) listTopicEndOffsets(
+	ctx context.Context,
+	topics []string,
+) ([]ConsumerGroupOffset, error) {
 	requests := make(map[ckafka.TopicPartition]ckafka.OffsetSpec)
 	for _, topic := range topics {
 		metadata, metadataErr := a.GetMetadata(ctx, topic)
@@ -78,33 +157,26 @@ func (a *AdminClient) InitializeConsumerGroupOffsets(
 		return nil, NewXk6KafkaError(failedListOffsets, "Failed to list partition end offsets.", err)
 	}
 
-	snapshot, err := consumerGroupOffsetSnapshot(requests, listed)
-	if err != nil {
-		return nil, err
-	}
+	return consumerGroupOffsetSnapshot(requests, listed)
+}
 
-	partitions := make([]ckafka.TopicPartition, 0, len(snapshot))
-	for _, item := range snapshot {
-		topic := item.Topic
-		partitions = append(partitions, ckafka.TopicPartition{
-			Topic:     &topic,
-			Partition: item.Partition,
-			Offset:    ckafka.Offset(item.Offset),
-		})
-	}
+// retriableOffsetListingCodes are broker error codes that resolve on their
+// own once partition leadership settles.
+var retriableOffsetListingCodes = []ckafka.ErrorCode{
+	ckafka.ErrUnknownTopicOrPart,
+	ckafka.ErrLeaderNotAvailable,
+	ckafka.ErrNotLeaderForPartition,
+	ckafka.ErrReplicaNotAvailable,
+}
 
-	altered, err := a.client.AlterConsumerGroupOffsets(ctx, []ckafka.ConsumerGroupTopicPartitions{{
-		Group:      groupID,
-		Partitions: partitions,
-	}})
-	if err != nil {
-		return nil, newAlterGroupOffsetsError(groupID, err)
+// isRetriableOffsetListingError reports whether err wraps a broker error that
+// resolves on its own once partition leadership settles.
+func isRetriableOffsetListingError(err error) bool {
+	var kafkaErr ckafka.Error
+	if !errors.As(err, &kafkaErr) {
+		return false
 	}
-	if err := validateAlteredConsumerGroupOffsets(groupID, snapshot, altered); err != nil {
-		return nil, err
-	}
-
-	return snapshot, nil
+	return slices.Contains(retriableOffsetListingCodes, kafkaErr.Code())
 }
 
 // newAlterGroupOffsetsError wraps an AlterConsumerGroupOffsets failure,
