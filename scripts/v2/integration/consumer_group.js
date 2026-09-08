@@ -32,7 +32,18 @@ export function setup() {
   });
 
   producer.produce({
-    messages: [{ key: "historical", value: "historical" }],
+    messages: [
+      {
+        key: schemaRegistry.serialize({
+          data: { correlationId: "historical-key" },
+          schemaType: SCHEMA_TYPE_JSON,
+        }),
+        value: schemaRegistry.serialize({
+          data: { kind: "historical" },
+          schemaType: SCHEMA_TYPE_JSON,
+        }),
+      },
+    ],
   });
 
   const offsets = adminClient.initializeConsumerGroupOffsets({
@@ -74,6 +85,14 @@ export default function () {
     check(consumed, {
       "consumer group receives six messages": (received) =>
         received.length === 6,
+      "consumer group skips historical records": (received) =>
+        received.every((message) => {
+          const value = schemaRegistry.deserialize({
+            data: message.value,
+            schemaType: SCHEMA_TYPE_JSON,
+          });
+          return value.kind !== "historical";
+        }),
       "consumer group topic matches": (received) =>
         received.every((message) => message.topic === topic),
       "consumer group payloads deserialize": (received) =>

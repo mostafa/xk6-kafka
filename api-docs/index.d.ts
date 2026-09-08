@@ -305,6 +305,7 @@ export interface ConsumerGroupOffsetsConfig {
 export interface ConsumerGroupOffset {
   topic: string;
   partition: number;
+  /** Loses integer precision above 2^53; only a concern for extremely large offsets. */
   offset: number;
 }
 

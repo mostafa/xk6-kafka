@@ -164,7 +164,7 @@ export function teardown() {
 }
 ```
 
-The group must be inactive while its offsets are initialized. This operation resets any existing committed offsets for the supplied group and topics, so use a dedicated test group rather than an application consumer group. The caller requires topic metadata/read access and permission to alter offsets for the group.
+The group must be inactive while its offsets are initialized. This operation resets any existing committed offsets for the supplied group and topics, so use a dedicated test group rather than an application consumer group. The caller requires topic metadata/read access and permission to alter offsets for the group. Returned offsets are JavaScript numbers and lose integer precision above 2^53, which only matters for topics with extremely large offsets.
 
 ---
 

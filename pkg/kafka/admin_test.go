@@ -144,6 +144,19 @@ func TestValidateAlteredConsumerGroupOffsets(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "missing partition: topic[0]")
+
+	err = validateAlteredConsumerGroupOffsets("group", expected, ckafka.AlterConsumerGroupOffsetsResult{
+		ConsumerGroupsTopicPartitions: []ckafka.ConsumerGroupTopicPartitions{{
+			Group: "group",
+			Partitions: []ckafka.TopicPartition{{
+				Topic:     &topic,
+				Partition: 0,
+				Offset:    99,
+			}},
+		}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "partition topic[0]: expected offset 12, got 99")
 }
 
 func TestInitializeConsumerGroupOffsetsWithMockCluster(t *testing.T) {
@@ -207,6 +220,14 @@ func TestInitializeConsumerGroupOffsetsWithMockCluster(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, messages, 1)
 	assert.Equal(t, []byte("test-event"), messages[0].Value)
+
+	// The historical records must have been skipped: nothing else remains to
+	// consume, so a short-deadline read comes back empty.
+	emptyCtx, emptyCancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer emptyCancel()
+	extra, err := consumer.Consume(emptyCtx, 1)
+	require.Error(t, err)
+	assert.Empty(t, extra)
 }
 
 func TestAdminClientTracksProducerForLifecycle(t *testing.T) {

@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -97,13 +98,34 @@ func (a *AdminClient) InitializeConsumerGroupOffsets(
 		Partitions: partitions,
 	}})
 	if err != nil {
-		return nil, NewXk6KafkaError(failedAlterGroupOffsets, "Failed to alter consumer group offsets.", err)
+		return nil, newAlterGroupOffsetsError(groupID, err)
 	}
 	if err := validateAlteredConsumerGroupOffsets(groupID, snapshot, altered); err != nil {
 		return nil, err
 	}
 
 	return snapshot, nil
+}
+
+// newAlterGroupOffsetsError wraps an AlterConsumerGroupOffsets failure,
+// mapping a non-empty-group broker error to an actionable message.
+func newAlterGroupOffsetsError(groupID string, err error) error {
+	if isNonEmptyGroupError(err) {
+		return NewXk6KafkaError(
+			failedAlterGroupOffsets,
+			fmt.Sprintf(
+				"Consumer group %q is still active. Offsets can only be initialized while the group has no active members.",
+				groupID,
+			),
+			err,
+		)
+	}
+	return NewXk6KafkaError(failedAlterGroupOffsets, "Failed to alter consumer group offsets.", err)
+}
+
+func isNonEmptyGroupError(err error) bool {
+	var kafkaErr ckafka.Error
+	return errors.As(err, &kafkaErr) && kafkaErr.Code() == ckafka.ErrNonEmptyGroup
 }
 
 type topicPartitionKey struct {
@@ -178,7 +200,7 @@ func consumerGroupOffsetSnapshot(
 		return nil, NewXk6KafkaError(
 			failedListOffsets,
 			"Partition end offsets were not returned.",
-			fmt.Errorf("missing partitions: %s", strings.Join(missing, ", ")),
+			fmt.Errorf("%w: missing partitions: %s", errListOffsetsIncomplete, strings.Join(missing, ", ")),
 		)
 	}
 
@@ -200,7 +222,8 @@ func validateAlteredConsumerGroupOffsets(
 		return NewXk6KafkaError(
 			failedAlterGroupOffsets,
 			"Consumer group offset operation returned an unexpected number of groups.",
-			fmt.Errorf("expected 1 group, got %d", len(result.ConsumerGroupsTopicPartitions)),
+			fmt.Errorf("%w: expected 1 group, got %d",
+				errAlterGroupOffsetsResultMismatch, len(result.ConsumerGroupsTopicPartitions)),
 		)
 	}
 
@@ -209,33 +232,46 @@ func validateAlteredConsumerGroupOffsets(
 		return NewXk6KafkaError(
 			failedAlterGroupOffsets,
 			"Consumer group offset operation returned an unexpected group.",
-			fmt.Errorf("expected group %q, got %q", groupID, group.Group),
+			fmt.Errorf("%w: expected group %q, got %q", errAlterGroupOffsetsResultMismatch, groupID, group.Group),
 		)
 	}
 
-	committed := make(map[topicPartitionKey]struct{}, len(group.Partitions))
+	committed := make(map[topicPartitionKey]int64, len(group.Partitions))
 	for _, partition := range group.Partitions {
 		if partition.Topic == nil {
 			continue
 		}
 		key := topicPartitionKey{topic: *partition.Topic, partition: partition.Partition}
 		if partition.Error != nil {
+			if isNonEmptyGroupError(partition.Error) {
+				return newAlterGroupOffsetsError(groupID, partition.Error)
+			}
 			return NewXk6KafkaError(
 				failedAlterGroupOffsets,
 				fmt.Sprintf("Failed to alter consumer group offset for %s[%d].", key.topic, key.partition),
 				partition.Error,
 			)
 		}
-		committed[key] = struct{}{}
+		committed[key] = int64(partition.Offset)
 	}
 
 	for _, item := range expected {
 		key := topicPartitionKey{topic: item.Topic, partition: item.Partition}
-		if _, ok := committed[key]; !ok {
+		committedOffset, ok := committed[key]
+		if !ok {
 			return NewXk6KafkaError(
 				failedAlterGroupOffsets,
 				"Consumer group offset result omitted a partition.",
-				fmt.Errorf("missing partition: %s[%d]", item.Topic, item.Partition),
+				fmt.Errorf("%w: missing partition: %s[%d]",
+					errAlterGroupOffsetsResultMismatch, item.Topic, item.Partition),
+			)
+		}
+		if committedOffset != item.Offset {
+			return NewXk6KafkaError(
+				failedAlterGroupOffsets,
+				"Consumer group committed offset differs from the snapshot.",
+				fmt.Errorf("%w: partition %s[%d]: expected offset %d, got %d",
+					errAlterGroupOffsetsResultMismatch, item.Topic, item.Partition, item.Offset, committedOffset),
 			)
 		}
 	}
