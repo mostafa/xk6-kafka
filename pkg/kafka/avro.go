@@ -361,18 +361,27 @@ func convertUnionField(fieldValue any, unionSchema *avro.UnionSchema) (any, erro
 		}
 
 		// Arrays and maps are unnamed composite types: recurse into their
-        // elements so nested int/long fields get converted, and return the
-        // value unwrapped (hamba/avro resolves the branch by Go type).
-        if actualType.Type() == avro.Array || actualType.Type() == avro.Map {
-            if !isValueCompatibleWithSchema(fieldValue, actualType) {
-                continue
-            }
-            converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
-            if err != nil {
-                continue
-            }
-            return converted, nil
-        }
+		// elements so nested int/long fields get converted.
+		// As with primitives above, the first compatible branch wins, so
+		// ambiguous unions (e.g. ["null", array<int>, array<string>]) may
+		// pick the wrong branch.
+		if actualType.Type() == avro.Array || actualType.Type() == avro.Map {
+			if !isValueCompatibleWithSchema(fieldValue, actualType) {
+				continue
+			}
+			converted, err := convertFloat64ToIntForIntegerFields(fieldValue, actualType)
+			if err != nil {
+				continue
+			}
+			// Arrays are returned unwrapped: hamba/avro encodes a bare slice
+			// with the non-null branch of a nullable union. Maps must be
+			// wrapped by type name: hamba/avro only encodes map[string]any
+			// union values in the {"map": value} form.
+			if actualType.Type() == avro.Map {
+				return map[string]any{string(avro.Map): converted}, nil
+			}
+			return converted, nil
+		}
 
 		// Named schemas (enums, fixed, records) need wrapping.
 		if namedSchema, ok := actualType.(avro.NamedSchema); ok {
