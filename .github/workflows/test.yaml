@@ -45,7 +45,7 @@ jobs:
       - name: Lint code issues 🚨
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
         with:
-          version: v2.12.2
+          version: v2.13.2
 
       - name: Validate declarations 📐
         working-directory: api-docs
