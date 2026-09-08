@@ -451,6 +451,132 @@ func TestConvertUnionField_UnknownWrappedPrimitiveKey(t *testing.T) {
 	assert.Equal(t, data, got)
 }
 
+// TestConvertUnionField_ArrayBranchWithIntUnionItems covers the issue #408
+// shape: a union whose non-null branch is an array of records containing a
+// plain ["null", "int"] union field. The array branch must be recursed into
+// so the nested float64 values become int32, and the value must be returned
+// unwrapped (hamba/avro resolves unnamed composite branches by Go type).
+func TestConvertUnionField_ArrayBranchWithIntUnionItems(t *testing.T) {
+	schemaJSON := `["null", {
+		"type": "array",
+		"items": {
+			"type": "record",
+			"name": "Line",
+			"namespace": "com.example",
+			"fields": [
+				{"name": "lineNumber", "type": ["null", "int"], "default": null}
+			]
+		}
+	}]`
+	schema, err := avro.Parse(schemaJSON)
+	require.NoError(t, err)
+	unionSchema := schema.(*avro.UnionSchema)
+
+	tests := []struct {
+		name string
+		data any
+		want any
+	}{
+		{
+			name: "bare int value",
+			data: []any{
+				map[string]any{"lineNumber": float64(1)},
+			},
+			want: []any{
+				map[string]any{"lineNumber": int32(1)},
+			},
+		},
+		{
+			name: "wrapped int value",
+			data: []any{
+				map[string]any{"lineNumber": map[string]any{"int": float64(1)}},
+			},
+			want: []any{
+				map[string]any{"lineNumber": int32(1)},
+			},
+		},
+		{
+			name: "null int value",
+			data: []any{
+				map[string]any{"lineNumber": nil},
+			},
+			want: []any{
+				map[string]any{"lineNumber": nil},
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			got, err := convertUnionField(testCase.data, unionSchema)
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.want, got)
+		})
+	}
+}
+
+// TestConvertUnionField_MapBranch covers unions whose non-null branch is a
+// map: the map branch must be recursed into so nested float64 values become
+// int32/int64, and the value must be returned wrapped as {"map": value}
+// (hamba/avro only encodes map[string]any union values in that form).
+func TestConvertUnionField_MapBranch(t *testing.T) {
+	tests := []struct {
+		name       string
+		schemaJSON string
+		data       any
+		want       any
+	}{
+		{
+			name:       "map with int values",
+			schemaJSON: `["null", {"type": "map", "values": "int"}]`,
+			data: map[string]any{
+				"key1": float64(1),
+				"key2": float64(2),
+			},
+			want: map[string]any{
+				"map": map[string]any{
+					"key1": int32(1),
+					"key2": int32(2),
+				},
+			},
+		},
+		{
+			name: "map of records with int unions",
+			schemaJSON: `["null", {
+				"type": "map",
+				"values": {
+					"type": "record",
+					"name": "Line",
+					"namespace": "com.example",
+					"fields": [
+						{"name": "lineNumber", "type": ["null", "int"], "default": null}
+					]
+				}
+			}]`,
+			data: map[string]any{
+				"line1": map[string]any{"lineNumber": float64(1)},
+			},
+			want: map[string]any{
+				"map": map[string]any{
+					"line1": map[string]any{"lineNumber": int32(1)},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			schema, err := avro.Parse(testCase.schemaJSON)
+			require.NoError(t, err)
+			unionSchema := schema.(*avro.UnionSchema)
+
+			got, err := convertUnionField(testCase.data, unionSchema)
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.want, got)
+		})
+	}
+}
+
 // TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType tests the exact scenario from issue #376
 // where a union type contains an int with logical type "date".
 func TestConvertFloat64ToIntForIntegerFields_UnionWithLogicalType(t *testing.T) {
@@ -942,6 +1068,173 @@ func TestSerializeDeserializeRoundTrip_WithUnions(t *testing.T) {
 	assert.Equal(t, "test", result["optional"])
 	assert.Equal(t, "ACTIVE", result["enumField"])
 	assert.Equal(t, []byte{1, 2, 3}, result["bytesField"])
+}
+
+// TestSerializeDeserializeRoundTrip_UnionArrayBranch covers the exact issue
+// #408 shape: a ["null", array<record>] union branch whose items contain a
+// plain ["null", "int"] union field. Before the fix, both the bare and the
+// wrapped form failed to serialize ("avro: unknown union type double" /
+// "avro: float64 is unsupported for Avro int").
+func TestSerializeDeserializeRoundTrip_UnionArrayBranch(t *testing.T) {
+	schemaJSON := `{
+		"type": "record",
+		"name": "Order",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "lines",
+				"type": ["null", {
+					"type": "array",
+					"items": {
+						"type": "record",
+						"name": "Line",
+						"fields": [
+							{"name": "lineNumber", "type": ["null", "int"], "default": null}
+						]
+					}
+				}],
+				"default": null
+			}
+		]
+	}`
+	avroSerde := &AvroSerde{}
+	schema := &Schema{
+		ID:      408,
+		Schema:  schemaJSON,
+		Version: 1,
+		Subject: "issue-408-roundtrip",
+	}
+
+	tests := []struct {
+		name string
+		data map[string]any
+	}{
+		{
+			name: "bare int value",
+			data: map[string]any{
+				"lines": []any{
+					map[string]any{"lineNumber": float64(1)},
+				},
+			},
+		},
+		{
+			name: "wrapped int value",
+			data: map[string]any{
+				"lines": []any{
+					map[string]any{"lineNumber": map[string]any{"int": float64(1)}},
+				},
+			},
+		},
+		{
+			name: "null lines",
+			data: map[string]any{"lines": nil},
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			serialized, serdeErr := avroSerde.Serialize(testCase.data, schema)
+			require.Nil(t, serdeErr, "Serialize should not return error")
+			require.NotNil(t, serialized, "Serialized data should not be nil")
+
+			deserialized, deserErr := avroSerde.Deserialize(serialized, schema)
+			require.Nil(t, deserErr, "Deserialize should not return error")
+			require.NotNil(t, deserialized, "Deserialized data should not be nil")
+
+			result := deserialized.(map[string]any)
+			if testCase.data["lines"] == nil {
+				assert.Nil(t, result["lines"])
+				return
+			}
+
+			// hamba/avro decodes unnamed composite union branches (array/map)
+			// into a type-name-wrapped map; accept that form until decode-side
+			// unwrapping is addressed separately.
+			linesValue := result["lines"]
+			if envelope, ok := linesValue.(map[string]any); ok {
+				linesValue = envelope["array"]
+			}
+			lines, ok := linesValue.([]any)
+			require.True(t, ok, "lines should be an array, got %T", result["lines"])
+			require.Len(t, lines, 1)
+			line, ok := lines[0].(map[string]any)
+			require.True(t, ok, "line should be a record, got %T", lines[0])
+
+			// After deserialization, int values may be returned as int (platform-dependent)
+			switch lineNumber := line["lineNumber"].(type) {
+			case int32:
+				assert.Equal(t, int32(1), lineNumber)
+			case int:
+				assert.Equal(t, 1, lineNumber)
+			default:
+				t.Fatalf("unexpected type for lineNumber: %T", line["lineNumber"])
+			}
+		})
+	}
+}
+
+// TestSerializeDeserializeRoundTrip_UnionMapBranch verifies that a
+// ["null", map<int>] union branch serializes from bare float64 values.
+func TestSerializeDeserializeRoundTrip_UnionMapBranch(t *testing.T) {
+	schemaJSON := `{
+		"type": "record",
+		"name": "Inventory",
+		"namespace": "com.example",
+		"fields": [
+			{
+				"name": "counts",
+				"type": ["null", {"type": "map", "values": "int"}],
+				"default": null
+			}
+		]
+	}`
+	avroSerde := &AvroSerde{}
+	schema := &Schema{
+		ID:      408,
+		Schema:  schemaJSON,
+		Version: 1,
+		Subject: "issue-408-map-roundtrip",
+	}
+
+	originalData := map[string]any{
+		"counts": map[string]any{
+			"key1": float64(1),
+			"key2": float64(2),
+		},
+	}
+
+	serialized, serdeErr := avroSerde.Serialize(originalData, schema)
+	require.Nil(t, serdeErr, "Serialize should not return error")
+	require.NotNil(t, serialized, "Serialized data should not be nil")
+
+	deserialized, deserErr := avroSerde.Deserialize(serialized, schema)
+	require.Nil(t, deserErr, "Deserialize should not return error")
+	require.NotNil(t, deserialized, "Deserialized data should not be nil")
+
+	result := deserialized.(map[string]any)
+	// hamba/avro decodes unnamed composite union branches (array/map) into a
+	// type-name-wrapped map; accept that form until decode-side unwrapping is
+	// addressed separately.
+	countsValue := result["counts"]
+	if envelope, ok := countsValue.(map[string]any); ok {
+		if wrapped, exists := envelope["map"]; exists {
+			countsValue = wrapped
+		}
+	}
+	counts, ok := countsValue.(map[string]any)
+	require.True(t, ok, "counts should be a map, got %T", result["counts"])
+	require.Len(t, counts, 2)
+	for key, want := range map[string]int32{"key1": 1, "key2": 2} {
+		// After deserialization, int values may be returned as int (platform-dependent)
+		switch value := counts[key].(type) {
+		case int32:
+			assert.Equal(t, want, value)
+		case int:
+			assert.Equal(t, int(want), value)
+		default:
+			t.Fatalf("unexpected type for counts[%q]: %T", key, counts[key])
+		}
+	}
 }
 
 func TestAvroMarshal_UnionLogicalTypeDateAcceptedShapes(t *testing.T) {
