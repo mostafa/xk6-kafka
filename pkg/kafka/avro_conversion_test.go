@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hamba/avro/v2"
+	avro "github.com/confluentinc/confluent-avro-go/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -455,7 +455,7 @@ func TestConvertUnionField_UnknownWrappedPrimitiveKey(t *testing.T) {
 // shape: a union whose non-null branch is an array of records containing a
 // plain ["null", "int"] union field. The array branch must be recursed into
 // so the nested float64 values become int32, and the value must be returned
-// unwrapped (hamba/avro resolves unnamed composite branches by Go type).
+// unwrapped (confluent-avro-go resolves unnamed composite branches by Go type).
 func TestConvertUnionField_ArrayBranchWithIntUnionItems(t *testing.T) {
 	schemaJSON := `["null", {
 		"type": "array",
@@ -518,7 +518,7 @@ func TestConvertUnionField_ArrayBranchWithIntUnionItems(t *testing.T) {
 // TestConvertUnionField_MapBranch covers unions whose non-null branch is a
 // map: the map branch must be recursed into so nested float64 values become
 // int32/int64, and the value must be returned wrapped as {"map": value}
-// (hamba/avro only encodes map[string]any union values in that form).
+// (confluent-avro-go only encodes map[string]any union values in that form).
 func TestConvertUnionField_MapBranch(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -1147,7 +1147,7 @@ func TestSerializeDeserializeRoundTrip_UnionArrayBranch(t *testing.T) {
 				return
 			}
 
-			// hamba/avro decodes unnamed composite union branches (array/map)
+			// confluent-avro-go decodes unnamed composite union branches (array/map)
 			// into a type-name-wrapped map; accept that form until decode-side
 			// unwrapping is addressed separately.
 			linesValue := result["lines"]
@@ -1212,7 +1212,7 @@ func TestSerializeDeserializeRoundTrip_UnionMapBranch(t *testing.T) {
 	require.NotNil(t, deserialized, "Deserialized data should not be nil")
 
 	result := deserialized.(map[string]any)
-	// hamba/avro decodes unnamed composite union branches (array/map) into a
+	// confluent-avro-go decodes unnamed composite union branches (array/map) into a
 	// type-name-wrapped map; accept that form until decode-side unwrapping is
 	// addressed separately.
 	countsValue := result["counts"]
@@ -1241,7 +1241,7 @@ func TestAvroMarshal_UnionLogicalTypeDateAcceptedShapes(t *testing.T) {
 	schema, err := avro.Parse(testDocumentLogicalDateSchemaJSON)
 	require.NoError(t, err)
 
-	// Direct int32 value is rejected by hamba/avro for this logical union shape.
+	// Direct int32 value is rejected by confluent-avro-go for this logical union shape.
 	_, err = avro.Marshal(schema, map[string]any{"documentValidTo": int32(20474)})
 	assert.Error(t, err)
 

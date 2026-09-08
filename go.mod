@@ -7,11 +7,11 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/bufbuild/protocompile v0.14.1
+	github.com/confluentinc/confluent-avro-go/v2 v2.32.0
 	github.com/confluentinc/confluent-kafka-go/v2 v2.14.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/grafana/sobek v0.0.0-20260727154728-7781506a890f
-	github.com/hamba/avro/v2 v2.31.0
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/sirupsen/logrus v1.9.3
