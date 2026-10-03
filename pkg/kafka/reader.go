@@ -37,36 +37,36 @@ var (
 const consumerSeekArgumentCount = 2
 
 type ReaderConfig struct {
-	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
-	ConnectLogger          bool          `json:"connectLogger"`
-	Partition              int           `json:"partition"`
-	QueueCapacity          int           `json:"queueCapacity"`
-	MinBytes               int           `json:"minBytes"`
-	MaxBytes               int           `json:"maxBytes"`
-	MaxAttempts            int           `json:"maxAttempts"`
-	GroupID                string        `json:"groupId"`
-	Topic                  string        `json:"topic"`
-	IsolationLevel         string        `json:"isolationLevel"`
-	StartOffset            string        `json:"startOffset"`
-	Offset                 int64         `json:"offset"`
-	Brokers                []string      `json:"brokers"`
-	GroupTopics            []string      `json:"groupTopics"`
-	GroupBalancers         []string      `json:"groupBalancers"`
-	MaxWait                Duration      `json:"maxWait"`
-	ReadBatchTimeout       time.Duration `json:"readBatchTimeout"`
-	ReadLagInterval        time.Duration `json:"readLagInterval"`
-	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
-	CommitInterval         time.Duration `json:"commitInterval"`
-	PartitionWatchInterval time.Duration `json:"partitionWatchInterval"`
-	SessionTimeout         time.Duration `json:"sessionTimeout"`
-	RebalanceTimeout       time.Duration `json:"rebalanceTimeout"`
-	JoinGroupBackoff       time.Duration `json:"joinGroupBackoff"`
-	RetentionTime          time.Duration `json:"retentionTime"`
-	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
-	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
-	OffsetOutOfRangeError  bool          `json:"offsetOutOfRangeError"` // deprecated, do not use
-	SASL                   SASLConfig    `json:"sasl"`
-	TLS                    TLSConfig     `json:"tls"`
+	WatchPartitionChanges  bool       `json:"watchPartitionChanges"`
+	ConnectLogger          bool       `json:"connectLogger"`
+	Partition              int        `json:"partition"`
+	QueueCapacity          int        `json:"queueCapacity"`
+	MinBytes               int        `json:"minBytes"`
+	MaxBytes               int        `json:"maxBytes"`
+	MaxAttempts            int        `json:"maxAttempts"`
+	GroupID                string     `json:"groupId"`
+	Topic                  string     `json:"topic"`
+	IsolationLevel         string     `json:"isolationLevel"`
+	StartOffset            string     `json:"startOffset"`
+	Offset                 int64      `json:"offset"`
+	Brokers                []string   `json:"brokers"`
+	GroupTopics            []string   `json:"groupTopics"`
+	GroupBalancers         []string   `json:"groupBalancers"`
+	MaxWait                Duration   `json:"maxWait"`
+	ReadBatchTimeout       Duration   `json:"readBatchTimeout"`
+	ReadLagInterval        Duration   `json:"readLagInterval"`
+	HeartbeatInterval      Duration   `json:"heartbeatInterval"`
+	CommitInterval         Duration   `json:"commitInterval"`
+	PartitionWatchInterval Duration   `json:"partitionWatchInterval"`
+	SessionTimeout         Duration   `json:"sessionTimeout"`
+	RebalanceTimeout       Duration   `json:"rebalanceTimeout"`
+	JoinGroupBackoff       Duration   `json:"joinGroupBackoff"`
+	RetentionTime          Duration   `json:"retentionTime"`
+	ReadBackoffMin         Duration   `json:"readBackoffMin"`
+	ReadBackoffMax         Duration   `json:"readBackoffMax"`
+	OffsetOutOfRangeError  bool       `json:"offsetOutOfRangeError"` // deprecated, do not use
+	SASL                   SASLConfig `json:"sasl"`
+	TLS                    TLSConfig  `json:"tls"`
 }
 
 type ConsumeConfig struct {
@@ -95,6 +95,9 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 
 	switch value := v.(type) {
+	case float64:
+		d.Duration = time.Duration(value)
+		return nil
 	case string:
 		var err error
 		d.Duration, err = time.ParseDuration(value)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/grafana/sobek"
 	"go.k6.io/k6/v2/js/common"
 )
@@ -47,9 +46,9 @@ type WriterConfig struct {
 	BalancerFunc    BalancerKeyFunc `mapstructure:"-"`
 	Compression     string          `mapstructure:"compression"`
 	Brokers         []string        `mapstructure:"brokers"`
-	BatchTimeout    time.Duration   `mapstructure:"batchTimeout"`
-	ReadTimeout     time.Duration   `mapstructure:"readTimeout"`
-	WriteTimeout    time.Duration   `mapstructure:"writeTimeout"`
+	BatchTimeout    Duration        `mapstructure:"batchTimeout"`
+	ReadTimeout     Duration        `mapstructure:"readTimeout"`
+	WriteTimeout    Duration        `mapstructure:"writeTimeout"`
 	SASL            SASLConfig      `mapstructure:"sasl"`
 	TLS             TLSConfig       `mapstructure:"tls"`
 }
@@ -59,28 +58,25 @@ func (c *WriterConfig) Parse(m map[string]any, runtime *sobek.Runtime) error {
 		return newMissingConfigError("writer config")
 	}
 
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: c})
-	if err != nil {
-		return err
-	}
 	if m["balancer"] != nil {
 		if balancer, ok := m["balancer"].(string); ok {
 			c.Balancer = balancer
 		} else {
-			err = runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.BalancerFunc)
+			err := runtime.ExportTo(runtime.ToValue(m["balancer"]), &c.BalancerFunc)
 			if err != nil {
 				return fmt.Errorf("error parsing balancerFunc: %w", err)
 			}
 		}
 	}
-	if err := decoder.Decode(m); err != nil {
-		return fmt.Errorf("failed to decode writer config: %w", err)
-	}
+
+	decodeArgumentMap(runtime, m, &c, "writer config")
+
 	if c.Balancer != "" {
 		if _, ok := supportedBalancers[c.Balancer]; !ok {
 			return fmt.Errorf("%w %q", errUnknownBalancer, c.Balancer)
 		}
 	}
+
 	return nil
 }
 
@@ -116,19 +112,22 @@ func (k *Kafka) writerClass(call sobek.ConstructorCall) *sobek.Object {
 
 func (k *Kafka) compatProducerClass(call sobek.ConstructorCall) *sobek.Object {
 	runtime := k.vu.Runtime()
+	var writerConfig WriterConfig
 	if len(call.Arguments) == 0 {
 		common.Throw(runtime, ErrNotEnoughArguments)
 	}
 
-	m := exportArgumentMap(runtime, call.Arguments[0], "writer config")
-	var writerConfig WriterConfig
-	err := writerConfig.Parse(m, runtime)
+	writerConfigParams := exportArgumentMap(runtime, call.Arguments[0], "writer config")
+
+	err := writerConfig.Parse(writerConfigParams, runtime)
 	if err != nil {
-		throwConfigError(runtime, newInvalidConfigError("writer config", err))
+		common.Throw(runtime, err)
 	}
+
 	if err := validateConfluentWriterCompatibility(&writerConfig); err != nil {
 		common.Throw(runtime, err)
 	}
+
 	producer, err := NewProducerFromWriterConfig(&writerConfig)
 	if err != nil {
 		common.Throw(runtime, err)
