@@ -4,7 +4,7 @@
 
 # Interface: ConsumerGroupOffset
 
-Defined in: [index.d.ts:305](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L305)
+Defined in: [index.d.ts:321](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L321)
 
 One topic-partition offset captured for a consumer group.
 
@@ -14,7 +14,7 @@ One topic-partition offset captured for a consumer group.
 
 > **offset**: `number`
 
-Defined in: [index.d.ts:309](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L309)
+Defined in: [index.d.ts:325](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L325)
 
 Loses integer precision above 2^53; only a concern for extremely large offsets.
 
@@ -24,7 +24,7 @@ Loses integer precision above 2^53; only a concern for extremely large offsets.
 
 > **partition**: `number`
 
-Defined in: [index.d.ts:307](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L307)
+Defined in: [index.d.ts:323](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L323)
 
 ---
 
@@ -32,4 +32,4 @@ Defined in: [index.d.ts:307](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **topic**: `string`
 
-Defined in: [index.d.ts:306](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L306)
+Defined in: [index.d.ts:322](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L322)

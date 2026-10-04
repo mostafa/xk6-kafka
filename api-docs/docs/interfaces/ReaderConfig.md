@@ -146,14 +146,6 @@ Defined in: [index.d.ts:193](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ---
 
-### queueCapacity
-
-> **queueCapacity**: `number`
-
-Defined in: [index.d.ts:184](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/index.d.ts#L184)
-
----
-
 ### readBackoffMax
 
 > **readBackoffMax**: `number`

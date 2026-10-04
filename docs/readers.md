@@ -33,7 +33,10 @@ type ReaderConfig struct {
 	WatchPartitionChanges  bool          `json:"watchPartitionChanges"`
 	ConnectLogger          bool          `json:"connectLogger"`
 	Partition              int           `json:"partition"`
-	QueueCapacity          int           `json:"queueCapacity"`
+	QueuedMinMessages      int           `json:"queuedMinMessages"`
+	QueuedMaxMessagesKbytes int          `json:"queuedMaxMessagesKbytes"`
+	FetchMessageMaxBytes   int           `json:"fetchMessageMaxBytes"`
+	MaxPartitionFetchBytes int           `json:"maxPartitionFetchBytes"`
 	MinBytes               int           `json:"minBytes"`
 	MaxBytes               int           `json:"maxBytes"`
 	MaxAttempts            int           `json:"maxAttempts"`
@@ -46,6 +49,7 @@ type ReaderConfig struct {
 	GroupTopics            []string      `json:"groupTopics"`
 	GroupBalancers         []string      `json:"groupBalancers"`
 	MaxWait                Duration      `json:"maxWait"`
+	MaxPollInterval        Duration      `json:"maxPollInterval"`
 	ReadBatchTimeout       time.Duration `json:"readBatchTimeout"`
 	ReadLagInterval        time.Duration `json:"readLagInterval"`
 	HeartbeatInterval      time.Duration `json:"heartbeatInterval"`
@@ -58,6 +62,8 @@ type ReaderConfig struct {
 	ReadBackoffMin         time.Duration `json:"readBackoffMin"`
 	ReadBackoffMax         time.Duration `json:"readBackoffMax"`
 	OffsetOutOfRangeError  bool          `json:"offsetOutOfRangeError"` // deprecated, do not use
+	SocketKeepAlive        bool          `json:"socketKeepAlive"`
+	MetadataMaxAge         time.Duration `json:"metadataMaxAge"`
 	SASL                   SASLConfig    `json:"sasl"`
 	TLS                    TLSConfig     `json:"tls"`
 }

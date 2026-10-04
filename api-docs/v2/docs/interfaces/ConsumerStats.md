@@ -4,7 +4,7 @@
 
 # Interface: ConsumerStats
 
-Defined in: [index.d.ts:274](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L274)
+Defined in: [index.d.ts:290](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L290)
 
 ## Properties
 
@@ -12,4 +12,4 @@ Defined in: [index.d.ts:274](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **assignments**: `number`
 
-Defined in: [index.d.ts:275](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L275)
+Defined in: [index.d.ts:291](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L291)

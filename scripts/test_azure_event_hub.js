@@ -22,6 +22,7 @@ import {
   SCHEMA_TYPE_STRING,
   SASL_AZURE_ENTRA,
   TLS_1_2,
+  CODEC_GZIP,
 } from "k6/x/kafka";
 
 if (!__ENV.EVENT_HUB_NAMESPACE) {
@@ -48,6 +49,11 @@ const producer = new Producer({
   topic: topic,
   sasl: saslConfig,
   tls: tlsConfig,
+  // Recommended for Azure Event Hubs
+  socketKeepAlive: true,
+  metadataMaxAge: "180000ms",
+  requestTimeout: "60000ms",
+  compression: CODEC_GZIP,
 });
 
 const consumer = new Consumer({
@@ -60,12 +66,21 @@ const consumer = new Consumer({
   tls: tlsConfig,
   // Need to allow time for rebalance
   maxWait: "30s",
+  // Recommended for Azure Event Hubs
+  socketKeepAlive: true,
+  metadataMaxAge: "180000ms",
+  sessionTimeout: "30000ms",
+  heartbeatInterval: "3000ms",
+  maxPollInterval: "300000ms",
 });
 
 const adminClient = new AdminClient({
   brokers: brokers,
   sasl: saslConfig,
   tls: tlsConfig,
+  // Recommended for Azure Event Hubs
+  socketKeepAlive: true,
+  metadataMaxAge: "180000ms",
 });
 
 const schemaRegistry = new SchemaRegistry();

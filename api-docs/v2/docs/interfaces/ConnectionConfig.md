@@ -4,7 +4,7 @@
 
 # Interface: ConnectionConfig
 
-Defined in: [index.d.ts:242](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L242)
+Defined in: [index.d.ts:256](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L256)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:242](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **address?**: `string`
 
-Defined in: [index.d.ts:243](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L243)
+Defined in: [index.d.ts:257](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L257)
 
 ---
 
@@ -20,7 +20,15 @@ Defined in: [index.d.ts:243](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **brokers?**: `string`[]
 
-Defined in: [index.d.ts:244](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L244)
+Defined in: [index.d.ts:258](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L258)
+
+---
+
+### metadataMaxAge?
+
+> `optional` **metadataMaxAge?**: `string`
+
+Defined in: [index.d.ts:260](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L260)
 
 ---
 
@@ -28,7 +36,15 @@ Defined in: [index.d.ts:244](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **sasl**: [`SASLConfig`](SASLConfig.md)
 
-Defined in: [index.d.ts:245](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L245)
+Defined in: [index.d.ts:261](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L261)
+
+---
+
+### socketKeepAlive?
+
+> `optional` **socketKeepAlive?**: `boolean`
+
+Defined in: [index.d.ts:259](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L259)
 
 ---
 
@@ -36,4 +52,4 @@ Defined in: [index.d.ts:245](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **tls**: [`TLSConfig`](TLSConfig.md)
 
-Defined in: [index.d.ts:246](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L246)
+Defined in: [index.d.ts:262](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L262)

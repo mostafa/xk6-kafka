@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"time"
 
 	"github.com/grafana/sobek"
 	"go.k6.io/k6/v2/js/common"
@@ -12,6 +13,9 @@ type ConnectionConfig struct {
 	Brokers []string   `json:"brokers"`
 	SASL    SASLConfig `json:"sasl"`
 	TLS     TLSConfig  `json:"tls"`
+
+	SocketKeepAlive bool          `json:"socketKeepAlive"`
+	MetadataMaxAge  time.Duration `json:"metadataMaxAge"`
 }
 
 func (k *Kafka) adminClientClass(call sobek.ConstructorCall) *sobek.Object {

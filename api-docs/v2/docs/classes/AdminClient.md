@@ -4,7 +4,7 @@
 
 # Class: AdminClient
 
-Defined in: [index.d.ts:497](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L497)
+Defined in: [index.d.ts:513](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L513)
 
 ## Classdesc
 
@@ -31,7 +31,7 @@ adminClient.close();
 
 > **new AdminClient**(`connectionConfig`): `AdminClient`
 
-Defined in: [index.d.ts:498](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L498)
+Defined in: [index.d.ts:514](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L514)
 
 #### Parameters
 
@@ -49,7 +49,7 @@ Defined in: [index.d.ts:498](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:510](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L510)
+Defined in: [index.d.ts:526](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L526)
 
 #### Returns
 
@@ -61,7 +61,7 @@ Defined in: [index.d.ts:510](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **createTopic**(`topicConfig`): `void`
 
-Defined in: [index.d.ts:499](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L499)
+Defined in: [index.d.ts:515](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L515)
 
 #### Parameters
 
@@ -79,7 +79,7 @@ Defined in: [index.d.ts:499](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **deleteTopic**(`topic`): `void`
 
-Defined in: [index.d.ts:500](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L500)
+Defined in: [index.d.ts:516](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L516)
 
 #### Parameters
 
@@ -97,7 +97,7 @@ Defined in: [index.d.ts:500](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **getMetadata**(`topic`): [`TopicMetadata`](../interfaces/TopicMetadata.md)
 
-Defined in: [index.d.ts:502](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L502)
+Defined in: [index.d.ts:518](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L518)
 
 #### Parameters
 
@@ -115,7 +115,7 @@ Defined in: [index.d.ts:502](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **initializeConsumerGroupOffsets**(`config`): [`ConsumerGroupOffset`](../interfaces/ConsumerGroupOffset.md)[]
 
-Defined in: [index.d.ts:507](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L507)
+Defined in: [index.d.ts:523](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L523)
 
 Reset an inactive consumer group to a snapshot of the current end offset
 of every partition in the supplied topics.
@@ -136,7 +136,7 @@ of every partition in the supplied topics.
 
 > **listTopics**(): [`TopicInfo`](../interfaces/TopicInfo.md)[]
 
-Defined in: [index.d.ts:501](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L501)
+Defined in: [index.d.ts:517](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L517)
 
 #### Returns
 

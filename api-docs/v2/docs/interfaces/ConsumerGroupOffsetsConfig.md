@@ -4,7 +4,7 @@
 
 # Interface: ConsumerGroupOffsetsConfig
 
-Defined in: [index.d.ts:299](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L299)
+Defined in: [index.d.ts:315](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L315)
 
 Topics whose end offsets will initialize an inactive consumer group.
 
@@ -14,7 +14,7 @@ Topics whose end offsets will initialize an inactive consumer group.
 
 > **groupId**: `string`
 
-Defined in: [index.d.ts:300](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L300)
+Defined in: [index.d.ts:316](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L316)
 
 ---
 
@@ -22,4 +22,4 @@ Defined in: [index.d.ts:300](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **topics**: `string`[]
 
-Defined in: [index.d.ts:301](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L301)
+Defined in: [index.d.ts:317](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L317)

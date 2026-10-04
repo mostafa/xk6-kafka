@@ -29,21 +29,28 @@ Tip: here you can find more options for your writer:
 
 ```golang
 type WriterConfig struct {
-	AutoCreateTopic bool          `json:"autoCreateTopic"`
-	ConnectLogger   bool          `json:"connectLogger"`
-	MaxAttempts     int           `json:"maxAttempts"`
-	BatchSize       int           `json:"batchSize"`
-	BatchBytes      int           `json:"batchBytes"`
-	RequiredAcks    int           `json:"requiredAcks"`
-	Topic           string        `json:"topic"`
-	Balancer        string        `json:"balancer"`
-	Compression     string        `json:"compression"`
-	Brokers         []string      `json:"brokers"`
-	BatchTimeout    time.Duration `json:"batchTimeout"`
-	ReadTimeout     time.Duration `json:"readTimeout"`
-	WriteTimeout    time.Duration `json:"writeTimeout"`
-	SASL            SASLConfig    `json:"sasl"`
-	TLS             TLSConfig     `json:"tls"`
+	AutoCreateTopic           bool            `json:"autoCreateTopic"`
+	ConnectLogger             bool            `json:"connectLogger"`
+	MaxAttempts               int             `json:"maxAttempts"`
+	BatchSize                 int             `json:"batchSize"`
+	BatchBytes                int             `json:"batchBytes"`
+	QueueBufferingMaxMessages int             `json:"queueBufferingMaxMessages"`
+	QueueBufferingMaxKbytes   int             `json:"queueBufferingMaxKbytes"`
+	MessageMaxBytes           int             `json:"messageMaxBytes"`
+	CompressionLevel          int             `json:"compressionLevel"`
+	RequiredAcks              int             `json:"requiredAcks"`
+	Topic                     string          `json:"topic"`
+	Balancer                  string          `json:"balancer"`
+	Compression               string          `json:"compression"`
+	Brokers                   []string        `json:"brokers"`
+	BatchTimeout              time.Duration   `json:"batchTimeout"`
+	ReadTimeout               time.Duration   `json:"readTimeout"`
+	WriteTimeout              time.Duration   `json:"writeTimeout"`
+	RequestTimeout            time.Duration   `json:"requestTimeout"`
+	SocketKeepAlive           bool            `json:"socketKeepAlive"`
+	MetadataMaxAge            time.Duration   `json:"metadataMaxAge"`
+	SASL                      SASLConfig      `json:"sasl"`
+	TLS                       TLSConfig       `json:"tls"`
 }
 ```
 

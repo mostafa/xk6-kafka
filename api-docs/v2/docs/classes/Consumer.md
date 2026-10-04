@@ -4,7 +4,7 @@
 
 # Class: Consumer
 
-Defined in: [index.d.ts:443](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L443)
+Defined in: [index.d.ts:459](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L459)
 
 ## Classdesc
 
@@ -32,7 +32,7 @@ consumer.close();
 
 > **new Consumer**(`readerConfig`): `Consumer`
 
-Defined in: [index.d.ts:444](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L444)
+Defined in: [index.d.ts:460](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L460)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [index.d.ts:444](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **close**(): `void`
 
-Defined in: [index.d.ts:450](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L450)
+Defined in: [index.d.ts:466](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L466)
 
 #### Returns
 
@@ -62,7 +62,7 @@ Defined in: [index.d.ts:450](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **commitOffsets**(): `void`
 
-Defined in: [index.d.ts:448](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L448)
+Defined in: [index.d.ts:464](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L464)
 
 #### Returns
 
@@ -74,7 +74,7 @@ Defined in: [index.d.ts:448](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **consume**(`consumeConfig`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [index.d.ts:445](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L445)
+Defined in: [index.d.ts:461](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L461)
 
 #### Parameters
 
@@ -92,7 +92,7 @@ Defined in: [index.d.ts:445](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **position**(`partition`): `number`
 
-Defined in: [index.d.ts:447](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L447)
+Defined in: [index.d.ts:463](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L463)
 
 #### Parameters
 
@@ -110,7 +110,7 @@ Defined in: [index.d.ts:447](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **seek**(`partition`, `offset`): `void`
 
-Defined in: [index.d.ts:446](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L446)
+Defined in: [index.d.ts:462](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L462)
 
 #### Parameters
 
@@ -132,7 +132,7 @@ Defined in: [index.d.ts:446](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **stats**(): [`ConsumerStats`](../interfaces/ConsumerStats.md)
 
-Defined in: [index.d.ts:449](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L449)
+Defined in: [index.d.ts:465](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L465)
 
 #### Returns
 

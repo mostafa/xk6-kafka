@@ -4,7 +4,7 @@
 
 # Interface: SubjectNameConfig
 
-Defined in: [index.d.ts:333](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L333)
+Defined in: [index.d.ts:349](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L349)
 
 ## Properties
 
@@ -12,7 +12,7 @@ Defined in: [index.d.ts:333](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **element**: [`ELEMENT_TYPES`](../enumerations/ELEMENT_TYPES.md)
 
-Defined in: [index.d.ts:336](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L336)
+Defined in: [index.d.ts:352](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L352)
 
 ---
 
@@ -20,7 +20,7 @@ Defined in: [index.d.ts:336](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > `optional` **messageName?**: `string`
 
-Defined in: [index.d.ts:338](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L338)
+Defined in: [index.d.ts:354](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L354)
 
 ---
 
@@ -28,7 +28,7 @@ Defined in: [index.d.ts:338](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **schema**: `string`
 
-Defined in: [index.d.ts:334](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L334)
+Defined in: [index.d.ts:350](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L350)
 
 ---
 
@@ -36,7 +36,7 @@ Defined in: [index.d.ts:334](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **subjectNameStrategy**: [`SUBJECT_NAME_STRATEGY`](../enumerations/SUBJECT_NAME_STRATEGY.md)
 
-Defined in: [index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L337)
+Defined in: [index.d.ts:353](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L353)
 
 ---
 
@@ -44,4 +44,4 @@ Defined in: [index.d.ts:337](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 > **topic**: `string`
 
-Defined in: [index.d.ts:335](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L335)
+Defined in: [index.d.ts:351](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L351)
