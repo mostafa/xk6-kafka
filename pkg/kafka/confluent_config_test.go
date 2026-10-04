@@ -269,10 +269,10 @@ func TestWriterConfigToConfluentConfigMap_Table(t *testing.T) {
 		t.Parallel()
 		cfg, err := writerConfigToConfluentConfigMap(&WriterConfig{
 			Brokers:                   []string{"localhost:9092"},
-			WriteTimeout:              2 * time.Second,
-			ReadTimeout:               3 * time.Second,
+			WriteTimeout:              Duration{Duration: 2 * time.Second},
+			ReadTimeout:               Duration{Duration: 3 * time.Second},
 			RequiredAcks:              1,
-			BatchTimeout:              100 * time.Millisecond,
+			BatchTimeout:              Duration{Duration: 100 * time.Millisecond},
 			QueueBufferingMaxMessages: 50000,
 			QueueBufferingMaxKbytes:   512000,
 			MessageMaxBytes:           2048000,
@@ -327,9 +327,9 @@ func TestReaderConfigToConfluentConfigMap_Table(t *testing.T) {
 		MinBytes:          1,
 		MaxBytes:          1 << 20,
 		MaxWait:           Duration{Duration: 500 * time.Millisecond},
-		SessionTimeout:    10 * time.Second,
-		HeartbeatInterval: 3 * time.Second,
-		CommitInterval:    5 * time.Second,
+		SessionTimeout:    Duration{Duration: 10 * time.Second},
+		HeartbeatInterval: Duration{Duration: 3 * time.Second},
+		CommitInterval:    Duration{Duration: 5 * time.Second},
 	}
 
 	t.Run("first offset reset", func(t *testing.T) {
@@ -391,7 +391,7 @@ func TestReaderConfigToConfluentConfigMap_Table(t *testing.T) {
 			FetchMessageMaxBytes:    1048576,
 			MaxPartitionFetchBytes:  1048576,
 			MaxPollInterval:         300 * time.Second,
-			RebalanceTimeout:        45 * time.Second,
+			RebalanceTimeout:        Duration{Duration: 45 * time.Second},
 			SocketKeepAlive:         true,
 			MetadataMaxAge:          180 * time.Second,
 		})

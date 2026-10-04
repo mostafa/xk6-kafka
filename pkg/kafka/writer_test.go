@@ -360,9 +360,9 @@ func TestWriterConfigParse(t *testing.T) {
 			Topic:           "test-topic",
 			Compression:     codecGzip,
 			Brokers:         []string{"localhost:9092"},
-			BatchTimeout:    time.Second * 10,
-			ReadTimeout:     time.Second * 30,
-			WriteTimeout:    time.Second * 30,
+			BatchTimeout:    Duration{Duration: time.Second * 10},
+			ReadTimeout:     Duration{Duration: time.Second * 30},
+			WriteTimeout:    Duration{Duration: time.Second * 30},
 			SASL: SASLConfig{
 				Username:   "test-user",
 				Password:   "test-password",

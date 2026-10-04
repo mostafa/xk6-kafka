@@ -42,7 +42,7 @@ Defined in: [index.d.ts:145](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### batchTimeout
 
-> **batchTimeout**: `number`
+> **batchTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:147](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L147)
 
@@ -122,7 +122,7 @@ Defined in: [index.d.ts:148](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### readTimeout
 
-> **readTimeout**: `number`
+> **readTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:152](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L152)
 
@@ -178,6 +178,6 @@ Defined in: [index.d.ts:141](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### writeTimeout
 
-> **writeTimeout**: `number`
+> **writeTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:154](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L154)

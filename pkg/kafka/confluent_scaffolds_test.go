@@ -17,7 +17,7 @@ func TestWriterConfigToConfluentConfigMap(t *testing.T) {
 		RequiredAcks: -1,
 		BatchSize:    10,
 		BatchBytes:   2048,
-		BatchTimeout: 250 * time.Millisecond,
+		BatchTimeout: Duration{Duration: 250 * time.Millisecond},
 		Compression:  codecGzip,
 		SASL: SASLConfig{
 			Algorithm: saslScramSha256,

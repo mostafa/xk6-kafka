@@ -18,7 +18,7 @@ Defined in: [index.d.ts:200](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### commitInterval
 
-> **commitInterval**: `number`
+> **commitInterval**: `string` \| `number`
 
 Defined in: [index.d.ts:220](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L220)
 
@@ -78,7 +78,7 @@ Defined in: [index.d.ts:204](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### heartbeatInterval
 
-> **heartbeatInterval**: `number`
+> **heartbeatInterval**: `string` \| `number`
 
 Defined in: [index.d.ts:219](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L219)
 
@@ -94,7 +94,7 @@ Defined in: [index.d.ts:232](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### joinGroupBackoff
 
-> **joinGroupBackoff**: `number`
+> **joinGroupBackoff**: `string` \| `number`
 
 Defined in: [index.d.ts:225](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L225)
 
@@ -174,7 +174,7 @@ Defined in: [index.d.ts:206](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### partitionWatchInterval
 
-> **partitionWatchInterval**: `number`
+> **partitionWatchInterval**: `string` \| `number`
 
 Defined in: [index.d.ts:221](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L221)
 
@@ -206,7 +206,7 @@ Defined in: [index.d.ts:208](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### readBackoffMax
 
-> **readBackoffMax**: `number`
+> **readBackoffMax**: `string` \| `number`
 
 Defined in: [index.d.ts:229](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L229)
 
@@ -214,7 +214,7 @@ Defined in: [index.d.ts:229](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### readBackoffMin
 
-> **readBackoffMin**: `number`
+> **readBackoffMin**: `string` \| `number`
 
 Defined in: [index.d.ts:228](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L228)
 
@@ -222,7 +222,7 @@ Defined in: [index.d.ts:228](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### readBatchTimeout
 
-> **readBatchTimeout**: `number`
+> **readBatchTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:214](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L214)
 
@@ -230,7 +230,7 @@ Defined in: [index.d.ts:214](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### readLagInterval
 
-> **readLagInterval**: `number`
+> **readLagInterval**: `string` \| `number`
 
 Defined in: [index.d.ts:217](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L217)
 
@@ -238,7 +238,7 @@ Defined in: [index.d.ts:217](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### rebalanceTimeout
 
-> **rebalanceTimeout**: `number`
+> **rebalanceTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:224](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L224)
 
@@ -246,7 +246,7 @@ Defined in: [index.d.ts:224](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### retentionTime
 
-> **retentionTime**: `number`
+> **retentionTime**: `string` \| `number`
 
 Defined in: [index.d.ts:226](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L226)
 
@@ -262,7 +262,7 @@ Defined in: [index.d.ts:236](https://github.com/mostafa/xk6-kafka/blob/main/api-
 
 ### sessionTimeout
 
-> **sessionTimeout**: `number`
+> **sessionTimeout**: `string` \| `number`
 
 Defined in: [index.d.ts:223](https://github.com/mostafa/xk6-kafka/blob/main/api-docs/v2/index.d.ts#L223)
 

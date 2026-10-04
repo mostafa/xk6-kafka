@@ -253,7 +253,7 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if writerConfig.BatchTimeout > 0 {
+	if writerConfig.BatchTimeout.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"linger.ms",
@@ -262,7 +262,7 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if writerConfig.WriteTimeout > 0 {
+	if writerConfig.WriteTimeout.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"message.timeout.ms",
@@ -271,7 +271,7 @@ func writerConfigToConfluentConfigMap(writerConfig *WriterConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if writerConfig.ReadTimeout > 0 {
+	if writerConfig.ReadTimeout.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"socket.timeout.ms",
@@ -394,7 +394,7 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if readerConfig.SessionTimeout > 0 {
+	if readerConfig.SessionTimeout.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"session.timeout.ms",
@@ -403,7 +403,7 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if readerConfig.RebalanceTimeout > 0 {
+	if readerConfig.RebalanceTimeout.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"rebalance.timeout.ms",
@@ -412,7 +412,7 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if readerConfig.HeartbeatInterval > 0 {
+	if readerConfig.HeartbeatInterval.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"heartbeat.interval.ms",
@@ -421,7 +421,7 @@ func readerConfigToConfluentConfigMap(readerConfig *ReaderConfig) (ckafka.Config
 			return nil, err
 		}
 	}
-	if readerConfig.CommitInterval > 0 {
+	if readerConfig.CommitInterval.Duration > 0 {
 		if err := setConfluentConfigValue(
 			config,
 			"auto.commit.interval.ms",
